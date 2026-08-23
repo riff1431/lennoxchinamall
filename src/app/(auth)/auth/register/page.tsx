@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, Mail, Lock, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { User, Mail, Lock, ArrowRight, ShieldCheck, Check } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,88 +18,90 @@ export default function RegisterPage() {
     setTimeout(() => {
       setIsLoading(false);
       router.push("/account/profile");
-    }, 1200);
+    }, 1000);
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+    <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 font-montserrat">
       <div className="space-y-1">
-        <h1 className="text-xl font-black text-white">Create Sourcing Account</h1>
+        <h1 className="text-xl sm:text-2xl font-black text-white">Create Sourcing Account</h1>
         <p className="text-xs text-slate-400">
-          Get direct access to wholesale China products, USDT checkout, and order tracking.
+          Get direct access to wholesale China products, USDT checkout, and real-time air cargo tracking.
         </p>
       </div>
 
       <form onSubmit={handleRegister} className="space-y-4 text-xs">
-        <div>
-          <label className="font-bold text-slate-300 block mb-1">Full Name</label>
+        <div className="space-y-1">
+          <label className="font-bold text-slate-300 block">Full Name</label>
           <div className="relative">
-            <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               required
-              placeholder="John Doe"
+              placeholder="Alex Harrison"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1028]"
             />
           </div>
         </div>
 
-        <div>
-          <label className="font-bold text-slate-300 block mb-1">
-            Email Address
-          </label>
+        <div className="space-y-1">
+          <label className="font-bold text-slate-300 block">Email Address</label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="email"
               required
-              placeholder="you@example.com"
+              placeholder="alex@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1028]"
             />
           </div>
         </div>
 
-        <div>
-          <label className="font-bold text-slate-300 block mb-1">
-            Create Password
-          </label>
+        <div className="space-y-1">
+          <label className="font-bold text-slate-300 block">Create Password</label>
           <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="password"
               required
               placeholder="Minimum 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
+              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1028]"
             />
           </div>
         </div>
 
-        <Button
+        <button
           type="submit"
-          variant="deal"
-          size="lg"
-          isLoading={isLoading}
-          className="w-full mt-2"
-          rightIcon={<ArrowRight className="w-4 h-4" />}
+          disabled={isLoading}
+          className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-md disabled:opacity-50"
         >
-          Create Free Account
-        </Button>
+          {isLoading ? (
+            <span>Creating Account...</span>
+          ) : (
+            <>
+              <span>Join Lennox ChinaMall Free</span>
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </button>
+
+        <div className="pt-2 text-center text-xs text-slate-400">
+          Already have an account?{" "}
+          <Link href="/auth/login" className="text-white hover:text-[#FF1028] font-bold">
+            Sign In
+          </Link>
+        </div>
       </form>
 
-      <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-800">
-        Already have an account?{" "}
-        <Link
-          href="/auth/login"
-          className="text-orange-400 font-bold hover:underline"
-        >
-          Sign In
-        </Link>
+      <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center gap-2.5 text-[11px] text-slate-400">
+        <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
+        <span>By signing up, you agree to Lennox ChinaMall&apos;s Sourcing & Delivery Terms.</span>
       </div>
     </div>
   );
