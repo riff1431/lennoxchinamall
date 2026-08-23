@@ -366,7 +366,7 @@ export default function SearchPage({
   );
 
   return (
-    <div className="space-y-8 pb-20 font-montserrat">
+    <div className="space-y-8 pb-20">
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },

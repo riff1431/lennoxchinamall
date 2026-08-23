@@ -378,7 +378,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   );
 
   return (
-    <div className="space-y-8 pb-20 font-montserrat">
+    <div className="space-y-8 pb-20">
       {/* ── 1. Breadcrumbs ── */}
       <Breadcrumbs
         items={[

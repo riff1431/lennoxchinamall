@@ -1,8 +1,41 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageCircle, Plus, Clock, CheckCircle2, Send, Headphones, ShieldCheck, X } from "lucide-react";
+import {
+  MessageCircle,
+  Plus,
+  Clock,
+  CheckCircle2,
+  Send,
+  Headphones,
+  ShieldCheck,
+  X,
+  HelpCircle,
+  ChevronDown,
+  Coins,
+  Plane,
+  Sparkles,
+} from "lucide-react";
 import { formatDate } from "@/utils/helpers";
+
+const FAQS = [
+  {
+    q: "How fast is direct China Air Cargo delivery to my doorstep?",
+    a: "All orders are dispatched directly from our Shenzhen or Ningbo hubs via tracked international air express (YunExpress, DHL, 4PX, FedEx). Standard transit time is 7-12 business days with full door-to-door tracking.",
+  },
+  {
+    q: "How does Binance Pay USDT settlement protect my purchase?",
+    a: "Binance Pay settlements are held in single-vendor escrow until factory QC inspection passes. In the rare event of transit damage or inventory stockout, a direct 100% USDT refund is credited directly to your crypto wallet within 24 hours.",
+  },
+  {
+    q: "Are import duties and customs taxes included in the price?",
+    a: "Yes! All prices listed on Lennox ChinaMall include DDP (Delivered Duty Paid) clearance for supported countries. You will not receive surprise customs bills upon delivery.",
+  },
+  {
+    q: "How do I claim the 30-day warranty or return a defective item?",
+    a: "Visit the Returns & Claims section in your account, enter your order number, and attach photos or videos of the defect. Our Shenzhen engineering team reviews claims within 1 business day.",
+  },
+];
 
 export default function SupportTicketsPage() {
   const [tickets, setTickets] = useState([
@@ -34,6 +67,8 @@ export default function SupportTicketsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [activeTicketId, setActiveTicketId] = useState<string | null>("tick-1");
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(0);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +91,8 @@ export default function SupportTicketsPage() {
     setNewSubject("");
     setNewMsg("");
     setShowCreate(false);
+    setToastMsg(`Support Ticket #${newTicket.id} created! A sourcing engineer is assigned.`);
+    setTimeout(() => setToastMsg(null), 4000);
   };
 
   const handleReply = (ticketId: string) => {
@@ -79,25 +116,72 @@ export default function SupportTicketsPage() {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6 font-montserrat">
+    <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-8 font-sans">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#00143D] flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black text-[#00143D] flex items-center gap-2 font-heading">
             <Headphones className="w-6 h-6 text-[#FF1028]" />
             <span>24/7 Sourcing Support Desk</span>
           </h1>
-          <p className="text-xs text-slate-500 font-semibold mt-0.5">
-            Direct communication with Lennox procurement engineers and air cargo logistics coordinators.
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Direct communication with Lennox procurement engineers and air cargo logistics coordinators in Shenzhen.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2.5 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
+          className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2.5 rounded-xl text-xs font-black font-heading transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Open New Ticket</span>
         </button>
+      </div>
+
+      {toastMsg && (
+        <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-2xl text-xs font-black shadow-md flex items-center justify-between animate-in fade-in">
+          <span>✓ {toastMsg}</span>
+          <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
+        </div>
+      )}
+
+      {/* Sourcing SLA Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="font-heading text-xs font-black text-slate-900 block">
+              &lt; 1 Hour Response
+            </span>
+            <span className="text-[11px] text-slate-500">24/7 Shenzhen Hub Desk</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-[#10B981] flex items-center justify-center shrink-0">
+            <Coins className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="font-heading text-xs font-black text-slate-900 block">
+              Direct USDT Escrow
+            </span>
+            <span className="text-[11px] text-slate-500">Instant Refund Protection</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <span className="font-heading text-xs font-black text-slate-900 block">
+              Factory QA Support
+            </span>
+            <span className="text-[11px] text-slate-500">Hardware Engineers on Call</span>
+          </div>
+        </div>
       </div>
 
       {/* New Ticket Drawer/Form */}
@@ -107,7 +191,7 @@ export default function SupportTicketsPage() {
           className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 text-xs animate-in fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-            <span className="font-black text-[#00143D] uppercase">Create Support Ticket</span>
+            <span className="font-black text-[#00143D] uppercase font-heading">Create Support Ticket</span>
             <button
               type="button"
               onClick={() => setShowCreate(false)}
@@ -158,14 +242,14 @@ export default function SupportTicketsPage() {
           <div className="flex gap-2">
             <button
               type="submit"
-              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black transition-colors"
+              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black font-heading transition-colors"
             >
               Submit Ticket
             </button>
             <button
               type="button"
               onClick={() => setShowCreate(false)}
-              className="bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold"
+              className="bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold font-heading"
             >
               Cancel
             </button>
@@ -173,8 +257,12 @@ export default function SupportTicketsPage() {
         </form>
       )}
 
-      {/* Tickets Accordion List */}
+      {/* Tickets List */}
       <div className="space-y-4">
+        <h3 className="font-heading text-sm font-black text-slate-900 uppercase tracking-wider">
+          Active Support Conversations ({tickets.length})
+        </h3>
+
         {tickets.map((t) => (
           <div
             key={t.id}
@@ -182,7 +270,7 @@ export default function SupportTicketsPage() {
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 text-xs">
               <div className="space-y-0.5">
-                <span className="font-black text-[#00143D] text-sm block">
+                <span className="font-black text-[#00143D] text-sm block font-heading">
                   {t.subject}
                 </span>
                 <span className="text-slate-400 font-semibold">
@@ -190,7 +278,7 @@ export default function SupportTicketsPage() {
                 </span>
               </div>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase self-start sm:self-auto ${
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase self-start sm:self-auto font-heading ${
                   t.status === "resolved"
                     ? "bg-emerald-50 text-[#10B981] border border-emerald-200"
                     : "bg-blue-50 text-blue-700 border border-blue-200"
@@ -212,7 +300,7 @@ export default function SupportTicketsPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span>{m.sender}</span>
+                    <span className="font-heading">{m.sender}</span>
                     <span
                       className={
                         m.sender === "Alex Harrison"
@@ -246,7 +334,7 @@ export default function SupportTicketsPage() {
               <button
                 type="button"
                 onClick={() => handleReply(t.id)}
-                className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2 rounded-xl text-xs font-black transition-colors flex items-center gap-1"
+                className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2 rounded-xl text-xs font-black font-heading transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Reply</span>
@@ -254,6 +342,41 @@ export default function SupportTicketsPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Frequently Asked Questions Accordion */}
+      <div className="pt-4 border-t border-slate-100 space-y-4">
+        <h3 className="font-heading text-sm font-black text-slate-900 flex items-center gap-2">
+          <HelpCircle className="w-4 h-4 text-[#FF1028]" />
+          <span>Frequently Asked Sourcing & Delivery Questions</span>
+        </h3>
+
+        <div className="space-y-2">
+          {FAQS.map((faq, idx) => (
+            <div
+              key={idx}
+              className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50"
+            >
+              <button
+                onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
+                className="w-full p-4 text-left flex items-center justify-between text-xs font-bold text-slate-800 hover:text-[#00143D] transition-colors"
+              >
+                <span className="font-heading">{faq.q}</span>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 transition-transform ${
+                    expandedFaq === idx ? "rotate-180 text-[#FF1028]" : ""
+                  }`}
+                />
+              </button>
+
+              {expandedFaq === idx && (
+                <div className="px-4 pb-4 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-2 animate-in fade-in">
+                  {faq.a}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

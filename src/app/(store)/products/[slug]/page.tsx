@@ -169,7 +169,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
   ).slice(0, 4);
 
   return (
-    <div className="space-y-12 pb-24 font-montserrat">
+    <div className="space-y-12 pb-24">
       {/* ── 1. Breadcrumbs ── */}
       <Breadcrumbs
         items={[

@@ -67,19 +67,19 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="py-20 text-center space-y-5 max-w-md mx-auto font-montserrat">
+      <div className="py-20 text-center space-y-5 max-w-md mx-auto">
         <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400 shadow-xs">
           <ShoppingBag className="w-10 h-10" />
         </div>
         <div className="space-y-1.5">
-          <h1 className="text-2xl font-black text-[#00143D]">Your Cart is Empty</h1>
+          <h1 className="text-2xl font-black text-[#00143D] font-heading">Your Cart is Empty</h1>
           <p className="text-xs text-slate-500">
             Explore 100,000+ factory-direct China hardware products with zero Binance Pay USDT gateway fees.
           </p>
         </div>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3 rounded-xl text-xs font-black transition-all shadow-md"
+          className="inline-flex items-center gap-2 bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3 rounded-xl text-xs font-black font-heading transition-all shadow-md"
         >
           <Zap className="w-4 h-4" />
           <span>Explore Sourcing Deals</span>
@@ -89,7 +89,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="space-y-8 pb-20 font-montserrat">
+    <div className="space-y-8 pb-20">
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },
