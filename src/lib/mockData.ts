@@ -699,3 +699,128 @@ export const MOCK_ORDERS: Order[] = [
     updated_at: new Date().toISOString()
   }
 ];
+
+export interface PromotionCampaign {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge: string;
+  ctaText: string;
+  ctaLink: string;
+  discountBadge: string;
+  bgGradient: string;
+  imageUrl: string;
+  is_active: boolean;
+  position: number;
+  ends_at: string;
+}
+
+export const MOCK_BANNERS: PromotionCampaign[] = [
+  {
+    id: "camp-1",
+    title: "Shenzhen Precision Robotics & 4K GPS Drones",
+    subtitle: "Direct Factory Pricing with Zero-Fee Binance Pay USDT Settlement & 7-12 Days Air Cargo",
+    badge: "FACTORY SOURCING DROP",
+    ctaText: "Source Now with USDT",
+    ctaLink: "/categories/rc-drones-toys",
+    discountBadge: "UP TO 50% OFF",
+    bgGradient: "from-[#00143D] via-[#002266] to-[#00143D]",
+    imageUrl: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80",
+    is_active: true,
+    position: 1,
+    ends_at: new Date(Date.now() + 1000 * 60 * 60 * 48).toISOString(),
+  },
+  {
+    id: "camp-2",
+    title: "High-Speed CoreXY 3D Printers & Industrial Lasers",
+    subtitle: "600mm/s Creality, Two Trees & Kingroon Official Sourced Hardware Tested in Shenzhen Labs",
+    badge: "MAKER & INDUSTRIAL",
+    ctaText: "Explore 3D Printers",
+    ctaLink: "/categories/tools-diy-hardware",
+    discountBadge: "SAVE $120 USDT",
+    bgGradient: "from-slate-900 via-indigo-950 to-[#00143D]",
+    imageUrl: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80",
+    is_active: true,
+    position: 2,
+    ends_at: new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString(),
+  },
+  {
+    id: "camp-3",
+    title: "Direct Auto Diagnostic & Smart Mobility Hub",
+    subtitle: "Bidirectional OBD2 scanners, 4K dashcams & portable jump starters with DDP tax-free shipping",
+    badge: "AUTOMOTIVE DROP",
+    ctaText: "Shop Auto Hardware",
+    ctaLink: "/categories/automotive-e-mobility",
+    discountBadge: "FLASH DROP -40%",
+    bgGradient: "from-[#00143D] via-blue-950 to-slate-950",
+    imageUrl: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=800&auto=format&fit=crop&q=80",
+    is_active: true,
+    position: 3,
+    ends_at: new Date(Date.now() + 1000 * 60 * 60 * 96).toISOString(),
+  },
+];
+
+export interface PromotionCoupon {
+  id: string;
+  code: string;
+  discountType: "percentage" | "fixed_amount" | "free_shipping";
+  value: number; // 10 (%) or 5 ($)
+  minSpend: number;
+  maxUses: number;
+  usageCount: number;
+  description: string;
+  expiresAt: string;
+  isActive: boolean;
+}
+
+export const MOCK_COUPONS: PromotionCoupon[] = [
+  {
+    id: "coup-1",
+    code: "LENNOX10",
+    discountType: "percentage",
+    value: 10,
+    minSpend: 50,
+    maxUses: 1000,
+    usageCount: 428,
+    description: "10% off on all direct factory electronics and drone hardware",
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
+    isActive: true,
+  },
+  {
+    id: "coup-2",
+    code: "USDT5",
+    discountType: "fixed_amount",
+    value: 5,
+    minSpend: 40,
+    maxUses: 2000,
+    usageCount: 1184,
+    description: "$5 USDT instant discount on Binance Pay settlement",
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 60).toISOString(),
+    isActive: true,
+  },
+  {
+    id: "coup-3",
+    code: "VIP20",
+    discountType: "percentage",
+    value: 20,
+    minSpend: 150,
+    maxUses: 200,
+    usageCount: 65,
+    description: "Exclusive 20% discount for VIP tier hardware buyers",
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString(),
+    isActive: true,
+  },
+  {
+    id: "coup-4",
+    code: "AIRFREE",
+    discountType: "free_shipping",
+    value: 0,
+    minSpend: 80,
+    maxUses: 500,
+    usageCount: 290,
+    description: "100% Free YunExpress Priority Air Express shipping",
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 45).toISOString(),
+    isActive: true,
+  },
+];
+
