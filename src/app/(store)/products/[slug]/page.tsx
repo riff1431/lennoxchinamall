@@ -33,7 +33,7 @@ import {
   Maximize2,
   Factory,
 } from "lucide-react";
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mockData";
+import { MOCK_PRODUCTS, MOCK_CATEGORIES, getCachedProductBySlug } from "@/lib/mockData";
 import { DualVideoModule } from "@/components/product/DualVideoModule";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Rating } from "@/components/ui/Rating";
@@ -54,13 +54,9 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
 
-  // Resilient slug lookup matching exact slug, partial slug, or domain keyword
+  // Fast cached slug lookup
   const product =
-    MOCK_PRODUCTS.find((p) => p.slug === slug) ||
-    MOCK_PRODUCTS.find((p) => p.slug.includes(slug) || slug.includes(p.slug)) ||
-    (slug.includes("drone") ? MOCK_PRODUCTS.find((p) => p.slug.includes("drone")) : null) ||
-    (slug.includes("printer") ? MOCK_PRODUCTS.find((p) => p.slug.includes("printer")) : null) ||
-    (slug.includes("speaker") ? MOCK_PRODUCTS.find((p) => p.slug.includes("speaker")) : null) ||
+    getCachedProductBySlug(slug) ||
     MOCK_PRODUCTS[0];
 
   if (!product) {

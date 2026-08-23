@@ -824,3 +824,36 @@ export const MOCK_COUPONS: PromotionCoupon[] = [
   },
 ];
 
+// ─── High-Performance Memoized Data Access Layer ─────────────────────────────
+
+const PRODUCT_SLUG_MAP = new Map<string, Product>();
+const PRODUCT_ID_MAP = new Map<string, Product>();
+const CATEGORY_SLUG_MAP = new Map<string, typeof MOCK_CATEGORIES[0]>();
+
+// Pre-index collections
+MOCK_PRODUCTS.forEach((p) => {
+  PRODUCT_SLUG_MAP.set(p.slug, p);
+  PRODUCT_ID_MAP.set(p.id, p);
+});
+
+MOCK_CATEGORIES.forEach((c) => {
+  CATEGORY_SLUG_MAP.set(c.slug, c);
+});
+
+export function getCachedProductBySlug(slug: string): Product | undefined {
+  if (PRODUCT_SLUG_MAP.has(slug)) return PRODUCT_SLUG_MAP.get(slug);
+  return MOCK_PRODUCTS.find((p) => p.slug.includes(slug) || slug.includes(p.slug));
+}
+
+export function getCachedProductById(id: string): Product | undefined {
+  return PRODUCT_ID_MAP.get(id);
+}
+
+export function getCachedCategoryBySlug(slug: string) {
+  return CATEGORY_SLUG_MAP.get(slug);
+}
+
+export function getCachedFlashDeals(limit = 6): Product[] {
+  return MOCK_PRODUCTS.filter((p) => p.is_flash_deal).slice(0, limit);
+}
+
