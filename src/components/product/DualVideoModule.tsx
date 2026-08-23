@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Play, Film, ExternalLink, Video as VideoIcon, Sparkles, ShieldCheck } from "lucide-react";
 import { ProductVideo } from "@/types/database";
-import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 
 interface DualVideoModuleProps {
@@ -20,7 +19,7 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
   if (!videos || videos.length === 0) return null;
 
   return (
-    <div className="bg-[#00143D] rounded-3xl p-5 border border-blue-950 text-white shadow-xl font-montserrat">
+    <div className="bg-[#00143D] rounded-3xl p-5 border border-blue-950 text-white shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#002366]">
         <div className="flex items-center gap-2.5">
@@ -28,7 +27,7 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
             <Film className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-xs font-black tracking-wide uppercase text-white">
+            <h4 className="font-heading text-xs font-black tracking-wide uppercase text-white">
               Factory Video Demonstrations
             </h4>
             <span className="text-[10px] text-slate-300 font-medium">
@@ -36,7 +35,7 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
             </span>
           </div>
         </div>
-        <span className="bg-[#FF1028] text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+        <span className="bg-[#FF1028] text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider font-heading">
           {videos.length} Direct Videos
         </span>
       </div>
@@ -70,7 +69,7 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
 
               {/* Slot Badge */}
               <div className="absolute top-2.5 left-2.5 z-20">
-                <span className="bg-[#00143D]/90 backdrop-blur-md text-[10px] font-black text-amber-300 px-2 py-0.5 rounded-md border border-amber-300/30 flex items-center gap-1">
+                <span className="bg-[#00143D]/90 backdrop-blur-md text-[10px] font-black text-amber-300 px-2 py-0.5 rounded-md border border-amber-300/30 flex items-center gap-1 font-heading uppercase tracking-wide">
                   <VideoIcon className="w-3 h-3 text-[#FF1028]" />
                   <span>SLOT {video.position || idx + 1}: {idx === 0 ? "QUALITY TEST" : "FLIGHT DEMO"}</span>
                 </span>
@@ -91,7 +90,7 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
       </div>
 
       {/* Trust Notice */}
-      <div className="mt-4 pt-3 border-t border-[#002366] text-[10px] text-slate-300 flex items-center gap-1.5 font-semibold">
+      <div className="mt-4 pt-3 border-t border-[#002366] text-[10px] text-slate-300 flex items-center gap-1.5 font-medium">
         <ShieldCheck className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
         <span>Videos verified directly by Lennox Quality Inspection Team</span>
       </div>

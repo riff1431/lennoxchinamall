@@ -138,7 +138,7 @@ export default function StoreHomePage() {
   const activeSlide = HERO_SLIDES[currentSlide];
 
   return (
-    <div className="space-y-12 pb-16 font-montserrat">
+    <div className="space-y-12 pb-16">
       {/* ── 1. Banggood-Style Multi-Zone Hero Section ── */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         {/* Left Column: Category Directory (3 Cols on Desktop) */}

@@ -71,13 +71,13 @@ export function CartDrawer() {
       isOpen={isOpen}
       onClose={closeCart}
       title={
-        <div className="flex items-center gap-2.5 font-montserrat">
+        <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#FF1028]/15 text-[#FF1028] flex items-center justify-center">
             <ShoppingBag className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-black text-[#00143D]">Your Sourcing Cart</h3>
-            <span className="text-[10px] text-slate-400 font-semibold block">
+            <h3 className="text-sm font-black text-[#00143D] font-heading">Your Sourcing Cart</h3>
+            <span className="text-[10px] text-slate-400 font-medium block">
               {items.length} unique hardware item{items.length !== 1 ? "s" : ""}
             </span>
           </div>
@@ -86,7 +86,7 @@ export function CartDrawer() {
       size="md"
       footer={
         items.length > 0 ? (
-          <div className="flex flex-col gap-3.5 w-full font-montserrat">
+          <div className="flex flex-col gap-3.5 w-full">
             {/* Automatic Price Calculations */}
             <div className="space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
               <div className="flex justify-between text-slate-600 font-semibold">
@@ -142,12 +142,12 @@ export function CartDrawer() {
       }
     >
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 font-montserrat">
+        <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
             <ShoppingBag className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h4 className="text-base font-black text-[#00143D]">Your Cart is Empty</h4>
+            <h4 className="text-base font-black text-[#00143D] font-heading">Your Cart is Empty</h4>
             <p className="text-xs text-slate-500 max-w-xs">
               Explore 100,000+ factory-direct China hardware products with USDT checkout.
             </p>
@@ -156,13 +156,13 @@ export function CartDrawer() {
             variant="deal"
             size="md"
             onClick={closeCart}
-            className="mt-2 font-black"
+            className="mt-2 font-black font-heading"
           >
             Start Sourcing Deals
           </Button>
         </div>
       ) : (
-        <div className="space-y-4 font-montserrat">
+        <div className="space-y-4">
           {/* Free Shipping Progress Bar */}
           <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-1.5">
             <div className="flex items-center justify-between text-xs font-bold">

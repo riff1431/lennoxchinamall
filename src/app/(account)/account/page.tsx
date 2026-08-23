@@ -56,7 +56,7 @@ export default function AccountDashboardPage() {
   const recentlyViewed = MOCK_PRODUCTS.slice(0, 4);
 
   return (
-    <div className="space-y-8 font-montserrat">
+    <div className="space-y-8">
       {/* ── 1. Top Welcome & VIP Buyer Hero ── */}
       <div className="bg-gradient-to-r from-[#00143D] to-[#002366] text-white rounded-3xl p-6 sm:p-8 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">

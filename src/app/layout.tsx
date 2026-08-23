@@ -1,11 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Montserrat } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const montserrat = Montserrat({
+// Heading & Display Font: Plus Jakarta Sans (Modern Geometric, High-End Luxury E-Commerce)
+const fontHeading = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-montserrat",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-heading",
+  display: "swap",
+});
+
+// Body & UI Font: Inter (Crisp, High-Density Readability)
+const fontSans = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+// Monospace & Crypto Font: JetBrains Mono (Order IDs, Hashes, Prepay IDs, Secret Supplier Codes)
+const fontMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -34,8 +51,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${montserrat.variable} h-full`}>
-      <body className="font-montserrat antialiased min-h-full bg-[#F5F7FA] text-[#333333] selection:bg-[#FF1028] selection:text-white">
+    <html
+      lang="en"
+      className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+    >
+      <body className="font-sans text-slate-800 bg-[#F8FAFC] min-h-full antialiased selection:bg-[#FF1028] selection:text-white">
         {children}
       </body>
     </html>

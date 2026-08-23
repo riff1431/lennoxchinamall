@@ -126,23 +126,30 @@ export default function CheckoutPage() {
 
   if (items.length === 0 && !createdOrderNumber) {
     return (
-      <div className="py-20 text-center space-y-4 max-w-md mx-auto font-montserrat">
-        <h2 className="text-xl font-black text-[#00143D]">No Items in Checkout</h2>
-        <p className="text-xs text-slate-500">
-          Your cart is currently empty. Please add items to your cart before proceeding to checkout.
-        </p>
+      <div className="py-20 text-center space-y-4 max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+          <PackageCheck className="w-8 h-8" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-xl font-black text-[#00143D] font-heading">
+            Your Cart is Empty
+          </h2>
+          <p className="text-xs text-slate-500">
+            Please add items to your cart before proceeding to checkout.
+          </p>
+        </div>
         <Link
           href="/"
-          className="inline-block bg-[#FF1028] text-white px-6 py-3 rounded-xl text-xs font-black"
+          className="inline-block bg-[#00143D] hover:bg-[#002366] text-white py-2.5 px-6 rounded-xl text-xs font-black font-heading transition-colors"
         >
-          Browse Catalogue
+          Return to Storefront
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-20 font-montserrat">
+    <div className="space-y-8 pb-20">
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },
@@ -565,7 +572,7 @@ export default function CheckoutPage() {
         title="Binance Pay USDT Prepay Gateway"
         size="md"
       >
-        <div className="p-4 sm:p-6 space-y-6 font-montserrat">
+        <div className="p-4 sm:p-6 space-y-6">
           {/* Header Status Bar */}
           <div className="text-center space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-xs font-bold">
