@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 
@@ -8,6 +8,13 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#00143D",
+};
 
 export const metadata: Metadata = {
   title: {

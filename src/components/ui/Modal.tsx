@@ -40,46 +40,47 @@ export function Modal({
   if (!isOpen) return null;
 
   const sizeClasses = {
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-2xl",
-    "2xl": "max-w-4xl",
+    sm: "sm:max-w-sm",
+    md: "sm:max-w-md",
+    lg: "sm:max-w-lg",
+    xl: "sm:max-w-2xl",
+    "2xl": "sm:max-w-4xl",
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+    <div className="fixed inset-0 z-50 overflow-y-auto font-montserrat">
+      <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4 text-center">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in"
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity animate-in fade-in"
           onClick={onClose}
         />
 
-        {/* Modal Panel */}
+        {/* Modal Panel (Bottom sheet on mobile, centered card on desktop) */}
         <div
           className={cn(
-            "relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 w-full border border-slate-100 animate-in zoom-in-95 duration-200",
+            "relative transform overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white text-left shadow-2xl transition-all w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200",
             sizeClasses[size],
             className
           )}
         >
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <div className="text-lg font-bold text-slate-900">{title}</div>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/80 shrink-0">
+              <div className="text-sm sm:text-base font-black text-slate-900 line-clamp-1">{title}</div>
               <button
                 onClick={onClose}
-                className="p-1.5 -mr-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+                className="w-10 h-10 -mr-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           )}
 
-          <div className="p-6">{children}</div>
+          <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain">{children}</div>
 
           {footer && (
-            <div className="border-t border-slate-100 px-6 py-4 bg-slate-50 flex items-center justify-end gap-3">
+            <div className="border-t border-slate-100 px-5 py-3.5 bg-slate-50 flex items-center justify-end gap-3 shrink-0 pb-safe">
               {footer}
             </div>
           )}
