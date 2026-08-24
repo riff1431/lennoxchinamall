@@ -22,6 +22,7 @@ import {
 import { MOCK_ORDERS } from "@/lib/mockData";
 import { formatCurrency, formatDate } from "@/utils/helpers";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { CourierLogo } from "@/components/checkout/CourierLogo";
 
 export default function AccountOrdersPage() {
   const [copiedTracking, setCopiedTracking] = useState<string | null>(null);
@@ -172,6 +173,7 @@ export default function AccountOrdersPage() {
               {/* Tracking Bar & Actions */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2">
+                  <CourierLogo courier="yunexpress" size="sm" className="w-5 h-5 rounded-md" />
                   <span className="text-slate-500 font-semibold">YunExpress Tracking:</span>
                   <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
                     YUN-982741920-US

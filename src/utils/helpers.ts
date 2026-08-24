@@ -168,8 +168,22 @@ export function getInitials(name: string): string {
 }
 
 /**
- * Generate a random session ID for guest carts
+ * Format timestamp as relative time (e.g. "2m ago", "3h ago", "2d ago")
  */
-export function generateSessionId(): string {
-  return `sess_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 10)}`;
+export function formatTimeAgo(dateStr: string | number | Date): string {
+  const date = new Date(dateStr);
+  const now = Date.now();
+  const diffSec = Math.floor((now - date.getTime()) / 1000);
+
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}h ago`;
+  const diffDays = Math.floor(diffHour / 24);
+  if (diffDays < 30) return `${diffDays}d ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `${diffMonths}mo ago`;
+  return formatDate(date.toISOString());
 }
+

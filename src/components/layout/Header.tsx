@@ -45,6 +45,7 @@ import { formatCurrency } from "@/utils/helpers";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { isAdminRole, ROLE_LABELS } from "@/lib/auth/roles";
 import { signout } from "@/app/actions/auth";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 const HOT_SEARCH_TAGS = [
   "4K Drones",
@@ -595,6 +596,9 @@ export function Header() {
                   </span>
                 )}
               </Link>
+
+              {/* Notification Bell */}
+              <NotificationBell variant="storefront" />
 
               {/* Account Dropdown Menu */}
               <div className="relative" ref={accountMenuRef}>

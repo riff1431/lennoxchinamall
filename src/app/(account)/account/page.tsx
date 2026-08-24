@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -22,37 +22,51 @@ import {
   Zap,
 } from "lucide-react";
 import { MOCK_ORDERS, MOCK_PRODUCTS } from "@/lib/mockData";
-import { formatCurrency } from "@/utils/helpers";
+import { formatCurrency, formatTimeAgo } from "@/utils/helpers";
 import { ProductCard } from "@/components/product/ProductCard";
 import { useAuth } from "@/components/providers/AuthProvider";
-
-const NOTIFICATIONS = [
-  {
-    id: "notif-1",
-    title: "Air Cargo In Transit: Order #LCM-20260823-7492",
-    desc: "Your 4K GPS Drone parcel has cleared Shenzhen customs and is en route via YunExpress Air Freight.",
-    time: "2 hours ago",
-    unread: true,
-  },
-  {
-    id: "notif-2",
-    title: "VIP Voucher Activated: LENNOX10",
-    desc: "10% discount on all factory-direct 3D printers and tools available for your next order.",
-    time: "1 day ago",
-    unread: false,
-  },
-  {
-    id: "notif-3",
-    title: "Payment Confirmed via Binance Pay",
-    desc: "USDT settlement for Order #LCM-20260823-7492 verified on BSC with zero network fees.",
-    time: "2 days ago",
-    unread: false,
-  },
-];
+import { getUserNotifications } from "@/app/actions/notifications";
+import { NotificationItem } from "@/types/notifications";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AccountDashboardPage() {
   const { user, displayName } = useAuth();
-  const [activeTab, setActiveTab] = useState<"orders" | "notifs">("orders");
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loadingNotifs, setLoadingNotifs] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    getUserNotifications({ limit: 4 })
+      .then((res) => {
+        if (isMounted && res.success && res.notifications) {
+          setNotifications(res.notifications);
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoadingNotifs(false);
+      });
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("account_feed_notifications")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        () => {
+          getUserNotifications({ limit: 4 }).then((res) => {
+            if (isMounted && res.success && res.notifications) {
+              setNotifications(res.notifications);
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const recentOrders = MOCK_ORDERS.slice(0, 2);
   const recentlyViewed = MOCK_PRODUCTS.slice(0, 4);
@@ -240,37 +254,64 @@ export default function AccountDashboardPage() {
 
       {/* ── 4. Notifications & Order Activity Feed ── */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 space-y-4">
-        <h2 className="text-base font-black text-[#00143D] flex items-center gap-2 pb-3 border-b border-slate-100">
-          <Bell className="w-5 h-5 text-[#FF1028]" />
-          <span>Sourcing Notifications & Order Updates</span>
-        </h2>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h2 className="text-base font-black text-[#00143D] flex items-center gap-2 font-heading">
+            <Bell className="w-5 h-5 text-[#FF1028]" />
+            <span>Sourcing Notifications & Order Updates</span>
+          </h2>
+          <Link
+            href="/account/notifications"
+            className="text-xs font-black text-[#FF1028] hover:underline flex items-center gap-1 font-heading uppercase"
+          >
+            <span>View All Inbox ({notifications.length})</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
 
         <div className="space-y-3">
-          {NOTIFICATIONS.map((notif) => (
-            <div
-              key={notif.id}
-              className={`p-4 rounded-2xl border transition-colors flex items-start justify-between gap-4 ${
-                notif.unread
-                  ? "bg-red-50/40 border-red-200"
-                  : "bg-slate-50 border-slate-100"
-              }`}
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-bold text-slate-900">{notif.title}</h4>
-                  {notif.unread && (
-                    <span className="bg-[#FF1028] text-white text-[9px] font-black px-1.5 py-0.2 rounded uppercase">
-                      NEW
-                    </span>
-                  )}
+          {loadingNotifs ? (
+            <div className="p-6 text-center text-xs text-slate-400">Loading notifications...</div>
+          ) : notifications.length === 0 ? (
+            <div className="p-6 text-center text-xs text-slate-400">No active notifications.</div>
+          ) : (
+            notifications.map((notif) => {
+              const isUnread = !notif.read_at;
+              return (
+                <div
+                  key={notif.id}
+                  className={`p-4 rounded-2xl border transition-colors flex items-start justify-between gap-4 ${
+                    isUnread
+                      ? "bg-red-50/30 border-red-200"
+                      : "bg-slate-50 border-slate-100"
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-slate-900">{notif.title}</h4>
+                      {isUnread && (
+                        <span className="bg-[#FF1028] text-white text-[9px] font-black px-1.5 py-0.2 rounded uppercase">
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">{notif.body}</p>
+                    {notif.action_url && (
+                      <Link
+                        href={notif.action_url}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF1028] hover:underline pt-0.5"
+                      >
+                        <span>{notif.action_label || "View Details"}</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-semibold shrink-0 font-mono">
+                    {formatTimeAgo(notif.created_at)}
+                  </span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">{notif.desc}</p>
-              </div>
-              <span className="text-[10px] text-slate-400 font-semibold shrink-0">
-                {notif.time}
-              </span>
-            </div>
-          ))}
+              );
+            })
+          )}
         </div>
       </div>
 

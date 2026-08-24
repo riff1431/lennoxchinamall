@@ -10,10 +10,12 @@ export interface ConfirmDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  description: string;
+  description?: string;
+  message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: "danger" | "warning" | "info" | "success";
+  tone?: "danger" | "warning" | "info" | "success" | string;
   isLoading?: boolean;
 }
 
@@ -23,11 +25,16 @@ export function ConfirmDialog({
   onConfirm,
   title,
   description,
+  message,
   confirmLabel = "Confirm Action",
   cancelLabel = "Cancel",
-  variant = "danger",
+  variant,
+  tone,
   isLoading = false,
 }: ConfirmDialogProps) {
+  const effectiveDescription = description || message || "";
+  const effectiveVariant: "danger" | "warning" | "info" | "success" =
+    variant || (tone === "warning" || tone === "info" || tone === "success" ? tone : "danger");
   const iconConfig = {
     danger: {
       Icon: Trash2,
@@ -49,7 +56,7 @@ export function ConfirmDialog({
       color: "text-[#16A34A] dark:text-emerald-400",
       bg: "bg-[#DCFCE7] dark:bg-emerald-950/60 border-[#BBF7D0]/60 dark:border-emerald-900/40",
     },
-  }[variant];
+  }[effectiveVariant];
 
   const Icon = iconConfig.Icon;
 
@@ -64,7 +71,7 @@ export function ConfirmDialog({
           </div>
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug font-heading">{title}</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{description}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{effectiveDescription}</p>
           </div>
         </div>
 

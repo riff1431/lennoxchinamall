@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   Star,
   ShieldCheck,
   CheckCircle2,
   ThumbsUp,
+  ThumbsDown,
   MessageSquare,
   Search,
   Filter,
@@ -25,24 +26,39 @@ import {
   User,
   Clock,
   ArrowRight,
+  Edit2,
+  Trash2,
+  Play,
+  RotateCcw,
+  UploadCloud,
+  CheckCircle,
 } from "lucide-react";
 import {
   ProductReview,
   ReviewRatingDistribution,
   ProductQuestion,
+  VerifiedPurchaseCheckResult,
 } from "@/types/reviews";
 import {
   getProductReviews,
   submitProductReview,
+  updateCustomerReview,
+  deleteCustomerReview,
   voteReviewHelpfulness,
   reportInappropriateReview,
+  checkVerifiedBuyerEligibility,
 } from "@/app/actions/product-reviews";
 import {
   getProductQuestions,
   askProductQuestion,
   voteQuestionHelpfulness,
+  reportInappropriateQuestion,
 } from "@/app/actions/product-qa";
+import { uploadReviewMedia } from "@/app/actions/review-media";
 import { Modal } from "@/components/ui/Modal";
+import { Rating } from "@/components/ui/Rating";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { formatDate, cn } from "@/utils/helpers";
 
 interface ProductReviewsAndQAProps {
   productId: string;
@@ -57,12 +73,14 @@ export function ProductReviewsAndQA({
   productImage,
   variants = [],
 }: ProductReviewsAndQAProps) {
+  const { user, displayName, isAuthenticated } = useAuth();
   const [activeMainTab, setActiveMainTab] = useState<"reviews" | "qa">("reviews");
 
   // Reviews Filter States
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [mediaOnly, setMediaOnly] = useState(false);
+  const [variantFilter, setVariantFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<"most_helpful" | "newest" | "highest_rating" | "lowest_rating">("most_helpful");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,26 +111,58 @@ export function ProductReviewsAndQA({
 
   // Modals
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
+  const [isEditReviewOpen, setIsEditReviewOpen] = useState(false);
+  const [reviewToEdit, setReviewToEdit] = useState<ProductReview | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [reviewToDeleteId, setReviewToDeleteId] = useState<string | null>(null);
   const [isAskQuestionOpen, setIsAskQuestionOpen] = useState(false);
-  const [selectedPhotoModal, setSelectedPhotoModal] = useState<string | null>(null);
+  const [activeMediaLightbox, setActiveMediaLightbox] = useState<{ url: string; type: "image" | "video" } | null>(null);
   const [reportModalReviewId, setReportModalReviewId] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState("Spam or Advertising");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reportQuestionModalId, setReportQuestionModalId] = useState<string | null>(null);
 
-  // New Review Form
+  // Eligibility
+  const [eligibility, setEligibility] = useState<VerifiedPurchaseCheckResult | null>(null);
+  const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
+
+  // New Review Form State
   const [formRating, setFormRating] = useState(5);
+  const [formHoverRating, setFormHoverRating] = useState(0);
   const [formTitle, setFormTitle] = useState("");
   const [formBody, setFormBody] = useState("");
   const [formVariantId, setFormVariantId] = useState(variants[0]?.id || "");
-  const [formMediaUrls, setFormMediaUrls] = useState<string[]>([]);
-  const [newMediaInput, setNewMediaInput] = useState("");
+  const [formMediaFiles, setFormMediaFiles] = useState<Array<{ url: string; type: "image" | "video" }>>([]);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [reviewSubmitStatus, setReviewSubmitStatus] = useState<{ success: boolean; message: string } | null>(null);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  // Edit Review Form State
+  const [editRating, setEditRating] = useState(5);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+  const [editMediaFiles, setEditMediaFiles] = useState<Array<{ url: string; type: "image" | "video" }>>([]);
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
   // New Question Form
   const [newQuestionText, setNewQuestionText] = useState("");
   const [newQuestionAuthor, setNewQuestionAuthor] = useState("");
   const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false);
   const [questionMsg, setQuestionMsg] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Local Vote Trackers (for instant UI response)
+  const [votedReviews, setVotedReviews] = useState<Record<string, "helpful" | "unhelpful">>({});
+  const [votedQuestions, setVotedQuestions] = useState<Record<string, boolean>>({});
+
+  // Toast
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch Reviews
   const fetchReviews = useCallback(async () => {
@@ -123,6 +173,7 @@ export function ProductReviewsAndQA({
       rating: ratingFilter,
       verifiedOnly,
       mediaOnly,
+      variantId: variantFilter || undefined,
       sortBy,
       page: currentPage,
       pageSize: 6,
@@ -134,7 +185,7 @@ export function ProductReviewsAndQA({
       setDistribution(res.distribution);
     }
     setIsLoadingReviews(false);
-  }, [productId, searchQuery, ratingFilter, verifiedOnly, mediaOnly, sortBy, currentPage]);
+  }, [productId, searchQuery, ratingFilter, verifiedOnly, mediaOnly, variantFilter, sortBy, currentPage]);
 
   // Fetch Q&A
   const fetchQuestions = useCallback(async () => {
@@ -156,50 +207,181 @@ export function ProductReviewsAndQA({
     }
   }, [activeMainTab, fetchQuestions]);
 
-  // Submit Review Handler
+  // Check Buyer Eligibility when opening "Write Review" modal
+  const handleOpenWriteReview = async () => {
+    setIsCheckingEligibility(true);
+    setIsWriteReviewOpen(true);
+    setReviewSubmitStatus(null);
+    try {
+      const elig = await checkVerifiedBuyerEligibility(productId);
+      setEligibility(elig);
+      if (elig.purchasedVariantId) {
+        setFormVariantId(elig.purchasedVariantId);
+      }
+    } catch {
+      setEligibility({ isEligible: true, isVerifiedBuyer: true, hasAlreadyReviewed: false });
+    }
+    setIsCheckingEligibility(false);
+  };
+
+  // Upload Media Files
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingMedia(true);
+    const uploadPromises = Array.from(files).map(async (file) => {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await uploadReviewMedia(fd);
+      if (res.success && res.url) {
+        return { url: res.url, type: res.type || "image" };
+      }
+      return null;
+    });
+
+    const results = await Promise.all(uploadPromises);
+    const valid = results.filter((r): r is { url: string; type: "image" | "video" } => r !== null);
+
+    if (isEdit) {
+      setEditMediaFiles((prev) => [...prev, ...valid]);
+    } else {
+      setFormMediaFiles((prev) => [...prev, ...valid]);
+    }
+    setIsUploadingMedia(false);
+  };
+
+  // Submit Review
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmittingReview(true);
-    setReviewSubmitStatus(null);
+    if (!formTitle.trim() || !formBody.trim()) {
+      setReviewSubmitStatus({ success: false, message: "Please enter a headline and your review comments." });
+      return;
+    }
 
-    const selectedVar = variants.find((v) => v.id === formVariantId);
+    setIsSubmittingReview(true);
+    const selectedVariant = variants.find((v) => v.id === formVariantId);
 
     const res = await submitProductReview({
       productId,
       rating: formRating,
       title: formTitle,
       body: formBody,
-      variantId: formVariantId,
-      variantName: selectedVar?.title || "Standard Model",
-      mediaUrls: formMediaUrls,
+      orderId: eligibility?.orderId,
+      variantId: formVariantId || undefined,
+      variantName: selectedVariant ? selectedVariant.title : undefined,
+      mediaUrls: formMediaFiles.map((m) => m.url),
     });
 
     setIsSubmittingReview(false);
-    setReviewSubmitStatus({ success: res.success, message: res.message });
 
     if (res.success) {
+      setReviewSubmitStatus({ success: true, message: res.message });
+      showToast("Thank you! Your verified review has been published.");
       setTimeout(() => {
         setIsWriteReviewOpen(false);
         setFormTitle("");
         setFormBody("");
-        setFormMediaUrls([]);
-        setReviewSubmitStatus(null);
+        setFormMediaFiles([]);
         fetchReviews();
-      }, 1500);
+      }, 1200);
+    } else {
+      setReviewSubmitStatus({ success: false, message: res.message });
     }
   };
 
-  // Submit Question Handler
-  const handleSubmitQuestion = async (e: React.FormEvent) => {
+  // Open Edit Review Modal
+  const handleOpenEditReview = (review: ProductReview) => {
+    setReviewToEdit(review);
+    setEditRating(review.rating);
+    setEditTitle(review.title);
+    setEditBody(review.body);
+    setEditMediaFiles((review.media || []).map((m) => ({ url: m.url, type: m.type })));
+    setIsEditReviewOpen(true);
+  };
+
+  // Submit Edit Review
+  const handleSubmitEditReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewToEdit) return;
+
+    setIsSubmittingEdit(true);
+    const res = await updateCustomerReview({
+      reviewId: reviewToEdit.id,
+      rating: editRating,
+      title: editTitle,
+      body: editBody,
+      mediaUrls: editMediaFiles.map((m) => m.url),
+    });
+    setIsSubmittingEdit(false);
+
+    if (res.success) {
+      showToast("Your review has been updated successfully.");
+      setIsEditReviewOpen(false);
+      fetchReviews();
+    } else {
+      showToast(res.message);
+    }
+  };
+
+  // Confirm Delete Review
+  const handleConfirmDelete = async () => {
+    if (!reviewToDeleteId) return;
+    const res = await deleteCustomerReview(reviewToDeleteId);
+    if (res.success) {
+      showToast("Your review has been removed.");
+      setIsDeleteConfirmOpen(false);
+      setReviewToDeleteId(null);
+      fetchReviews();
+    } else {
+      showToast(res.message);
+    }
+  };
+
+  // Helpful Voting
+  const handleVoteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
+    if (votedReviews[reviewId] === type) return;
+
+    // Optimistic UI update
+    setVotedReviews((prev) => ({ ...prev, [reviewId]: type }));
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r.id === reviewId) {
+          return {
+            ...r,
+            helpfulVotes: type === "helpful" ? r.helpfulVotes + 1 : r.helpfulVotes,
+            unhelpfulVotes: type === "unhelpful" ? r.unhelpfulVotes + 1 : r.unhelpfulVotes,
+          };
+        }
+        return r;
+      })
+    );
+
+    await voteReviewHelpfulness(reviewId, type);
+    showToast(`Feedback recorded as ${type}.`);
+  };
+
+  // Report Review
+  const handleReportReviewSubmit = async () => {
+    if (!reportModalReviewId) return;
+    await reportInappropriateReview(reportModalReviewId, reportReason, reportDetails);
+    showToast("Report submitted to Lennox Moderation Desk.");
+    setReportModalReviewId(null);
+    setReportDetails("");
+  };
+
+  // Ask Question
+  const handleAskQuestionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newQuestionText.trim()) return;
 
     setIsSubmittingQuestion(true);
     const res = await askProductQuestion(productId, newQuestionText, newQuestionAuthor);
     setIsSubmittingQuestion(false);
-    setQuestionMsg({ success: res.success, message: res.message });
 
     if (res.success) {
+      setQuestionMsg({ success: true, message: res.message });
+      showToast("Question posted! Factory support will respond shortly.");
       setTimeout(() => {
         setIsAskQuestionOpen(false);
         setNewQuestionText("");
@@ -207,520 +389,707 @@ export function ProductReviewsAndQA({
         setQuestionMsg(null);
         fetchQuestions();
       }, 1500);
+    } else {
+      setQuestionMsg({ success: false, message: res.message });
     }
   };
 
-  // Vote Review Helpfulness
-  const handleVoteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
-    await voteReviewHelpfulness(reviewId, type);
-    setReviews((prev) =>
-      prev.map((r) =>
-        r.id === reviewId
-          ? {
-              ...r,
-              helpfulVotes: type === "helpful" ? r.helpfulVotes + 1 : r.helpfulVotes,
-            }
-          : r
-      )
+  // Vote Question
+  const handleVoteQuestion = async (questionId: string) => {
+    if (votedQuestions[questionId]) return;
+    setVotedQuestions((prev) => ({ ...prev, [questionId]: true }));
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === questionId ? { ...q, helpfulVotes: q.helpfulVotes + 1 } : q))
     );
+    await voteQuestionHelpfulness(questionId);
+    showToast("Thank you for upvoting this question!");
   };
 
-  // Report Review
-  const handleReportReview = async () => {
-    if (!reportModalReviewId) return;
-    await reportInappropriateReview(reportModalReviewId, reportReason);
-    setReportModalReviewId(null);
+  // Report Question
+  const handleReportQuestionSubmit = async () => {
+    if (!reportQuestionModalId) return;
+    await reportInappropriateQuestion(reportQuestionModalId, "Inappropriate Content");
+    showToast("Question reported to Lennox Moderation Desk.");
+    setReportQuestionModalId(null);
   };
 
-  // Add Photo URL to Form
-  const handleAddMedia = () => {
-    if (newMediaInput.trim() && formMediaUrls.length < 4) {
-      setFormMediaUrls((prev) => [...prev, newMediaInput.trim()]);
-      setNewMediaInput("");
-    }
-  };
+  // Collect all customer media for the gallery preview strip
+  const allReviewMedia = reviews.flatMap((r) =>
+    (r.media || []).map((m) => ({ ...m, reviewId: r.id, reviewerName: r.userName }))
+  );
 
   return (
-    <div className="space-y-8 font-sans text-slate-900">
-      {/* ── Sub-Navigation Tabs: Reviews vs. Q&A ── */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-        <div className="flex items-center gap-4">
+    <div id="customer-reviews-section" className="space-y-8 font-montserrat">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#00143D] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 text-xs font-bold animate-in fade-in slide-in-from-bottom-5">
+          <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Main Tab Navigation: Customer Reviews vs Product Q&A */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-4 sm:gap-8">
           <button
             onClick={() => setActiveMainTab("reviews")}
-            className={`text-sm sm:text-base font-black font-heading transition-colors cursor-pointer flex items-center gap-2 ${
+            className={cn(
+              "pb-3 text-sm sm:text-base font-black flex items-center gap-2 transition-colors relative",
               activeMainTab === "reviews"
-                ? "text-[#FF1028] border-b-2 border-[#FF1028] pb-1"
-                : "text-slate-500 hover:text-slate-900"
-            }`}
+                ? "text-[#00143D]"
+                : "text-slate-400 hover:text-slate-600"
+            )}
           >
-            <Star className="w-4 h-4 fill-current" />
-            <span>Customer Reviews ({distribution.totalReviews})</span>
+            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+            <span>Verified Customer Reviews</span>
+            <span className="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold">
+              {distribution.totalReviews}
+            </span>
+            {activeMainTab === "reviews" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF1028]" />
+            )}
           </button>
 
           <button
             onClick={() => setActiveMainTab("qa")}
-            className={`text-sm sm:text-base font-black font-heading transition-colors cursor-pointer flex items-center gap-2 ${
+            className={cn(
+              "pb-3 text-sm sm:text-base font-black flex items-center gap-2 transition-colors relative",
               activeMainTab === "qa"
-                ? "text-[#FF1028] border-b-2 border-[#FF1028] pb-1"
-                : "text-slate-500 hover:text-slate-900"
-            }`}
+                ? "text-[#00143D]"
+                : "text-slate-400 hover:text-slate-600"
+            )}
           >
-            <HelpCircle className="w-4 h-4" />
-            <span>Questions &amp; Answers ({questions.length})</span>
+            <HelpCircle className="w-4 h-4 text-[#002366]" />
+            <span>Questions & Answers (Q&A)</span>
+            <span className="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold">
+              {questions.length}
+            </span>
+            {activeMainTab === "qa" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF1028]" />
+            )}
           </button>
         </div>
 
         {activeMainTab === "reviews" ? (
           <button
-            onClick={() => setIsWriteReviewOpen(true)}
-            className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2 rounded-xl text-xs font-black font-heading transition-all flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0"
+            onClick={handleOpenWriteReview}
+            className="bg-[#FF1028] hover:bg-[#D90017] text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all flex items-center gap-2 shrink-0 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Write a Review</span>
+            <span className="hidden sm:inline">Write a Verified Review</span>
+            <span className="sm:hidden">Write Review</span>
           </button>
         ) : (
           <button
             onClick={() => setIsAskQuestionOpen(true)}
-            className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2 rounded-xl text-xs font-black font-heading transition-all flex items-center gap-1.5 shadow-sm cursor-pointer shrink-0"
+            className="bg-[#00143D] hover:bg-[#002366] text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all flex items-center gap-2 shrink-0 cursor-pointer"
           >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Ask a Question</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Ask Factory Sourcing Desk</span>
           </button>
         )}
       </div>
 
-      {/* ── TAB 1: REVIEWS & RATINGS ── */}
+      {/* ─────────────────────────────────────────────────────────────────────────
+          TAB 1: CUSTOMER REVIEWS & RATINGS DISTRIBUTION
+      ────────────────────────────────────────────────────────────────────────── */}
       {activeMainTab === "reviews" && (
         <div className="space-y-8">
-          {/* 1. Rating Distribution Summary Header */}
-          <div className="bg-slate-50 rounded-3xl border border-slate-200/80 p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-center shadow-2xs">
-            {/* Score & Star Metric (4 Cols) */}
-            <div className="md:col-span-4 text-center md:text-left space-y-2 border-b md:border-b-0 md:border-r border-slate-200/80 pb-6 md:pb-0 md:pr-6">
-              <span className="text-4xl sm:text-5xl font-black text-[#00143D] font-mono leading-none">
+          {/* Rating Summary Card & Distribution Bar Chart */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 sm:p-8 bg-slate-50/80 rounded-3xl border border-slate-200">
+            {/* Left: Overall Rating Score */}
+            <div className="lg:col-span-4 flex flex-col items-center justify-center text-center p-4 lg:border-r border-slate-200">
+              <div className="text-5xl sm:text-6xl font-black text-[#00143D] tracking-tight">
                 {distribution.averageRating.toFixed(1)}
-              </span>
-              <div className="flex items-center justify-center md:justify-start text-amber-400 gap-1 mt-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < Math.round(distribution.averageRating)
-                        ? "fill-amber-400 text-amber-400"
-                        : "text-slate-300"
-                    }`}
-                  />
-                ))}
               </div>
-              <p className="text-xs text-slate-500 font-medium">
-                Based on {distribution.totalReviews} verified customer reviews
+              <div className="mt-2">
+                <Rating rating={distribution.averageRating} size="lg" />
+              </div>
+              <p className="text-xs font-bold text-slate-500 mt-2">
+                Based on <span className="text-slate-900">{distribution.totalReviews} verified reviews</span>
               </p>
-              <div className="flex items-center justify-center md:justify-start gap-2 pt-2">
-                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1 font-mono">
-                  <ShieldCheck className="w-3 h-3" /> 100% Verified Purchases
-                </span>
+              <div className="flex items-center gap-2 mt-4 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+                <ShieldCheck className="w-4 h-4" />
+                <span>100% Direct Factory Verified Orders</span>
               </div>
             </div>
 
-            {/* Rating Breakdown Bars (8 Cols) */}
-            <div className="md:col-span-8 space-y-2 text-xs">
-              {[5, 4, 3, 2, 1].map((stars) => {
-                const item = distribution.breakdown[stars as 1 | 2 | 3 | 4 | 5];
+            {/* Middle: 5-Star Breakdown Progress Bars (Clickable to Filter) */}
+            <div className="lg:col-span-5 flex flex-col justify-center space-y-2.5 px-0 sm:px-4">
+              {[5, 4, 3, 2, 1].map((star) => {
+                const item = distribution.breakdown[star as 1 | 2 | 3 | 4 | 5];
+                const isSelected = ratingFilter === star;
                 return (
                   <button
-                    key={stars}
-                    onClick={() => {
-                      setRatingFilter(ratingFilter === stars ? "all" : stars);
-                      setCurrentPage(1);
-                    }}
-                    className={`w-full flex items-center gap-3 p-1.5 rounded-xl transition-colors cursor-pointer group ${
-                      ratingFilter === stars ? "bg-amber-50/80" : "hover:bg-slate-100"
-                    }`}
+                    key={star}
+                    onClick={() => setRatingFilter(isSelected ? "all" : star)}
+                    className={cn(
+                      "flex items-center gap-3 w-full text-left group p-1.5 rounded-xl transition-all cursor-pointer",
+                      isSelected ? "bg-amber-50 border border-amber-200" : "hover:bg-slate-100"
+                    )}
                   >
-                    <span className="w-12 font-bold text-slate-700 text-right font-mono shrink-0">
-                      {stars} Stars
+                    <span className="w-12 text-xs font-bold text-slate-700 flex items-center gap-1 shrink-0">
+                      <span>{star}</span>
+                      <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                     </span>
-                    <div className="flex-1 bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden">
                       <div
-                        className="bg-amber-400 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${item?.percentage || 0}%` }}
+                        className={cn(
+                          "h-full transition-all duration-500 rounded-full",
+                          isSelected ? "bg-amber-500" : "bg-[#00143D] group-hover:bg-[#FF1028]"
+                        )}
+                        style={{ width: `${item.percentage}%` }}
                       />
                     </div>
-                    <span className="w-14 text-slate-500 text-right font-mono text-[11px] shrink-0">
-                      {item?.count || 0} ({item?.percentage || 0}%)
+                    <span className="w-12 text-[11px] font-semibold text-slate-400 text-right shrink-0">
+                      {item.count} ({item.percentage}%)
                     </span>
                   </button>
                 );
               })}
             </div>
+
+            {/* Right: Key Quality Badges */}
+            <div className="lg:col-span-3 flex flex-col justify-center space-y-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+              <h4 className="text-xs font-black text-[#00143D] uppercase tracking-wider">
+                Lennox Verified Assurance
+              </h4>
+              <div className="space-y-2 text-xs text-slate-600">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                  <span>Dual Video QC Benchmark Recorded</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                  <span>Shenzhen Factory Direct Dispatch</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                  <span>Escrow-Protected USDT & Card Payment</span>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                <span>With Photos/Videos</span>
+                <span className="text-[#00143D]">{distribution.withMediaCount} reviews</span>
+              </div>
+            </div>
           </div>
 
-          {/* 2. Review Filter & Sort Bar */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Filter Chips */}
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-              {/* Star Rating Pills */}
-              {["all", 5, 4, 3, 2, 1].map((r) => (
+          {/* Customer Photos & Videos Gallery Grid (if media exists) */}
+          {allReviewMedia.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-black text-[#00143D] uppercase tracking-wider flex items-center gap-1.5">
+                  <Camera className="w-4 h-4 text-slate-600" />
+                  <span>Customer Uploaded Media ({allReviewMedia.length})</span>
+                </h4>
                 <button
-                  key={String(r)}
-                  onClick={() => {
-                    setRatingFilter(r as any);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    ratingFilter === r
-                      ? "bg-[#00143D] text-white shadow-xs"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
+                  onClick={() => setMediaOnly(!mediaOnly)}
+                  className={cn(
+                    "text-xs font-bold px-3 py-1 rounded-full border transition-all cursor-pointer",
+                    mediaOnly
+                      ? "bg-[#00143D] text-white border-[#00143D]"
+                      : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
+                  )}
                 >
-                  {r === "all" ? "All Reviews" : `${r}★`}
+                  {mediaOnly ? "✓ Media Only Active" : "Filter by Media Only"}
                 </button>
-              ))}
+              </div>
 
-              {/* Photos & Videos Filter */}
-              <button
-                onClick={() => {
-                  setMediaOnly(!mediaOnly);
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+                {allReviewMedia.slice(0, 8).map((media, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveMediaLightbox({ url: media.url, type: media.type })}
+                    className="group relative aspect-square rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 hover:border-[#FF1028] transition-all cursor-pointer shadow-2xs"
+                  >
+                    {media.type === "video" ? (
+                      <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white">
+                        <Play className="w-6 h-6 text-white fill-white group-hover:scale-110 transition-transform" />
+                      </div>
+                    ) : (
+                      <Image
+                        src={media.url}
+                        alt="Customer review photo"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform"
+                      />
+                    )}
+                    {media.type === "video" && (
+                      <span className="absolute bottom-1 right-1 bg-black/70 text-[10px] text-white font-bold px-1.5 py-0.5 rounded">
+                        Video
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Review Filter & Search Bar Toolbar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search reviews by keyword, topic, or buyer..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  mediaOnly
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
-              >
-                <Camera className="w-3.5 h-3.5" />
-                <span>With Photos ({distribution.withMediaCount})</span>
-              </button>
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
 
-              {/* Verified Only */}
+            {/* Quick Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Star Rating Select */}
+              <select
+                value={ratingFilter}
+                onChange={(e) => {
+                  setRatingFilter(e.target.value === "all" ? "all" : Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
+              >
+                <option value="all">All Star Ratings</option>
+                <option value="5">5 Stars only</option>
+                <option value="4">4 Stars only</option>
+                <option value="3">3 Stars only</option>
+                <option value="2">2 Stars only</option>
+                <option value="1">1 Star only</option>
+              </select>
+
+              {/* Variant Filter (if product has variants) */}
+              {variants.length > 0 && (
+                <select
+                  value={variantFilter}
+                  onChange={(e) => {
+                    setVariantFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
+                >
+                  <option value="">All Variants</option>
+                  {variants.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.title || v.sku}
+                    </option>
+                  ))}
+                </select>
+              )}
+
+              {/* Verified Filter Pill */}
               <button
                 onClick={() => {
                   setVerifiedOnly(!verifiedOnly);
                   setCurrentPage(1);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={cn(
+                  "px-3 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer",
                   verifiedOnly
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
+                    ? "bg-emerald-50 text-[#10B981] border-emerald-300"
+                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                )}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Verified Purchases</span>
+                <span>Verified Buyer</span>
               </button>
-            </div>
 
-            {/* Sort & Search Controls */}
-            <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-              <div className="relative flex-1 md:w-48">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search reviews..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-[#FF1028]"
-                />
-              </div>
-
+              {/* Sorting Select */}
               <select
                 value={sortBy}
-                onChange={(e) => {
-                  setSortBy(e.target.value as any);
-                  setCurrentPage(1);
-                }}
-                className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 outline-none cursor-pointer"
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
               >
-                <option value="most_helpful">Most Helpful</option>
-                <option value="newest">Newest First</option>
-                <option value="highest_rating">Highest Rated</option>
-                <option value="lowest_rating">Lowest Rated</option>
+                <option value="most_helpful">Sort: Most Helpful</option>
+                <option value="newest">Sort: Most Recent</option>
+                <option value="highest_rating">Sort: Highest Rating</option>
+                <option value="lowest_rating">Sort: Lowest Rating</option>
               </select>
             </div>
           </div>
 
-          {/* 3. Review Cards List */}
+          {/* Reviews List */}
           {isLoadingReviews ? (
             <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-3xl border border-slate-200 p-6 space-y-3 animate-pulse">
-                  <div className="h-4 bg-slate-200 rounded w-1/4" />
-                  <div className="h-3.5 bg-slate-200 rounded w-3/4" />
-                  <div className="h-12 bg-slate-100 rounded-xl" />
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-6 rounded-3xl border border-slate-200 bg-slate-50/50 animate-pulse space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-slate-200 rounded-full" />
+                    <div className="space-y-1.5 flex-1">
+                      <div className="h-3 w-28 bg-slate-200 rounded" />
+                      <div className="h-2.5 w-40 bg-slate-200 rounded" />
+                    </div>
+                  </div>
+                  <div className="h-4 w-3/4 bg-slate-200 rounded" />
+                  <div className="h-12 w-full bg-slate-200 rounded" />
                 </div>
               ))}
             </div>
           ) : reviews.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3 shadow-xs">
-              <MessageSquare className="w-10 h-10 text-slate-400 mx-auto" />
-              <h4 className="text-base font-black font-heading text-[#00143D]">
-                No Reviews Found Matching Your Criteria
-              </h4>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Be the first to share your experience with this factory hardware batch!
-              </p>
+            <div className="text-center py-16 px-4 bg-slate-50 rounded-3xl border border-dashed border-slate-300 space-y-4">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mx-auto shadow-xs border border-slate-200">
+                <Star className="w-7 h-7 text-slate-400" />
+              </div>
+              <div>
+                <h4 className="text-base font-black text-[#00143D]">No matching reviews found</h4>
+                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                  Try clearing your active filters or be the first verified buyer to share feedback on this hardware item.
+                </p>
+              </div>
               <button
-                onClick={() => setIsWriteReviewOpen(true)}
-                className="bg-[#00143D] text-white px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                onClick={handleOpenWriteReview}
+                className="bg-[#00143D] text-white text-xs font-black px-5 py-2.5 rounded-xl shadow-xs hover:bg-[#002366] transition-colors"
               >
-                Write First Review
+                Write First Verified Review
               </button>
             </div>
           ) : (
             <div className="space-y-4">
-              {reviews.map((rev) => (
+              {reviews.map((review) => (
                 <div
-                  key={rev.id}
-                  className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 space-y-4 shadow-2xs hover:shadow-xs transition-shadow"
+                  key={review.id}
+                  className={cn(
+                    "p-6 rounded-3xl border transition-all space-y-4",
+                    review.isFeatured
+                      ? "bg-amber-50/30 border-amber-200/80 shadow-xs"
+                      : "bg-white border-slate-200 shadow-2xs"
+                  )}
                 >
-                  {/* Customer Info Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  {/* Top Row: User Avatar, Name, Verified Badge, Rating, Date */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold font-heading text-sm border border-slate-200">
-                        {rev.userName.charAt(0)}
+                      <div className="w-10 h-10 rounded-full bg-[#00143D] text-white flex items-center justify-center font-bold text-xs shrink-0 uppercase overflow-hidden">
+                        {review.userAvatar ? (
+                          <Image src={review.userAvatar} alt={review.userName} width={40} height={40} className="object-cover" />
+                        ) : (
+                          review.userName.slice(0, 2)
+                        )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 text-xs sm:text-sm">
-                            {rev.userName}
-                          </span>
-                          {rev.isVerifiedPurchase && (
-                            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1 font-mono">
-                              <Check className="w-3 h-3" /> Verified Buyer
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-black text-slate-900">{review.userName}</span>
+                          {review.isVerifiedPurchase && (
+                            <span className="bg-emerald-50 text-[#10B981] text-[10px] font-black px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3" /> Verified Purchase
+                            </span>
+                          )}
+                          {review.isFeatured && (
+                            <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-md border border-amber-300 flex items-center gap-1">
+                              <Award className="w-3 h-3 text-amber-600" /> Factory Spotlight
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          {rev.userLocation || "Global Sourcing Hub"}
-                        </span>
+                        <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
+                          {review.userLocation || "Verified Customer"}
+                        </div>
                       </div>
                     </div>
 
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {new Date(rev.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
-
-                  {/* Rating Stars & Variant Tag */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex text-amber-400">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < rev.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
-
-                    {rev.variantName && (
-                      <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
-                        Model: {rev.variantName}
+                    <div className="flex items-center gap-3 self-start sm:self-auto">
+                      <Rating rating={review.rating} size="sm" />
+                      <span className="text-[11px] text-slate-400 font-semibold">
+                        {formatDate(review.createdAt)}
                       </span>
-                    )}
+                    </div>
                   </div>
 
-                  {/* Title & Body */}
+                  {/* Variant Tag (if present) */}
+                  {review.variantName && (
+                    <div className="inline-block text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+                      Purchased: <span className="text-slate-800">{review.variantName}</span>
+                    </div>
+                  )}
+
+                  {/* Review Content */}
                   <div className="space-y-1.5">
-                    <h5 className="font-bold text-slate-900 text-sm">{rev.title}</h5>
-                    <p className="text-xs text-slate-600 leading-relaxed">{rev.body}</p>
+                    <h4 className="text-sm font-black text-[#00143D] leading-snug">{review.title}</h4>
+                    <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{review.body}</p>
                   </div>
 
-                  {/* Photo & Video Gallery Thumbnails */}
-                  {rev.media && rev.media.length > 0 && (
-                    <div className="flex gap-2.5 pt-1 overflow-x-auto pb-1">
-                      {rev.media.map((m, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => setSelectedPhotoModal(m.url)}
-                          className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 cursor-pointer hover:opacity-85 transition-opacity"
+                  {/* Media Thumbnails */}
+                  {review.media && review.media.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {review.media.map((item, mIdx) => (
+                        <button
+                          key={mIdx}
+                          onClick={() => setActiveMediaLightbox({ url: item.url, type: item.type })}
+                          className="group relative w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200 hover:border-[#FF1028] transition-all cursor-pointer"
                         >
-                          <Image src={m.url} alt="Review Media" fill className="object-cover" />
-                        </div>
+                          {item.type === "video" ? (
+                            <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white">
+                              <Play className="w-5 h-5 fill-white" />
+                            </div>
+                          ) : (
+                            <Image src={item.url} alt="Review media" fill className="object-cover group-hover:scale-105 transition-transform" />
+                          )}
+                        </button>
                       ))}
                     </div>
                   )}
 
-                  {/* Official Staff Response Badge */}
-                  {rev.adminReply && (
-                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-xs font-black text-[#00143D] font-heading">
-                        <Award className="w-3.5 h-3.5 text-[#FF1028]" />
-                        <span>Lennox Factory Support Response</span>
-                        {rev.adminReplyAt && (
-                          <span className="text-[10px] font-normal text-slate-400 font-mono ml-auto">
-                            {new Date(rev.adminReplyAt).toLocaleDateString()}
+                  {/* Official Seller / Admin Reply */}
+                  {review.adminReply && (
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5 ml-0 sm:ml-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs font-black text-[#00143D]">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                          <span>{review.adminRepliedByName || "Lennox Factory Sourcing Desk"}</span>
+                          <span className="bg-[#00143D] text-white text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide">
+                            OFFICIAL
+                          </span>
+                        </div>
+                        {review.adminReplyAt && (
+                          <span className="text-[10px] text-slate-400 font-semibold">
+                            {formatDate(review.adminReplyAt)}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">{rev.adminReply}</p>
+                      <p className="text-xs text-slate-600 leading-relaxed">{review.adminReply}</p>
                     </div>
                   )}
 
-                  {/* Helpful Voting & Report Row */}
+                  {/* Bottom Actions: Helpful Voting, Edit/Delete (if author), Report */}
                   <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-400">Was this review helpful?</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] text-slate-400 font-semibold">Was this helpful?</span>
                       <button
-                        onClick={() => handleVoteReview(rev.id, "helpful")}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-[11px] transition-colors cursor-pointer"
+                        onClick={() => handleVoteReview(review.id, "helpful")}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                          votedReviews[review.id] === "helpful"
+                            ? "bg-[#00143D] text-white border-[#00143D]"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        )}
                       >
-                        <ThumbsUp className="w-3 h-3 text-emerald-600" />
-                        <span>Helpful ({rev.helpfulVotes})</span>
+                        <ThumbsUp className="w-3 h-3" />
+                        <span>{review.helpfulVotes}</span>
+                      </button>
+                      <button
+                        onClick={() => handleVoteReview(review.id, "unhelpful")}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                          votedReviews[review.id] === "unhelpful"
+                            ? "bg-[#00143D] text-white border-[#00143D]"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        )}
+                      >
+                        <ThumbsDown className="w-3 h-3" />
+                        <span>{review.unhelpfulVotes}</span>
                       </button>
                     </div>
 
-                    <button
-                      onClick={() => setReportModalReviewId(rev.id)}
-                      className="text-[11px] text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      <Flag className="w-3 h-3" />
-                      <span>Report</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      {review.canEdit && (
+                        <button
+                          onClick={() => handleOpenEditReview(review)}
+                          className="text-slate-500 hover:text-[#00143D] font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                      )}
+                      {review.canDelete && (
+                        <button
+                          onClick={() => {
+                            setReviewToDeleteId(review.id);
+                            setIsDeleteConfirmOpen(true);
+                          }}
+                          className="text-slate-400 hover:text-[#FF1028] font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Delete</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setReportModalReviewId(review.id)}
+                        className="text-slate-400 hover:text-[#FF1028] font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <Flag className="w-3 h-3" />
+                        <span>Report</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* 4. Pagination */}
+          {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="pt-4 flex items-center justify-between border-t border-slate-200">
-              <span className="text-xs text-slate-500 font-mono">
-                Page {currentPage} of {totalPages} ({totalCount} Reviews)
-              </span>
-
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2 pt-4">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 hover:bg-slate-50 cursor-pointer"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage <= 1}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold disabled:opacity-40"
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={cn(
+                    "w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                    currentPage === page
+                      ? "bg-[#00143D] text-white shadow-xs"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  )}
                 >
-                  Previous
+                  {page}
                 </button>
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage >= totalPages}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
+              ))}
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 hover:bg-slate-50 cursor-pointer"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
       )}
 
-      {/* ── TAB 2: QUESTIONS & ANSWERS (Q&A) ── */}
+      {/* ─────────────────────────────────────────────────────────────────────────
+          TAB 2: PRODUCT QUESTIONS & ANSWERS (Q&A)
+      ────────────────────────────────────────────────────────────────────────── */}
       {activeMainTab === "qa" && (
         <div className="space-y-6">
-          {/* Q&A Search & Action */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          {/* Q&A Search and Ask Button */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50 p-4 sm:p-6 rounded-3xl border border-slate-200">
+            <div className="relative w-full sm:max-w-md">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search answered questions..."
+                placeholder="Search answered questions or specs..."
                 value={qaSearch}
                 onChange={(e) => setQaSearch(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-[#FF1028]"
+                className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
               />
             </div>
-
             <button
               onClick={() => setIsAskQuestionOpen(true)}
-              className="w-full sm:w-auto bg-[#00143D] hover:bg-[#FF1028] text-white px-5 py-2.5 rounded-xl text-xs font-black font-heading transition-colors cursor-pointer shrink-0"
+              className="w-full sm:w-auto bg-[#00143D] hover:bg-[#002366] text-white text-xs font-black px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
             >
-              Ask a Factory Technician
+              <Plus className="w-4 h-4" />
+              <span>Ask Factory Sourcing Desk</span>
             </button>
           </div>
 
-          {/* Questions List */}
+          {/* Q&A Items List */}
           {isLoadingQa ? (
-            <div className="space-y-3">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-3xl border border-slate-200 p-6 space-y-2 animate-pulse">
-                  <div className="h-4 bg-slate-200 rounded w-1/3" />
-                  <div className="h-8 bg-slate-100 rounded-xl" />
+            <div className="space-y-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="p-6 rounded-3xl border border-slate-200 bg-slate-50/50 animate-pulse space-y-3">
+                  <div className="h-4 w-2/3 bg-slate-200 rounded" />
+                  <div className="h-10 w-full bg-slate-200 rounded" />
                 </div>
               ))}
             </div>
           ) : questions.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3 shadow-xs">
-              <HelpCircle className="w-10 h-10 text-slate-400 mx-auto" />
-              <h4 className="text-base font-black font-heading text-[#00143D]">
-                No Questions Yet for This Product
-              </h4>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Have questions about technical specs, air cargo delivery, or export compatibility?
-              </p>
+            <div className="text-center py-16 px-4 bg-slate-50 rounded-3xl border border-dashed border-slate-300 space-y-4">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mx-auto shadow-xs border border-slate-200">
+                <HelpCircle className="w-7 h-7 text-slate-400" />
+              </div>
+              <div>
+                <h4 className="text-base font-black text-[#00143D]">Have a question about this product?</h4>
+                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                  Ask our Shenzhen factory engineering and logistics team for fast clarification on compatibility, firmware, or DDP customs.
+                </p>
+              </div>
               <button
                 onClick={() => setIsAskQuestionOpen(true)}
-                className="bg-[#00143D] text-white px-5 py-2.5 rounded-xl text-xs font-bold cursor-pointer"
+                className="bg-[#00143D] text-white text-xs font-black px-5 py-2.5 rounded-xl shadow-xs hover:bg-[#002366] transition-colors cursor-pointer"
               >
-                Ask the First Question
+                Ask a Question
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               {questions.map((q) => (
-                <div
-                  key={q.id}
-                  className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 space-y-4 shadow-2xs"
-                >
+                <div key={q.id} className="p-6 rounded-3xl border border-slate-200 bg-white shadow-2xs space-y-4">
+                  {/* Question */}
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-2.5">
-                      <span className="w-6 h-6 rounded-lg bg-[#00143D] text-white flex items-center justify-center font-mono font-black text-xs shrink-0 mt-0.5">
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-[#00143D] text-white font-black text-xs flex items-center justify-center shrink-0">
                         Q
-                      </span>
-                      <div>
-                        <h5 className="font-bold text-slate-900 text-sm leading-snug">{q.question}</h5>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          Asked by {q.authorName} • {new Date(q.createdAt).toLocaleDateString()}
-                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="text-sm font-black text-[#00143D] leading-snug">{q.question}</h4>
+                        <div className="text-[11px] text-slate-400 font-semibold">
+                          Asked by {q.authorName} • {formatDate(q.createdAt)}
+                        </div>
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => voteQuestionHelpfulness(q.id)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-[11px] shrink-0"
-                    >
-                      <ThumbsUp className="w-3 h-3 text-blue-600" />
-                      <span>{q.helpfulVotes}</span>
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleVoteQuestion(q.id)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                          votedQuestions[q.id]
+                            ? "bg-[#00143D] text-white border-[#00143D]"
+                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        )}
+                      >
+                        <ThumbsUp className="w-3 h-3" />
+                        <span>{q.helpfulVotes}</span>
+                      </button>
+                      <button
+                        onClick={() => setReportQuestionModalId(q.id)}
+                        className="text-slate-400 hover:text-[#FF1028] p-1 rounded transition-colors cursor-pointer"
+                      >
+                        <Flag className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Answers */}
-                  <div className="space-y-2.5 pl-8 border-l-2 border-slate-100 ml-3">
-                    {q.answers.length > 0 ? (
-                      q.answers.map((a) => (
-                        <div key={a.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-slate-900 font-heading">
-                              {a.responderName}
+                  {q.answers.length > 0 ? (
+                    <div className="space-y-3 pl-0 sm:pl-10">
+                      {q.answers.map((ans) => (
+                        <div
+                          key={ans.id}
+                          className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-md bg-[#10B981] text-white text-[10px] font-black flex items-center justify-center">
+                                A
+                              </div>
+                              <span className="text-xs font-black text-slate-900">{ans.responderName}</span>
+                              {ans.isOfficialStaff && (
+                                <span className="bg-[#00143D] text-white text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide">
+                                  STAFF
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-semibold">
+                              {formatDate(ans.createdAt)}
                             </span>
-                            {a.isOfficialStaff && (
-                              <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200 uppercase font-mono">
-                                Official Staff
-                              </span>
-                            )}
                           </div>
-                          <p className="text-xs text-slate-600 leading-relaxed">{a.answer}</p>
+                          <p className="text-xs text-slate-700 leading-relaxed">{ans.answer}</p>
                         </div>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">
-                        Pending official factory response...
-                      </span>
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="pl-0 sm:pl-10 text-xs text-amber-700 bg-amber-50 p-3 rounded-xl border border-amber-200 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Pending review from Lennox Factory Engineering. Response expected in 6–12h.</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -728,285 +1097,532 @@ export function ProductReviewsAndQA({
         </div>
       )}
 
-      {/* ── 4. WRITE REVIEW MODAL ── */}
+      {/* ─────────────────────────────────────────────────────────────────────────
+          MODAL: WRITE VERIFIED REVIEW
+      ────────────────────────────────────────────────────────────────────────── */}
       <Modal
         isOpen={isWriteReviewOpen}
         onClose={() => setIsWriteReviewOpen(false)}
-        title="Write a Customer Review"
-        size="lg"
+        title="Write a Verified Product Review"
       >
-        <form onSubmit={handleSubmitReview} className="space-y-5">
-          <div className="space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 font-mono">
-              DIRECT FACTORY SOURCING FEEDBACK
-            </span>
-            <h4 className="text-sm font-black font-heading text-slate-900">{productTitle}</h4>
+        {isCheckingEligibility ? (
+          <div className="py-12 text-center space-y-3">
+            <div className="w-8 h-8 border-3 border-[#00143D] border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-xs font-bold text-slate-600">Verifying purchase credentials with Supabase...</p>
           </div>
+        ) : (
+          <form onSubmit={handleSubmitReview} className="space-y-5 font-montserrat">
+            {/* Eligibility Banner */}
+            {eligibility?.isVerifiedBuyer ? (
+              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
+                <span>
+                  {eligibility.orderNumber
+                    ? `Verified Order #${eligibility.orderNumber} confirmed. Your review will display the Verified Buyer badge.`
+                    : "Verified customer detected. Thank you for your feedback!"}
+                </span>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800 flex items-center gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  Sign in with the account used for purchase to earn Lennox Sourcing Rewards and the Verified Badge.
+                </span>
+              </div>
+            )}
 
-          {/* Star Selector */}
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1.5">
-              Your Overall Rating *
-            </label>
-            <div className="flex items-center gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setFormRating(star)}
-                  className="p-1 cursor-pointer hover:scale-115 transition-transform"
-                >
-                  <Star
-                    className={`w-7 h-7 ${
-                      star <= formRating ? "fill-amber-400 text-amber-400" : "text-slate-300"
-                    }`}
-                  />
-                </button>
-              ))}
-              <span className="text-xs font-bold text-slate-800 ml-2 font-mono">
-                {formRating === 5 ? "5.0 (Excellent)" : `${formRating}.0 Stars`}
-              </span>
-            </div>
-          </div>
+            {reviewSubmitStatus && (
+              <div
+                className={cn(
+                  "p-3 rounded-xl text-xs font-bold flex items-center gap-2",
+                  reviewSubmitStatus.success
+                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                    : "bg-red-50 text-red-700 border border-red-200"
+                )}
+              >
+                {reviewSubmitStatus.success ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                <span>{reviewSubmitStatus.message}</span>
+              </div>
+            )}
 
-          {/* Variant Selector */}
-          {variants.length > 0 && (
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Purchased Model / Variant
+            {/* 1. Star Rating Selector */}
+            <div className="space-y-1.5 text-center sm:text-left">
+              <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                Your Overall Rating <span className="text-[#FF1028]">*</span>
               </label>
-              <select
-                value={formVariantId}
-                onChange={(e) => setFormVariantId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold focus:outline-none focus:border-[#FF1028]"
-              >
-                {variants.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.title || v.sku}
-                  </option>
+              <div className="flex items-center gap-1.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    type="button"
+                    key={star}
+                    onClick={() => setFormRating(star)}
+                    onMouseEnter={() => setFormHoverRating(star)}
+                    onMouseLeave={() => setFormHoverRating(0)}
+                    className="p-1 transition-transform hover:scale-115 focus:outline-hidden cursor-pointer"
+                  >
+                    <Star
+                      className={cn(
+                        "w-8 h-8 transition-colors",
+                        (formHoverRating || formRating) >= star
+                          ? "text-amber-500 fill-amber-500"
+                          : "text-slate-300 fill-slate-100"
+                      )}
+                    />
+                  </button>
                 ))}
-              </select>
+                <span className="ml-2 text-xs font-black text-slate-700">
+                  {formRating === 5 ? "5.0 (Exceptional)" : `${formRating}.0`}
+                </span>
+              </div>
             </div>
-          )}
 
-          {/* Title */}
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">
-              Review Headline *
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Exceptional 4K video stability and fast airfreight!"
-              value={formTitle}
-              onChange={(e) => setFormTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-[#FF1028]"
-            />
-          </div>
+            {/* 2. Variant Selector (if applicable) */}
+            {variants.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-800">Purchased Hardware Variant</label>
+                <select
+                  value={formVariantId}
+                  onChange={(e) => setFormVariantId(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-[#00143D]"
+                >
+                  {variants.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.title || v.sku}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-          {/* Body */}
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">
-              Detailed Experience &amp; Comments *
-            </label>
-            <textarea
-              required
-              rows={4}
-              placeholder="Share details about performance, build quality, air cargo delivery, and Binance Pay checkout experience..."
-              value={formBody}
-              onChange={(e) => setFormBody(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-[#FF1028]"
-            />
-          </div>
-
-          {/* Photo URL Input */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700 block">
-              Add Photo / Video Link (Optional)
-            </label>
-            <div className="flex gap-2">
+            {/* 3. Review Headline */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                Review Headline <span className="text-[#FF1028]">*</span>
+              </label>
               <input
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                value={newMediaInput}
-                onChange={(e) => setNewMediaInput(e.target.value)}
-                className="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-xs"
+                type="text"
+                required
+                placeholder="e.g. Incredible 4K Optical Clarity & High-Speed CNC build"
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
               />
-              <button
-                type="button"
-                onClick={handleAddMedia}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold cursor-pointer"
-              >
-                Add Image
-              </button>
             </div>
 
-            {formMediaUrls.length > 0 && (
-              <div className="flex gap-2 pt-1">
-                {formMediaUrls.map((url, idx) => (
-                  <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border">
-                    <Image src={url} alt="Uploaded" fill className="object-cover" />
+            {/* 4. Detailed Comments */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                Detailed Feedback & Experience <span className="text-[#FF1028]">*</span>
+              </label>
+              <textarea
+                required
+                rows={4}
+                placeholder="Share your experience with build quality, flight time, factory QC video match, and logistics delivery speed..."
+                value={formBody}
+                onChange={(e) => setFormBody(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
+              />
+            </div>
+
+            {/* 5. Photos & Videos Upload */}
+            <div className="space-y-2">
+              <label className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center justify-between">
+                <span>Upload Photos / Unboxing Video (Optional)</span>
+                <span className="text-[10px] text-slate-400 font-semibold">Max 10MB JPG/PNG, 50MB MP4</span>
+              </label>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/mp4,video/webm"
+                onChange={(e) => handleFileUpload(e, false)}
+                className="hidden"
+              />
+
+              <div className="flex flex-wrap gap-2">
+                {formMediaFiles.map((m, idx) => (
+                  <div
+                    key={idx}
+                    className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-200"
+                  >
+                    {m.type === "video" ? (
+                      <div className="w-full h-full flex items-center justify-center text-white">
+                        <Play className="w-4 h-4 fill-white" />
+                      </div>
+                    ) : (
+                      <Image src={m.url} alt="Upload preview" fill className="object-cover" />
+                    )}
                     <button
                       type="button"
-                      onClick={() => setFormMediaUrls(formMediaUrls.filter((_, i) => i !== idx))}
-                      className="absolute top-0 right-0 bg-red-600 text-white p-0.5 rounded-bl"
+                      onClick={() => setFormMediaFiles((prev) => prev.filter((_, i) => i !== idx))}
+                      className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-0.5 hover:bg-[#FF1028]"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
+
+                <button
+                  type="button"
+                  disabled={isUploadingMedia}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-16 h-16 rounded-xl border-2 border-dashed border-slate-300 hover:border-[#00143D] text-slate-500 hover:text-[#00143D] flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isUploadingMedia ? (
+                    <div className="w-4 h-4 border-2 border-[#00143D] border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <UploadCloud className="w-4 h-4" />
+                      <span className="text-[9px] font-bold">Add</span>
+                    </>
+                  )}
+                </button>
               </div>
-            )}
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsWriteReviewOpen(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingReview || isUploadingMedia}
+                className="bg-[#FF1028] hover:bg-[#D90017] text-white text-xs font-black px-6 py-2.5 rounded-xl shadow-xs transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2"
+              >
+                {isSubmittingReview && (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                <span>Publish Verified Review</span>
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* ─────────────────────────────────────────────────────────────────────────
+          MODAL: EDIT CUSTOMER REVIEW (30-day window)
+      ────────────────────────────────────────────────────────────────────────── */}
+      <Modal
+        isOpen={isEditReviewOpen}
+        onClose={() => setIsEditReviewOpen(false)}
+        title="Edit Your Review"
+      >
+        <form onSubmit={handleSubmitEditReview} className="space-y-4 font-montserrat">
+          <div className="space-y-1">
+            <label className="text-xs font-black text-slate-800">Rating</label>
+            <div className="flex items-center gap-1.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  type="button"
+                  key={star}
+                  onClick={() => setEditRating(star)}
+                  className="p-1 cursor-pointer"
+                >
+                  <Star
+                    className={cn(
+                      "w-7 h-7",
+                      editRating >= star ? "text-amber-500 fill-amber-500" : "text-slate-300 fill-slate-100"
+                    )}
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
-          {reviewSubmitStatus && (
-            <div
-              className={`p-3 rounded-xl text-xs font-bold ${
-                reviewSubmitStatus.success
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}
-            >
-              {reviewSubmitStatus.message}
-            </div>
-          )}
+          <div className="space-y-1">
+            <label className="text-xs font-black text-slate-800">Headline</label>
+            <input
+              type="text"
+              required
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold"
+            />
+          </div>
 
-          <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+          <div className="space-y-1">
+            <label className="text-xs font-black text-slate-800">Comments</label>
+            <textarea
+              required
+              rows={4}
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold"
+            />
+          </div>
+
+          {/* Media attachments */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-slate-800">Attachments</label>
+            <input
+              ref={editFileInputRef}
+              type="file"
+              multiple
+              accept="image/*,video/mp4"
+              onChange={(e) => handleFileUpload(e, true)}
+              className="hidden"
+            />
+            <div className="flex flex-wrap gap-2">
+              {editMediaFiles.map((m, idx) => (
+                <div key={idx} className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-900 border">
+                  {m.type === "video" ? (
+                    <div className="w-full h-full flex items-center justify-center text-white">
+                      <Play className="w-4 h-4 fill-white" />
+                    </div>
+                  ) : (
+                    <Image src={m.url} alt="Upload preview" fill className="object-cover" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setEditMediaFiles((prev) => prev.filter((_, i) => i !== idx))}
+                    className="absolute top-0.5 right-0.5 bg-black/70 text-white rounded-full p-0.5"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => editFileInputRef.current?.click()}
+                className="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
             <button
               type="button"
-              onClick={() => setIsWriteReviewOpen(false)}
-              className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs"
+              onClick={() => setIsEditReviewOpen(false)}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmittingReview}
-              className="px-6 py-2.5 rounded-xl bg-[#00143D] hover:bg-[#FF1028] text-white font-black font-heading text-xs uppercase tracking-wider transition-colors shadow-md disabled:opacity-50"
+              disabled={isSubmittingEdit}
+              className="bg-[#00143D] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#002366] transition-colors"
             >
-              {isSubmittingReview ? "Submitting..." : "Publish Review"}
+              Save Changes
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* ── 5. ASK QUESTION MODAL ── */}
+      {/* ─────────────────────────────────────────────────────────────────────────
+          MODAL: DELETE CONFIRMATION
+      ────────────────────────────────────────────────────────────────────────── */}
       <Modal
-        isOpen={isAskQuestionOpen}
-        onClose={() => setIsAskQuestionOpen(false)}
-        title="Ask a Product Question"
-        size="md"
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        title="Delete Your Review?"
       >
-        <form onSubmit={handleSubmitQuestion} className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Your Name *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Alex H."
-              value={newQuestionAuthor}
-              onChange={(e) => setNewQuestionAuthor(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:border-[#FF1028]"
+        <div className="space-y-4 font-montserrat">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Are you sure you want to permanently delete your review? This action will remove your feedback and rating contribution from the product page.
+          </p>
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              onClick={() => setIsDeleteConfirmOpen(false)}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+            >
+              Keep Review
+            </button>
+            <button
+              onClick={handleConfirmDelete}
+              className="bg-[#FF1028] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#D90017]"
+            >
+              Yes, Delete Review
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ─────────────────────────────────────────────────────────────────────────
+          MODAL: REPORT INAPPROPRIATE REVIEW
+      ────────────────────────────────────────────────────────────────────────── */}
+      <Modal
+        isOpen={Boolean(reportModalReviewId)}
+        onClose={() => setReportModalReviewId(null)}
+        title="Report Inappropriate Review"
+      >
+        <div className="space-y-4 font-montserrat">
+          <p className="text-xs text-slate-600">
+            Help us keep Lennox China Mall trustworthy. Why are you reporting this review?
+          </p>
+
+          <div className="space-y-2">
+            {[
+              "Spam or Advertising",
+              "Offensive, Abusive or Hateful Content",
+              "Fake Review or Competitor Attack",
+              "Irrelevant to this Hardware Product",
+              "Other Violation",
+            ].map((reason) => (
+              <label
+                key={reason}
+                onClick={() => setReportReason(reason)}
+                className={cn(
+                  "flex items-center gap-3 p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer",
+                  reportReason === reason
+                    ? "bg-slate-100 border-[#00143D] text-[#00143D]"
+                    : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                )}
+              >
+                <input
+                  type="radio"
+                  name="reportReason"
+                  checked={reportReason === reason}
+                  onChange={() => setReportReason(reason)}
+                  className="accent-[#00143D]"
+                />
+                <span>{reason}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-black text-slate-800">Additional Details (Optional)</label>
+            <textarea
+              rows={2}
+              placeholder="Provide any specific context..."
+              value={reportDetails}
+              onChange={(e) => setReportDetails(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs"
             />
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">
-              Your Question *
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              onClick={() => setReportModalReviewId(null)}
+              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleReportReviewSubmit}
+              className="bg-[#FF1028] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#D90017]"
+            >
+              Submit Report
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ─────────────────────────────────────────────────────────────────────────
+          MODAL: ASK PRODUCT QUESTION
+      ────────────────────────────────────────────────────────────────────────── */}
+      <Modal
+        isOpen={isAskQuestionOpen}
+        onClose={() => setIsAskQuestionOpen(false)}
+        title="Ask Factory Sourcing Desk"
+      >
+        <form onSubmit={handleAskQuestionSubmit} className="space-y-4 font-montserrat">
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Have a question about specifications, voltage compatibility, or YunExpress airfreight? Our Shenzhen team answers questions directly.
+          </p>
+
+          {questionMsg && (
+            <div
+              className={cn(
+                "p-3 rounded-xl text-xs font-bold flex items-center gap-2",
+                questionMsg.success
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                  : "bg-red-50 text-red-700 border border-red-200"
+              )}
+            >
+              {questionMsg.success ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+              <span>{questionMsg.message}</span>
+            </div>
+          )}
+
+          <div className="space-y-1">
+            <label className="text-xs font-black text-slate-800">Your Name (or Display Name)</label>
+            <input
+              type="text"
+              placeholder={displayName || "Verified Customer"}
+              value={newQuestionAuthor}
+              onChange={(e) => setNewQuestionAuthor(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-black text-slate-800">
+              Your Question <span className="text-[#FF1028]">*</span>
             </label>
             <textarea
               required
               rows={3}
-              placeholder="Ask about voltage compatibility, firmware support, air cargo tracking..."
+              placeholder="e.g. Does the 3D printer include EU 220V power adapter and replacement nozzle kit?"
               value={newQuestionText}
               onChange={(e) => setNewQuestionText(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-[#FF1028]"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-semibold"
             />
           </div>
 
-          {questionMsg && (
-            <div
-              className={`p-3 rounded-xl text-xs font-bold ${
-                questionMsg.success
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                  : "bg-red-50 text-red-700 border border-red-200"
-              }`}
-            >
-              {questionMsg.message}
-            </div>
-          )}
-
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="pt-2 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsAskQuestionOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs"
+              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmittingQuestion}
-              className="px-5 py-2 rounded-xl bg-[#00143D] hover:bg-[#FF1028] text-white font-black font-heading text-xs uppercase transition-colors"
+              className="bg-[#00143D] text-white text-xs font-black px-6 py-2 rounded-xl hover:bg-[#002366] transition-colors"
             >
-              {isSubmittingQuestion ? "Sending..." : "Submit Question"}
+              Submit Question
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* ── 6. PHOTO LIGHTBOX MODAL ── */}
-      {selectedPhotoModal && (
+      {/* ─────────────────────────────────────────────────────────────────────────
+          MODAL: MEDIA LIGHTBOX (PHOTO ZOOM & VIDEO PLAYBACK)
+      ────────────────────────────────────────────────────────────────────────── */}
+      {activeMediaLightbox && (
         <div
-          onClick={() => setSelectedPhotoModal(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xs"
+          onClick={() => setActiveMediaLightbox(null)}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
         >
-          <div className="relative aspect-square max-w-xl w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
-            <Image src={selectedPhotoModal} alt="Review Media Fullscreen" fill className="object-contain" />
-            <button
-              onClick={() => setSelectedPhotoModal(null)}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+          <button
+            onClick={() => setActiveMediaLightbox(null)}
+            className="absolute top-6 right-6 text-white hover:text-slate-300 p-2 rounded-full bg-black/50"
+          >
+            <X className="w-6 h-6" />
+          </button>
 
-      {/* ── 7. REPORT REVIEW MODAL ── */}
-      {reportModalReviewId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-            <h4 className="font-heading font-black text-base text-[#00143D]">
-              Report Inappropriate Review
-            </h4>
-            <p className="text-xs text-slate-500">
-              Help us keep the Lennox verified sourcing platform authentic and secure.
-            </p>
-            <select
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold"
-            >
-              <option value="Spam or Advertising">Spam or Advertising</option>
-              <option value="Inappropriate Language">Inappropriate Language</option>
-              <option value="Fake Review / Competitor">Fake Review / Competitor</option>
-              <option value="Wrong Product">Wrong Product</option>
-            </select>
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => setReportModalReviewId(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReportReview}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-black text-xs font-heading"
-              >
-                Submit Report
-              </button>
-            </div>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[85vh] w-full rounded-2xl overflow-hidden flex items-center justify-center"
+          >
+            {activeMediaLightbox.type === "video" ? (
+              <video
+                src={activeMediaLightbox.url}
+                controls
+                autoPlay
+                className="max-h-[80vh] w-auto rounded-2xl"
+              />
+            ) : (
+              <div className="relative w-full h-[75vh]">
+                <Image
+                  src={activeMediaLightbox.url}
+                  alt="Full size review photo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            )}
           </div>
         </div>
       )}

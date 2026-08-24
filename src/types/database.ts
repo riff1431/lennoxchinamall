@@ -232,11 +232,14 @@ export interface Supplier {
   code: string;
   name: string;
   contact: string | null;
+  contact_info?: Record<string, string> | null;
   platform: string | null; // AliExpress, 1688, Taobao, etc.
   source_url: string | null;
+  platform_store_url?: string | null;
   region: string | null;
   lead_time_days: number | null;
   reliability_notes: string | null;
+  notes?: string | null;
   status: "active" | "inactive";
   created_at: string;
   updated_at: string;
@@ -420,6 +423,8 @@ export interface Order {
   merchant_trade_no?: string;
   prepay_id?: string;
   shipping_method?: string;
+  shipping_carrier?: string | null;
+  shipping_address?: Json | OrderAddress | null;
   tracking_number?: string | null;
   courier_code?: string | null;
   tracking_url?: string | null;
@@ -566,12 +571,22 @@ export interface ReviewMedia {
 export interface Notification {
   id: string;
   user_id: string;
-  type: string;
+  category?: string;
+  channel?: string;
+  priority?: string;
+  type?: string;
   title: string;
   body: string;
+  action_label?: string | null;
+  action_url?: string | null;
+  icon?: string | null;
   data: Json | null;
+  expires_at?: string | null;
   read_at: string | null;
+  archived_at?: string | null;
+  is_deleted?: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface SupportTicket {

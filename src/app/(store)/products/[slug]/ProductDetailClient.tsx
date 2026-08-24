@@ -204,19 +204,19 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
         </div>
       )}
 
-      {/* ── 2. Main Product Hero (Gallery + Purchase Configurator) ── */}
+      {/* ── 2. Main Product Hero (Gallery + Buy Box + Right-Hand Dual Video Column) ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          {/* ── Left Column: Media Gallery + Factory Video Spotlight (7 Cols) ── */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="flex flex-col-reverse sm:flex-row gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* ── Left Column: Media Gallery (5 Cols on Desktop) ── */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="flex flex-col-reverse sm:flex-row gap-3.5">
               {/* Thumbnail Strip */}
-              <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto sm:max-h-[500px] scrollbar-none shrink-0">
+              <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto sm:max-h-[460px] scrollbar-none shrink-0">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-slate-100 border-2 transition-all shrink-0 cursor-pointer ${
+                    className={`relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-slate-100 border-2 transition-all shrink-0 cursor-pointer ${
                       selectedImageIndex === idx
                         ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20"
                         : "border-slate-200 hover:border-slate-400"
@@ -234,7 +234,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                   alt={product.title}
                   fill
                   priority
-                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  sizes="(max-width: 1024px) 100vw, 42vw"
                   className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
                 />
 
@@ -263,93 +263,10 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 </button>
               </div>
             </div>
-
-            {/* ── 2 Direct Factory Video Spotlight Cards ── */}
-            <div className="bg-slate-900 rounded-3xl p-5 border border-slate-800 text-white space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Film className="w-4 h-4 text-[#FF1028]" />
-                  <h4 className="font-heading font-black text-xs uppercase tracking-wider text-white">
-                    Verified Factory QC Videos
-                  </h4>
-                </div>
-                <span className="text-[10px] text-amber-300 font-mono font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  SHENZHEN LAB TESTED
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Video 1: Teardown Bench */}
-                <div
-                  onClick={() =>
-                    setActiveVideoModal({
-                      title: `${product.title} — QC Teardown & Circuit Inspection`,
-                      url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80",
-                      tag: "QC LAB BENCHMARK",
-                    })
-                  }
-                  className="group relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] transition-all"
-                >
-                  <Image
-                    src={images[1] || images[0]}
-                    alt="QC Video 1"
-                    fill
-                    className="object-cover opacity-40 group-hover:opacity-55 transition-opacity"
-                  />
-                  <div className="relative z-10 flex items-center justify-between">
-                    <span className="bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
-                      VIDEO 1
-                    </span>
-                    <span className="text-[9px] text-slate-300 font-mono">02:15</span>
-                  </div>
-                  <div className="relative z-10 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-md">
-                      <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />
-                    </div>
-                    <span className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">
-                      Hardware Teardown QC
-                    </span>
-                  </div>
-                </div>
-
-                {/* Video 2: Stress / Flight Test */}
-                <div
-                  onClick={() =>
-                    setActiveVideoModal({
-                      title: `${product.title} — 100% Full Load Stress & Performance Test`,
-                      url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80",
-                      tag: "FACTORY STRESS DEMO",
-                    })
-                  }
-                  className="group relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] transition-all"
-                >
-                  <Image
-                    src={images[2] || images[0]}
-                    alt="QC Video 2"
-                    fill
-                    className="object-cover opacity-40 group-hover:opacity-55 transition-opacity"
-                  />
-                  <div className="relative z-10 flex items-center justify-between">
-                    <span className="bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
-                      VIDEO 2
-                    </span>
-                    <span className="text-[9px] text-slate-300 font-mono">03:40</span>
-                  </div>
-                  <div className="relative z-10 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md">
-                      <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />
-                    </div>
-                    <span className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">
-                      Live Performance Test
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* ── Right Column: Purchase Configurator (5 Cols) ── */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* ── Middle Column: Purchase Configurator & Buy Box (4 Cols on Desktop) ── */}
+          <div className="lg:col-span-4 space-y-5">
             {/* Header / Title / Brand / SKU */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -591,6 +508,117 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     Funds released upon verified airline delivery. 30-Day Money-Back Warranty policy.
                   </span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Right Column: 2 Factory QC Videos (3 Cols on Desktop) ── */}
+          <div className="lg:col-span-3 space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <Film className="w-4 h-4 text-[#FF1028]" />
+                <h4 className="font-heading font-black text-xs uppercase tracking-wider text-slate-900">
+                  Factory QC Videos
+                </h4>
+              </div>
+              <span className="text-[10px] text-amber-600 font-mono font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                1080P QC PASS
+              </span>
+            </div>
+
+            {/* Video 1 Card */}
+            <div
+              onClick={() =>
+                setActiveVideoModal({
+                  title: `${product.title} — QC Teardown & Circuit Inspection`,
+                  url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80",
+                  tag: "QC LAB BENCHMARK",
+                })
+              }
+              className="group relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-950 border border-slate-800 p-4 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md transition-all duration-300"
+            >
+              <Image
+                src={images[1] || images[0]}
+                alt="QC Video 1"
+                fill
+                className="object-cover opacity-45 group-hover:opacity-60 group-hover:scale-105 transition-all duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
+
+              {/* Top Badges */}
+              <div className="relative z-10 flex items-center justify-between">
+                <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm font-heading flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  VIDEO 1
+                </span>
+                <span className="bg-black/60 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
+                  02:15
+                </span>
+              </div>
+
+              {/* Center Play Button Overlay */}
+              <div className="relative z-10 my-auto flex justify-center py-1">
+                <div className="w-12 h-12 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                  <Play className="w-5 h-5 ml-0.5 fill-current" />
+                </div>
+              </div>
+
+              {/* Card Footer Details */}
+              <div className="relative z-10 space-y-0.5">
+                <h5 className="text-xs font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
+                  Hardware Teardown QC
+                </h5>
+                <p className="text-[10px] text-slate-300 line-clamp-1">
+                  Shenzhen Inspection Lab Benchmark
+                </p>
+              </div>
+            </div>
+
+            {/* Video 2 Card */}
+            <div
+              onClick={() =>
+                setActiveVideoModal({
+                  title: `${product.title} — 100% Full Load Stress & Performance Test`,
+                  url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80",
+                  tag: "FACTORY STRESS DEMO",
+                })
+              }
+              className="group relative aspect-[4/3] rounded-3xl overflow-hidden bg-slate-950 border border-slate-800 p-4 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md transition-all duration-300"
+            >
+              <Image
+                src={images[2] || images[0]}
+                alt="QC Video 2"
+                fill
+                className="object-cover opacity-45 group-hover:opacity-60 group-hover:scale-105 transition-all duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
+
+              {/* Top Badges */}
+              <div className="relative z-10 flex items-center justify-between">
+                <span className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-sm font-heading flex items-center gap-1">
+                  <Film className="w-3 h-3" />
+                  VIDEO 2
+                </span>
+                <span className="bg-black/60 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
+                  03:40
+                </span>
+              </div>
+
+              {/* Center Play Button Overlay */}
+              <div className="relative z-10 my-auto flex justify-center py-1">
+                <div className="w-12 h-12 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                  <Play className="w-5 h-5 ml-0.5 fill-current" />
+                </div>
+              </div>
+
+              {/* Card Footer Details */}
+              <div className="relative z-10 space-y-0.5">
+                <h5 className="text-xs font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
+                  Live Performance Test
+                </h5>
+                <p className="text-[10px] text-slate-300 line-clamp-1">
+                  100% Full Load Stability &amp; Stress Pass
+                </p>
               </div>
             </div>
           </div>

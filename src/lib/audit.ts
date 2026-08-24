@@ -14,13 +14,14 @@ export type AuditAction =
   | "PASSWORD_RESET_TRIGGERED"
   | "PERMISSIONS_UPDATED"
   | "USER_DELETED"
-  | "SETTINGS_CHANGED";
+  | "SETTINGS_CHANGED"
+  | "BROADCAST_CREATED";
 
 export interface LogAuditParams {
   adminId: string;
   adminEmail?: string;
   action: AuditAction;
-  entityType: "user" | "role" | "order" | "product" | "setting" | "inventory";
+  entityType: "user" | "role" | "order" | "product" | "setting" | "inventory" | "notification_broadcast";
   entityId?: string;
   changes?: Record<string, unknown>;
   ip?: string;

@@ -6,6 +6,7 @@ import { cn } from "@/utils/helpers";
 export type BadgeTone =
   | "emerald"
   | "red"
+  | "rose"
   | "amber"
   | "blue"
   | "purple"
@@ -41,6 +42,12 @@ export function StatusBadge({
       dot: "bg-[#16A34A] dark:bg-emerald-400",
     },
     red: {
+      bg: "bg-[#FEE2E2] dark:bg-rose-950/60",
+      text: "text-[#DC2626] dark:text-rose-400",
+      border: "border-[#FECDD3]/60 dark:border-rose-900/40",
+      dot: "bg-[#DC2626] dark:bg-rose-400",
+    },
+    rose: {
       bg: "bg-[#FEE2E2] dark:bg-rose-950/60",
       text: "text-[#DC2626] dark:text-rose-400",
       border: "border-[#FECDD3]/60 dark:border-rose-900/40",

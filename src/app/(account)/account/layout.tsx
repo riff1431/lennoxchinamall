@@ -36,6 +36,7 @@ export default function AccountLayout({
 
   const navLinks = [
     { label: "Account Overview", href: "/account", icon: LayoutDashboard },
+    { label: "Notifications & Alerts", href: "/account/notifications", icon: Bell },
     { label: "My Profile & Security", href: "/account/profile", icon: User },
     { label: "Orders & Live Tracking", href: "/account/orders", icon: Package },
     { label: "Shipping Addresses", href: "/account/addresses", icon: MapPin },

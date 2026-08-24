@@ -4,11 +4,15 @@ export interface ReviewMediaItem {
   id?: string;
   url: string;
   type: "image" | "video";
+  thumbnailUrl?: string;
 }
 
 export interface ProductReview {
   id: string;
   productId: string;
+  productTitle?: string;
+  productSlug?: string;
+  productImage?: string;
   userId?: string;
   userName: string;
   userAvatar?: string;
@@ -17,6 +21,7 @@ export interface ProductReview {
   title: string;
   body: string;
   isVerifiedPurchase: boolean;
+  orderId?: string;
   variantId?: string;
   variantName?: string;
   media?: ReviewMediaItem[];
@@ -28,7 +33,10 @@ export interface ProductReview {
   adminReply?: string;
   adminReplyAt?: string;
   adminRepliedBy?: string;
+  adminRepliedByName?: string;
   rejectionReason?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
   createdAt: string;
   updatedAt?: string;
 }
@@ -68,11 +76,14 @@ export interface ProductAnswer {
   answer: string;
   status: "approved" | "pending" | "hidden";
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface ProductQuestion {
   id: string;
   productId: string;
+  productTitle?: string;
+  productSlug?: string;
   userId?: string;
   authorName: string;
   question: string;
@@ -80,4 +91,74 @@ export interface ProductQuestion {
   helpfulVotes: number;
   answers: ProductAnswer[];
   createdAt: string;
+  updatedAt?: string;
 }
+
+export interface VerifiedPurchaseCheckResult {
+  isEligible: boolean;
+  isVerifiedBuyer: boolean;
+  hasAlreadyReviewed: boolean;
+  existingReviewId?: string;
+  purchasedVariantId?: string;
+  purchasedVariantName?: string;
+  orderId?: string;
+  orderNumber?: string;
+  message?: string;
+}
+
+export interface CustomerUnreviewedItem {
+  orderId: string;
+  orderNumber: string;
+  orderDate: string;
+  productId: string;
+  productTitle: string;
+  productSlug: string;
+  productImage: string;
+  variantId?: string;
+  variantTitle?: string;
+  price: number;
+}
+
+export interface ReviewModerationLog {
+  id: string;
+  reviewId?: string;
+  questionId?: string;
+  adminId?: string;
+  adminName?: string;
+  action: "approved" | "rejected" | "hidden" | "edited" | "deleted" | "replied" | "featured_toggled";
+  previousState?: Record<string, unknown>;
+  newState?: Record<string, unknown>;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ReviewReport {
+  id: string;
+  reviewId: string;
+  userId?: string;
+  reason: string;
+  details?: string;
+  status: "pending" | "reviewed" | "dismissed" | "actioned";
+  createdAt: string;
+}
+
+export interface QuestionReport {
+  id: string;
+  questionId: string;
+  userId?: string;
+  reason: string;
+  details?: string;
+  status: "pending" | "reviewed" | "dismissed" | "actioned";
+  createdAt: string;
+}
+
+export interface AdminReviewStats {
+  total: number;
+  approved: number;
+  pending: number;
+  rejected: number;
+  featured: number;
+  reported: number;
+  avgRating: string;
+}
+

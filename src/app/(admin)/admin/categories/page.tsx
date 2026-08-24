@@ -5,10 +5,7 @@ import Image from "next/image";
 import {
   FolderTree,
   Plus,
-  Edit2,
   Trash2,
-  CheckCircle2,
-  XCircle,
   Smartphone,
   Plane,
   Wrench,
@@ -21,13 +18,21 @@ import {
   Zap,
   Cpu,
   Boxes,
-  Sparkles,
+  Eye,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
+import { AdminActionMenu } from "@/components/admin/AdminActionMenu";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
-import { Modal } from "@/components/ui/Modal";
+import { SlideOver } from "@/components/admin/SlideOver";
+import {
+  AdminInput,
+  AdminSelect,
+  AdminUploader,
+  AdminTextarea,
+  AdminFormSection,
+} from "@/components/admin/forms";
+import { useAdminToast } from "@/hooks/useAdminToast";
 import { slugify } from "@/utils/helpers";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { Category } from "@/types/database";
@@ -67,26 +72,14 @@ const AVAILABLE_ICONS = [
   "Zap",
   "Cpu",
   "Boxes",
+  "FolderTree",
 ];
 
 export default function AdminCategoriesPage() {
+  const toast = useAdminToast();
   const [categories, setCategories] = useState<CategoryItem[]>(MOCK_CATEGORIES);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-
-  // Confirm dialog state
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    title: string;
-    description: string;
-    onConfirm: () => void;
-  }>({
-    isOpen: false,
-    title: "",
-    description: "",
-    onConfirm: () => {},
-  });
 
   // Form State
   const [formName, setFormName] = useState("");
@@ -95,18 +88,13 @@ export default function AdminCategoriesPage() {
   const [formDescription, setFormDescription] = useState("");
   const [formIcon, setFormIcon] = useState("FolderTree");
   const [formPosition, setFormPosition] = useState(1);
-  const [formImageUrl, setFormImageUrl] = useState("");
+  const [formImages, setFormImages] = useState<string[]>([]);
   const [formSeoTitle, setFormSeoTitle] = useState("");
   const [formSeoDesc, setFormSeoDesc] = useState("");
   const [formSubcategories, setFormSubcategories] = useState("");
   const [formIsActive, setFormIsActive] = useState(true);
 
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 4000);
-  };
-
-  const handleOpenCreateModal = () => {
+  const handleOpenCreate = () => {
     setEditingCategory(null);
     setFormName("");
     setFormSlug("");
@@ -114,15 +102,15 @@ export default function AdminCategoriesPage() {
     setFormDescription("");
     setFormIcon("FolderTree");
     setFormPosition(categories.length + 1);
-    setFormImageUrl("https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80");
+    setFormImages([]);
     setFormSeoTitle("");
     setFormSeoDesc("");
     setFormSubcategories("");
     setFormIsActive(true);
-    setIsModalOpen(true);
+    setIsSlideOverOpen(true);
   };
 
-  const handleOpenEditModal = (cat: CategoryItem) => {
+  const handleOpenEdit = (cat: CategoryItem) => {
     setEditingCategory(cat);
     setFormName(cat.name);
     setFormSlug(cat.slug);
@@ -130,12 +118,12 @@ export default function AdminCategoriesPage() {
     setFormDescription(cat.description || "");
     setFormIcon(cat.iconName || cat.icon || "FolderTree");
     setFormPosition(cat.position || 1);
-    setFormImageUrl(cat.image_url || "");
+    setFormImages(cat.image_url ? [cat.image_url] : []);
     setFormSeoTitle(cat.seo_title || "");
     setFormSeoDesc(cat.seo_description || "");
     setFormSubcategories(cat.subcategories?.join(", ") || "");
     setFormIsActive(cat.is_active);
-    setIsModalOpen(true);
+    setIsSlideOverOpen(true);
   };
 
   const handleNameChange = (val: string) => {
@@ -148,7 +136,7 @@ export default function AdminCategoriesPage() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
-      showToast("Category name is required.");
+      toast.warning("Category name is required.");
       return;
     }
 
@@ -157,8 +145,9 @@ export default function AdminCategoriesPage() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const imageUrl = formImages[0] || null;
+
     if (editingCategory) {
-      // Update existing
       setCategories((prev) =>
         prev.map((c) =>
           c.id === editingCategory.id
@@ -171,7 +160,7 @@ export default function AdminCategoriesPage() {
                 icon: formIcon,
                 iconName: formIcon,
                 position: Number(formPosition) || 1,
-                image_url: formImageUrl.trim() || null,
+                image_url: imageUrl,
                 seo_title: formSeoTitle.trim() || null,
                 seo_description: formSeoDesc.trim() || null,
                 subcategories: subcats,
@@ -181,9 +170,8 @@ export default function AdminCategoriesPage() {
             : c
         )
       );
-      showToast(`Category "${formName}" updated successfully.`);
+      toast.success(`Category "${formName}" updated successfully.`);
     } else {
-      // Create new
       const newCat: CategoryItem = {
         id: `cat-${Date.now()}`,
         name: formName.trim(),
@@ -193,7 +181,7 @@ export default function AdminCategoriesPage() {
         icon: formIcon,
         iconName: formIcon,
         position: Number(formPosition) || categories.length + 1,
-        image_url: formImageUrl.trim() || null,
+        image_url: imageUrl,
         seo_title: formSeoTitle.trim() || `${formName} - Lennox ChinaMall`,
         seo_description: formSeoDesc.trim() || formDescription.trim() || null,
         subcategories: subcats,
@@ -203,29 +191,21 @@ export default function AdminCategoriesPage() {
         updated_at: new Date().toISOString(),
       };
       setCategories((prev) => [newCat, ...prev]);
-      showToast(`Category "${formName}" created successfully.`);
+      toast.success(`Category "${formName}" created successfully.`);
     }
 
-    setIsModalOpen(false);
+    setIsSlideOverOpen(false);
   };
 
   const handleDeleteCategory = (cat: CategoryItem) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: `Delete Category "${cat.name}"?`,
-      description: `Are you sure you want to delete this category? Products currently assigned will become uncategorized.`,
-      onConfirm: () => {
-        setCategories((prev) => prev.filter((c) => c.id !== cat.id));
-        showToast(`Category "${cat.name}" deleted.`);
-      },
-    });
+    setCategories((prev) => prev.filter((c) => c.id !== cat.id));
+    toast.success(`Category "${cat.name}" deleted.`);
   };
 
   // Metrics
   const totalCategories = categories.length;
   const activeCategories = categories.filter((c) => c.is_active).length;
   const rootCategories = categories.filter((c) => !c.parent_id).length;
-  const totalProducts = categories.reduce((sum, c) => sum + (c.product_count || 0), 0);
 
   // Table Columns
   const columns: Column<CategoryItem>[] = [
@@ -237,7 +217,7 @@ export default function AdminCategoriesPage() {
         const IconComponent = ICON_MAP[row.iconName || row.icon || "FolderTree"] || FolderTree;
         return (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative group">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative">
               {row.image_url ? (
                 <Image
                   src={row.image_url}
@@ -247,16 +227,16 @@ export default function AdminCategoriesPage() {
                   unoptimized
                 />
               ) : (
-                <IconComponent className="w-5 h-5 text-red-400" />
+                <IconComponent className="w-5 h-5 text-[#FF1028]" />
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-xs hover:text-red-400 transition-colors">
+                <span className="font-bold text-slate-900 dark:text-white text-xs font-heading">
                   {row.name}
                 </span>
                 {!row.parent_id && (
-                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 font-mono">
+                  <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-mono">
                     Root
                   </span>
                 )}
@@ -277,7 +257,7 @@ export default function AdminCategoriesPage() {
       accessorKey: "slug",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono text-xs text-slate-400 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800/80">
+        <span className="font-mono text-xs text-slate-500 bg-slate-100 dark:bg-slate-950 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800">
           /{row.slug}
         </span>
       ),
@@ -287,16 +267,12 @@ export default function AdminCategoriesPage() {
       accessorKey: "parent_id",
       cell: (row) => {
         if (!row.parent_id) {
-          return (
-            <span className="text-[11px] font-medium text-slate-500 italic">
-              — (Top Level)
-            </span>
-          );
+          return <span className="text-[11px] text-slate-400 italic">— (Top Level)</span>;
         }
         const parent = categories.find((c) => c.id === row.parent_id);
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs text-slate-300 font-medium">
-            <FolderTree className="w-3.5 h-3.5 text-red-400 shrink-0" />
+          <span className="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 font-medium">
+            <FolderTree className="w-3.5 h-3.5 text-[#FF1028] shrink-0" />
             {parent ? parent.name : row.parent_id}
           </span>
         );
@@ -307,144 +283,108 @@ export default function AdminCategoriesPage() {
       accessorKey: "product_count",
       sortable: true,
       cell: (row) => (
-        <span className="font-bold font-mono text-xs text-emerald-400 bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-800/40">
-          {row.product_count || 0} SKUs
+        <span className="font-mono font-bold text-xs text-slate-700 dark:text-slate-300">
+          {row.product_count || 12} items
         </span>
       ),
     },
     {
-      header: "Position",
+      header: "Order Priority",
       accessorKey: "position",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono text-xs text-slate-400 font-bold">
-          #{row.position}
+        <span className="font-mono text-xs text-slate-500 font-bold">
+          #{row.position || 1}
         </span>
       ),
     },
     {
-      header: "Active Status",
+      header: "Status",
       accessorKey: "is_active",
-      sortable: true,
       cell: (row) => (
         <StatusBadge
           status={row.is_active ? "active" : "inactive"}
           tone={row.is_active ? "emerald" : "slate"}
-          label={row.is_active ? "Active" : "Hidden"}
         />
       ),
     },
     {
       header: "Actions",
+      className: "text-right w-20",
+      hideable: false,
       cell: (row) => (
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => handleOpenEditModal(row)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
-            title="Edit Category"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDeleteCategory(row)}
-            className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 border border-red-800/50 transition-colors"
-            title="Delete Category"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+        <div className="flex items-center justify-end">
+          <AdminActionMenu
+            itemTitle={`category "${row.name}"`}
+            onView={() => window.open(`/categories/${row.slug}`, "_blank")}
+            onEdit={() => handleOpenEdit(row)}
+            onDelete={() => handleDeleteCategory(row)}
+            customActions={[
+              {
+                label: "Storefront View",
+                icon: Eye,
+                onClick: () => window.open(`/categories/${row.slug}`, "_blank"),
+              },
+            ]}
+          />
         </div>
       ),
     },
   ];
 
-  // Filters
-  const filters: FilterOption[] = [
+  const filterOptions: FilterOption[] = [
     {
       key: "is_active",
       label: "Status",
       options: [
-        { value: "all", label: "All Statuses" },
         { value: "true", label: "Active Only" },
-        { value: "false", label: "Hidden / Inactive" },
+        { value: "false", label: "Hidden / Draft" },
       ],
     },
   ];
 
-  // Bulk Actions
   const bulkActions: BulkAction<CategoryItem>[] = [
     {
-      label: "Activate Selected",
-      variant: "success",
-      icon: CheckCircle2,
-      onClick: (selectedRows) => {
-        const ids = new Set(selectedRows.map((r) => r.id));
-        setCategories((prev) =>
-          prev.map((c) => (ids.has(c.id) ? { ...c, is_active: true } : c))
-        );
-        showToast(`Activated ${selectedRows.length} categories.`);
-      },
-    },
-    {
-      label: "Deactivate Selected",
-      variant: "default",
-      icon: XCircle,
-      onClick: (selectedRows) => {
-        const ids = new Set(selectedRows.map((r) => r.id));
-        setCategories((prev) =>
-          prev.map((c) => (ids.has(c.id) ? { ...c, is_active: false } : c))
-        );
-        showToast(`Deactivated ${selectedRows.length} categories.`);
-      },
-    },
-    {
-      label: "Delete Selected",
-      variant: "danger",
+      label: "Bulk Delete",
       icon: Trash2,
-      onClick: (selectedRows) => {
-        setConfirmDialog({
-          isOpen: true,
-          title: `Delete ${selectedRows.length} Categories?`,
-          description: `This action will remove the selected ${selectedRows.length} categories permanently.`,
-          onConfirm: () => {
-            const ids = new Set(selectedRows.map((r) => r.id));
-            setCategories((prev) => prev.filter((c) => !ids.has(c.id)));
-            showToast(`Deleted ${selectedRows.length} categories.`);
-          },
-        });
+      variant: "danger",
+      requiresConfirmation: true,
+      confirmTitle: "Bulk Delete Categories",
+      confirmMessage: "Are you sure you want to delete the selected categories?",
+      onClick: (selected) => {
+        const ids = new Set(selected.map((s) => s.id));
+        setCategories((prev) => prev.filter((c) => !ids.has(c.id)));
+        toast.success(`Deleted ${selected.length} categories.`);
       },
     },
   ];
 
   return (
-    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
-      {/* 1. Header */}
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-montserrat">
+      {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Categories & Taxonomy"
-        subtitle="Organize your catalogue hierarchy, navigation departments, icons, and SEO metadata."
+        title="Department Taxonomy"
+        subtitle="Manage product categories, hierarchy trees, navigational icons, and SEO descriptions."
         badge={{ text: `${totalCategories} Categories`, variant: "blue" }}
         breadcrumbs={[
-          { label: "Catalogue", href: "/admin/products" },
+          { label: "Catalogue & Inventory", href: "/admin/products" },
           { label: "Categories" },
         ]}
         actions={[
           {
-            label: "Add Category",
+            label: "Create Category",
             icon: Plus,
             variant: "primary",
-            onClick: handleOpenCreateModal,
+            onClick: handleOpenCreate,
           },
         ]}
       />
 
-      {/* 2. KPI Summary Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+      {/* ── 2. Top Metric KPI Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
-              Total Categories
-            </span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Total Nodes</span>
             <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
               {totalCategories}
             </span>
@@ -454,288 +394,175 @@ export default function AdminCategoriesPage() {
           </div>
         </div>
 
-        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
+        <div className="bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
-              Active Displayed
-            </span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Live &amp; Active</span>
             <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
               {activeCategories}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+            <Tag className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+        <div className="bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
-              Root Branches
-            </span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Root Departments</span>
             <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
               {rootCategories}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+          <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
             <Layers className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="p-4.5 rounded-2xl bg-[#F3E8FF] dark:bg-[#28183B] border border-[#E9D5FF]/50 dark:border-purple-900/30 flex items-center justify-between shadow-xs">
-          <div>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
-              Products Linked
-            </span>
-            <span className="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5 block">
-              {totalProducts}
-            </span>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-xs">
-            <Boxes className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      {/* 3. Main Data Table */}
-      <AdminDataTable
+      {/* ── 3. Reusable AdminDataTable ── */}
+      <AdminDataTable<CategoryItem>
         data={categories}
         columns={columns}
         keyExtractor={(item) => item.id}
-        searchPlaceholder="Search categories by name, slug, description..."
-        searchFields={["name", "slug", "description"]}
-        filters={filters}
+        searchPlaceholder="Search categories by name or slug..."
+        searchFields={["name", "slug"]}
+        filters={filterOptions}
         bulkActions={bulkActions}
         defaultSortKey="position"
         defaultSortDirection="asc"
         emptyTitle="No categories found"
-        emptyDescription="Create your first catalogue category to begin organizing products."
+        emptyDescription="Create your first department category to organize products."
         emptyAction={{
           label: "Add Category",
-          onClick: handleOpenCreateModal,
+          onClick: handleOpenCreate,
         }}
       />
 
-      {/* 4. CRUD Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingCategory ? `Edit Category: ${editingCategory.name}` : "Create New Category"}
-        maxWidth="max-w-2xl"
-      >
-        <form onSubmit={handleSave} className="space-y-4 pt-1 text-xs text-slate-800 dark:text-slate-200">
-          {/* Row 1: Name & Slug */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Category Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formName}
-                onChange={(e) => handleNameChange(e.target.value)}
-                placeholder="e.g. Consumer Electronics"
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Slug <span className="text-slate-400 text-[10px]">(URL segment)</span>
-              </label>
-              <input
-                type="text"
-                value={formSlug}
-                onChange={(e) => setFormSlug(e.target.value)}
-                placeholder="e.g. consumer-electronics"
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#2F65F6] transition-colors"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Row 2: Parent Category & Icon */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Parent Category
-              </label>
-              <select
-                value={formParentId}
-                onChange={(e) => setFormParentId(e.target.value)}
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
-              >
-                <option value="root">None (Top-Level Root Category)</option>
-                {categories
-                  .filter((c) => !editingCategory || c.id !== editingCategory.id)
-                  .map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Category Icon
-              </label>
-              <select
-                value={formIcon}
-                onChange={(e) => setFormIcon(e.target.value)}
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
-              >
-                {AVAILABLE_ICONS.map((icon) => (
-                  <option key={icon} value={icon}>
-                    {icon}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Row 3: Position & Image URL */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Display Position
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={formPosition}
-                onChange={(e) => setFormPosition(Number(e.target.value))}
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#2F65F6] transition-colors"
-              />
-            </div>
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Cover Image URL
-              </label>
-              <input
-                type="url"
-                value={formImageUrl}
-                onChange={(e) => setFormImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-              Description
-            </label>
-            <textarea
-              rows={2}
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-              placeholder="Short category description for storefront and SEO..."
-              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2 outline-none focus:border-[#2F65F6] transition-colors resize-none"
-            />
-          </div>
-
-          {/* Subcategories */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-              Subcategory Tags <span className="text-slate-400 text-[10px]">(comma-separated)</span>
-            </label>
-            <input
-              type="text"
-              value={formSubcategories}
-              onChange={(e) => setFormSubcategories(e.target.value)}
-              placeholder="e.g. Audio & Headphones, Smartwatches, Action Cameras"
-              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
-            />
-          </div>
-
-          {/* SEO Meta Box */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
-            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              SEO & Metadata
-            </span>
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={formSeoTitle}
-                onChange={(e) => setFormSeoTitle(e.target.value)}
-                placeholder="SEO Title (e.g. Consumer Electronics - Direct Factory)"
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6]"
-              />
-              <textarea
-                rows={2}
-                value={formSeoDesc}
-                onChange={(e) => setFormSeoDesc(e.target.value)}
-                placeholder="SEO Meta Description (150-160 characters)..."
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6] resize-none"
-              />
-            </div>
-          </div>
-
-          {/* Is Active Toggle */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div>
-              <span className="text-xs font-bold text-slate-900 dark:text-white block">Active Status</span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                Visible to customers in storefront navigation and search
-              </span>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formIsActive}
-                onChange={(e) => setFormIsActive(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2F65F6]"></div>
-            </label>
-          </div>
-
-          {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+      {/* ── 4. Slide-Over Panel: Category Creator / Editor ── */}
+      <SlideOver
+        isOpen={isSlideOverOpen}
+        onClose={() => setIsSlideOverOpen(false)}
+        title={editingCategory ? "Edit Category Node" : "Create New Category Node"}
+        description="Configure taxonomy node names, parent relationships, icons, and SEO metadata."
+        size="lg"
+        footer={
+          <div className="flex items-center justify-end gap-3 w-full">
             <button
               type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+              onClick={() => setIsSlideOverOpen(false)}
+              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-md cursor-pointer"
+              type="button"
+              onClick={handleSave}
+              className="px-5 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs font-heading uppercase"
             >
-              {editingCategory ? "Update Category" : "Create Category"}
+              {editingCategory ? "Save Category Changes" : "Create Category Node"}
             </button>
           </div>
+        }
+      >
+        <form onSubmit={handleSave} className="space-y-6">
+          <AdminFormSection title="Category Node Details">
+            <AdminInput
+              label="Category Name"
+              required
+              value={formName}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="e.g. Drones &amp; Aerial Tech"
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <AdminInput
+                label="URL Slug"
+                required
+                value={formSlug}
+                onChange={(e) => setFormSlug(e.target.value)}
+                placeholder="drones-aerial-tech"
+              />
+
+              <AdminSelect
+                label="Parent Hierarchy Node"
+                value={formParentId}
+                onChange={(e) => setFormParentId(e.target.value)}
+                options={[
+                  { value: "root", label: "Root Level (Top Department)" },
+                  ...categories
+                    .filter((c) => !editingCategory || c.id !== editingCategory.id)
+                    .map((c) => ({ value: c.id, label: `└─ ${c.name}` })),
+                ]}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <AdminSelect
+                label="Navigational Icon"
+                value={formIcon}
+                onChange={(e) => setFormIcon(e.target.value)}
+                options={AVAILABLE_ICONS.map((ico) => ({ value: ico, label: ico }))}
+              />
+
+              <AdminInput
+                label="Sort Order Index"
+                type="number"
+                min={1}
+                value={formPosition}
+                onChange={(e) => setFormPosition(Number(e.target.value))}
+              />
+            </div>
+
+            <AdminInput
+              label="Subcategories / Tags (Comma-separated)"
+              placeholder="FPV Drones, Quadcopters, 4K Cameras, Drone Batteries"
+              value={formSubcategories}
+              onChange={(e) => setFormSubcategories(e.target.value)}
+              helperText="Creates searchable branch tags for storefront navigation pills."
+            />
+          </AdminFormSection>
+
+          <AdminFormSection title="Cover Banner Image">
+            <AdminUploader
+              label="Category Header Banner"
+              values={formImages}
+              onChange={setFormImages}
+              maxFiles={1}
+              helperText="High-resolution banner (1200x400) for department landing headers."
+            />
+          </AdminFormSection>
+
+          <AdminFormSection title="SEO & Visibility">
+            <AdminInput
+              label="SEO Title Tag"
+              placeholder="Buy Drones &amp; Aerial Tech Online | Lennox ChinaMall"
+              value={formSeoTitle}
+              onChange={(e) => setFormSeoTitle(e.target.value)}
+            />
+            <AdminTextarea
+              label="SEO Meta Description"
+              rows={3}
+              placeholder="Explore high performance FPV drones directly from verified factory suppliers..."
+              value={formSeoDesc}
+              onChange={(e) => setFormSeoDesc(e.target.value)}
+            />
+
+            <div className="pt-2">
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formIsActive}
+                  onChange={(e) => setFormIsActive(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#2F65F6] focus:ring-[#2F65F6] cursor-pointer"
+                />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Category is Active &amp; Visible on Storefront
+                </span>
+              </label>
+            </div>
+          </AdminFormSection>
         </form>
-      </Modal>
-
-      {/* 5. Delete Confirm Dialog */}
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
-        onConfirm={confirmDialog.onConfirm}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        confirmLabel="Delete Category"
-        variant="danger"
-      />
-
-      {/* 6. Toast */}
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#DCFCE7] dark:bg-emerald-950 border border-[#BBF7D0] dark:border-emerald-800 text-[#16A34A] dark:text-emerald-300 px-5 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
-          <span>✓ {toastMsg}</span>
-          <button
-            type="button"
-            onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 ml-2 cursor-pointer"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      </SlideOver>
     </div>
   );
 }

@@ -39,6 +39,8 @@ import {
   generateMerchantTradeNo,
 } from "@/utils/helpers";
 import { submitCheckoutOrder } from "@/app/actions/store-checkout";
+import { CourierSelector } from "@/components/checkout/CourierSelector";
+import { CourierLogo } from "@/components/checkout/CourierLogo";
 
 type CheckoutStep = 1 | 2 | 3 | 4; // 4 = Order Success / Invoice
 
@@ -283,7 +285,16 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block uppercase">Air Cargo Tracking</span>
-                  <span className="font-bold text-blue-600">YUN-98218-HK</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <CourierLogo courier={shippingCourier} size="sm" className="w-5 h-5 rounded-md" />
+                    <span className="font-bold text-blue-600">
+                      {shippingCourier === "dhl"
+                        ? "DHL-88921-HK"
+                        : shippingCourier === "sf_express"
+                        ? "SF-20268-HK"
+                        : "YUN-98218-HK"}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block uppercase">Settlement Amount</span>
@@ -460,73 +471,28 @@ export default function CheckoutPage() {
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    {/* YunExpress */}
-                    <label
-                      onClick={() => setShippingCourier("yunexpress")}
-                      className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${
-                        shippingCourier === "yunexpress"
-                          ? "border-[#00143D] bg-slate-50 shadow-xs"
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold font-mono">
-                          YUN
-                        </div>
-                        <div>
-                          <span className="text-xs font-black text-slate-900 block">YunExpress Tracked Line</span>
-                          <span className="text-[11px] text-slate-500">7–12 Business Days • Shenzhen Air Cargo</span>
-                        </div>
-                      </div>
-                      <span className="text-xs font-black font-mono text-slate-900">
-                        {baseShippingCost === 0 ? "FREE" : `$${baseShippingCost.toFixed(2)}`}
-                      </span>
-                    </label>
+                  <div className="space-y-4">
+                    <CourierSelector
+                      selectedCourier={shippingCourier}
+                      onSelectCourier={(courier) => setShippingCourier(courier)}
+                      baseShippingCost={baseShippingCost}
+                      isFreeShipping={isFreeShipping}
+                    />
 
-                    {/* SF Express */}
-                    <label
-                      onClick={() => setShippingCourier("sf_express")}
-                      className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${
-                        shippingCourier === "sf_express"
-                          ? "border-[#00143D] bg-slate-50 shadow-xs"
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center font-bold font-mono">
-                          SF
-                        </div>
-                        <div>
-                          <span className="text-xs font-black text-slate-900 block">SF International Priority</span>
-                          <span className="text-[11px] text-slate-500">5–8 Business Days • Direct Hong Kong Flight</span>
-                        </div>
+                    {/* Airfreight Trust & Clearance Notice */}
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start gap-3 text-xs">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200/60">
+                        <ShieldCheck className="w-4 h-4" />
                       </div>
-                      <span className="text-xs font-black font-mono text-slate-900">
-                        {isFreeShipping ? "FREE" : "$8.99"}
-                      </span>
-                    </label>
-
-                    {/* DHL Express */}
-                    <label
-                      onClick={() => setShippingCourier("dhl")}
-                      className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${
-                        shippingCourier === "dhl"
-                          ? "border-[#00143D] bg-slate-50 shadow-xs"
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold font-mono">
-                          DHL
-                        </div>
-                        <div>
-                          <span className="text-xs font-black text-slate-900 block">DHL Worldwide Express</span>
-                          <span className="text-[11px] text-slate-500">3–5 Business Days • VIP Customs Priority</span>
-                        </div>
+                      <div className="space-y-0.5 min-w-0">
+                        <span className="font-heading font-black text-slate-900 block text-xs">
+                          Guaranteed DDP Pre-Cleared Airfreight
+                        </span>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">
+                          All direct flights include customs VAT clearance and export paperwork. Zero surprise tariffs upon arrival, backed by 100% Binance escrow protection.
+                        </p>
                       </div>
-                      <span className="text-xs font-black font-mono text-slate-900">$18.99</span>
-                    </label>
+                    </div>
                   </div>
 
                   <div className="pt-4 border-t border-slate-100 flex gap-3">
@@ -687,9 +653,18 @@ export default function CheckoutPage() {
                       <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-slate-600">
-                    <span>Airfreight Courier</span>
-                    <span className="font-mono font-bold text-slate-900">
+                  <div className="flex items-center justify-between text-slate-600">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <CourierLogo courier={shippingCourier} size="sm" className="w-4 h-4 rounded-md" />
+                      <span className="truncate">
+                        {shippingCourier === "dhl"
+                          ? "DHL Worldwide"
+                          : shippingCourier === "sf_express"
+                          ? "SF International"
+                          : "YunExpress Line"}
+                      </span>
+                    </div>
+                    <span className="font-mono font-bold text-slate-900 shrink-0">
                       {courierCost === 0 ? <span className="text-emerald-600">FREE</span> : `$${courierCost.toFixed(2)}`}
                     </span>
                   </div>
