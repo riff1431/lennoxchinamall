@@ -10,6 +10,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lennoxchinamall.com";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "Direct China Factory Departments & Sourcing Hubs",
   description:
     "Explore certified China manufacturing clusters in Shenzhen, Ningbo, and Dongguan. Sourcing 4K camera drones, 3D printers, electronics, and automotive tools.",

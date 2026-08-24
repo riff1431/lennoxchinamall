@@ -2,10 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   Address,
   Profile,
-  Review,
-  SupportTicket,
-  ReturnRequest,
 } from "@/types/database";
+
 
 /**
  * Get the currently authenticated profile

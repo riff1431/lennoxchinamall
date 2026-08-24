@@ -29,7 +29,7 @@ export function ProductJsonLd({ product }: ProductJsonLdProps) {
       url: `${APP_URL}/products/${product.slug}`,
       priceCurrency: "USD",
       price: product.base_price.toFixed(2),
-      priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      priceValidUntil: "2027-12-31",
       itemCondition: "https://schema.org/NewCondition",
       availability: "https://schema.org/InStock",
       seller: {

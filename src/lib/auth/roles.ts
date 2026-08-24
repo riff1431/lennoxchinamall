@@ -23,7 +23,7 @@ export function isAdminRole(role: UserRole | null | undefined): boolean {
 
 // ─── Granular Permission Map ────────────────────────────────────────────────
 
-type AdminSection =
+export type AdminSection =
   | "dashboard"
   | "products"
   | "orders"
@@ -34,7 +34,7 @@ type AdminSection =
   | "content"
   | "settings";
 
-const ROLE_PERMISSIONS: Record<UserRole, AdminSection[]> = {
+export const ROLE_PERMISSIONS: Record<UserRole, AdminSection[]> = {
   super_admin: [
     "dashboard",
     "products",
@@ -106,4 +106,15 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   order_manager: "Order Manager",
   support_agent: "Support Agent",
   customer: "Customer",
+};
+
+/**
+ * Detailed role descriptions for permission inspection.
+ */
+export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
+  super_admin: "Full unrestricted platform control, staff governance, role assignment, and financial logs.",
+  catalogue_manager: "Manages product catalog, dual-video media, private supplier links, and promotional campaigns.",
+  order_manager: "Handles order fulfilment, air express tracking numbers, Binance Pay USDT ledger, and supplier POs.",
+  support_agent: "Handles customer inquiries, 30-day warranty claims, returns inspection, and order issue resolution.",
+  customer: "Standard verified customer account for factory-direct hardware ordering and USDT escrow checkout.",
 };

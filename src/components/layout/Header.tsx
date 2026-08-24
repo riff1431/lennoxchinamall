@@ -105,7 +105,6 @@ export function Header() {
   // Fetch predictive search results
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
-      setSearchSuggestions({ products: [], categories: [], suggestions: [] });
       return;
     }
 
@@ -146,8 +145,11 @@ export function Header() {
 
   // Close mobile drawer on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsMegaMenuOpen(false);
+    const timer = setTimeout(() => {
+      setIsMobileMenuOpen(false);
+      setIsMegaMenuOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   const handleSearch = (e: React.FormEvent) => {

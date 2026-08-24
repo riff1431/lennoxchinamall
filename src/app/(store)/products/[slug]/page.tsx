@@ -40,6 +40,7 @@ export async function generateMetadata({
     `Buy ${product.title} at direct China factory price with Binance Pay USDT escrow.`;
 
   return {
+    metadataBase: new URL(APP_URL),
     title: `${product.title} — Direct Factory Sourcing`,
     description,
     keywords: [

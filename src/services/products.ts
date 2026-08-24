@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { Product, Variant, ProductMedia, ProductVideo } from "@/types/database";
+import { Product } from "@/types/database";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
+
 
 export interface GetProductsOptions {
   categoryId?: string;

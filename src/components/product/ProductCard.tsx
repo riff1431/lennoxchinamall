@@ -10,16 +10,14 @@ import {
   Video,
   Zap,
   ShieldCheck,
-  Truck,
   Plane,
-  Eye,
   Star,
 } from "lucide-react";
 import { Product } from "@/types/database";
-import { Rating } from "@/components/ui/Rating";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
+
 
 interface ProductCardProps {
   product: Product;

@@ -131,6 +131,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
+    metadataBase: new URL(APP_URL),
     title: `${page.title}`,
     description: page.description,
     alternates: {

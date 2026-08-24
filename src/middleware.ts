@@ -1,19 +1,39 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { UserRole } from "@/types/database";
 
 /**
  * Lennox ChinaMall — Edge Middleware
  *
- * Handles session refresh, route protection, and admin role gating.
+ * Handles session refresh, route protection, and granular module role gating.
  * Role is checked from app_metadata (server-set, not user-editable).
  */
 
-const ADMIN_ROLES = [
+const ADMIN_ROLES: UserRole[] = [
   "super_admin",
   "catalogue_manager",
   "order_manager",
   "support_agent",
 ];
+
+// Module-level permission map for edge checking
+const ROLE_ALLOWED_MODULES: Record<UserRole, string[]> = {
+  super_admin: [
+    "dashboard",
+    "products",
+    "orders",
+    "payments",
+    "suppliers",
+    "promotions",
+    "customers",
+    "content",
+    "settings",
+  ],
+  catalogue_manager: ["dashboard", "products", "suppliers", "promotions"],
+  order_manager: ["dashboard", "orders", "payments", "suppliers"],
+  support_agent: ["dashboard", "orders", "customers"],
+  customer: [],
+};
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -53,7 +73,7 @@ export async function middleware(request: NextRequest) {
 
   // ─── Admin Routes (/admin/*) ─────────────────────────────────────────────
   if (pathname.startsWith("/admin")) {
-    // Not authenticated → redirect to admin login
+    // 1. Not authenticated → redirect to admin login
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/admin-login";
@@ -61,12 +81,24 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Authenticated but not an admin role → redirect to home (don't reveal admin exists)
-    const role = user.app_metadata?.role;
+    // 2. Authenticated but not an admin role → redirect to home (silent, no admin leakage)
+    const role = (user.app_metadata?.role as UserRole) || null;
     if (!role || !ADMIN_ROLES.includes(role)) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       url.searchParams.delete("redirect");
+      return NextResponse.redirect(url);
+    }
+
+    // 3. Granular module permission check
+    const segments = pathname.replace(/^\/admin\/?/, "").split("/");
+    const moduleName = segments[0] || "dashboard";
+
+    const allowedModules = ROLE_ALLOWED_MODULES[role] || [];
+    if (!allowedModules.includes(moduleName)) {
+      // Role does not have access to this module -> redirect to allowed default dashboard
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/dashboard";
       return NextResponse.redirect(url);
     }
   }
@@ -91,7 +123,7 @@ export async function middleware(request: NextRequest) {
     if (user && !isExempt) {
       // If visiting admin-login while already an admin, go to admin dashboard
       if (pathname.includes("admin-login")) {
-        const role = user.app_metadata?.role;
+        const role = user.app_metadata?.role as UserRole;
         if (role && ADMIN_ROLES.includes(role)) {
           const url = request.nextUrl.clone();
           url.pathname = "/admin/dashboard";

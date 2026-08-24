@@ -17,6 +17,8 @@ import {
   ExternalLink,
   LogOut,
   ShieldCheck,
+  Users,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/utils/helpers";
 import { Profile, UserRole } from "@/types/database";
@@ -91,6 +93,18 @@ export function AdminLayoutClient({
           icon: Tag,
           section: "promotions" as const,
           badge: "Hot",
+        },
+      ],
+    },
+    {
+      title: "Governance & Security",
+      items: [
+        {
+          label: "Team & Customers",
+          href: "/admin/customers",
+          icon: Users,
+          section: "customers" as const,
+          badge: "RBAC",
         },
       ],
     },

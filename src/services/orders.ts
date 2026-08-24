@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { Order, OrderItem, OrderAddress, OrderStatus, Product, Variant } from "@/types/database";
+import { Order, OrderStatus } from "@/types/database";
 import { CartItemType } from "@/store/useCartStore";
+
 import {
   generateOrderNumber,
   generateMerchantTradeNo,

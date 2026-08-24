@@ -6,6 +6,7 @@ import { WebsiteJsonLd } from "@/components/seo/JsonLd";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lennoxchinamall.com";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "Lennox ChinaMall — Direct China Sourcing & Wholesale Hardware Portal",
   description:
     "Buy 4K camera drones, CoreXY 3D printers, audio boomboxes, and OBD2 automotive tools at direct factory prices with Binance Pay USDT escrow checkout.",

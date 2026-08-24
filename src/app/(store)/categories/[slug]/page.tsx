@@ -48,6 +48,7 @@ export async function generateMetadata({
   const image = category?.image_url || "/logo-lennoxchinamall.jpeg";
 
   return {
+    metadataBase: new URL(APP_URL),
     title,
     description,
     keywords: [
