@@ -108,13 +108,6 @@ export default function AdminDashboardPage() {
   const [selectAll, setSelectAll] = useState(false);
   const [timeFilter, setTimeFilter] = useState("Month");
   const [countryFilter, setCountryFilter] = useState("Country");
-  const [activeTooltip, setActiveTooltip] = useState<{
-    month: string;
-    series: string;
-    value: number;
-    left: number;
-    top: number;
-  } | null>(null);
 
   // Filter products by search query
   const filteredProducts = INITIAL_PRODUCTS.filter(

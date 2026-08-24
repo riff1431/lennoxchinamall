@@ -1,42 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Package,
-  FolderTree,
-  Award,
-  Layers,
-  Boxes,
-  Image as ImageIcon,
-  Factory,
-  ClipboardCheck,
   ShoppingCart,
-  CreditCard,
-  Truck,
-  RotateCcw,
   Users,
-  Star,
-  Headphones,
-  Ticket,
-  Zap,
-  Megaphone,
-  LayoutGrid,
-  FileText,
   Menu as MenuIcon,
-  Globe,
   Bell,
-  BarChart3,
-  UserCheck,
-  History,
-  Cpu,
-  Settings,
-  ShieldCheck,
   X,
-  ExternalLink,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -53,7 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/utils/helpers";
 import { Profile, UserRole } from "@/types/database";
-import { hasPermission, ROLE_LABELS, AdminSection } from "@/lib/auth/roles";
+import { hasPermission, AdminSection } from "@/lib/auth/roles";
 import { signout } from "@/app/actions/auth";
 
 interface AdminLayoutClientProps {
@@ -75,6 +48,105 @@ interface NavGroup {
   items: NavItem[];
 }
 
+// Navigation structure matching reference layout & comprehensive Lennox store operations
+const ALL_NAV_SECTIONS: NavGroup[] = [
+  {
+    items: [
+      {
+        label: "Dashboard",
+        href: "/admin/dashboard",
+        icon: LayoutDashboard,
+        section: "dashboard",
+      },
+      {
+        label: "Ecommerce",
+        href: "/admin/products",
+        icon: ShoppingCart,
+        section: "products",
+        children: [
+          { label: "Products", href: "/admin/products" },
+          { label: "Categories", href: "/admin/categories" },
+          { label: "Brands", href: "/admin/brands" },
+          { label: "Attributes", href: "/admin/attributes" },
+          { label: "Inventory", href: "/admin/inventory" },
+          { label: "Media Library", href: "/admin/media" },
+        ],
+      },
+      {
+        label: "Customers",
+        href: "/admin/customers",
+        icon: Users,
+        section: "customers",
+        children: [
+          { label: "Customer List", href: "/admin/customers" },
+          { label: "Reviews & UGC", href: "/admin/reviews" },
+        ],
+      },
+      {
+        label: "CRM",
+        href: "/admin/orders",
+        icon: Users,
+        section: "orders",
+        children: [
+          { label: "Orders Fulfilment", href: "/admin/orders" },
+          { label: "USDT Payments", href: "/admin/payments" },
+          { label: "Air Cargo Tracking", href: "/admin/shipping" },
+          { label: "Returns & Refunds", href: "/admin/returns" },
+        ],
+      },
+      {
+        label: "Chat",
+        href: "/admin/support",
+        icon: MessageSquare,
+        section: "support",
+        badge: "3",
+      },
+      {
+        label: "Companies",
+        href: "/admin/suppliers",
+        icon: Building2,
+        section: "suppliers",
+      },
+      {
+        label: "Projects",
+        href: "/admin/sourcing",
+        icon: FolderKanban,
+        section: "sourcing",
+        children: [
+          { label: "China Sourcing PO", href: "/admin/sourcing" },
+          { label: "Homepage Sections", href: "/admin/homepage-sections" },
+          { label: "Banners & Promos", href: "/admin/promotions" },
+          { label: "Flash Deals", href: "/admin/flash-deals" },
+        ],
+      },
+      {
+        label: "Calendar",
+        href: "/admin/coupons",
+        icon: Calendar,
+        section: "coupons",
+      },
+      {
+        label: "Tasks",
+        href: "/admin/audit-logs",
+        icon: CheckSquare,
+        section: "audit-logs",
+      },
+      {
+        label: "Contacts",
+        href: "/admin/staff",
+        icon: Contact,
+        section: "staff",
+        children: [
+          { label: "Staff & RBAC", href: "/admin/staff" },
+          { label: "Store Settings", href: "/admin/settings" },
+          { label: "Integrations & API", href: "/admin/integrations" },
+          { label: "Analytics & P&L", href: "/admin/analytics" },
+        ],
+      },
+    ],
+  },
+];
+
 export function AdminLayoutClient({
   children,
   userProfile,
@@ -83,7 +155,12 @@ export function AdminLayoutClient({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [navSearch, setNavSearch] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("lennox_admin_theme") === "dark";
+    }
+    return false;
+  });
   const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({
     Ecommerce: false,
     Customers: false,
@@ -92,23 +169,12 @@ export function AdminLayoutClient({
     Contacts: false,
   });
 
-  // Load theme preference
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("lennox_admin_theme");
-    if (savedTheme === "dark") {
-      setIsDarkMode(true);
-    }
-  }, []);
-
   const toggleTheme = (dark: boolean) => {
     setIsDarkMode(dark);
-    localStorage.setItem("lennox_admin_theme", dark ? "dark" : "light");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("lennox_admin_theme", dark ? "dark" : "light");
+    }
   };
-
-  // Close mobile menu on route navigation
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
 
   const userRole = (userProfile?.role as UserRole) || "super_admin";
 
@@ -119,108 +185,9 @@ export function AdminLayoutClient({
     }));
   };
 
-  // Navigation structure matching reference layout & comprehensive Lennox store operations
-  const allNavSections: NavGroup[] = [
-    {
-      items: [
-        {
-          label: "Dashboard",
-          href: "/admin/dashboard",
-          icon: LayoutDashboard,
-          section: "dashboard",
-        },
-        {
-          label: "Ecommerce",
-          href: "/admin/products",
-          icon: ShoppingCart,
-          section: "products",
-          children: [
-            { label: "Products", href: "/admin/products" },
-            { label: "Categories", href: "/admin/categories" },
-            { label: "Brands", href: "/admin/brands" },
-            { label: "Attributes", href: "/admin/attributes" },
-            { label: "Inventory", href: "/admin/inventory" },
-            { label: "Media Library", href: "/admin/media" },
-          ],
-        },
-        {
-          label: "Customers",
-          href: "/admin/customers",
-          icon: Users,
-          section: "customers",
-          children: [
-            { label: "Customer List", href: "/admin/customers" },
-            { label: "Reviews & UGC", href: "/admin/reviews" },
-          ],
-        },
-        {
-          label: "CRM",
-          href: "/admin/orders",
-          icon: Users,
-          section: "orders",
-          children: [
-            { label: "Orders Fulfilment", href: "/admin/orders" },
-            { label: "USDT Payments", href: "/admin/payments" },
-            { label: "Air Cargo Tracking", href: "/admin/shipping" },
-            { label: "Returns & Refunds", href: "/admin/returns" },
-          ],
-        },
-        {
-          label: "Chat",
-          href: "/admin/support",
-          icon: MessageSquare,
-          section: "support",
-          badge: "3",
-        },
-        {
-          label: "Companies",
-          href: "/admin/suppliers",
-          icon: Building2,
-          section: "suppliers",
-        },
-        {
-          label: "Projects",
-          href: "/admin/sourcing",
-          icon: FolderKanban,
-          section: "sourcing",
-          children: [
-            { label: "China Sourcing PO", href: "/admin/sourcing" },
-            { label: "Homepage Sections", href: "/admin/homepage-sections" },
-            { label: "Banners & Promos", href: "/admin/promotions" },
-            { label: "Flash Deals", href: "/admin/flash-deals" },
-          ],
-        },
-        {
-          label: "Calendar",
-          href: "/admin/coupons",
-          icon: Calendar,
-          section: "coupons",
-        },
-        {
-          label: "Tasks",
-          href: "/admin/audit-logs",
-          icon: CheckSquare,
-          section: "audit-logs",
-        },
-        {
-          label: "Contacts",
-          href: "/admin/staff",
-          icon: Contact,
-          section: "staff",
-          children: [
-            { label: "Staff & RBAC", href: "/admin/staff" },
-            { label: "Store Settings", href: "/admin/settings" },
-            { label: "Integrations & API", href: "/admin/integrations" },
-            { label: "Analytics & P&L", href: "/admin/analytics" },
-          ],
-        },
-      ],
-    },
-  ];
-
   // Filter navigation items by role permissions and nav search query
   const navSections = useMemo(() => {
-    return allNavSections
+    return ALL_NAV_SECTIONS
       .map((section) => {
         const permittedItems = section.items.filter((item) =>
           hasPermission(userRole, item.section)
@@ -242,7 +209,7 @@ export function AdminLayoutClient({
         return { ...section, items: filtered };
       })
       .filter((section) => section.items.length > 0);
-  }, [allNavSections, userRole, navSearch]);
+  }, [userRole, navSearch]);
 
   const displayName = userProfile?.display_name || "Lennox Admin";
   const initials =
@@ -252,8 +219,6 @@ export function AdminLayoutClient({
       .join("")
       .slice(0, 2)
       .toUpperCase() || "LA";
-
-  const roleLabel = ROLE_LABELS[userRole] || "Super Admin";
 
   const handleSignOut = async () => {
     await signout();
@@ -357,11 +322,6 @@ export function AdminLayoutClient({
                               "flex items-center gap-3 flex-1 min-w-0",
                               isSidebarCollapsed && "justify-center"
                             )}
-                            onClick={(e) => {
-                              if (hasSubmenu && !isSidebarCollapsed) {
-                                // Allow click through or toggle
-                              }
-                            }}
                           >
                             <Icon
                               className={cn(
