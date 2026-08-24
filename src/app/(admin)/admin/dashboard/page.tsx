@@ -1,303 +1,671 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
-  TrendingUp,
-  ShoppingCart,
-  Truck,
-  Coins,
-  Package,
-  AlertTriangle,
-  ArrowRight,
-  ExternalLink,
-  ShieldCheck,
-  CheckCircle2,
-  Clock,
-  Plus,
-  ArrowUpRight,
-  Eye,
-  FileSpreadsheet,
-  RefreshCw,
+  MoreVertical,
   Search,
-  Filter,
-  Check,
-  Layers,
-  Factory,
-  Lock,
+  ChevronDown,
+  ShoppingCart,
+  Scan,
+  BarChart2,
+  PieChart,
+  Shirt,
 } from "lucide-react";
-import { formatCurrency, formatDate } from "@/utils/helpers";
-import { ORDER_STATUS_LABELS } from "@/lib/constants";
-import { getDashboardMetrics, DashboardMetrics } from "@/app/actions/admin-dashboard";
+import { cn } from "@/utils/helpers";
+
+interface ProductItem {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  quantity: number;
+  amount: number;
+  color: string;
+}
+
+const INITIAL_PRODUCTS: ProductItem[] = [
+  {
+    id: "prod-1",
+    name: "Marco Lightweight Shirt",
+    price: 79.59,
+    category: "Man Cloths",
+    quantity: 84,
+    amount: 6518.18,
+    color: "bg-[#0F172A] text-white",
+  },
+  {
+    id: "prod-2",
+    name: "Half Sleeve Shirt",
+    price: 80.59,
+    category: "Man Cloths",
+    quantity: 84,
+    amount: 4318.10,
+    color: "bg-[#2563EB] text-white",
+  },
+  {
+    id: "prod-3",
+    name: "Lightweight Jacket",
+    price: 79.59,
+    category: "Man Cloths",
+    quantity: 84,
+    amount: 5253.14,
+    color: "bg-[#1E293B] text-white",
+  },
+];
+
+// Lifetime sales dataset for 6 months (Jan-Jun) matching reference design proportions
+const MONTHLY_DATA = [
+  {
+    month: "Jan",
+    sales: 14000,
+    income: 25000,
+    user: 12000,
+    taxes: 7000,
+  },
+  {
+    month: "Feb",
+    sales: 10000,
+    income: 16500,
+    user: 6000,
+    taxes: 3000,
+  },
+  {
+    month: "Mar",
+    sales: 15500,
+    income: 19000,
+    user: 15000,
+    taxes: 7000,
+  },
+  {
+    month: "Apr",
+    sales: 14000,
+    income: 18500,
+    user: 11500,
+    taxes: 6000,
+  },
+  {
+    month: "May",
+    sales: 16000,
+    income: 14000,
+    user: 17000,
+    taxes: 6000,
+  },
+  {
+    month: "Jun",
+    sales: 18000,
+    income: 24000,
+    user: 12000,
+    taxes: 15000,
+  },
+];
+
+const MAX_CHART_VALUE = 25000;
 
 export default function AdminDashboardPage() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [processedOrderIds, setProcessedOrderIds] = useState<string[]>([]);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [timeFilter, setTimeFilter] = useState("Month");
+  const [countryFilter, setCountryFilter] = useState("Country");
+  const [activeTooltip, setActiveTooltip] = useState<{
+    month: string;
+    series: string;
+    value: number;
+    left: number;
+    top: number;
+  } | null>(null);
 
-  const loadMetrics = async () => {
-    setIsLoading(true);
-    const res = await getDashboardMetrics();
-    if (res.success) {
-      setMetrics(res.data);
+  // Filter products by search query
+  const filteredProducts = INITIAL_PRODUCTS.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const toggleSelectProduct = (id: string) => {
+    setSelectedProducts((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedProducts([]);
+      setSelectAll(false);
+    } else {
+      setSelectedProducts(filteredProducts.map((p) => p.id));
+      setSelectAll(true);
     }
-    setIsLoading(false);
   };
-
-  useEffect(() => {
-    loadMetrics();
-  }, []);
-
-  const handleMarkFactoryOrdered = (orderId: string, orderNumber: string) => {
-    setProcessedOrderIds((prev) => [...prev, orderId]);
-    setToastMsg(`PO for Order #${orderNumber} queued to China Factory Supplier!`);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  const totalRevenue = metrics?.totalRevenue || 12480.5;
-  const totalOrdersCount = metrics?.totalOrders || 48;
-  const activeShipments = metrics?.activeShipments || 6;
-  const lowStockCount = metrics?.lowStockCount || 2;
-  const avgOrderValue = metrics?.averageOrderValue || 260.0;
-  const recentOrders = metrics?.recentOrders || [];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16 font-sans">
-      {/* ── 1. Top Executive Header Bar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-heading">
-              LENNOX SOURCING OS
-            </span>
-            <span className="text-xs text-[#10B981] font-bold flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
-              Binance Pay Gateway Online
-            </span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-black text-white font-heading">
-            Procurement & Revenue Dashboard
-          </h1>
-          <p className="text-xs text-slate-400 font-medium">
-            Real-time China factory purchase order matching, private supplier code routing, and air cargo tracking.
-          </p>
-        </div>
-
-        {/* Quick Management Actions */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={loadMetrics}
-            title="Refresh Live Data"
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer border border-slate-700"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
-
-          <button
-            onClick={() => {
-              setToastMsg("Sourcing Manifest CSV exported successfully!");
-              setTimeout(() => setToastMsg(null), 2500);
-            }}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-[#10B981]" />
-            <span>Export Manifest (CSV)</span>
-          </button>
-
-          <Link
-            href="/admin/products"
-            className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-md cursor-pointer font-heading"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Sourcing Product</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Toast */}
-      {toastMsg && (
-        <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-xl text-xs font-black flex items-center justify-between shadow-lg animate-in fade-in">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{toastMsg}</span>
-          </div>
-          <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
-        </div>
-      )}
-
-      {/* ── 2. Top Executive KPI Metric Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Metric 1: Total Sourcing GMV */}
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xs relative overflow-hidden group">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Total Sourcing GMV</span>
-            <div className="w-9 h-9 rounded-xl bg-red-500/10 text-[#FF1028] flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-10 font-sans">
+      {/* ── 1. Top 4 Metric Stat Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Card 1: Total Sales */}
+        <div className="bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 rounded-2xl p-5 shadow-xs transition-all hover:shadow-md">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+              <Scan className="w-4 h-4" />
             </div>
+            <button
+              type="button"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+              title="Options"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
           </div>
-          <div className="space-y-0.5">
-            <span className="text-2xl font-black text-white block price-tag font-mono">
-              {formatCurrency(totalRevenue)}
-            </span>
-            <div className="flex items-center gap-1 text-[11px] text-[#10B981] font-bold">
-              <span>+24.8% vs last week</span>
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-500 block">Settled via Binance Pay zero-fee USDT</span>
-        </div>
 
-        {/* Metric 2: Orders Count & Fulfilment Rate */}
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xs relative overflow-hidden group">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Total Purchase Orders</span>
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-2xl font-black text-white block price-tag font-mono">
-              {totalOrdersCount} Orders
-            </span>
-            <div className="flex items-center gap-1 text-[11px] text-blue-400 font-bold">
-              <span>Avg. {formatCurrency(avgOrderValue)} / PO</span>
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-500 block">Direct Shenzhen factory dispatch</span>
-        </div>
-
-        {/* Metric 3: Air Express In Transit */}
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xs relative overflow-hidden group">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Air Cargo In Transit</span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <Truck className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-2xl font-black text-amber-400 block price-tag font-mono">
-              {activeShipments} Active Flights
-            </span>
-            <div className="flex items-center gap-1 text-[11px] text-amber-300 font-bold">
-              <span>YunExpress &amp; SF Air Freight</span>
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-500 block">Avg. 4.8 business days delivery</span>
-        </div>
-
-        {/* Metric 4: USDT Escrow Balance */}
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 shadow-xs relative overflow-hidden group">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">Binance Pay USDT Escrow</span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-[#10B981] flex items-center justify-center">
-              <Coins className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-2xl font-black text-[#10B981] block price-tag font-mono">
-              {formatCurrency(totalRevenue * 0.98, "USDT")}
-            </span>
-            <div className="flex items-center gap-1 text-[11px] text-[#10B981] font-bold">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>0% Gateway Fee Active</span>
-            </div>
-          </div>
-          <span className="text-[10px] text-slate-500 block">Direct supplier lot release upon QC</span>
-        </div>
-      </div>
-
-      {/* ── 3. Action Required: Factory Procurement Dispatch Queue ── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl bg-red-500/10 text-[#FF1028] flex items-center justify-center font-bold">
-              <Factory className="w-4 h-4" />
-            </div>
+          <div className="mt-3.5 flex items-end justify-between">
             <div>
-              <h2 className="text-base font-black text-white font-heading">
-                Factory Sourcing Queue (Paid Orders Awaiting Purchase Order)
-              </h2>
-              <span className="text-[11px] text-slate-400">
-                Match verified USDT payments to 1688 / Taobao / Factory Lot procurement codes.
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                Total Sales
+              </span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                $12,145
               </span>
             </div>
-          </div>
 
-          <Link
-            href="/admin/orders"
-            className="text-xs font-bold text-[#FF1028] hover:text-white transition-colors flex items-center gap-1 self-start sm:self-auto font-heading"
-          >
-            <span>View All Fulfilment Orders</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+            <span className="bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 text-[11px] font-bold px-2 py-0.5 rounded-md">
+              + 20%
+            </span>
+          </div>
         </div>
 
+        {/* Card 2: Total Orders */}
+        <div className="bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 rounded-2xl p-5 shadow-xs transition-all hover:shadow-md">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+              <ShoppingCart className="w-4 h-4" />
+            </div>
+            <button
+              type="button"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+              title="Options"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-3.5 flex items-end justify-between">
+            <div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                Total Orders
+              </span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                $14,125
+              </span>
+            </div>
+
+            <span className="bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 text-[11px] font-bold px-2 py-0.5 rounded-md">
+              +35%
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Total Visition */}
+        <div className="bg-[#FFF0F2] dark:bg-[#2D1B22] border border-[#FECDD3]/50 dark:border-rose-900/30 rounded-2xl p-5 shadow-xs transition-all hover:shadow-md">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-full bg-[#EF4444] text-white flex items-center justify-center shadow-xs">
+              <BarChart2 className="w-4 h-4" />
+            </div>
+            <button
+              type="button"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+              title="Options"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-3.5 flex items-end justify-between">
+            <div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                Total Visition
+              </span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                $18,126
+              </span>
+            </div>
+
+            <span className="bg-[#FEE2E2] dark:bg-rose-950/60 text-[#DC2626] dark:text-rose-400 text-[11px] font-bold px-2 py-0.5 rounded-md">
+              - 20%
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: Total Revenue */}
+        <div className="bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 rounded-2xl p-5 shadow-xs transition-all hover:shadow-md">
+          <div className="flex items-start justify-between">
+            <div className="w-9 h-9 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+              <PieChart className="w-4 h-4" />
+            </div>
+            <button
+              type="button"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+              title="Options"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-3.5 flex items-end justify-between">
+            <div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                Total Revenue
+              </span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+                $14,144
+              </span>
+            </div>
+
+            <span className="bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 text-[11px] font-bold px-2 py-0.5 rounded-md">
+              + 20%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. Middle Section: Lifetime Sales & Geography ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Lifetime Sales (8 cols on lg) */}
+        <div className="lg:col-span-8 bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative">
+          {/* Card Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white font-heading">
+              Lifetime Sales
+            </h2>
+
+            {/* Legend */}
+            <div className="flex items-center gap-4 flex-wrap text-xs font-medium text-slate-600 dark:text-slate-300">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
+                <span>Sales</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#2F65F6]" />
+                <span>Income</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#06B6D4]" />
+                <span>User</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+                <span>Taxes</span>
+              </div>
+            </div>
+
+            {/* Time dropdown */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setTimeFilter(timeFilter === "Month" ? "Year" : "Month")}
+                className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <span>{timeFilter}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+            </div>
+          </div>
+
+          {/* Clustered Bar Chart Canvas */}
+          <div className="relative h-60 w-full pt-2">
+            {/* Horizontal Grid lines */}
+            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pl-6 pb-7">
+              {[25, 20, 15, 10, 5, 0].map((val) => (
+                <div key={val} className="w-full flex items-center gap-3">
+                  <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 w-5 text-right">
+                    {val === 0 ? "0" : `${val}k`}
+                  </span>
+                  <div className="flex-1 border-b border-dashed border-slate-200/70 dark:border-slate-800" />
+                </div>
+              ))}
+            </div>
+
+            {/* Bars container */}
+            <div className="h-full pl-8 pb-7 flex items-end justify-between relative z-10">
+              {MONTHLY_DATA.map((item) => {
+                const salesHeight = (item.sales / MAX_CHART_VALUE) * 100;
+                const incomeHeight = (item.income / MAX_CHART_VALUE) * 100;
+                const userHeight = (item.user / MAX_CHART_VALUE) * 100;
+                const taxesHeight = (item.taxes / MAX_CHART_VALUE) * 100;
+
+                return (
+                  <div
+                    key={item.month}
+                    className="flex-1 flex flex-col items-center justify-end h-full px-1"
+                  >
+                    {/* Clustered Bars */}
+                    <div className="flex items-end gap-1 sm:gap-1.5 h-full px-1">
+                      {/* 1. Sales (Amber) */}
+                      <div
+                        style={{ height: `${salesHeight}%` }}
+                        className="w-1.5 sm:w-2 bg-[#F59E0B] rounded-t-sm transition-all duration-200 hover:brightness-110 cursor-pointer"
+                        title={`Sales: $${item.sales.toLocaleString()}`}
+                      />
+
+                      {/* 2. Income (Blue) */}
+                      <div
+                        style={{ height: `${incomeHeight}%` }}
+                        className="w-1.5 sm:w-2 bg-[#2F65F6] rounded-t-sm transition-all duration-200 hover:brightness-110 cursor-pointer"
+                        title={`Income: $${item.income.toLocaleString()}`}
+                      />
+
+                      {/* 3. User (Cyan) */}
+                      <div
+                        style={{ height: `${userHeight}%` }}
+                        className="w-1.5 sm:w-2 bg-[#06B6D4] rounded-t-sm transition-all duration-200 hover:brightness-110 cursor-pointer"
+                        title={`User: ${item.user.toLocaleString()}`}
+                      />
+
+                      {/* 4. Taxes (Green) */}
+                      <div
+                        style={{ height: `${taxesHeight}%` }}
+                        className="w-1.5 sm:w-2 bg-[#10B981] rounded-t-sm transition-all duration-200 hover:brightness-110 cursor-pointer"
+                        title={`Taxes: $${item.taxes.toLocaleString()}`}
+                      />
+                    </div>
+
+                    {/* Month Label */}
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-2">
+                      {item.month}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Geography (4 cols on lg) */}
+        <div className="lg:col-span-4 bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between relative">
+          {/* Card Header */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-bold text-slate-900 dark:text-white font-heading">
+              Geography
+            </h2>
+
+            <button
+              type="button"
+              onClick={() => setCountryFilter(countryFilter === "Country" ? "Global" : "Country")}
+              className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <span>{countryFilter}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          </div>
+
+          {/* Dot Matrix World Map with USA Pin */}
+          <div className="relative my-3 flex items-center justify-center min-h-[160px]">
+            {/* SVG Dot Matrix Map */}
+            <svg
+              className="w-full h-36 opacity-75 dark:opacity-30 text-slate-300 dark:text-slate-600"
+              viewBox="0 0 400 200"
+              fill="currentColor"
+            >
+              {/* North America dots */}
+              <circle cx="65" cy="45" r="3" />
+              <circle cx="80" cy="42" r="3" />
+              <circle cx="95" cy="45" r="3" />
+              <circle cx="70" cy="58" r="3" />
+              <circle cx="85" cy="58" r="3" />
+              <circle cx="100" cy="58" r="3" />
+              <circle cx="115" cy="55" r="3" />
+              <circle cx="75" cy="72" r="3" />
+              <circle cx="90" cy="72" r="3" />
+              <circle cx="105" cy="72" r="3" />
+              <circle cx="95" cy="85" r="3" />
+
+              {/* South America dots */}
+              <circle cx="120" cy="110" r="3" />
+              <circle cx="130" cy="125" r="3" />
+              <circle cx="135" cy="140" r="3" />
+              <circle cx="130" cy="155" r="3" />
+
+              {/* Europe dots */}
+              <circle cx="185" cy="42" r="3" />
+              <circle cx="200" cy="42" r="3" />
+              <circle cx="215" cy="45" r="3" />
+              <circle cx="190" cy="55" r="3" />
+              <circle cx="205" cy="55" r="3" />
+
+              {/* Africa dots */}
+              <circle cx="195" cy="85" r="3" />
+              <circle cx="210" cy="90" r="3" />
+              <circle cx="200" cy="105" r="3" />
+              <circle cx="215" cy="110" r="3" />
+              <circle cx="210" cy="130" r="3" />
+
+              {/* Asia & Australia dots */}
+              <circle cx="250" cy="50" r="3" />
+              <circle cx="265" cy="45" r="3" />
+              <circle cx="280" cy="50" r="3" />
+              <circle cx="295" cy="60" r="3" />
+              <circle cx="260" cy="65" r="3" />
+              <circle cx="275" cy="70" r="3" />
+              <circle cx="290" cy="80" r="3" />
+              <circle cx="305" cy="90" r="3" />
+              <circle cx="310" cy="135" r="3" />
+              <circle cx="325" cy="140" r="3" />
+            </svg>
+
+            {/* USA Highlight Tooltip */}
+            <div className="absolute top-2 left-1/4 -translate-x-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 px-3 py-1.5 rounded-xl shadow-md flex items-center gap-2">
+              <span className="text-xs">🇺🇸</span>
+              <div className="leading-tight">
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block">
+                  USA
+                </span>
+                <span className="text-xs font-black text-slate-900 dark:text-white font-mono">
+                  6.235b
+                </span>
+              </div>
+            </div>
+
+            {/* Map Zoom Controls */}
+            <div className="absolute left-0 bottom-1 flex flex-col gap-1">
+              <button
+                type="button"
+                className="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 text-xs font-bold shadow-xs"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                className="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 text-xs font-bold shadow-xs"
+              >
+                -
+              </button>
+            </div>
+          </div>
+
+          {/* Bottom Progress Bars: Customer (68%) & Conversion (40%) */}
+          <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            {/* Customer 68% */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-600 dark:text-slate-400">Customer</span>
+                <span className="font-bold text-slate-900 dark:text-white font-mono">68%</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-[#2F65F6] rounded-full" style={{ width: "68%" }} />
+              </div>
+            </div>
+
+            {/* Conversion 40% */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-600 dark:text-slate-400">Conversion</span>
+                <span className="font-bold text-slate-900 dark:text-white font-mono">40%</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-[#F97316] rounded-full" style={{ width: "40%" }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 3. Bottom Section: Top Selling Products Table ── */}
+      <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+        {/* Table Top Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white font-heading">
+            Top Selling Products
+          </h2>
+
+          <div className="flex items-center gap-3">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className="w-48 sm:w-56 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs rounded-xl pl-8 pr-3 py-1.5 text-slate-800 dark:text-slate-200 outline-none focus:border-[#2F65F6] transition-colors"
+              />
+            </div>
+
+            {/* View All Button */}
+            <Link
+              href="/admin/products"
+              className="px-4 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs"
+            >
+              View All
+            </Link>
+          </div>
+        </div>
+
+        {/* Interactive Responsive Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950 text-slate-400 text-[11px] uppercase font-mono border-b border-slate-800">
+            {/* Table Header */}
+            <thead className="text-slate-400 dark:text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
               <tr>
-                <th className="py-3 px-4 font-bold">Order #</th>
-                <th className="py-3 px-4 font-bold">Customer &amp; Destination</th>
-                <th className="py-3 px-4 font-bold">Item Sourced</th>
-                <th className="py-3 px-4 font-bold">Secret Supplier Code</th>
-                <th className="py-3 px-4 font-bold">Total (USDT)</th>
-                <th className="py-3 px-4 font-bold">Sourcing Action</th>
+                <th className="py-3 px-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                    className="rounded border-slate-300 text-[#2F65F6] focus:ring-0 cursor-pointer"
+                  />
+                </th>
+
+                <th className="py-3 px-4">
+                  <div className="flex items-center gap-1.5 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                    <span>Product Name</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </div>
+                </th>
+
+                <th className="py-3 px-4">
+                  <div className="flex items-center gap-1.5 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                    <span>Price</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </div>
+                </th>
+
+                <th className="py-3 px-4">
+                  <div className="flex items-center gap-1.5 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                    <span>Categories</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </div>
+                </th>
+
+                <th className="py-3 px-4">
+                  <div className="flex items-center gap-1.5 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                    <span>Quantity</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </div>
+                </th>
+
+                <th className="py-3 px-4">
+                  <div className="flex items-center gap-1.5 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300">
+                    <span>Amount</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </div>
+                </th>
+
+                <th className="py-3 px-4 text-right">
+                  <span>Action</span>
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
-              {recentOrders.map((order) => {
-                const isProcessed = processedOrderIds.includes(order.id);
+
+            {/* Table Body */}
+            <tbody className="divide-y divide-slate-100/80 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
+              {filteredProducts.map((product) => {
+                const isChecked = selectedProducts.includes(product.id);
+
                 return (
-                  <tr key={order.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono font-bold text-white">
-                      <Link href={`/admin/orders`} className="hover:text-[#FF1028]">
-                        #{order.order_number || order.id.slice(0, 8)}
-                      </Link>
+                  <tr
+                    key={product.id}
+                    className={cn(
+                      "hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors",
+                      isChecked && "bg-blue-50/40 dark:bg-blue-950/20"
+                    )}
+                  >
+                    {/* Checkbox */}
+                    <td className="py-3.5 px-3">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleSelectProduct(product.id)}
+                        className="rounded border-slate-300 text-[#2F65F6] focus:ring-0 cursor-pointer"
+                      />
                     </td>
 
+                    {/* Product Name & Icon */}
                     <td className="py-3.5 px-4">
-                      <span className="font-bold text-white block">
-                        {order.address?.full_name || "Valued Buyer"}
-                      </span>
-                      <span className="text-[10px] text-slate-400 block">
-                        {order.address?.city || "Shenzhen Express Hub"}, {order.address?.country || "US"}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold text-white block">
-                        {order.items?.[0]?.title || "4K GPS Aerial Drone Lot"}
-                      </span>
-                      <span className="text-[10px] text-slate-400 block">
-                        Qty: {order.items?.[0]?.quantity || 1}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span className="bg-slate-950 border border-slate-800 px-2 py-1 rounded text-[11px] font-mono text-amber-400 font-bold">
-                        {order.items?.[0]?.supplier_code || "SUP-SZ-DRONE-88"}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#10B981]">
-                      {formatCurrency(order.total_amount || order.total || 189.0, "USDT")}
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      {isProcessed ? (
-                        <span className="inline-flex items-center gap-1 text-[#10B981] font-bold text-[11px]">
-                          <Check className="w-3.5 h-3.5" /> PO Queued
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleMarkFactoryOrdered(order.id, order.order_number || order.id.slice(0, 8))}
-                          className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-3 py-1.5 rounded-lg text-[11px] font-black transition-colors flex items-center gap-1 shadow-xs cursor-pointer font-heading"
+                      <div className="flex items-center gap-3">
+                        {/* Dark/Colored Shirt Thumbnail Box */}
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-xs",
+                            product.color
+                          )}
                         >
-                          <span>Dispatch PO</span>
-                        </button>
-                      )}
+                          <Shirt className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-slate-900 dark:text-white font-heading">
+                          {product.name}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Price */}
+                    <td className="py-3.5 px-4 font-mono font-medium text-slate-500 dark:text-slate-400">
+                      ${product.price.toFixed(2)}
+                    </td>
+
+                    {/* Category */}
+                    <td className="py-3.5 px-4 font-medium text-slate-500 dark:text-slate-400">
+                      {product.category}
+                    </td>
+
+                    {/* Quantity */}
+                    <td className="py-3.5 px-4 font-mono font-medium text-slate-600 dark:text-slate-300">
+                      {product.quantity}
+                    </td>
+
+                    {/* Amount */}
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                      ${product.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </td>
+
+                    {/* Action Menu */}
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        type="button"
+                        className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 transition-colors"
+                        title="Actions"
+                      >
+                        <MoreVertical className="w-4 h-4 ml-auto" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -306,75 +674,7 @@ export default function AdminDashboardPage() {
           </table>
         </div>
       </div>
-
-      {/* ── 4. Funnel & Performance Grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Conversion Funnel */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <span className="font-heading text-xs font-black text-white uppercase tracking-wider">
-              Dual-Video E-Commerce Sourcing Funnel
-            </span>
-            <span className="text-[10px] text-emerald-400 font-mono">Live 24h</span>
-          </div>
-
-          <div className="space-y-3">
-            {metrics?.funnel?.map((step, idx) => (
-              <div key={step.stage} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-semibold">{step.stage}</span>
-                  <span className="font-mono text-white font-bold">{step.count.toLocaleString()} ({step.conversion})</span>
-                </div>
-                <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                  <div
-                    className={`h-full rounded-full ${
-                      idx === 0 ? "bg-blue-500" : idx === 1 ? "bg-purple-500" : idx === 2 ? "bg-amber-500" : "bg-[#FF1028]"
-                    }`}
-                    style={{ width: `${Math.max(8, 100 - idx * 22)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Low Stock & Inventory Alerts */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span className="font-heading text-xs font-black text-white uppercase tracking-wider">
-                Factory Re-Order Triggers ({lowStockCount})
-              </span>
-            </div>
-            <Link href="/admin/products" className="text-[11px] text-[#FF1028] font-bold hover:underline font-heading">
-              Manage Stock
-            </Link>
-          </div>
-
-          <div className="space-y-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-              <div>
-                <span className="font-bold text-white block">Eachine EX5 4K Dual GPS Drone</span>
-                <span className="text-[10px] text-slate-400">SKU: LCM-DRN-EX5-4K</span>
-              </div>
-              <span className="text-amber-400 font-mono font-black bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                12 left in stock
-              </span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-              <div>
-                <span className="font-bold text-white block">Creality Ender-3 V3 SE CoreXY</span>
-                <span className="text-[10px] text-slate-400">SKU: LCM-3DP-E3V3-SE</span>
-              </div>
-              <span className="text-amber-400 font-mono font-black bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                8 left in stock
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
+
