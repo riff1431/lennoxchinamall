@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -28,12 +28,22 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_BRANDS } from "@/lib/mockData";
-import { Product, ProductVideo, Variant, ProductMedia } from "@/types/database";
+import { Product, ProductVideo, Variant, ProductMedia, Category, Brand } from "@/types/database";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency } from "@/utils/helpers";
+import {
+  getAdminProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  bulkUpdateProductStatus,
+} from "@/app/actions/admin-products";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES);
+  const [brands, setBrands] = useState<Brand[]>(MOCK_BRANDS);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -97,13 +107,31 @@ export default function AdminProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  const loadProducts = async () => {
+    setIsLoading(true);
+    const res = await getAdminProducts({
+      search,
+      categoryId: selectedCategoryFilter,
+    });
+    if (res.success) {
+      setProducts(res.products);
+      if (res.categories?.length) setCategories(res.categories);
+      if (res.brands?.length) setBrands(res.brands);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, [selectedCategoryFilter]);
+
   const handleOpenCreateModal = () => {
     setEditingProductId(null);
     setFormTitle("");
     setFormSlug("");
     setFormSku(`LCM-${Math.floor(1000 + Math.random() * 9000)}`);
-    setFormCategoryId(MOCK_CATEGORIES[0]?.id || "");
-    setFormBrandId(MOCK_BRANDS[0]?.id || "");
+    setFormCategoryId(categories[0]?.id || "");
+    setFormBrandId(brands[0]?.id || "");
     setFormShortDesc("");
     setFormDesc("");
     setFormBasePrice(99.0);
@@ -134,7 +162,7 @@ export default function AdminProductsPage() {
     setFormSlug(product.slug);
     setFormSku(product.sku);
     setFormCategoryId(product.category_id);
-    setFormBrandId(product.brand_id || MOCK_BRANDS[0]?.id || "");
+    setFormBrandId(product.brand_id || brands[0]?.id || "");
     setFormShortDesc(product.short_description || "");
     setFormDesc(product.description || "");
     setFormBasePrice(product.base_price);
@@ -169,148 +197,51 @@ export default function AdminProductsPage() {
     setIsProductModalOpen(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim()) return;
 
-    const generatedSlug =
-      formSlug.trim() ||
-      formTitle
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
+    const formData = new FormData();
+    formData.set("title", formTitle);
+    formData.set("slug", formSlug);
+    formData.set("sku", formSku);
+    formData.set("category_id", formCategoryId);
+    formData.set("brand_id", formBrandId);
+    formData.set("short_description", formShortDesc);
+    formData.set("description", formDesc);
+    formData.set("base_price", String(formBasePrice));
+    formData.set("compare_at_price", String(formComparePrice));
+    formData.set("cost", String(formCost));
+    formData.set("supplier_code", formSupplierCode);
+    formData.set("shipping_origin", formShippingOrigin);
+    formData.set("is_featured", String(formIsFeatured));
+    formData.set("is_flash_deal", String(formIsFlashDeal));
+    formData.set("status", "published");
+    formData.set("video1_url", formVideo1Url);
+    formData.set("video1_title", formVideo1Title);
+    formData.set("video2_url", formVideo2Url);
+    formData.set("video2_title", formVideo2Title);
 
-    const builtVideos: ProductVideo[] = [
-      {
-        id: `vid-1-${Date.now()}`,
-        product_id: editingProductId || `prod-${Date.now()}`,
-        title: formVideo1Title,
-        url: formVideo1Url,
-        type: formVideo1Type,
-        position: 1,
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: `vid-2-${Date.now()}`,
-        product_id: editingProductId || `prod-${Date.now()}`,
-        title: formVideo2Title,
-        url: formVideo2Url,
-        type: formVideo2Type,
-        position: 2,
-        created_at: new Date().toISOString(),
-      },
-    ];
-
-    const builtMedia: ProductMedia[] = formImages.map((url, idx) => ({
-      id: `m-${idx}-${Date.now()}`,
-      product_id: editingProductId || `prod-${Date.now()}`,
-      url,
-      alt: formTitle,
-      type: "image",
-      position: idx + 1,
-      created_at: new Date().toISOString(),
-    }));
+    formImages.forEach((img) => formData.append("images", img));
 
     if (editingProductId) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProductId
-            ? {
-                ...p,
-                title: formTitle,
-                slug: generatedSlug,
-                sku: formSku,
-                category_id: formCategoryId,
-                brand_id: formBrandId,
-                short_description: formShortDesc,
-                description: formDesc,
-                base_price: formBasePrice,
-                compare_at_price: formComparePrice,
-                cost: formCost,
-                is_featured: formIsFeatured,
-                is_flash_deal: formIsFlashDeal,
-                supplier_code: formSupplierCode,
-                shipping_origin: formShippingOrigin,
-                seo_title: formSeoTitle || `${formTitle} | Lennox ChinaMall`,
-                seo_description: formSeoDesc || formShortDesc,
-                media: builtMedia,
-                videos: builtVideos,
-              }
-            : p
-        )
-      );
-      setToastMsg(`Product "${formTitle}" updated successfully!`);
+      const res = await updateProduct(editingProductId, formData);
+      setToastMsg(res.message || "Product updated!");
     } else {
-      const newProd: Product = {
-        id: `prod-${Date.now()}`,
-        title: formTitle,
-        slug: generatedSlug,
-        sku: formSku,
-        category_id: formCategoryId,
-        brand_id: formBrandId,
-        short_description: formShortDesc,
-        description: formDesc,
-        base_price: formBasePrice,
-        compare_at_price: formComparePrice,
-        cost: formCost,
-        status: "published",
-        is_featured: formIsFeatured,
-        is_best_seller: false,
-        is_new_arrival: true,
-        is_flash_deal: formIsFlashDeal,
-        flash_deal_ends_at: formIsFlashDeal
-          ? new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString()
-          : null,
-        tags: ["sourced", "direct", "china"],
-        weight: 0.5,
-        dimensions: { length: 20, width: 15, height: 8 },
-        shipping_origin: formShippingOrigin,
-        hs_code: "85176200",
-        supplier_code: formSupplierCode,
-        seo_title: formSeoTitle || `${formTitle} | Lennox ChinaMall`,
-        seo_description: formSeoDesc || formShortDesc,
-        avg_rating: 5.0,
-        review_count: 1,
-        sold_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        media: builtMedia,
-        videos: builtVideos,
-        variants: [
-          {
-            id: `var-${Date.now()}-1`,
-            product_id: `prod-${Date.now()}`,
-            sku: `${formSku}-STD`,
-            title: "Standard Package",
-            price: formBasePrice,
-            compare_at_price: formComparePrice,
-            cost: formCost,
-            stock: formStock,
-            low_stock_threshold: 5,
-            weight: 0.5,
-            attributes: { Package: "Standard" },
-            image_url: formImages[0],
-            supplier_code: `${formSupplierCode}-STD`,
-            is_active: true,
-            position: 1,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ],
-      };
-
-      setProducts([newProd, ...products]);
-      setToastMsg(`New product "${formTitle}" published with 2 video slots!`);
+      const res = await createProduct(formData);
+      setToastMsg(res.message || "Product created successfully!");
     }
 
     setIsProductModalOpen(false);
+    loadProducts();
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleDeleteProduct = (productId: string, title: string) => {
+  const handleDeleteProduct = async (productId: string, title: string) => {
     if (confirm(`Are you sure you want to remove "${title}" from catalogue?`)) {
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
-      setToastMsg(`Product "${title}" removed.`);
+      const res = await deleteProduct(productId);
+      setToastMsg(res.message || "Product removed.");
+      loadProducts();
       setTimeout(() => setToastMsg(null), 3000);
     }
   };

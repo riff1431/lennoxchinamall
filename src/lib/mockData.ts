@@ -857,3 +857,990 @@ export function getCachedFlashDeals(limit = 6): Product[] {
   return MOCK_PRODUCTS.filter((p) => p.is_flash_deal).slice(0, limit);
 }
 
+// ─── Attributes & Variants Mock Data ─────────────────────────────────────────
+
+export interface AttributeGroup {
+  id: string;
+  name: string;
+  code: string;
+  type: "select" | "color" | "button" | "radio";
+  values: string[];
+  productCount: number;
+  created_at: string;
+}
+
+export const MOCK_ATTRIBUTES: AttributeGroup[] = [
+  {
+    id: "attr-1",
+    name: "Battery Configuration",
+    code: "battery",
+    type: "button",
+    values: ["1 Battery (30min)", "2 Batteries (60min)", "3 Batteries (90min)", "4 Batteries + Quad Hub"],
+    productCount: 14,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 40).toISOString(),
+  },
+  {
+    id: "attr-2",
+    name: "Storage & Case",
+    code: "storage_case",
+    type: "select",
+    values: ["Standard Cardboard", "Waterproof Hard Shell", "Tactical EVA Travel Bag"],
+    productCount: 28,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 35).toISOString(),
+  },
+  {
+    id: "attr-3",
+    name: "LED Color Temperature",
+    code: "color_temp",
+    type: "color",
+    values: ["5000K Neutral White", "6500K Cool White (High Lumen)", "3000K Warm Amber"],
+    productCount: 19,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+  },
+  {
+    id: "attr-4",
+    name: "Plug / Voltage Standard",
+    code: "plug_type",
+    type: "radio",
+    values: ["US Standard 110V", "EU Plug 220V", "UK 3-Pin 230V", "AU Standard 240V"],
+    productCount: 42,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 25).toISOString(),
+  },
+  {
+    id: "attr-5",
+    name: "Tool Pack Setup",
+    code: "tool_pack",
+    type: "select",
+    values: ["Bare Tool (No Battery)", "Kit with 1x 2.0Ah Pack", "Pro Kit with 2x 4.0Ah Packs & Fast Charger"],
+    productCount: 22,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20).toISOString(),
+  },
+];
+
+// ─── Inventory Stock Mock Data ───────────────────────────────────────────────
+
+export interface InventoryItem {
+  id: string;
+  sku: string;
+  productTitle: string;
+  variantTitle: string;
+  category: string;
+  shenzhenStock: number;
+  guangzhouStock: number;
+  hkAirStock: number;
+  totalStock: number;
+  reservedStock: number;
+  lowStockThreshold: number;
+  reorderPoint: number;
+  unitCost: number;
+  status: "in_stock" | "low_stock" | "out_of_stock" | "reordering";
+  supplierCode: string;
+  lastRestocked: string;
+}
+
+export const MOCK_INVENTORY: InventoryItem[] = [
+  {
+    id: "inv-1",
+    sku: "EAC-EX5-1BAT",
+    productTitle: "Eachine EX5 4K GPS FPV Brushless Drone",
+    variantTitle: "1 Battery / Standard",
+    category: "RC Drones & Toys",
+    shenzhenStock: 25,
+    guangzhouStock: 10,
+    hkAirStock: 5,
+    totalStock: 40,
+    reservedStock: 5,
+    lowStockThreshold: 10,
+    reorderPoint: 15,
+    unitCost: 48.50,
+    status: "in_stock",
+    supplierCode: "SUP-GZ-4419",
+    lastRestocked: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+  },
+  {
+    id: "inv-2",
+    sku: "EAC-EX5-3BAT",
+    productTitle: "Eachine EX5 4K GPS FPV Brushless Drone",
+    variantTitle: "3 Batteries / Tactical EVA Case",
+    category: "RC Drones & Toys",
+    shenzhenStock: 6,
+    guangzhouStock: 2,
+    hkAirStock: 1,
+    totalStock: 9,
+    reservedStock: 4,
+    lowStockThreshold: 10,
+    reorderPoint: 15,
+    unitCost: 65.00,
+    status: "low_stock",
+    supplierCode: "SUP-GZ-4419",
+    lastRestocked: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(),
+  },
+  {
+    id: "inv-3",
+    sku: "BW-WA3-PRO-120W",
+    productTitle: "BlitzWolf BW-WA3 Pro 120W Bluetooth Speaker",
+    variantTitle: "Default Quad Driver RGB",
+    category: "Consumer Electronics",
+    shenzhenStock: 38,
+    guangzhouStock: 14,
+    hkAirStock: 8,
+    totalStock: 60,
+    reservedStock: 6,
+    lowStockThreshold: 15,
+    reorderPoint: 20,
+    unitCost: 42.00,
+    status: "in_stock",
+    supplierCode: "SUP-SZ-9021",
+    lastRestocked: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
+  {
+    id: "inv-4",
+    sku: "CRE-K1-MAX-600",
+    productTitle: "Creality K1 Max 600mm/s AI Dual LiDAR 3D Printer",
+    variantTitle: "US 110V / Camera Kit",
+    category: "Tools & DIY Hardware",
+    shenzhenStock: 3,
+    guangzhouStock: 0,
+    hkAirStock: 1,
+    totalStock: 4,
+    reservedStock: 2,
+    lowStockThreshold: 5,
+    reorderPoint: 8,
+    unitCost: 460.00,
+    status: "low_stock",
+    supplierCode: "SUP-SZ-CRE-88",
+    lastRestocked: new Date(Date.now() - 1000 * 60 * 60 * 180).toISOString(),
+  },
+  {
+    id: "inv-5",
+    sku: "AST-FT03S-6500K",
+    productTitle: "Astrolux FT03S SFH55 9300LM Super Thrower Flashlight",
+    variantTitle: "6500K Cool White / 26650 Cell",
+    category: "Outdoor & Tactical",
+    shenzhenStock: 22,
+    guangzhouStock: 8,
+    hkAirStock: 4,
+    totalStock: 34,
+    reservedStock: 3,
+    lowStockThreshold: 8,
+    reorderPoint: 12,
+    unitCost: 29.50,
+    status: "in_stock",
+    supplierCode: "SUP-DG-ASTRO",
+    lastRestocked: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+  },
+];
+
+// ─── Media Library Assets Mock Data ──────────────────────────────────────────
+
+export interface MediaAsset {
+  id: string;
+  name: string;
+  url: string;
+  type: "image" | "video" | "document";
+  size: string;
+  dimensions?: string;
+  format: string;
+  category: "product" | "banner" | "dual-video" | "review" | "brand";
+  uploaded_at: string;
+}
+
+export const MOCK_MEDIA: MediaAsset[] = [
+  {
+    id: "med-1",
+    name: "eachine-ex5-4k-hero.jpg",
+    url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=1200&auto=format&fit=crop&q=80",
+    type: "image",
+    size: "1.4 MB",
+    dimensions: "1920x1080",
+    format: "JPG",
+    category: "product",
+    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
+  },
+  {
+    id: "med-2",
+    name: "blitzwolf-speaker-rgb.jpg",
+    url: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=1200&auto=format&fit=crop&q=80",
+    type: "image",
+    size: "2.1 MB",
+    dimensions: "2400x1600",
+    format: "JPG",
+    category: "product",
+    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
+  },
+  {
+    id: "med-3",
+    name: "creality-k1-3d-lab.jpg",
+    url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=1200&auto=format&fit=crop&q=80",
+    type: "image",
+    size: "3.2 MB",
+    dimensions: "3000x2000",
+    format: "JPG",
+    category: "product",
+    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
+  },
+  {
+    id: "med-4",
+    name: "drone-flight-test-qc.mp4",
+    url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    type: "video",
+    size: "42.8 MB",
+    dimensions: "1080p (60fps)",
+    format: "MP4 / YouTube",
+    category: "dual-video",
+    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
+  },
+  {
+    id: "med-5",
+    name: "lennox-hero-promo-banner.jpg",
+    url: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&auto=format&fit=crop&q=80",
+    type: "image",
+    size: "1.8 MB",
+    dimensions: "1920x600",
+    format: "JPG",
+    category: "banner",
+    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+  },
+];
+
+// ─── Sourcing & Purchase Orders (PO) Mock Data ───────────────────────────────
+
+export interface SourcingPO {
+  id: string;
+  poNumber: string;
+  orderNumber: string;
+  supplierCode: string;
+  supplierName: string;
+  supplierPlatform: string;
+  supplierItemUrl: string;
+  productTitle: string;
+  quantity: number;
+  factoryUnitCost: number;
+  totalCostUSDT: number;
+  buyerAdmin: string;
+  status: "pending_po" | "ordered" | "factory_dispatched" | "qc_received" | "issue";
+  trackingOrPoRef: string;
+  orderDate: string;
+  expectedDeliveryToHub: string;
+}
+
+export const MOCK_SOURCING_POS: SourcingPO[] = [
+  {
+    id: "po-101",
+    poNumber: "PO-20260824-001",
+    orderNumber: "LCM-20260823-88AF",
+    supplierCode: "SUP-GZ-4419",
+    supplierName: "Guangzhou Eachine Drone Mfg",
+    supplierPlatform: "1688 Direct B2B",
+    supplierItemUrl: "https://1688.com/item/694829104.html",
+    productTitle: "Eachine EX5 4K GPS FPV Brushless Drone (1 Battery)",
+    quantity: 1,
+    factoryUnitCost: 48.50,
+    totalCostUSDT: 48.50,
+    buyerAdmin: "Arifur (Shenzhen Lead)",
+    status: "ordered",
+    trackingOrPoRef: "1688-PO-8829104",
+    orderDate: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    expectedDeliveryToHub: "Aug 26, 2026",
+  },
+  {
+    id: "po-102",
+    poNumber: "PO-20260823-089",
+    orderNumber: "LCM-20260822-77BC",
+    supplierCode: "SUP-SZ-9021",
+    supplierName: "Shenzhen BlitzWolf Acoustic Tech",
+    supplierPlatform: "AliExpress Wholesale",
+    supplierItemUrl: "https://aliexpress.com/item/10050091823.html",
+    productTitle: "BlitzWolf BW-WA3 Pro 120W Bluetooth Speaker",
+    quantity: 2,
+    factoryUnitCost: 42.00,
+    totalCostUSDT: 84.00,
+    buyerAdmin: "Chen Wei (Procurement)",
+    status: "qc_received",
+    trackingOrPoRef: "SF-8891204899CN",
+    orderDate: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
+    expectedDeliveryToHub: "Aug 24, 2026",
+  },
+  {
+    id: "po-103",
+    poNumber: "PO-20260822-044",
+    orderNumber: "LCM-20260820-33EE",
+    supplierCode: "SUP-DG-ASTRO",
+    supplierName: "Dongguan Astrolux Optics Co.",
+    supplierPlatform: "Taobao Factory",
+    supplierItemUrl: "https://taobao.com/item/582910488.html",
+    productTitle: "Astrolux FT03S SFH55 9300LM Super Thrower",
+    quantity: 1,
+    factoryUnitCost: 29.50,
+    totalCostUSDT: 29.50,
+    buyerAdmin: "Arifur (Shenzhen Lead)",
+    status: "factory_dispatched",
+    trackingOrPoRef: "ZTO-5520194820CN",
+    orderDate: new Date(Date.now() - 1000 * 60 * 60 * 60).toISOString(),
+    expectedDeliveryToHub: "Aug 23, 2026",
+  },
+];
+
+// ─── Shipping & Air Cargo Tracking Mock Data ─────────────────────────────────
+
+export interface ShippingParcel {
+  id: string;
+  trackingNumber: string;
+  carrier: string;
+  orderNumber: string;
+  recipientName: string;
+  destinationCountry: string;
+  serviceType: "YunExpress Priority Air" | "Yanwen Special Line" | "4PX Global Direct" | "SF International";
+  weightKg: number;
+  currentStatus: "in_transit" | "customs_cleared" | "departed_hkg" | "out_for_delivery" | "delivered";
+  latestEvent: string;
+  latestEventTime: string;
+  estimatedDelivery: string;
+  ddpTaxPaid: boolean;
+}
+
+export const MOCK_SHIPPING: ShippingParcel[] = [
+  {
+    id: "shp-1",
+    trackingNumber: "YUN-982741920-US",
+    carrier: "YunExpress Air Cargo",
+    orderNumber: "LCM-20260823-88AF",
+    recipientName: "Alex Harrison",
+    destinationCountry: "United States (CA)",
+    serviceType: "YunExpress Priority Air",
+    weightKg: 0.85,
+    currentStatus: "in_transit",
+    latestEvent: "Departed Shenzhen Sort Facility -> Transferred to HKG Air Hub",
+    latestEventTime: "Aug 24, 09:15 AM",
+    estimatedDelivery: "Sep 02, 2026",
+    ddpTaxPaid: true,
+  },
+  {
+    id: "shp-2",
+    trackingNumber: "YW-8892104938-CN",
+    carrier: "Yanwen Special Line",
+    orderNumber: "LCM-20260820-33EE",
+    recipientName: "Marcus Vance",
+    destinationCountry: "United Kingdom (London)",
+    serviceType: "Yanwen Special Line",
+    weightKg: 0.42,
+    currentStatus: "departed_hkg",
+    latestEvent: "Flight CZ431 Departed HKG -> In Flight to London Heathrow (LHR)",
+    latestEventTime: "Aug 23, 18:40 PM",
+    estimatedDelivery: "Aug 29, 2026",
+    ddpTaxPaid: true,
+  },
+  {
+    id: "shp-3",
+    trackingNumber: "4PX-3918204910-DE",
+    carrier: "4PX Global Direct",
+    orderNumber: "LCM-20260818-11AA",
+    recipientName: "Klaus Schmidt",
+    destinationCountry: "Germany (Frankfurt)",
+    serviceType: "4PX Global Direct",
+    weightKg: 3.10,
+    currentStatus: "customs_cleared",
+    latestEvent: "EU DDP Customs Clearance Completed Frankfurt Hub -> Handed to DHL DE",
+    latestEventTime: "Aug 24, 11:20 AM",
+    estimatedDelivery: "Aug 26, 2026",
+    ddpTaxPaid: true,
+  },
+  {
+    id: "shp-4",
+    trackingNumber: "SF-9918273618-AU",
+    carrier: "SF International",
+    orderNumber: "LCM-20260815-99ZZ",
+    recipientName: "Liam O'Connor",
+    destinationCountry: "Australia (Sydney)",
+    serviceType: "SF International",
+    weightKg: 1.25,
+    currentStatus: "delivered",
+    latestEvent: "Delivered to Front Door & Signed (Sydney NSW)",
+    latestEventTime: "Aug 22, 14:10 PM",
+    estimatedDelivery: "Delivered",
+    ddpTaxPaid: true,
+  },
+];
+
+// ─── Returns & Warranty RMA Claims Mock Data ─────────────────────────────────
+
+export interface ReturnClaim {
+  id: string;
+  rmaNumber: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  productTitle: string;
+  reason: string;
+  defectDescription: string;
+  evidenceType: "video_proof" | "photo_inspection";
+  evidenceUrl: string;
+  claimDate: string;
+  status: "requested" | "under_review" | "approved" | "rejected" | "refunded";
+  refundAmountUSDT: number;
+  assignedInspector: string;
+  resolutionNote?: string;
+}
+
+export const MOCK_RETURNS: ReturnClaim[] = [
+  {
+    id: "ret-1",
+    rmaNumber: "RMA-2026-0812",
+    orderNumber: "LCM-20260812-44DD",
+    customerName: "Robert Taylor",
+    customerEmail: "robert.t@outlook.com",
+    productTitle: "BlitzWolf BW-WA3 Pro 120W Speaker",
+    reason: "Bluetooth Audio Distortion on Right Subwoofer",
+    defectDescription: "Right channel creates crackling buzz when volume goes above 65%. Recorded audio diagnostic video.",
+    evidenceType: "video_proof",
+    evidenceUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    claimDate: new Date(Date.now() - 1000 * 60 * 60 * 28).toISOString(),
+    status: "under_review",
+    refundAmountUSDT: 59.99,
+    assignedInspector: "Support Desk Lead",
+    resolutionNote: "Reviewing teardown audio proof submitted by buyer.",
+  },
+  {
+    id: "ret-2",
+    rmaNumber: "RMA-2026-0805",
+    orderNumber: "LCM-20260805-12CC",
+    customerName: "Elena Rostova",
+    customerEmail: "elena.rostova@gmail.com",
+    productTitle: "Eachine EX5 4K GPS Drone",
+    reason: "Motor arm cracked during transit box impact",
+    defectDescription: "Outer postal package had severe compression, rear left propeller arm cracked.",
+    evidenceType: "photo_inspection",
+    evidenceUrl: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80",
+    claimDate: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+    status: "approved",
+    refundAmountUSDT: 89.99,
+    assignedInspector: "Support Desk Lead",
+    resolutionNote: "Approved factory replacement warranty claim under 30-day policy.",
+  },
+];
+
+// ─── Customer Reviews Mock Data ──────────────────────────────────────────────
+
+export interface AdminReview {
+  id: string;
+  productTitle: string;
+  customerName: string;
+  rating: number;
+  title: string;
+  comment: string;
+  verifiedPurchase: boolean;
+  hasMediaProof: boolean;
+  status: "approved" | "pending" | "rejected";
+  isFeatured: boolean;
+  sellerReply?: string;
+  createdAt: string;
+}
+
+export const MOCK_ADMIN_REVIEWS: AdminReview[] = [
+  {
+    id: "rev-1",
+    productTitle: "Eachine EX5 4K GPS FPV Drone",
+    customerName: "David Miller",
+    rating: 5,
+    title: "Incredible 4K range for under $100 USDT!",
+    comment: "Flown it for 4 battery cycles in windy coastal conditions. Optical flow holding and GPS return home worked with zero drift. Best value direct factory purchase.",
+    verifiedPurchase: true,
+    hasMediaProof: true,
+    status: "approved",
+    isFeatured: true,
+    sellerReply: "Thank you David! Factory QC firmware 2.4 update is now live on our support docs.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+  },
+  {
+    id: "rev-2",
+    productTitle: "BlitzWolf BW-WA3 Pro 120W Speaker",
+    customerName: "Samantha Reed",
+    rating: 5,
+    title: "Room shaking bass and instant Binance Pay checkout",
+    comment: "Arrived in 9 days via YunExpress to Chicago. TWS pairing with a second unit turns my backyard into a concert hall.",
+    verifiedPurchase: true,
+    hasMediaProof: true,
+    status: "approved",
+    isFeatured: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+  },
+  {
+    id: "rev-3",
+    productTitle: "Topshak TS-ESD4 20V Impact Wrench",
+    customerName: "Anonymous User",
+    rating: 2,
+    title: "Package arrived with crushed cardboard box",
+    comment: "Tools work fine, but shipping outer box was beat up. Need better air bubble wrap from Guangzhou hub.",
+    verifiedPurchase: true,
+    hasMediaProof: false,
+    status: "pending",
+    isFeatured: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+  },
+];
+
+// ─── Support Tickets Mock Data ───────────────────────────────────────────────
+
+export interface AdminTicket {
+  id: string;
+  ticketNumber: string;
+  subject: string;
+  customerName: string;
+  customerEmail: string;
+  orderNumber?: string;
+  category: "Air Shipping & Tracking" | "Binance Pay USDT" | "Factory Warranty 30-Day" | "Technical Setup";
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "open" | "in_progress" | "resolved" | "closed";
+  assignedAgent: string;
+  messagesCount: number;
+  lastReply: string;
+  createdAt: string;
+}
+
+export const MOCK_TICKETS: AdminTicket[] = [
+  {
+    id: "tck-1",
+    ticketNumber: "TCK-88219",
+    subject: "Inquiry on YunExpress tracking handover to USPS",
+    customerName: "Alex Harrison",
+    customerEmail: "alex.harrison@example.com",
+    orderNumber: "LCM-20260823-88AF",
+    category: "Air Shipping & Tracking",
+    priority: "medium",
+    status: "in_progress",
+    assignedAgent: "Support Agent Desk",
+    messagesCount: 3,
+    lastReply: "YunExpress parcel cleared LAX customs and is scheduled for USPS local injection tomorrow.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+  },
+  {
+    id: "tck-2",
+    ticketNumber: "TCK-88214",
+    subject: "Binance Pay USDT network confirmation timeout question",
+    customerName: "Michael Wong",
+    customerEmail: "m.wong@techcorp.io",
+    orderNumber: "LCM-20260822-77BC",
+    category: "Binance Pay USDT",
+    priority: "high",
+    status: "open",
+    assignedAgent: "Unassigned",
+    messagesCount: 1,
+    lastReply: "Payment verified on Binance Merchant portal, webhook callback synced.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+  },
+  {
+    id: "tck-3",
+    ticketNumber: "TCK-88190",
+    subject: "Creality K1 Max firmware update instructions request",
+    customerName: "Frank Alvarez",
+    customerEmail: "frank.a@makerhub.net",
+    orderNumber: "LCM-20260818-11AA",
+    category: "Technical Setup",
+    priority: "low",
+    status: "resolved",
+    assignedAgent: "Shenzhen Tech Specialist",
+    messagesCount: 4,
+    lastReply: "Provided OTA firmware bin file and instructions. Customer confirmed printer is operating at 600mm/s.",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+  },
+];
+
+// ─── Homepage Sections Builder Mock Data ─────────────────────────────────────
+
+export interface AdminHomepageSection {
+  id: string;
+  type: string;
+  name: string;
+  subtitle: string;
+  itemCount: number;
+  position: number;
+  isActive: boolean;
+  layout: "carousel" | "grid" | "banner_strip" | "dual_video";
+  configJson: string;
+}
+
+export const MOCK_HOMEPAGE_SECTIONS: AdminHomepageSection[] = [
+  {
+    id: "sec-1",
+    type: "hero_banner",
+    name: "Shenzhen Robotics & 4K Aerial Drones Spotlight",
+    subtitle: "Full-width promotional carousel with USDT zero-fee checkout callouts",
+    itemCount: 3,
+    position: 1,
+    isActive: true,
+    layout: "carousel",
+    configJson: '{"autoplay": true, "intervalSeconds": 6, "transition": "fade"}',
+  },
+  {
+    id: "sec-2",
+    type: "category_strip",
+    name: "Featured Hardware Categories Rail",
+    subtitle: "Quick navigation for 6 core factory sourcing lines",
+    itemCount: 6,
+    position: 2,
+    isActive: true,
+    layout: "grid",
+    configJson: '{"columns": 6, "showProductCounts": true}',
+  },
+  {
+    id: "sec-3",
+    type: "flash_deals",
+    name: "Flash Sourcing Deals & Live Countdown",
+    subtitle: "Time-limited factory price drops with stock quota meters",
+    itemCount: 4,
+    position: 3,
+    isActive: true,
+    layout: "grid",
+    configJson: '{"maxItems": 4, "showClaimedBar": true, "showTimer": true}',
+  },
+  {
+    id: "sec-4",
+    type: "dual_video_spotlight",
+    name: "Dual-Video QC & Teardown Spotlight",
+    subtitle: "Factory inspection and live performance dual-embed player",
+    itemCount: 1,
+    position: 4,
+    isActive: true,
+    layout: "dual_video",
+    configJson: '{"featuredProductId": "prod-1", "autoPlayHover": false}',
+  },
+  {
+    id: "sec-5",
+    type: "trust_strip",
+    name: "Binance Pay USDT & 30-Day Warranty Trust Badges",
+    subtitle: "Zero gas fees, 7-12 day air cargo, factory direct warranty guarantees",
+    itemCount: 4,
+    position: 5,
+    isActive: true,
+    layout: "banner_strip",
+    configJson: '{"style": "dark_card", "icons": ["Coins", "ShieldCheck", "Truck", "RotateCcw"]}',
+  },
+];
+
+// ─── Static Pages / CMS Mock Data ────────────────────────────────────────────
+
+export interface AdminPage {
+  id: string;
+  title: string;
+  slug: string;
+  category: "Policy" | "Company" | "Help";
+  seoTitle: string;
+  seoDescription: string;
+  status: "published" | "draft";
+  lastEditedBy: string;
+  updatedAt: string;
+  content: string;
+}
+
+export const MOCK_PAGES: AdminPage[] = [
+  {
+    id: "pg-1",
+    title: "30-Day Factory Direct Warranty Policy",
+    slug: "warranty-policy",
+    category: "Policy",
+    seoTitle: "30-Day Hardware Warranty & QC Policy - Lennox ChinaMall",
+    seoDescription: "Comprehensive 30-day warranty coverage for all factory-direct electronics and aerial drones.",
+    status: "published",
+    lastEditedBy: "Super Admin",
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
+    content: "# 30-Day Factory Direct Warranty Policy\n\nEvery hardware item sourced through Lennox ChinaMall is backed by our direct manufacturer warranty in Shenzhen and Guangzhou.",
+  },
+  {
+    id: "pg-2",
+    title: "Binance Pay USDT Settlement & 0-Fee Checkout",
+    slug: "binance-pay-guide",
+    category: "Help",
+    seoTitle: "How to Pay with Binance Pay USDT - Lennox ChinaMall",
+    seoDescription: "Step-by-step tutorial on instant zero-network-gas fee settlement via Binance Pay QR code.",
+    status: "published",
+    lastEditedBy: "Super Admin",
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
+    content: "# Zero-Fee Crypto Checkout with Binance Pay\n\nExperience seamless USDT escrow settlement with instant order confirmation.",
+  },
+  {
+    id: "pg-3",
+    title: "DDP Air Cargo & Customs Clearance Guide",
+    slug: "shipping-customs-ddp",
+    category: "Help",
+    seoTitle: "DDP Air Express Delivery - 7 to 12 Days Delivery",
+    seoDescription: "Delivered Duty Paid (DDP) air cargo logistics with YunExpress, Yanwen, and SF International.",
+    status: "published",
+    lastEditedBy: "Order Manager Lead",
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 18).toISOString(),
+    content: "# Fast Air Cargo Logistics (DDP)\n\nAll import duties and tariffs are pre-cleared by our logistics routing engine.",
+  },
+];
+
+// ─── Menus Builder Mock Data ─────────────────────────────────────────────────
+
+export interface AdminMenu {
+  id: string;
+  name: string;
+  location: "header_nav" | "footer_links" | "mobile_bottom" | "mega_menu";
+  itemsCount: number;
+  updatedAt: string;
+  items: Array<{ id: string; label: string; href: string; isExternal?: boolean }>;
+}
+
+export const MOCK_MENUS: AdminMenu[] = [
+  {
+    id: "mnu-1",
+    name: "Main Header Navigation",
+    location: "header_nav",
+    itemsCount: 5,
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    items: [
+      { id: "mi-1", label: "Categories", href: "/categories" },
+      { id: "mi-2", label: "Flash Deals", href: "/categories/rc-drones-toys" },
+      { id: "mi-3", label: "New Sourced Hardware", href: "/categories/consumer-electronics" },
+      { id: "mi-4", label: "Air Cargo Tracking", href: "/account/orders" },
+      { id: "mi-5", label: "Binance Pay Info", href: "/help" },
+    ],
+  },
+  {
+    id: "mnu-2",
+    name: "Footer Corporate & Warranty Links",
+    location: "footer_links",
+    itemsCount: 6,
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
+    items: [
+      { id: "mi-201", label: "30-Day Warranty", href: "/warranty-policy" },
+      { id: "mi-202", label: "DDP Air Shipping", href: "/shipping-customs-ddp" },
+      { id: "mi-203", label: "Binance Pay Guide", href: "/binance-pay-guide" },
+      { id: "mi-204", label: "Help & Support Tickets", href: "/account/support" },
+      { id: "mi-205", label: "Privacy Policy", href: "/privacy" },
+      { id: "mi-206", label: "Terms of Service", href: "/terms" },
+    ],
+  },
+];
+
+// ─── SEO & Redirects Mock Data ───────────────────────────────────────────────
+
+export interface SeoRedirectItem {
+  id: string;
+  fromPath: string;
+  toPath: string;
+  type: "301" | "302";
+  hitCount: number;
+  status: "active" | "inactive";
+  note: string;
+  createdAt: string;
+}
+
+export const MOCK_SEO_REDIRECTS: SeoRedirectItem[] = [
+  {
+    id: "seo-1",
+    fromPath: "/products/drone-4k",
+    toPath: "/products/eachine-ex5-4k-gps-fpv-drone",
+    type: "301",
+    hitCount: 1420,
+    status: "active",
+    note: "Legacy URL alias from old product campaign",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 60).toISOString(),
+  },
+  {
+    id: "seo-2",
+    fromPath: "/deals/flash",
+    toPath: "/categories/rc-drones-toys",
+    type: "302",
+    hitCount: 890,
+    status: "active",
+    note: "Temporary banner campaign redirect",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+  },
+  {
+    id: "seo-3",
+    fromPath: "/tools/laser",
+    toPath: "/categories/tools-diy-hardware",
+    type: "301",
+    hitCount: 450,
+    status: "active",
+    note: "Shortened URL for laser engraver category",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
+  },
+];
+
+// ─── Broadcast Notifications Mock Data ───────────────────────────────────────
+
+export interface AdminNotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  targetAudience: "all_users" | "vip_customers" | "staff_only";
+  type: "announcement" | "price_drop" | "security_alert" | "system_maintenance";
+  sentCount: number;
+  openRate: string;
+  status: "sent" | "scheduled" | "draft";
+  sentAt: string;
+}
+
+export const MOCK_NOTIFICATIONS: AdminNotificationItem[] = [
+  {
+    id: "notif-1",
+    title: "⚡ Flash Sourcing Drop: Eachine 4K Drones Restocked in Shenzhen",
+    message: "Limited batch of 50 units with dual batteries ready for priority air cargo dispatch.",
+    targetAudience: "all_users",
+    type: "announcement",
+    sentCount: 1420,
+    openRate: "48.2%",
+    status: "sent",
+    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
+  {
+    id: "notif-2",
+    title: "Binance Pay USDT Gateway 0-Fee Promotion Active",
+    message: "Pay with Binance Pay on checkout to receive an instant $5 USDT discount voucher.",
+    targetAudience: "all_users",
+    type: "price_drop",
+    sentCount: 2890,
+    openRate: "62.4%",
+    status: "sent",
+    sentAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+  },
+];
+
+// ─── Integrations & Third-Party APIs Mock Data ───────────────────────────────
+
+export interface IntegrationService {
+  id: string;
+  name: string;
+  category: "Payment Gateway" | "Database & Auth" | "Logistics & Tracking" | "Communications" | "Security";
+  iconName: string;
+  status: "healthy" | "degraded" | "configured" | "pending_keys";
+  lastCheck: string;
+  responseTimeMs: number;
+  authMethod: "API Key + HMAC SHA512" | "Supabase Service Role" | "Bearer OAuth2" | "Webhook Secret";
+  endpoint: string;
+  details: string;
+}
+
+export const MOCK_INTEGRATIONS: IntegrationService[] = [
+  {
+    id: "int-1",
+    name: "Binance Pay Merchant API v3",
+    category: "Payment Gateway",
+    iconName: "Coins",
+    status: "healthy",
+    lastCheck: "1 min ago",
+    responseTimeMs: 84,
+    authMethod: "API Key + HMAC SHA512",
+    endpoint: "https://bpay.binanceapi.com/binancepay/openapi/v3/order",
+    details: "Zero gas fee USDT escrow checkout. Webhook signature verification verified.",
+  },
+  {
+    id: "int-2",
+    name: "Supabase PostgreSQL Database & Auth",
+    category: "Database & Auth",
+    iconName: "Cpu",
+    status: "healthy",
+    lastCheck: "2 mins ago",
+    responseTimeMs: 32,
+    authMethod: "Supabase Service Role",
+    endpoint: "https://xxx.supabase.co/rest/v1",
+    details: "Row Level Security (RLS) active. Connection pooling via pgBouncer.",
+  },
+  {
+    id: "int-3",
+    name: "YunExpress Global Air Logistics API",
+    category: "Logistics & Tracking",
+    iconName: "Truck",
+    status: "healthy",
+    lastCheck: "5 mins ago",
+    responseTimeMs: 140,
+    authMethod: "API Key + HMAC SHA512",
+    endpoint: "https://api.yunexpress.com/LMS.API/api/WayBill/Create",
+    details: "Automated air cargo manifest generation & Shenzhen hub pickup scheduling.",
+  },
+  {
+    id: "int-4",
+    name: "Yanwen Air Express Special Line API",
+    category: "Logistics & Tracking",
+    iconName: "Plane",
+    status: "healthy",
+    lastCheck: "12 mins ago",
+    responseTimeMs: 165,
+    authMethod: "API Key + HMAC SHA512",
+    endpoint: "https://api.yanwen.com.cn/v1/shipments",
+    details: "Priority European & UK DDP shipping line dispatch.",
+  },
+  {
+    id: "int-5",
+    name: "Cloudflare Turnstile Bot Defense",
+    category: "Security",
+    iconName: "ShieldCheck",
+    status: "healthy",
+    lastCheck: "3 mins ago",
+    responseTimeMs: 22,
+    authMethod: "Bearer OAuth2",
+    endpoint: "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+    details: "Zero-friction captcha protection on checkout and registration endpoints.",
+  },
+];
+
+// ─── Store Settings Mock Data ────────────────────────────────────────────────
+
+export interface StoreSettingsData {
+  storeName: string;
+  storeTagline: string;
+  supportEmail: string;
+  supportPhone: string;
+  guangzhouHubAddress: string;
+  shenzhenHubAddress: string;
+  defaultCurrency: string;
+  usdtFixedRateUSD: number;
+  freeAirShippingThreshold: number;
+  standardAirShippingCost: number;
+  maintenanceMode: boolean;
+  allowGuestCheckout: boolean;
+  minOrderAmountUSDT: number;
+  maxOrderAmountUSDT: number;
+  orderPrefix: string;
+}
+
+export const MOCK_STORE_SETTINGS: StoreSettingsData = {
+  storeName: "Lennox China Mall",
+  storeTagline: "Direct-from-Factory China Hardware & Drone Sourcing in USDT",
+  supportEmail: "support@lennoxchinamall.com",
+  supportPhone: "+86 755 8899 0011",
+  guangzhouHubAddress: "Building 4, Baiyun International Logistics Park, Guangzhou, GD 510440",
+  shenzhenHubAddress: "Floor 8, High-Tech Industrial Park, Nanshan, Shenzhen, GD 518057",
+  defaultCurrency: "USDT",
+  usdtFixedRateUSD: 1.00,
+  freeAirShippingThreshold: 75.00,
+  standardAirShippingCost: 8.50,
+  maintenanceMode: false,
+  allowGuestCheckout: false,
+  minOrderAmountUSDT: 10.00,
+  maxOrderAmountUSDT: 50000.00,
+  orderPrefix: "LCM",
+};
+
+// ─── Security & System Health Mock Data ──────────────────────────────────────
+
+export interface SystemHealthMetrics {
+  serverUptime: string;
+  cpuUsagePct: number;
+  memoryUsagePct: number;
+  dbPoolConnections: number;
+  activeAdminSessions: number;
+  sslCertificateStatus: "valid" | "expiring_soon" | "invalid";
+  sslExpiryDays: number;
+  rlsPoliciesEnforcedCount: number;
+  rateLimitBlockedRequestsLast24h: number;
+  lastSecurityAuditDate: string;
+}
+
+export const MOCK_SYSTEM_HEALTH: SystemHealthMetrics = {
+  serverUptime: "99.98% (42 days, 14 hours)",
+  cpuUsagePct: 18.4,
+  memoryUsagePct: 42.1,
+  dbPoolConnections: 12,
+  activeAdminSessions: 3,
+  sslCertificateStatus: "valid",
+  sslExpiryDays: 248,
+  rlsPoliciesEnforcedCount: 28,
+  rateLimitBlockedRequestsLast24h: 142,
+  lastSecurityAuditDate: "Aug 24, 2026 12:00:00 GMT+8",
+};
+
+

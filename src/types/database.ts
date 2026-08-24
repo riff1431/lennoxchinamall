@@ -243,19 +243,21 @@ export interface SupplierProduct {
 export interface SourcingPurchase {
   id: string;
   order_id: string;
-  order_item_id: string | null;
-  supplier_id: string;
-  supplier_order_number: string | null;
-  purchase_date: string | null;
-  actual_cost: number | null;
-  currency: string;
-  buyer_admin_id: string;
-  expected_arrival: string | null;
-  proof_url: string | null;
-  notes: string | null;
+  order_item_id?: string | null;
+  supplier_id?: string | null;
+  supplier_order_number?: string | null;
+  purchase_date?: string | null;
+  actual_cost?: number | null;
+  shipping_cost?: number | null;
+  currency?: string;
+  buyer_admin_id?: string;
+  expected_arrival?: string | null;
+  proof_url?: string | null;
+  tracking_number?: string | null;
+  notes?: string | null;
   status: "pending" | "ordered" | "received" | "issue";
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 // ─── Commerce ───────────────────────────────────────────────────────────────
@@ -295,14 +297,29 @@ export interface Coupon {
   code: string;
   type: CouponType;
   value: number;
-  min_spend: number | null;
-  max_uses: number | null;
-  per_user_limit: number;
-  scope: Json | null; // { category_ids: [], product_ids: [] }
-  valid_from: string;
-  valid_until: string;
+  min_spend?: number | null;
+  min_order_amount?: number | null;
+  max_uses?: number | null;
+  usage_limit?: number | null;
+  used_count?: number;
+  description?: string | null;
+  per_user_limit?: number;
+  scope?: Json | null;
+  valid_from?: string;
+  valid_until?: string;
+  expires_at?: string | null;
   is_active: boolean;
-  usage_count: number;
+  usage_count?: number;
+  created_at: string;
+}
+
+export interface FlashDeal {
+  id: string;
+  title: string;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+  discount_percentage?: number | null;
   created_at: string;
 }
 
@@ -313,19 +330,32 @@ export interface Order {
   order_number: string;
   user_id: string;
   status: OrderStatus;
+  sourcing_status?: string | null;
   subtotal: number;
   discount: number;
+  discount_amount?: number;
   shipping_cost: number;
+  shipping_fee?: number;
   total: number;
+  total_amount?: number;
   currency: string;
-  coupon_id: string | null;
-  notes: string | null;
-  internal_notes: string | null; // Admin only
-  assigned_to: string | null;
+  payment_method?: string;
+  payment_status?: PaymentStatus;
+  merchant_trade_no?: string;
+  prepay_id?: string;
+  shipping_method?: string;
+  tracking_number?: string | null;
+  courier_code?: string | null;
+  tracking_url?: string | null;
+  coupon_id?: string | null;
+  notes?: string | null;
+  internal_notes?: string | null; // Admin only
+  assigned_to?: string | null;
   created_at: string;
   updated_at: string;
   // Relations
   items?: OrderItem[];
+  address?: OrderAddress;
   addresses?: OrderAddress[];
   status_history?: OrderStatusHistory[];
   payment?: Payment;
@@ -335,14 +365,22 @@ export interface Order {
 
 export interface OrderItem {
   id: string;
-  order_id: string;
-  variant_id: string;
-  product_title: string; // Snapshot
-  variant_attributes: Json; // Snapshot
+  order_id?: string;
+  product_id?: string | null;
+  variant_id?: string | null;
+  title?: string;
+  product_title?: string; // Snapshot
+  sku?: string | null;
+  variant_attributes?: Json; // Snapshot
+  attributes?: Json;
   quantity: number;
-  unit_price: number;
-  total: number;
-  created_at: string;
+  price?: number;
+  unit_price?: number;
+  total?: number;
+  image_url?: string | null;
+  supplier_code?: string | null;
+  sourcing_status?: string | null;
+  created_at?: string;
   // Relations
   variant?: Variant & { product?: Product };
 }

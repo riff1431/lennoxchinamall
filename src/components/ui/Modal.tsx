@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/utils/helpers";
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: React.ReactNode;
@@ -12,6 +12,7 @@ interface ModalProps {
   footer?: React.ReactNode;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  maxWidth?: string;
 }
 
 export function Modal({
@@ -22,6 +23,7 @@ export function Modal({
   footer,
   className,
   size = "md",
+  maxWidth,
 }: ModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -61,6 +63,7 @@ export function Modal({
           className={cn(
             "relative transform overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white text-left shadow-2xl transition-all w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200",
             sizeClasses[size],
+            maxWidth && `sm:${maxWidth}`,
             className
           )}
         >

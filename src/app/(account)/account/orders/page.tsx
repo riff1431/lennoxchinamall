@@ -145,24 +145,25 @@ export default function AccountOrdersPage() {
                         <Image
                           src={
                             item.variant?.product?.media?.[0]?.url ||
+                            item.image_url ||
                             "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=400&auto=format&fit=crop&q=80"
                           }
-                          alt={item.product_title}
+                          alt={item.product_title || item.title || "Product Item"}
                           fill
                           className="object-cover"
                         />
                       </div>
                       <div>
                         <h4 className="text-xs font-bold text-slate-800 line-clamp-1">
-                          {item.product_title}
+                          {item.product_title || item.title || "Product"}
                         </h4>
                         <span className="text-[11px] text-slate-400 font-semibold">
-                          Qty: {item.quantity} × {formatCurrency(item.unit_price)}
+                          Qty: {item.quantity} × {formatCurrency(item.unit_price || item.price || 0)}
                         </span>
                       </div>
                     </div>
                     <span className="text-xs font-black text-[#00143D] shrink-0 price-tag">
-                      {formatCurrency(item.total)}
+                      {formatCurrency(item.total || (item.price ? item.price * item.quantity : 0))}
                     </span>
                   </div>
                 ))}

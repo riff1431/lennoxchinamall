@@ -38,16 +38,41 @@ import { Product } from "@/types/database";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency, formatDate } from "@/utils/helpers";
 import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
+import { getPromotionsData, createCoupon, toggleCouponStatus } from "@/app/actions/admin-promotions";
 
 export default function AdminPromotionsPage() {
   const [activeTab, setActiveTab] = useState<"coupons" | "flash" | "banners" | "curated">("coupons");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Coupons State
-  const [coupons, setCoupons] = useState<PromotionCoupon[]>(MOCK_COUPONS);
+  const [coupons, setCoupons] = useState<any[]>(MOCK_COUPONS);
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState("");
+
+  const loadData = async () => {
+    const res = await getPromotionsData();
+    if (res.success && res.coupons?.length) {
+      setCoupons(
+        res.coupons.map((c: any) => ({
+          id: c.id,
+          code: c.code,
+          discountType: c.type || "percentage",
+          value: Number(c.value) || 10,
+          minSpend: Number(c.min_order_amount) || 0,
+          maxUses: c.usage_limit || 100,
+          usageCount: c.used_count || 0,
+          description: c.description || "",
+          expiresAt: c.expires_at || new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
+          isActive: c.is_active ?? true,
+        }))
+      );
+    }
+  };
+
+  React.useEffect(() => {
+    loadData();
+  }, []);
   const [couponType, setCouponType] = useState<"percentage" | "fixed_amount" | "free_shipping">("percentage");
   const [couponValue, setCouponValue] = useState(10);
   const [couponMinSpend, setCouponMinSpend] = useState(50);
@@ -101,51 +126,31 @@ export default function AdminPromotionsPage() {
     setIsCouponModalOpen(true);
   };
 
-  const handleSaveCoupon = (e: React.FormEvent) => {
+  const handleSaveCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponCode.trim()) return;
 
-    if (editingCouponId) {
-      setCoupons((prev) =>
-        prev.map((c) =>
-          c.id === editingCouponId
-            ? {
-                ...c,
-                code: couponCode.toUpperCase().trim(),
-                discountType: couponType,
-                value: couponValue,
-                minSpend: couponMinSpend,
-                maxUses: couponMaxUses,
-                description: couponDesc,
-              }
-            : c
-        )
-      );
-      setToastMsg(`Coupon "${couponCode.toUpperCase()}" updated successfully!`);
-    } else {
-      const newCoupon: PromotionCoupon = {
-        id: `coup-${Date.now()}`,
-        code: couponCode.toUpperCase().trim(),
-        discountType: couponType,
-        value: couponValue,
-        minSpend: couponMinSpend,
-        maxUses: couponMaxUses,
-        usageCount: 0,
-        description: couponDesc,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * couponDays).toISOString(),
-        isActive: true,
-      };
-      setCoupons([newCoupon, ...coupons]);
-      setToastMsg(`New coupon "${couponCode.toUpperCase()}" published!`);
-    }
+    const formData = new FormData();
+    formData.set("code", couponCode);
+    formData.set("type", couponType === "percentage" ? "percentage" : "fixed");
+    formData.set("value", String(couponValue));
+    formData.set("min_order_amount", String(couponMinSpend));
+    formData.set("usage_limit", String(couponMaxUses));
+    formData.set("description", couponDesc);
 
+    const res = await createCoupon(formData);
+    setToastMsg(res.message || `Coupon "${couponCode.toUpperCase()}" saved!`);
     setIsCouponModalOpen(false);
+    loadData();
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleToggleCoupon = (id: string) => {
+  const handleToggleCoupon = async (id: string) => {
+    const target = coupons.find((c) => c.id === id);
+    const newStatus = !target?.isActive;
+    await toggleCouponStatus(id, newStatus);
     setCoupons((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isActive: !c.isActive } : c))
+      prev.map((c) => (c.id === id ? { ...c, isActive: newStatus } : c))
     );
   };
 

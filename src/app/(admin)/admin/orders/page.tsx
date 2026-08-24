@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -33,9 +33,11 @@ import { Order, OrderStatus } from "@/types/database";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency, formatDate } from "@/utils/helpers";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
+import { getAdminOrders, updateOrderStatus, updateTrackingInfo } from "@/app/actions/admin-orders";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -63,10 +65,26 @@ export default function AdminOrdersPage() {
   const [refundAmount, setRefundAmount] = useState(0);
   const [refundReason, setRefundReason] = useState("Factory transit defect");
 
+  const loadOrders = async () => {
+    setIsLoading(true);
+    const res = await getAdminOrders({
+      search,
+      status: statusFilter,
+    });
+    if (res.success) {
+      setOrders(res.orders);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, [statusFilter]);
+
   const filteredOrders = orders.filter((o) => {
     const matchesSearch =
       o.order_number.toLowerCase().includes(search.toLowerCase()) ||
-      (o.items && o.items.some((item) => item.product_title.toLowerCase().includes(search.toLowerCase()))) ||
+      (o.items && o.items.some((item) => (item.title || "").toLowerCase().includes(search.toLowerCase()))) ||
       search === "";
 
     const matchesStatus = statusFilter === "all" || o.status === statusFilter;
@@ -77,21 +95,21 @@ export default function AdminOrdersPage() {
   const handleOpenDetailModal = (order: Order) => {
     setSelectedOrder(order);
     setEditStatus(order.status);
-    setTrackingNumber("YUN-982741920-US");
+    setTrackingNumber(order.tracking_number || "YUN-982741920-US");
     setIsDetailModalOpen(true);
   };
 
-  const handleUpdateOrderStatus = () => {
+  const handleUpdateOrderStatus = async () => {
     if (!selectedOrder) return;
 
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === selectedOrder.id ? { ...o, status: editStatus } : o
-      )
-    );
+    const res = await updateOrderStatus(selectedOrder.id, editStatus);
+    if (trackingNumber && trackingNumber !== selectedOrder.tracking_number) {
+      await updateTrackingInfo(selectedOrder.id, trackingNumber, carrier);
+    }
 
-    setSelectedOrder({ ...selectedOrder, status: editStatus });
-    setToastMsg(`Order #${selectedOrder.order_number} status updated to "${ORDER_STATUS_LABELS[editStatus]}".`);
+    setToastMsg(res.message || `Order #${selectedOrder.order_number} status updated!`);
+    loadOrders();
+    setIsDetailModalOpen(false);
     setTimeout(() => setToastMsg(null), 3000);
   };
 
@@ -110,19 +128,15 @@ export default function AdminOrdersPage() {
     setInternalNoteInput("");
   };
 
-  const handleExecuteRefund = (e: React.FormEvent) => {
+  const handleExecuteRefund = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
 
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === selectedOrder.id ? { ...o, status: "refunded" as OrderStatus } : o
-      )
-    );
-
-    setToastMsg(`Refund of $${refundAmount} USDT processed for Order #${selectedOrder.order_number}!`);
+    const res = await updateOrderStatus(selectedOrder.id, "refunded" as OrderStatus, `Refund of $${refundAmount} processed: ${refundReason}`);
+    setToastMsg(`Refund processed for Order #${selectedOrder.order_number}!`);
     setIsRefundModalOpen(false);
     setIsDetailModalOpen(false);
+    loadOrders();
     setTimeout(() => setToastMsg(null), 3000);
   };
 
@@ -416,7 +430,7 @@ export default function AdminOrdersPage() {
                           <Lock className="w-3 h-3 text-slate-400" /> Private Code: SUP-GZ-4419
                         </span>
                         <span className="text-slate-500">
-                          Factory Cost: <strong>$48.50</strong> • Retail: <strong>{formatCurrency(item.unit_price)}</strong>
+                          Factory Cost: <strong>$48.50</strong> • Retail: <strong>{formatCurrency(item.unit_price || item.price || 0)}</strong>
                         </span>
                       </div>
                     </div>

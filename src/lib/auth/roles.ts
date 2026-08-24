@@ -26,29 +26,109 @@ export function isAdminRole(role: UserRole | null | undefined): boolean {
 export type AdminSection =
   | "dashboard"
   | "products"
+  | "categories"
+  | "brands"
+  | "attributes"
+  | "inventory"
+  | "media"
+  | "suppliers"
+  | "sourcing"
   | "orders"
   | "payments"
-  | "suppliers"
-  | "promotions"
+  | "shipping"
+  | "returns"
   | "customers"
-  | "content"
-  | "settings";
+  | "reviews"
+  | "support"
+  | "coupons"
+  | "flash-deals"
+  | "promotions"
+  | "homepage-sections"
+  | "pages"
+  | "menus"
+  | "seo"
+  | "notifications"
+  | "analytics"
+  | "staff"
+  | "audit-logs"
+  | "integrations"
+  | "settings"
+  | "security";
 
 export const ROLE_PERMISSIONS: Record<UserRole, AdminSection[]> = {
   super_admin: [
     "dashboard",
     "products",
+    "categories",
+    "brands",
+    "attributes",
+    "inventory",
+    "media",
+    "suppliers",
+    "sourcing",
     "orders",
     "payments",
-    "suppliers",
-    "promotions",
+    "shipping",
+    "returns",
     "customers",
-    "content",
+    "reviews",
+    "support",
+    "coupons",
+    "flash-deals",
+    "promotions",
+    "homepage-sections",
+    "pages",
+    "menus",
+    "seo",
+    "notifications",
+    "analytics",
+    "staff",
+    "audit-logs",
+    "integrations",
     "settings",
+    "security",
   ],
-  catalogue_manager: ["dashboard", "products", "suppliers", "promotions"],
-  order_manager: ["dashboard", "orders", "payments", "suppliers"],
-  support_agent: ["dashboard", "orders", "customers"],
+  catalogue_manager: [
+    "dashboard",
+    "products",
+    "categories",
+    "brands",
+    "attributes",
+    "inventory",
+    "media",
+    "suppliers",
+    "flash-deals",
+    "coupons",
+    "promotions",
+    "homepage-sections",
+    "pages",
+    "menus",
+    "seo",
+    "reviews",
+  ],
+  order_manager: [
+    "dashboard",
+    "orders",
+    "payments",
+    "shipping",
+    "sourcing",
+    "returns",
+    "inventory",
+    "suppliers",
+    "customers",
+    "support",
+    "analytics",
+  ],
+  support_agent: [
+    "dashboard",
+    "orders",
+    "shipping",
+    "returns",
+    "customers",
+    "reviews",
+    "support",
+    "notifications",
+  ],
   customer: [], // Customers have no admin access
 };
 
@@ -80,21 +160,42 @@ export function getAdminSectionFromPath(
   pathname: string
 ): AdminSection | null {
   const segments = pathname.replace(/^\/admin\/?/, "").split("/");
-  const section = segments[0];
+  const section = segments[0] as AdminSection;
 
-  const sectionMap: Record<string, AdminSection> = {
-    dashboard: "dashboard",
-    products: "products",
-    orders: "orders",
-    payments: "payments",
-    suppliers: "suppliers",
-    promotions: "promotions",
-    customers: "customers",
-    content: "content",
-    settings: "settings",
-  };
+  const validSections: AdminSection[] = [
+    "dashboard",
+    "products",
+    "categories",
+    "brands",
+    "attributes",
+    "inventory",
+    "media",
+    "suppliers",
+    "sourcing",
+    "orders",
+    "payments",
+    "shipping",
+    "returns",
+    "customers",
+    "reviews",
+    "support",
+    "coupons",
+    "flash-deals",
+    "promotions",
+    "homepage-sections",
+    "pages",
+    "menus",
+    "seo",
+    "notifications",
+    "analytics",
+    "staff",
+    "audit-logs",
+    "integrations",
+    "settings",
+    "security",
+  ];
 
-  return sectionMap[section] || "dashboard";
+  return validSections.includes(section) ? section : "dashboard";
 }
 
 /**
