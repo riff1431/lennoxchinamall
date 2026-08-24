@@ -68,7 +68,7 @@ export function AnalyticsDashboardClient({
   const [activeMetricChart, setActiveMetricChart] = useState<"revenue" | "orders" | "profit">("revenue");
   const [productSearch, setProductSearch] = useState("");
   const [toastMsg, setToastMsg] = useState<{ text: string; type?: "success" | "error" } | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRealtimeActive, setIsRealtimeActive] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -90,7 +90,7 @@ export function AnalyticsDashboardClient({
   };
 
   // ─── Fetch Data Handler ───
-  const fetchData = (range = timeRange, start = customStart, end = customEnd) => {
+  const fetchData = useCallback((range = timeRange, start = customStart, end = customEnd) => {
     setIsRefreshing(true);
     startTransition(async () => {
       const res = await getAnalyticsData({
@@ -107,7 +107,7 @@ export function AnalyticsDashboardClient({
         showToast(res.error || "Failed to refresh telemetry.", "error");
       }
     });
-  };
+  }, [timeRange, customStart, customEnd, compareWithPrevious]);
 
   // ─── Supabase Realtime Subscription ───
   useEffect(() => {
@@ -131,7 +131,7 @@ export function AnalyticsDashboardClient({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [timeRange, customStart, customEnd, compareWithPrevious]);
+  }, [fetchData]);
 
   // ─── CSV Export Functionality ───
   const handleExportCsv = () => {

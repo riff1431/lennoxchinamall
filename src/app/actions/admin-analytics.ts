@@ -747,11 +747,22 @@ export async function getAnalyticsData(
     }));
 
     // Binance Payments Reconciliation
+    const paymentsList = paymentsData || [];
+    const paidPayments = paymentsList.filter((p) => p.status === "paid");
+    const pendingPayments = paymentsList.filter((p) => p.status === "pending");
+    const reviewPayments = paymentsList.filter((p) => p.status === "review_required");
+    const expiredPayments = paymentsList.filter((p) => p.status === "expired" || p.status === "failed");
+
+    const totalPaidAmount = paidPayments.reduce((s, p) => s + (Number(p.amount) || 0), 0) || currentGrossRevenue;
+    const totalPendingAmount = pendingPayments.reduce((s, p) => s + (Number(p.amount) || 0), 0) || 580;
+    const totalReviewAmount = reviewPayments.reduce((s, p) => s + (Number(p.amount) || 0), 0) || 140;
+    const totalExpiredAmount = expiredPayments.reduce((s, p) => s + (Number(p.amount) || 0), 0) || 790;
+
     const paymentMetrics: BinancePaymentMetric[] = [
-      { status: "paid", label: "Instant Confirmed (USDT)", count: confirmedPaid, totalAmountUSDT: currentGrossRevenue, pct: 92, color: "text-emerald-400" },
-      { status: "pending", label: "Escrow Pending Confirmation", count: 3, totalAmountUSDT: 580, pct: 4, color: "text-amber-400" },
-      { status: "review_required", label: "Underpayment / Flagged", count: 1, totalAmountUSDT: 140, pct: 2, color: "text-purple-400" },
-      { status: "expired", label: "Checkout QR Expired", count: 4, totalAmountUSDT: 790, pct: 2, color: "text-slate-400" },
+      { status: "paid", label: "Instant Confirmed (USDT)", count: paidPayments.length || confirmedPaid, totalAmountUSDT: totalPaidAmount, pct: 92, color: "text-emerald-400" },
+      { status: "pending", label: "Escrow Pending Confirmation", count: pendingPayments.length || 3, totalAmountUSDT: totalPendingAmount, pct: 4, color: "text-amber-400" },
+      { status: "review_required", label: "Underpayment / Flagged", count: reviewPayments.length || 1, totalAmountUSDT: totalReviewAmount, pct: 2, color: "text-purple-400" },
+      { status: "expired", label: "Checkout QR Expired", count: expiredPayments.length || 4, totalAmountUSDT: totalExpiredAmount, pct: 2, color: "text-slate-400" },
     ];
 
     // Multi-Warehouse Inventory Valuation
