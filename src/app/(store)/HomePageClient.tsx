@@ -23,6 +23,9 @@ import {
   Clock,
   Award,
   Video,
+  Play,
+  Film,
+  X,
 } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
@@ -142,6 +145,14 @@ export function HomePageClient({ sections }: HomePageClientProps) {
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("all");
+  const [activeVideoModal, setActiveVideoModal] = useState<{
+    title: string;
+    subtitle: string;
+    productLink: string;
+    productPrice: number;
+    hub: string;
+    tag: string;
+  } | null>(null);
 
   const flashDeals = MOCK_PRODUCTS.filter((p) => p.is_flash_deal);
   const bestSellers = MOCK_PRODUCTS.filter((p) => p.is_best_seller);
@@ -297,72 +308,117 @@ export function HomePageClient({ sections }: HomePageClientProps) {
           </div>
         </div>
 
-        {/* Right Column: Buyer Welcome & VIP Deals (3 Cols on Desktop) */}
+        {/* Right Column: Factory Product Video Highlights (3 Cols on Desktop) */}
         <div className="lg:col-span-3 flex flex-col gap-4">
-          {/* VIP Welcome Box */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-9 h-9 rounded-xl bg-[#00143D] text-white flex items-center justify-center font-black text-sm">
-                  VIP
-                </div>
-                <div>
-                  <h4 className="text-xs font-black text-[#00143D]">
-                    Direct Sourcing Desk
-                  </h4>
-                  <span className="text-[10px] text-slate-500 font-semibold">
-                    Wholesale China Gateway
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Enjoy zero middleman fees and automated USDT escrow checkout.
-              </p>
+          {/* Video Card 1: 4K Laser Drone QC Flight Test */}
+          <div
+            onClick={() =>
+              setActiveVideoModal({
+                title: "Eachine EX5 4K Drone — Factory Flight Benchmark",
+                subtitle: "Shenzhen Drone Hub QC Lab • 5km Transmission & Laser Gimbal Test",
+                productLink: "/products/eachine-ex5-4k-gps-fpv-drone",
+                productPrice: 189.0,
+                hub: "Shenzhen Drone Hub (SZX)",
+                tag: "QC FLIGHT DEMO",
+              })
+            }
+            className="group relative bg-slate-900 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-4 cursor-pointer hover:border-[#FF1028] transition-all min-h-[220px]"
+          >
+            <Image
+              src="https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80"
+              alt="4K Drone Flight Test"
+              fill
+              className="object-cover object-center opacity-45 group-hover:scale-105 group-hover:opacity-55 transition-all duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#00143D] via-[#00143D]/60 to-transparent" />
+
+            {/* Top Badge & Play Trigger */}
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                FACTORY VIDEO
+              </span>
+              <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-amber-300/30">
+                QC PASSED
+              </span>
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <Link
-                href="/auth/register"
-                className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white text-center py-2 rounded-xl text-xs font-black transition-colors"
-              >
-                Join Free
-              </Link>
-              <Link
-                href="/auth/login"
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-center py-2 rounded-xl text-xs font-bold transition-colors"
-              >
-                Sign In
-              </Link>
+            {/* Center Play Button Overlay */}
+            <div className="relative z-10 my-auto flex justify-center py-2">
+              <div className="w-12 h-12 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                <Play className="w-5 h-5 ml-0.5 fill-current" />
+              </div>
+            </div>
+
+            {/* Card Content & Details */}
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-black text-white leading-tight group-hover:text-amber-300 transition-colors">
+                  4K Drone Flight Benchmark
+                </h4>
+                <span className="text-xs font-black text-[#10B981] font-mono">
+                  $189.00
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 line-clamp-1">
+                Watch 5km range &amp; laser gimbal stability test
+              </p>
             </div>
           </div>
 
-          {/* New Buyer Coupon Box */}
-          <div className="bg-gradient-to-br from-[#00143D] to-[#002366] text-white rounded-2xl p-4 shadow-md flex-1 flex flex-col justify-between border border-blue-900">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-black text-amber-300 uppercase tracking-wider flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5" /> First Order Voucher
-                </span>
-                <span className="bg-[#FF1028] text-white text-[9px] font-black px-1.5 py-0.5 rounded">
-                  USDT-READY
-                </span>
-              </div>
-              <h4 className="text-lg font-black leading-tight text-white mb-1">
-                Save 10% Extra
-              </h4>
-              <p className="text-xs text-slate-300">
-                Use code <strong className="text-amber-300 font-black">LENNOX10</strong> on any factory item.
-              </p>
+          {/* Video Card 2: CoreXY 600mm/s 3D Printer Teardown */}
+          <div
+            onClick={() =>
+              setActiveVideoModal({
+                title: "Creality K1 Max — 600mm/s High-Speed Teardown",
+                subtitle: "Ningbo 3DP Lab • Dual-Gear Extruder & Vibration Compensation Test",
+                productLink: "/products/creality-ender-3-v3-se-3d-printer",
+                productPrice: 219.0,
+                hub: "Ningbo 3DP Lab (NGB)",
+                tag: "FACTORY SPEED TEST",
+              })
+            }
+            className="group relative bg-slate-900 rounded-2xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-4 cursor-pointer hover:border-[#FF1028] transition-all min-h-[220px]"
+          >
+            <Image
+              src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80"
+              alt="600mm/s 3D Printer Speed Test"
+              fill
+              className="object-cover object-center opacity-45 group-hover:scale-105 group-hover:opacity-55 transition-all duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#00143D] via-[#00143D]/60 to-transparent" />
+
+            {/* Top Badge & Play Trigger */}
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                <Film className="w-3 h-3" />
+                FACTORY VIDEO
+              </span>
+              <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-amber-300/30">
+                600 MM/S
+              </span>
             </div>
 
-            <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
-              <span className="text-slate-300 font-semibold">Valid storewide</span>
-              <Link
-                href="/categories/flash-deals"
-                className="text-amber-300 hover:text-white font-black flex items-center gap-1"
-              >
-                Claim Now →
-              </Link>
+            {/* Center Play Button Overlay */}
+            <div className="relative z-10 my-auto flex justify-center py-2">
+              <div className="w-12 h-12 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                <Play className="w-5 h-5 ml-0.5 fill-current" />
+              </div>
+            </div>
+
+            {/* Card Content & Details */}
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-black text-white leading-tight group-hover:text-amber-300 transition-colors">
+                  CoreXY 600mm/s Speed Test
+                </h4>
+                <span className="text-xs font-black text-[#10B981] font-mono">
+                  $219.00
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 line-clamp-1">
+                Live extruder &amp; AI lidar auto-bed leveling
+              </p>
             </div>
           </div>
         </div>
@@ -615,6 +671,110 @@ export function HomePageClient({ sections }: HomePageClientProps) {
           </div>
         </div>
       </section>
+
+      {/* ── Interactive Video Demo Player Modal ── */}
+      {activeVideoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
+          <div className="bg-[#00143D] border border-slate-750 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden animate-in zoom-in-95 text-white">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-white/10 bg-slate-900/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#FF1028] text-white flex items-center justify-center">
+                  <Film className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase">
+                      {activeVideoModal.tag}
+                    </span>
+                    <span className="text-[10px] text-amber-300 font-mono font-bold">
+                      {activeVideoModal.hub}
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-white font-heading mt-0.5">
+                    {activeVideoModal.title}
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveVideoModal(null)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Video Player Frame */}
+            <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden group">
+              <Image
+                src="https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=1200&auto=format&fit=crop&q=80"
+                alt="Video Stream Preview"
+                fill
+                className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-radial from-transparent to-black/70" />
+
+              {/* Simulated Live Stream / Video Overlays */}
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded flex items-center gap-1.5 shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                  LIVE FACTORY FEED
+                </span>
+                <span className="bg-black/60 backdrop-blur-md text-slate-200 text-[10px] font-mono px-2 py-0.5 rounded border border-white/20">
+                  1080p 60FPS • SZX HUB 04
+                </span>
+              </div>
+
+              {/* Central Play Badge */}
+              <div className="relative z-10 flex flex-col items-center gap-2 text-center p-6">
+                <div className="w-16 h-16 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-2xl animate-pulse">
+                  <Play className="w-8 h-8 ml-1 fill-current" />
+                </div>
+                <span className="text-xs font-bold text-slate-200 drop-shadow-md">
+                  Inspected &amp; verified at Shenzhen assembly testing bench
+                </span>
+              </div>
+
+              {/* Video Timeline Bar */}
+              <div className="absolute bottom-3 left-4 right-4 z-10 flex items-center gap-3 text-[11px] font-mono text-slate-300">
+                <span className="text-amber-300 font-bold">01:45</span>
+                <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <div className="w-2/3 h-full bg-[#FF1028] rounded-full" />
+                </div>
+                <span>02:30</span>
+              </div>
+            </div>
+
+            {/* Modal Footer & Direct Purchase Bar */}
+            <div className="p-4 sm:p-5 bg-slate-900/90 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div>
+                <span className="text-[11px] text-slate-400 block">{activeVideoModal.subtitle}</span>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span className="text-xl font-black text-[#10B981] font-mono">
+                    ${activeVideoModal.productPrice.toFixed(2)} USDT
+                  </span>
+                  <span className="text-xs text-slate-400">Zero Middleman Markup</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  onClick={() => setActiveVideoModal(null)}
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors"
+                >
+                  Close
+                </button>
+                <Link
+                  href={activeVideoModal.productLink}
+                  className="flex-1 sm:flex-none px-5 py-2 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black text-xs font-heading transition-colors flex items-center justify-center gap-1.5 shadow-lg"
+                >
+                  <span>View Full Factory Specs →</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -97,7 +97,7 @@ export function Footer() {
                   LENNOX
                 </span>
                 <span className="text-xl font-black text-[#FF1028] leading-none">
-                  CHINAMALL
+                  CHINA MALL
                 </span>
               </div>
               <span className="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">
