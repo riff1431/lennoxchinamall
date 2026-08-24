@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect } from "react";
 import {
   Plane,
   Truck,
@@ -23,973 +22,1145 @@ import {
   Send,
   Navigation,
   Globe,
+  Printer,
+  RotateCcw,
+  Download,
+  Coins,
+  RefreshCw,
+  FileText,
+  Barcode,
+  Layers,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import {
-  AdminDataTable,
-  Column,
-  FilterOption,
-  BulkAction,
-} from "@/components/admin/AdminDataTable";
-import { StatusBadge, BadgeTone } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
-import { MOCK_SHIPPING, ShippingParcel } from "@/lib/mockData";
-import { formatDate } from "@/utils/helpers";
+import { formatCurrency, formatDate } from "@/utils/helpers";
+import {
+  FulfillmentRecord,
+  FulfillmentTimelineEvent,
+  ShippingMethodRecord,
+  OrderReturnRecord,
+  ShippingOverviewMetrics,
+  FulfillmentStatus,
+} from "@/types/shipping";
+import {
+  getShippingOverview,
+  getFulfillmentsList,
+  createFulfillment,
+  updateFulfillmentStatus,
+  getFulfillmentDetails,
+  getShippingMethods,
+  saveShippingMethod,
+  getOrderReturns,
+  processOrderReturn,
+  exportShippingCSV,
+} from "@/app/actions/admin-shipping";
+
+type ActiveTab = "parcels" | "methods" | "returns";
 
 export default function AdminShippingPage() {
-  const [parcels, setParcels] = useState<ShippingParcel[]>(MOCK_SHIPPING);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("parcels");
+  const [fulfillments, setFulfillments] = useState<FulfillmentRecord[]>([]);
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethodRecord[]>([]);
+  const [returns, setReturns] = useState<OrderReturnRecord[]>([]);
+  const [metrics, setMetrics] = useState<ShippingOverviewMetrics>({
+    active_in_transit: 0,
+    out_for_delivery: 0,
+    delivered_count: 0,
+    pending_dispatch: 0,
+    open_returns_count: 0,
+    avg_transit_days: 5.4,
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Search & Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [carrierFilter, setCarrierFilter] = useState("all");
+
   // Modals state
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [editingParcel, setEditingParcel] = useState<ShippingParcel | null>(null);
-  const [viewingParcel, setViewingParcel] = useState<ShippingParcel | null>(null);
+  const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
+  const [isPackingSlipOpen, setIsPackingSlipOpen] = useState(false);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [isMethodModalOpen, setIsMethodModalOpen] = useState(false);
+  const [isStatusUpdateOpen, setIsStatusUpdateOpen] = useState(false);
 
-  // Delete confirm dialog state
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingParcelId, setDeletingParcelId] = useState<string | null>(null);
+  const [selectedFulfillment, setSelectedFulfillment] = useState<FulfillmentRecord | null>(null);
+  const [selectedTimeline, setSelectedTimeline] = useState<FulfillmentTimelineEvent[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<ShippingMethodRecord | null>(null);
 
-  // Form Fields State
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [carrier, setCarrier] = useState("YunExpress Air Cargo");
-  const [orderNumber, setOrderNumber] = useState("");
-  const [recipientName, setRecipientName] = useState("");
-  const [destinationCountry, setDestinationCountry] = useState("");
-  const [serviceType, setServiceType] = useState<ShippingParcel["serviceType"]>(
-    "YunExpress Priority Air"
-  );
-  const [weightKg, setWeightKg] = useState(0.85);
-  const [currentStatus, setCurrentStatus] =
-    useState<ShippingParcel["currentStatus"]>("in_transit");
-  const [latestEvent, setLatestEvent] = useState("");
-  const [latestEventTime, setLatestEventTime] = useState("");
-  const [estimatedDelivery, setEstimatedDelivery] = useState("");
-  const [ddpTaxPaid, setDdpTaxPaid] = useState(true);
+  // Dispatch Form State
+  const [formOrderNum, setFormOrderNum] = useState("LCM-99015");
+  const [formRecipient, setFormRecipient] = useState("");
+  const [formCountry, setFormCountry] = useState("United States");
+  const [formCity, setFormCity] = useState("San Francisco, CA");
+  const [formAddress, setFormAddress] = useState("");
+  const [formCourier, setFormCourier] = useState("YunExpress Air Freight");
+  const [formService, setFormService] = useState("Priority Air Cargo");
+  const [formTracking, setFormTracking] = useState("");
+  const [formWeight, setFormWeight] = useState(1.2);
+  const [formOriginHub, setFormOriginHub] = useState("Shenzhen Drone Hub");
+  const [formNotes, setFormNotes] = useState("");
 
-  // Copy tracking helper
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  // Status Update State
+  const [updateStatus, setUpdateStatus] = useState<FulfillmentStatus>("in_transit");
+  const [updateLocation, setUpdateLocation] = useState("Hong Kong International Airport (HKG)");
+  const [updateNotes, setUpdateNotes] = useState("");
+
+  // Method Form State
+  const [methodName, setMethodName] = useState("");
+  const [methodCarrier, setMethodCarrier] = useState("YunExpress");
+  const [methodBaseCost, setMethodBaseCost] = useState(8.5);
+  const [methodPerKg, setMethodPerKg] = useState(4.0);
+  const [methodDaysMin, setMethodDaysMin] = useState(5);
+  const [methodDaysMax, setMethodDaysMax] = useState(8);
+  const [methodFreeMin, setMethodFreeMin] = useState(75.0);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+    setTimeout(() => setToastMsg(null), 4000);
   };
 
-  const handleCopyTracking = (trackNum: string, id: string) => {
-    navigator.clipboard.writeText(trackNum);
-    setCopiedId(id);
-    showToast(`Copied tracking #${trackNum} to clipboard!`);
-    setTimeout(() => setCopiedId(null), 2000);
+  const loadData = async () => {
+    setIsLoading(true);
+    const [overviewRes, listRes, methodsRes, returnsRes] = await Promise.all([
+      getShippingOverview(),
+      getFulfillmentsList({
+        search: searchTerm,
+        status: statusFilter,
+        carrier: carrierFilter,
+      }),
+      getShippingMethods(),
+      getOrderReturns(),
+    ]);
+
+    if (overviewRes.success && overviewRes.metrics) setMetrics(overviewRes.metrics);
+    if (listRes.success && listRes.fulfillments) setFulfillments(listRes.fulfillments);
+    if (methodsRes.success && methodsRes.methods) setShippingMethods(methodsRes.methods);
+    if (returnsRes.success && returnsRes.returns) setReturns(returnsRes.returns);
+    setIsLoading(false);
   };
 
-  // Open Create Modal
-  const handleOpenCreateModal = () => {
-    const randomSuffix = Math.floor(100000000 + Math.random() * 900000000);
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    setEditingParcel(null);
-    setTrackingNumber(`YUN-${randomSuffix}-US`);
-    setOrderNumber(`LCM-${today}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`);
-    setCarrier("YunExpress Air Cargo");
-    setRecipientName("");
-    setDestinationCountry("United States (CA)");
-    setServiceType("YunExpress Priority Air");
-    setWeightKg(1.2);
-    setCurrentStatus("in_transit");
-    setLatestEvent("Departed Shenzhen Sorting Hub -> Manifested for Flight HKG-LAX");
-    setLatestEventTime("Just now");
-    setEstimatedDelivery("7-10 business days");
-    setDdpTaxPaid(true);
-    setIsFormModalOpen(true);
+  useEffect(() => {
+    loadData();
+  }, [searchTerm, statusFilter, carrierFilter]);
+
+  // Open Dispatch Modal
+  const handleOpenDispatch = () => {
+    const autoTracking = `YT${Date.now().toString().slice(-8)}US`;
+    setFormOrderNum(`LCM-${Math.floor(10000 + Math.random() * 90000)}`);
+    setFormRecipient("David Henderson");
+    setFormCountry("United States");
+    setFormCity("Seattle, WA");
+    setFormAddress("1200 4th Ave, Suite 210");
+    setFormCourier("YunExpress Air Freight");
+    setFormService("Priority Air Cargo");
+    setFormTracking(autoTracking);
+    setFormWeight(1.4);
+    setFormOriginHub("Shenzhen Drone Hub");
+    setFormNotes("Quality test flight passed. Sealed in static-shield bag.");
+    setIsDispatchModalOpen(true);
   };
 
-  // Open Edit Modal
-  const handleOpenEditModal = (parcel: ShippingParcel) => {
-    setEditingParcel(parcel);
-    setTrackingNumber(parcel.trackingNumber);
-    setCarrier(parcel.carrier);
-    setOrderNumber(parcel.orderNumber);
-    setRecipientName(parcel.recipientName);
-    setDestinationCountry(parcel.destinationCountry);
-    setServiceType(parcel.serviceType);
-    setWeightKg(parcel.weightKg);
-    setCurrentStatus(parcel.currentStatus);
-    setLatestEvent(parcel.latestEvent);
-    setLatestEventTime(parcel.latestEventTime);
-    setEstimatedDelivery(parcel.estimatedDelivery);
-    setDdpTaxPaid(parcel.ddpTaxPaid);
-    setIsFormModalOpen(true);
-  };
-
-  // Save (Create or Update)
-  const handleSaveParcel = (e: React.FormEvent) => {
+  // Submit Dispatch
+  const handleSubmitDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!trackingNumber.trim() || !recipientName.trim()) {
-      showToast("Please provide tracking number and recipient name.");
-      return;
-    }
+    const res = await createFulfillment({
+      order_id: `ord-${Date.now()}`,
+      order_number: formOrderNum.trim(),
+      recipient_name: formRecipient.trim(),
+      recipient_country: formCountry.trim(),
+      recipient_city: formCity.trim(),
+      recipient_address: formAddress.trim(),
+      courier: formCourier,
+      service_type: formService,
+      tracking_number: formTracking.trim(),
+      weight_kg: Number(formWeight),
+      origin_hub: formOriginHub,
+      internal_notes: formNotes.trim(),
+      items: [{ sku: "DRONE-4K-STD", name: "Eachine EX5 4K GPS FPV Drone", qty: 1, hs_code: "85176200" }],
+    });
 
-    if (editingParcel) {
-      setParcels((prev) =>
-        prev.map((item) =>
-          item.id === editingParcel.id
-            ? {
-                ...item,
-                trackingNumber,
-                carrier,
-                orderNumber,
-                recipientName,
-                destinationCountry,
-                serviceType,
-                weightKg: Number(weightKg),
-                currentStatus,
-                latestEvent,
-                latestEventTime: latestEventTime || "Updated just now",
-                estimatedDelivery,
-                ddpTaxPaid,
-              }
-            : item
-        )
-      );
-      showToast(`Air parcel ${trackingNumber} updated successfully.`);
+    if (res.success) {
+      showToast(res.message || "Air cargo dispatched!");
+      setIsDispatchModalOpen(false);
+      loadData();
     } else {
-      const newParcel: ShippingParcel = {
-        id: `shp-${Date.now()}`,
-        trackingNumber,
-        carrier,
-        orderNumber,
-        recipientName,
-        destinationCountry,
-        serviceType,
-        weightKg: Number(weightKg),
-        currentStatus,
-        latestEvent,
-        latestEventTime: latestEventTime || "Just now",
-        estimatedDelivery: estimatedDelivery || "7-12 days",
-        ddpTaxPaid,
-      };
-      setParcels((prev) => [newParcel, ...prev]);
-      showToast(`New air cargo dispatch registered (${trackingNumber})!`);
-    }
-
-    setIsFormModalOpen(false);
-  };
-
-  // Delete Action
-  const handleDeleteConfirm = () => {
-    if (!deletingParcelId) return;
-    setParcels((prev) => prev.filter((item) => item.id !== deletingParcelId));
-    showToast("Shipping parcel record removed.");
-    setDeletingParcelId(null);
-  };
-
-  // Status mapping for badge tones
-  const getStatusTone = (st: ShippingParcel["currentStatus"]): BadgeTone => {
-    switch (st) {
-      case "in_transit":
-        return "blue";
-      case "customs_cleared":
-        return "amber";
-      case "departed_hkg":
-        return "purple";
-      case "out_for_delivery":
-        return "cyan";
-      case "delivered":
-        return "emerald";
-      default:
-        return "slate";
+      showToast(res.error || "Dispatch failed");
     }
   };
 
-  const getStatusLabel = (st: ShippingParcel["currentStatus"]): string => {
-    switch (st) {
-      case "in_transit":
-        return "In Transit";
-      case "customs_cleared":
-        return "Customs Cleared";
-      case "departed_hkg":
-        return "Departed HKG";
-      case "out_for_delivery":
-        return "Out For Delivery";
-      case "delivered":
-        return "Delivered";
-      default:
-        return st;
+  // Open Packing Slip Modal
+  const handleOpenPackingSlip = (f: FulfillmentRecord) => {
+    setSelectedFulfillment(f);
+    setIsPackingSlipOpen(true);
+  };
+
+  // Open Timeline Modal
+  const handleOpenTimeline = async (f: FulfillmentRecord) => {
+    setSelectedFulfillment(f);
+    const res = await getFulfillmentDetails(f.id);
+    if (res.success && res.timeline) {
+      setSelectedTimeline(res.timeline);
+    }
+    setIsTimelineOpen(true);
+  };
+
+  // Open Status Update Modal
+  const handleOpenStatusUpdate = (f: FulfillmentRecord) => {
+    setSelectedFulfillment(f);
+    setUpdateStatus(f.status);
+    setUpdateLocation("Hong Kong International Airport (HKG)");
+    setUpdateNotes("");
+    setIsStatusUpdateOpen(true);
+  };
+
+  // Submit Status Update
+  const handleSubmitStatusUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFulfillment) return;
+
+    const res = await updateFulfillmentStatus(
+      selectedFulfillment.id,
+      updateStatus,
+      updateLocation.trim(),
+      updateNotes.trim()
+    );
+
+    if (res.success) {
+      showToast(res.message || "Status updated!");
+      setIsStatusUpdateOpen(false);
+      loadData();
+    } else {
+      showToast(res.error || "Update failed");
     }
   };
 
-  // KPI Calculations
-  const inTransitCount = parcels.filter(
-    (p) => p.currentStatus === "in_transit" || p.currentStatus === "departed_hkg"
-  ).length;
-  const customsClearedCount = parcels.filter(
-    (p) => p.currentStatus === "customs_cleared"
-  ).length;
-  const outForDeliveryCount = parcels.filter(
-    (p) => p.currentStatus === "out_for_delivery"
-  ).length;
-  const deliveredCount = parcels.filter(
-    (p) => p.currentStatus === "delivered"
-  ).length;
+  // Open Method Modal
+  const handleOpenMethodModal = (m?: ShippingMethodRecord) => {
+    if (m) {
+      setSelectedMethod(m);
+      setMethodName(m.name);
+      setMethodCarrier(m.carrier);
+      setMethodBaseCost(m.base_cost_usdt);
+      setMethodPerKg(m.per_kg_cost_usdt);
+      setMethodDaysMin(m.estimated_days_min);
+      setMethodDaysMax(m.estimated_days_max);
+      setMethodFreeMin(m.free_shipping_min_order || 75);
+    } else {
+      setSelectedMethod(null);
+      setMethodName("");
+      setMethodCarrier("YunExpress");
+      setMethodBaseCost(8.5);
+      setMethodPerKg(4.0);
+      setMethodDaysMin(5);
+      setMethodDaysMax(8);
+      setMethodFreeMin(75.0);
+    }
+    setIsMethodModalOpen(true);
+  };
 
-  // AdminDataTable Column definitions
-  const columns: Column<ShippingParcel>[] = [
-    {
-      header: "Tracking #",
-      accessorKey: "trackingNumber",
-      sortable: true,
-      cell: (row) => (
-        <div className="flex items-center gap-1.5 font-mono">
-          <span className="font-bold text-white text-xs block">
-            {row.trackingNumber}
-          </span>
-          <button
-            type="button"
-            onClick={() => handleCopyTracking(row.trackingNumber, row.id)}
-            className="text-slate-400 hover:text-[#FF1028] transition-colors p-0.5"
-            title="Copy Tracking Number"
-          >
-            {copiedId === row.id ? (
-              <Check className="w-3 h-3 text-[#10B981]" />
-            ) : (
-              <Copy className="w-3 h-3" />
-            )}
-          </button>
-        </div>
-      ),
-    },
-    {
-      header: "Carrier",
-      accessorKey: "carrier",
-      sortable: true,
-      cell: (row) => (
-        <div className="space-y-0.5">
-          <span className="font-bold text-slate-200 text-xs block">
-            {row.carrier}
-          </span>
-          <span className="text-[10px] text-slate-400 font-mono block">
-            {row.serviceType}
-          </span>
-        </div>
-      ),
-    },
-    {
-      header: "Order #",
-      accessorKey: "orderNumber",
-      sortable: true,
-      cell: (row) => (
-        <Link
-          href={`/admin/orders`}
-          className="font-mono text-slate-300 hover:text-[#FF1028] transition-colors text-xs font-semibold"
-        >
-          {row.orderNumber}
-        </Link>
-      ),
-    },
-    {
-      header: "Recipient & Destination",
-      accessorKey: "recipientName",
-      sortable: true,
-      cell: (row) => (
-        <div className="space-y-0.5 max-w-[170px]">
-          <span className="font-bold text-white block truncate text-xs">
-            {row.recipientName}
-          </span>
-          <span className="text-[10px] text-slate-400 font-medium block flex items-center gap-1">
-            <MapPin className="w-2.5 h-2.5 text-slate-500 shrink-0" />
-            <span className="truncate">{row.destinationCountry}</span>
-          </span>
-        </div>
-      ),
-    },
-    {
-      header: "Weight",
-      accessorKey: "weightKg",
-      sortable: true,
-      cell: (row) => (
-        <span className="font-mono font-bold text-slate-200 text-xs">
-          {row.weightKg.toFixed(2)} kg
-        </span>
-      ),
-    },
-    {
-      header: "Status",
-      accessorKey: "currentStatus",
-      sortable: true,
-      cell: (row) => (
-        <StatusBadge
-          status={row.currentStatus}
-          tone={getStatusTone(row.currentStatus)}
-          label={getStatusLabel(row.currentStatus)}
-        />
-      ),
-    },
-    {
-      header: "Latest Event",
-      accessorKey: "latestEvent",
-      cell: (row) => (
-        <div className="max-w-[220px]">
-          <span
-            className="text-slate-300 text-xs line-clamp-1 block"
-            title={row.latestEvent}
-          >
-            {row.latestEvent}
-          </span>
-          <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
-            {row.latestEventTime}
-          </span>
-        </div>
-      ),
-    },
-    {
-      header: "ETA",
-      accessorKey: "estimatedDelivery",
-      sortable: true,
-      cell: (row) => (
-        <span className="font-mono text-slate-300 text-xs">
-          {row.estimatedDelivery}
-        </span>
-      ),
-    },
-    {
-      header: "DDP Tax",
-      accessorKey: "ddpTaxPaid",
-      sortable: true,
-      cell: (row) =>
-        row.ddpTaxPaid ? (
-          <span className="inline-flex items-center gap-1 font-mono font-bold text-emerald-400 bg-emerald-950/50 border border-emerald-800/80 px-2 py-0.5 rounded-lg text-[10px] uppercase">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            <span>Pre-Paid</span>
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-400 bg-amber-950/50 border border-amber-800/80 px-2 py-0.5 rounded-lg text-[10px] uppercase">
-            <Clock className="w-3 h-3 text-amber-400" />
-            <span>Unpaid</span>
-          </span>
-        ),
-    },
-    {
-      header: "Actions",
-      className: "text-right",
-      cell: (row) => (
-        <div className="flex items-center justify-end gap-1.5">
-          <button
-            type="button"
-            onClick={() => setViewingParcel(row)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            title="Inspect Tracking Waybill"
-          >
-            <Eye className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOpenEditModal(row)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            title="Edit Shipping Status"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setDeletingParcelId(row.id);
-              setIsDeleteDialogOpen(true);
-            }}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            title="Delete Waybill"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  // Save Method
+  const handleSaveMethod = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await saveShippingMethod({
+      id: selectedMethod?.id,
+      name: methodName.trim(),
+      carrier: methodCarrier,
+      base_cost_usdt: Number(methodBaseCost),
+      per_kg_cost_usdt: Number(methodPerKg),
+      estimated_days_min: Number(methodDaysMin),
+      estimated_days_max: Number(methodDaysMax),
+      free_shipping_min_order: Number(methodFreeMin),
+    });
 
-  // Filters
-  const filters: FilterOption[] = [
-    {
-      key: "currentStatus",
-      label: "Status",
-      options: [
-        { value: "in_transit", label: "In Transit" },
-        { value: "customs_cleared", label: "Customs Cleared" },
-        { value: "departed_hkg", label: "Departed HKG" },
-        { value: "out_for_delivery", label: "Out For Delivery" },
-        { value: "delivered", label: "Delivered" },
-      ],
-    },
-    {
-      key: "carrier",
-      label: "Carrier",
-      options: [
-        { value: "YunExpress Air Cargo", label: "YunExpress Air Cargo" },
-        { value: "Yanwen Special Line", label: "Yanwen Special Line" },
-        { value: "4PX Global Direct", label: "4PX Global Direct" },
-        { value: "SF International", label: "SF International" },
-      ],
-    },
-  ];
+    if (res.success) {
+      showToast(res.message || "Shipping method saved!");
+      setIsMethodModalOpen(false);
+      loadData();
+    } else {
+      showToast(res.error || "Save failed");
+    }
+  };
 
-  // Bulk actions
-  const bulkActions: BulkAction<ShippingParcel>[] = [
-    {
-      label: "Mark as Delivered",
-      icon: CheckCircle2,
-      variant: "success",
-      onClick: (selectedRows) => {
-        const selectedIds = new Set(selectedRows.map((r) => r.id));
-        setParcels((prev) =>
-          prev.map((parcel) =>
-            selectedIds.has(parcel.id)
-              ? {
-                  ...parcel,
-                  currentStatus: "delivered",
-                  latestEvent: "Delivered to recipient doorstep & signed",
-                  latestEventTime: "Just now",
-                  estimatedDelivery: "Delivered",
-                }
-              : parcel
-          )
-        );
-        showToast(
-          `Marked ${selectedRows.length} parcels as "Delivered".`
-        );
-      },
-    },
-    {
-      label: "Mark as Customs Cleared",
-      icon: ShieldCheck,
-      variant: "default",
-      onClick: (selectedRows) => {
-        const selectedIds = new Set(selectedRows.map((r) => r.id));
-        setParcels((prev) =>
-          prev.map((parcel) =>
-            selectedIds.has(parcel.id)
-              ? {
-                  ...parcel,
-                  currentStatus: "customs_cleared",
-                  latestEvent: "DDP import customs cleared successfully -> Local courier injection",
-                  latestEventTime: "Just now",
-                }
-              : parcel
-          )
-        );
-        showToast(
-          `Marked ${selectedRows.length} parcels as "Customs Cleared".`
-        );
-      },
-    },
-    {
-      label: "Delete Selected",
-      icon: Trash2,
-      variant: "danger",
-      onClick: (selectedRows) => {
-        const selectedIds = new Set(selectedRows.map((r) => r.id));
-        setParcels((prev) =>
-          prev.filter((parcel) => !selectedIds.has(parcel.id))
-        );
-        showToast(`Deleted ${selectedRows.length} air cargo waybill records.`);
-      },
-    },
-  ];
+  // Process Return RMA
+  const handleProcessReturn = async (retId: string, status: OrderReturnRecord["status"], refundAmount: number) => {
+    const res = await processOrderReturn(retId, status, refundAmount, "Approved and processed by order manager");
+    if (res.success) {
+      showToast(res.message || "Return updated!");
+      loadData();
+    } else {
+      showToast(res.error || "Action failed");
+    }
+  };
+
+  // Export CSV
+  const handleExportCSV = async () => {
+    showToast("Generating Air Cargo CSV export...");
+    const res = await exportShippingCSV();
+    if (res.success && res.csvContent) {
+      const blob = new Blob([res.csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = res.filename || "fulfillments_export.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Fulfillments CSV downloaded successfully!");
+    } else {
+      showToast(res.error || "Export failed");
+    }
+  };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16">
+    <div className="space-y-8 max-w-7xl mx-auto pb-24 font-sans text-slate-100">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Shipping & Air Cargo Tracking"
-        subtitle="Real-time international air logistics routing from Shenzhen & HKG air hubs with pre-cleared DDP customs."
-        badge={{ text: "Air Logistics Hub", variant: "blue" }}
-        breadcrumbs={[{ label: "Shipping & Tracking" }]}
+        title="Air Cargo Logistics &amp; Fulfilment Hub"
+        subtitle="Track international China air express dispatches (YunExpress, SF International, DHL), manage shipping rates, and process USDT escrow returns."
+        badge={{ text: "CROSS-BORDER AIR CARGO", variant: "red" }}
+        breadcrumbs={[{ label: "Shipping Studio" }]}
         actions={[
           {
-            label: "New Cargo Dispatch",
-            icon: Plus,
+            label: "Refresh Cargo",
+            onClick: loadData,
+            icon: RefreshCw,
+            variant: "secondary",
+          },
+          {
+            label: "Export CSV",
+            onClick: handleExportCSV,
+            icon: Download,
+            variant: "secondary",
+          },
+          {
+            label: "Dispatch Air Parcel",
+            onClick: handleOpenDispatch,
+            icon: Plane,
             variant: "primary",
-            onClick: handleOpenCreateModal,
           },
         ]}
       />
 
-      {/* ── 2. KPI Summary Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
+      {/* Toast Alert */}
+      {toastMsg && (
+        <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-2xl text-xs font-black flex items-center justify-between shadow-lg animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+          <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
+        </div>
+      )}
+
+      {/* ── 2. Top Metrics Summary Bar ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Metric 1: In Transit */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
-              In-Flight / In-Transit
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-              <Plane className="w-4 h-4" />
-            </div>
+            <span className="text-xs font-bold uppercase font-heading">In-Transit Air Cargo</span>
+            <Plane className="w-4 h-4 text-blue-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {inTransitCount} Parcels
-          </div>
-          <div className="text-[11px] text-blue-400 font-semibold flex items-center gap-1">
-            <span>HKG & Shenzhen Flight Departures</span>
-          </div>
+          <div className="text-2xl font-black text-white font-mono">{metrics.active_in_transit}</div>
+          <div className="text-[11px] text-slate-400">Flight transit in progress</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
+        {/* Metric 2: Out for Delivery */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
-              DDP Customs Cleared
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
+            <span className="text-xs font-bold uppercase font-heading">Out for Delivery</span>
+            <Truck className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-amber-400">
-            {customsClearedCount} Parcels
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            Zero-Tariff Handover to Local Carriers
-          </div>
+          <div className="text-2xl font-black text-purple-400 font-mono">{metrics.out_for_delivery}</div>
+          <div className="text-[11px] text-slate-400">Final last-mile courier</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
+        {/* Metric 3: Delivered */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
-              Out for Final Delivery
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-              <Truck className="w-4 h-4" />
-            </div>
+            <span className="text-xs font-bold uppercase font-heading">Delivered Orders</span>
+            <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-cyan-300">
-            {outForDeliveryCount} Parcels
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            Last-mile courier courier routes
-          </div>
+          <div className="text-2xl font-black text-[#10B981] font-mono">{metrics.delivered_count}</div>
+          <div className="text-[11px] text-slate-400">Escrow released &amp; signed</div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
+        {/* Metric 4: Pending Returns */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
-              Delivered Successfully
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-[#10B981] flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
+            <span className="text-xs font-bold uppercase font-heading">Open RMA Returns</span>
+            <RotateCcw className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-400">
-            {deliveredCount} Delivered
+          <div className="text-2xl font-black text-amber-400 font-mono">{metrics.open_returns_count}</div>
+          <div className="text-[11px] text-slate-400">USDT refund inspection hold</div>
+        </div>
+
+        {/* Metric 5: Avg Transit Time */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1 col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase font-heading">Avg Air Transit</span>
+            <Clock className="w-4 h-4 text-[#FF1028]" />
           </div>
-          <div className="text-[11px] text-[#10B981] font-bold">
-            Average Air Transit: 8.4 Days
-          </div>
+          <div className="text-2xl font-black text-white font-mono">{metrics.avg_transit_days} Days</div>
+          <div className="text-[11px] text-slate-400">China Hub to Customer Door</div>
         </div>
       </div>
 
-      {/* ── 3. Data Table ── */}
-      <AdminDataTable
-        data={parcels}
-        columns={columns}
-        keyExtractor={(item) => item.id}
-        searchPlaceholder="Search by Tracking #, Order #, Recipient, Country, or Carrier..."
-        searchFields={[
-          "trackingNumber",
-          "orderNumber",
-          "recipientName",
-          "destinationCountry",
-          "carrier",
-          "serviceType",
-          "latestEvent",
-        ]}
-        filters={filters}
-        bulkActions={bulkActions}
-        defaultSortKey="trackingNumber"
-        defaultSortDirection="desc"
-        emptyTitle="No shipping parcels found"
-        emptyDescription="Try adjusting your filters or dispatch a new air cargo shipment."
-        emptyAction={{
-          label: "New Cargo Dispatch",
-          onClick: handleOpenCreateModal,
-        }}
-      />
+      {/* ── 3. Master Tabs ── */}
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+        <button
+          onClick={() => setActiveTab("parcels")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "parcels"
+              ? "bg-[#FF1028] text-white font-black font-heading shadow-md"
+              : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+          }`}
+        >
+          <Plane className="w-4 h-4" />
+          <span>Live Air Cargo Parcels ({fulfillments.length})</span>
+        </button>
 
-      {/* ── 4. Create / Edit Shipping Parcel Modal ── */}
-      <Modal
-        isOpen={isFormModalOpen}
-        onClose={() => setIsFormModalOpen(false)}
-        title={editingParcel ? `Update Air Cargo Waybill — ${editingParcel.trackingNumber}` : "Dispatch New Air Cargo Parcel"}
-        size="xl"
-      >
-        <form onSubmit={handleSaveParcel} className="space-y-5 pt-1 text-xs">
-          {/* DDP Customs Guarantee Callout */}
-          <div className="p-3.5 bg-blue-950/40 rounded-2xl border border-blue-800/60 flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <span className="font-black text-blue-300 uppercase text-[10px] tracking-wider block">
-                Delivered Duty Paid (DDP) Express Air Line
-              </span>
-              <p className="text-[11px] text-blue-200/80 leading-relaxed">
-                All shipments utilize Lennox pre-paid DDP customs lines through HKG and Baiyun International airports with no hidden import duties for global buyers.
+        <button
+          onClick={() => setActiveTab("methods")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "methods"
+              ? "bg-[#FF1028] text-white font-black font-heading shadow-md"
+              : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+          }`}
+        >
+          <Globe className="w-4 h-4" />
+          <span>Shipping Zones &amp; Carrier Rates ({shippingMethods.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("returns")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "returns"
+              ? "bg-[#FF1028] text-white font-black font-heading shadow-md"
+              : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+          }`}
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>Returns &amp; USDT Refunds ({returns.length})</span>
+        </button>
+      </div>
+
+      {/* ─── TAB 1: Live Air Cargo Parcels ─── */}
+      {activeTab === "parcels" && (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Search Order #, Tracking, Recipient, Country..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-[#FF1028]"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <select
+                value={carrierFilter}
+                onChange={(e) => setCarrierFilter(e.target.value)}
+                className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-bold"
+              >
+                <option value="all">All Air Carriers</option>
+                <option value="YunExpress">YunExpress Direct</option>
+                <option value="SF">SF International</option>
+                <option value="DHL">DHL Express</option>
+              </select>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-bold"
+              >
+                <option value="all">All Transit Statuses</option>
+                <option value="shipped">Origin Dispatched</option>
+                <option value="in_transit">Flight in Transit</option>
+                <option value="out_for_delivery">Out for Delivery</option>
+                <option value="delivered">Delivered &amp; Signed</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 text-[11px] uppercase font-mono border-b border-slate-800">
+                <tr>
+                  <th className="py-3 px-4 font-bold">Order &amp; Tracking #</th>
+                  <th className="py-3 px-4 font-bold">Carrier &amp; Origin Hub</th>
+                  <th className="py-3 px-4 font-bold">Destination</th>
+                  <th className="py-3 px-4 font-bold text-center">Weight</th>
+                  <th className="py-3 px-4 font-bold text-center">Status</th>
+                  <th className="py-3 px-4 font-bold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                {fulfillments.map((f) => (
+                  <tr key={f.id} className="hover:bg-slate-800/40 transition-colors">
+                    {/* Order & Tracking */}
+                    <td className="py-4 px-4">
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-white font-mono block">{f.order_number}</span>
+                        <div className="flex items-center gap-1.5 text-blue-400 font-mono text-[11px]">
+                          <span>{f.tracking_number}</span>
+                          {f.tracking_url && (
+                            <a
+                              href={f.tracking_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-slate-500 hover:text-blue-400"
+                            >
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Carrier & Hub */}
+                    <td className="py-4 px-4">
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-slate-200 block">{f.courier}</span>
+                        <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          <span>{f.origin_hub}</span>
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Destination */}
+                    <td className="py-4 px-4">
+                      <div className="space-y-0.5">
+                        <span className="font-bold text-white block">{f.recipient_name}</span>
+                        <span className="text-[11px] text-slate-400 block">
+                          {f.recipient_city}, {f.recipient_country}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Weight */}
+                    <td className="py-4 px-4 text-center font-mono font-bold text-slate-300">
+                      {f.weight_kg} kg
+                    </td>
+
+                    {/* Status */}
+                    <td className="py-4 px-4 text-center">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+                          f.status === "delivered"
+                            ? "bg-emerald-500/10 text-[#10B981] border-emerald-500/20"
+                            : f.status === "out_for_delivery"
+                            ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                            : f.status === "in_transit"
+                            ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                        <span>{f.status.replace(/_/g, " ")}</span>
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-4 px-4 text-right">
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenStatusUpdate(f)}
+                          title="Update Status & Location"
+                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-colors cursor-pointer border border-slate-700"
+                        >
+                          Status
+                        </button>
+                        <button
+                          onClick={() => handleOpenPackingSlip(f)}
+                          title="Generate Customs Packing Slip"
+                          className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-blue-400 border border-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenTimeline(f)}
+                          title="View Milestone Timeline"
+                          className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-purple-400 border border-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Clock className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 2: Shipping Methods & Rates ─── */}
+      {activeTab === "methods" && (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <h2 className="text-base font-black text-white font-heading">
+                Configured Cross-Border Shipping Methods
+              </h2>
+              <p className="text-xs text-slate-400">
+                Set base freight costs, per-KG rates, free shipping thresholds, and air transit SLAs.
+              </p>
+            </div>
+
+            <button
+              onClick={() => handleOpenMethodModal()}
+              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2 rounded-xl text-xs font-black font-heading transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Carrier Method</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {shippingMethods.map((m) => (
+              <div
+                key={m.id}
+                className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4 relative"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    {m.carrier}
+                  </span>
+                  <button
+                    onClick={() => handleOpenMethodModal(m)}
+                    className="p-1 rounded text-slate-400 hover:text-white"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div>
+                  <h3 className="font-heading font-black text-white text-sm">{m.name}</h3>
+                  <span className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                    <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Estimated: {m.estimated_days_min}–{m.estimated_days_max} Air Cargo Days</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+                  <div>
+                    <span className="text-[10px] text-slate-500 block">Base Freight</span>
+                    <span className="font-mono font-bold text-white">${m.base_cost_usdt} USDT</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 block">Per-KG Addon</span>
+                    <span className="font-mono font-bold text-white">${m.per_kg_cost_usdt} USDT/kg</span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center justify-between">
+                  <span>Free Air Shipping:</span>
+                  <span className="font-mono font-black">${m.free_shipping_min_order} USDT</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── TAB 3: Returns & USDT Refunds ─── */}
+      {activeTab === "returns" && (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <h2 className="text-base font-black text-white font-heading">
+                Customer Return Merchandise Authorization (RMA)
+              </h2>
+              <p className="text-xs text-slate-400">
+                Inspect returned hardware and release Binance Pay USDT escrow refunds directly.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Air Waybill / Tracking # *
-              </label>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 text-[11px] uppercase font-mono border-b border-slate-800">
+                <tr>
+                  <th className="py-3 px-4 font-bold">Order #</th>
+                  <th className="py-3 px-4 font-bold">Customer Email</th>
+                  <th className="py-3 px-4 font-bold">Return Reason</th>
+                  <th className="py-3 px-4 font-bold text-center">Refund USDT</th>
+                  <th className="py-3 px-4 font-bold text-center">RMA Status</th>
+                  <th className="py-3 px-4 font-bold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                {returns.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="py-4 px-4 font-mono font-bold text-white">{r.order_number}</td>
+                    <td className="py-4 px-4 text-slate-300">{r.customer_email}</td>
+                    <td className="py-4 px-4 max-w-xs">
+                      <span className="block truncate text-slate-300">{r.reason}</span>
+                      {r.notes && <span className="text-[10px] text-slate-500 block">{r.notes}</span>}
+                    </td>
+                    <td className="py-4 px-4 text-center font-mono font-bold text-emerald-400">
+                      ${r.refund_amount_usdt} USDT
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
+                          r.status === "refunded"
+                            ? "bg-emerald-500/10 text-[#10B981] border-emerald-500/20"
+                            : r.status === "approved"
+                            ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                            : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        }`}
+                      >
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-right">
+                      {r.status === "requested" && (
+                        <button
+                          onClick={() => handleProcessReturn(r.id, "approved", r.refund_amount_usdt)}
+                          className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] cursor-pointer"
+                        >
+                          Approve RMA
+                        </button>
+                      )}
+                      {r.status === "approved" && (
+                        <button
+                          onClick={() => handleProcessReturn(r.id, "refunded", r.refund_amount_usdt)}
+                          className="px-2.5 py-1 rounded-lg bg-[#10B981] hover:bg-[#0EA271] text-slate-950 font-black font-heading text-[11px] cursor-pointer"
+                        >
+                          Issue USDT Refund
+                        </button>
+                      )}
+                      {r.status === "refunded" && (
+                        <span className="text-[11px] text-slate-500 font-mono">Refund Settled</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. Dispatch Air Parcel Modal ── */}
+      <Modal
+        isOpen={isDispatchModalOpen}
+        onClose={() => setIsDispatchModalOpen(false)}
+        title="Dispatch International Air Express Parcel"
+        size="lg"
+      >
+        <form onSubmit={handleSubmitDispatch} className="space-y-4 text-xs font-sans text-slate-200">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Order Number *</label>
               <input
                 type="text"
                 required
-                value={trackingNumber}
-                onChange={(e) => setTrackingNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                value={formOrderNum}
+                onChange={(e) => setFormOrderNum(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono font-bold"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Customer Order Number *
-              </label>
-              <input
-                type="text"
-                required
-                value={orderNumber}
-                onChange={(e) => setOrderNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Air Express Carrier *
-              </label>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Air Express Carrier *</label>
               <select
-                value={carrier}
-                onChange={(e) => setCarrier(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                value={formCourier}
+                onChange={(e) => setFormCourier(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold"
               >
-                <option value="YunExpress Air Cargo">YunExpress Air Cargo (7-12 Days)</option>
-                <option value="Yanwen Special Line">Yanwen Special Line (6-10 Days)</option>
-                <option value="4PX Global Direct">4PX Global Direct (7-14 Days)</option>
-                <option value="SF International">SF International Priority (4-8 Days)</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Specific Air Service Line *
-              </label>
-              <select
-                value={serviceType}
-                onChange={(e) => setServiceType(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
-              >
-                <option value="YunExpress Priority Air">YunExpress Priority Air</option>
+                <option value="YunExpress Air Freight">YunExpress Priority Direct Line</option>
+                <option value="SF International Express">SF International Priority Express</option>
+                <option value="DHL Express Airfreight">DHL Express Wholesale Airfreight</option>
                 <option value="Yanwen Special Line">Yanwen Special Line</option>
-                <option value="4PX Global Direct">4PX Global Direct</option>
-                <option value="SF International">SF International</option>
               </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Recipient Full Name *
-              </label>
-              <input
-                type="text"
-                required
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="e.g. Alex Harrison"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Destination Country & State *
-              </label>
-              <input
-                type="text"
-                required
-                value={destinationCountry}
-                onChange={(e) => setDestinationCountry(e.target.value)}
-                placeholder="e.g. United States (CA) or Germany (Berlin)"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Parcel Gross Weight (kg) *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.05"
-                required
-                value={weightKg}
-                onChange={(e) => setWeightKg(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Tracking Status *
-              </label>
-              <select
-                value={currentStatus}
-                onChange={(e) => setCurrentStatus(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
-              >
-                <option value="in_transit">In Transit (Shenzhen Sort Facility)</option>
-                <option value="departed_hkg">Departed HKG Airport (Flight In-Air)</option>
-                <option value="customs_cleared">Customs Cleared (DDP Port)</option>
-                <option value="out_for_delivery">Out for Final Delivery</option>
-                <option value="delivered">Delivered to Recipient</option>
-              </select>
-            </div>
-
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Latest Logistics Event / Checkpoint Description *
-              </label>
-              <input
-                type="text"
-                required
-                value={latestEvent}
-                onChange={(e) => setLatestEvent(e.target.value)}
-                placeholder="e.g. Flight CZ431 Departed HKG -> In Flight to London Heathrow (LHR)"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Checkpoint Event Timestamp
-              </label>
-              <input
-                type="text"
-                value={latestEventTime}
-                onChange={(e) => setLatestEventTime(e.target.value)}
-                placeholder="e.g. Aug 24, 09:15 AM"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Estimated Delivery (ETA)
-              </label>
-              <input
-                type="text"
-                value={estimatedDelivery}
-                onChange={(e) => setEstimatedDelivery(e.target.value)}
-                placeholder="e.g. Sep 02, 2026 or Delivered"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
-              />
-            </div>
-
-            <div className="sm:col-span-2 p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
-              <div className="space-y-0.5">
-                <span className="font-bold text-white text-xs block">
-                  DDP Import Customs Clearance Status
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  Duty and value-added tax pre-settled by Lennox logistics.
-                </span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={ddpTaxPaid}
-                  onChange={(e) => setDdpTaxPaid(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10B981]"></div>
-              </label>
             </div>
           </div>
 
-          {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Air Waybill / Tracking # *</label>
+              <input
+                type="text"
+                required
+                value={formTracking}
+                onChange={(e) => setFormTracking(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-blue-400 font-mono font-bold"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Origin Logistics Facility *</label>
+              <select
+                value={formOriginHub}
+                onChange={(e) => setFormOriginHub(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-amber-400 font-bold"
+              >
+                <option value="Shenzhen Drone Hub">Shenzhen Drone &amp; Tech Hub (SZ)</option>
+                <option value="Guangzhou QC Center">Guangzhou Logistics &amp; QC Park (GZ)</option>
+                <option value="HK International Air Hub">HK International Air Hub (HKG)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Recipient Name</label>
+              <input
+                type="text"
+                required
+                value={formRecipient}
+                onChange={(e) => setFormRecipient(e.target.value)}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Destination Country</label>
+              <input
+                type="text"
+                required
+                value={formCountry}
+                onChange={(e) => setFormCountry(e.target.value)}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Gross Weight (KG)</label>
+              <input
+                type="number"
+                step="0.1"
+                required
+                value={formWeight}
+                onChange={(e) => setFormWeight(Number(e.target.value))}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Internal QC &amp; Packaging Notes</label>
+            <input
+              type="text"
+              value={formNotes}
+              onChange={(e) => setFormNotes(e.target.value)}
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
             <button
               type="button"
-              onClick={() => setIsFormModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-pointer"
+              onClick={() => setIsDispatchModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors cursor-pointer shadow-md"
+              className="px-6 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading shadow-md cursor-pointer"
             >
-              {editingParcel ? "Save Waybill Changes" : "Dispatch Air Shipment"}
+              Confirm Air Dispatch
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* ── 5. Detailed Air Waybill Inspect Modal ── */}
-      {viewingParcel && (
-        <Modal
-          isOpen={!!viewingParcel}
-          onClose={() => setViewingParcel(null)}
-          title={`Air Cargo Waybill Dossier — ${viewingParcel.trackingNumber}`}
-          size="lg"
-        >
-          <div className="space-y-5 pt-1 text-xs text-slate-300">
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <div className="flex items-center gap-2">
-                  <Plane className="w-4 h-4 text-blue-400" />
-                  <span className="font-mono font-black text-white text-sm">
-                    {viewingParcel.trackingNumber}
-                  </span>
-                </div>
-                <StatusBadge
-                  status={viewingParcel.currentStatus}
-                  tone={getStatusTone(viewingParcel.currentStatus)}
-                  label={getStatusLabel(viewingParcel.currentStatus)}
-                />
+      {/* ── 5. Printable Customs Packing Slip Modal ── */}
+      <Modal
+        isOpen={isPackingSlipOpen}
+        onClose={() => setIsPackingSlipOpen(false)}
+        title="Commercial Air Cargo Packing Slip &amp; Shipping Label"
+        size="lg"
+      >
+        {selectedFulfillment && (
+          <div className="space-y-6 text-slate-900 bg-white p-6 rounded-2xl print:p-0">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b-2 border-slate-900">
+              <div>
+                <h2 className="text-xl font-black font-heading tracking-wider">LENNOX CHINAMALL</h2>
+                <span className="text-[11px] text-slate-600 block">
+                  Direct Factory Airfreight • Shenzhen / Guangzhou Logistics Park
+                </span>
               </div>
-
-              <div className="grid grid-cols-2 gap-3 text-[11px]">
-                <div>
-                  <span className="text-slate-500 block">Carrier Service:</span>
-                  <span className="font-bold text-white">
-                    {viewingParcel.carrier}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block">Associated Order:</span>
-                  <span className="font-mono font-bold text-slate-200">
-                    {viewingParcel.orderNumber}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block">Gross Weight:</span>
-                  <span className="font-mono text-emerald-400 font-bold">
-                    {viewingParcel.weightKg} kg
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block">Delivery ETA:</span>
-                  <span className="font-mono text-amber-400 font-bold">
-                    {viewingParcel.estimatedDelivery}
-                  </span>
-                </div>
+              <div className="text-right">
+                <span className="text-sm font-black font-mono block">{selectedFulfillment.order_number}</span>
+                <span className="text-[11px] text-slate-500 font-mono">Date: {new Date().toLocaleDateString()}</span>
               </div>
             </div>
 
-            {/* Recipient Destination Box */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <span className="font-black text-slate-200 uppercase text-[10px] tracking-wider block border-b border-slate-800 pb-1">
-                Destination Recipient Details
+            {/* Address Grid */}
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="p-3 bg-slate-100 rounded-xl">
+                <span className="font-bold text-slate-500 text-[10px] uppercase block">Shipped From:</span>
+                <span className="font-bold block text-slate-900">{selectedFulfillment.origin_hub}</span>
+                <span className="text-slate-600 block text-[11px]">Baoan Airport Logistics Park, GD, China</span>
+              </div>
+              <div className="p-3 bg-slate-100 rounded-xl">
+                <span className="font-bold text-slate-500 text-[10px] uppercase block">Deliver To:</span>
+                <span className="font-bold block text-slate-900">{selectedFulfillment.recipient_name}</span>
+                <span className="text-slate-600 block text-[11px]">
+                  {selectedFulfillment.recipient_city}, {selectedFulfillment.recipient_country}
+                </span>
+              </div>
+            </div>
+
+            {/* Carrier & Tracking */}
+            <div className="p-3 border border-slate-300 rounded-xl flex items-center justify-between text-xs font-mono">
+              <div>
+                <span className="text-[10px] text-slate-500 block uppercase">Carrier &amp; Service</span>
+                <span className="font-bold">{selectedFulfillment.courier} ({selectedFulfillment.service_type})</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-slate-500 block uppercase">Air Waybill Tracking</span>
+                <span className="font-black text-sm text-blue-700">{selectedFulfillment.tracking_number}</span>
+              </div>
+            </div>
+
+            {/* Items Table */}
+            <table className="w-full text-left text-xs border border-slate-300">
+              <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+                <tr>
+                  <th className="py-2 px-3">Item / Description</th>
+                  <th className="py-2 px-3">HS Code</th>
+                  <th className="py-2 px-3 text-center">Qty</th>
+                  <th className="py-2 px-3 text-right">Gross Weight</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {selectedFulfillment.items.map((it, idx) => (
+                  <tr key={idx}>
+                    <td className="py-2.5 px-3 font-semibold">{it.name}</td>
+                    <td className="py-2.5 px-3 font-mono text-slate-600">{it.hs_code || "85176200"}</td>
+                    <td className="py-2.5 px-3 text-center font-bold">{it.qty}</td>
+                    <td className="py-2.5 px-3 text-right font-mono">{selectedFulfillment.weight_kg} kg</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Customs Declaration */}
+            <div className="text-[10px] text-slate-500 border-t pt-3 flex items-center justify-between">
+              <span>Verified for export customs departure. Payment settled via Binance Pay escrow.</span>
+              <span className="font-black uppercase text-emerald-700 border border-emerald-700 px-2 py-0.5 rounded">
+                ✓ SHENZHEN QC PASSED
               </span>
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Customer Name:</span>
-                  <span className="font-bold text-white">
-                    {viewingParcel.recipientName}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Destination Region:</span>
-                  <span className="text-slate-200">
-                    {viewingParcel.destinationCountry}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">DDP Duty Clearance:</span>
-                  <span className="font-mono text-emerald-400 font-bold">
-                    {viewingParcel.ddpTaxPaid ? "Pre-Paid & Customs Cleared" : "Pending Customs"}
-                  </span>
-                </div>
-              </div>
             </div>
 
-            {/* Visual Tracking Journey Timeline */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-              <span className="font-black text-slate-200 uppercase text-[10px] tracking-wider block border-b border-slate-800 pb-1">
-                Air Freight Transit Milestones
-              </span>
-
-              <div className="space-y-3 pl-2 border-l-2 border-slate-800 text-xs">
-                <div className="relative pl-4 space-y-0.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] absolute -left-[21px] top-1 ring-4 ring-slate-950" />
-                  <span className="font-bold text-white block">
-                    {viewingParcel.latestEvent}
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono block">
-                    {viewingParcel.latestEventTime}
-                  </span>
-                </div>
-
-                <div className="relative pl-4 space-y-0.5 opacity-70">
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 absolute -left-[21px] top-1 ring-4 ring-slate-950" />
-                  <span className="font-semibold text-slate-300 block">
-                    Processed at Shenzhen International Hub (PRD Logistics Gate)
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono block">
-                    Departed Origin Sorting Line
-                  </span>
-                </div>
-
-                <div className="relative pl-4 space-y-0.5 opacity-40">
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-600 absolute -left-[21px] top-1 ring-4 ring-slate-950" />
-                  <span className="font-medium text-slate-400 block">
-                    Air Cargo Manifest Dispatched by Lennox Fulfilment OS
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end pt-2">
               <button
-                type="button"
-                onClick={() => {
-                  const p = viewingParcel;
-                  setViewingParcel(null);
-                  handleOpenEditModal(p);
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                onClick={() => window.print()}
+                className="bg-slate-900 text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
               >
-                Edit Waybill
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewingParcel(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 cursor-pointer"
-              >
-                Close
+                <Printer className="w-4 h-4" />
+                <span>Print Packing Slip</span>
               </button>
             </div>
           </div>
-        </Modal>
-      )}
+        )}
+      </Modal>
 
-      {/* ── 6. Delete Confirmation Dialog ── */}
-      <ConfirmDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Shipping Record"
-        description="Are you sure you want to remove this air cargo shipment waybill? This action cannot be reversed."
-        confirmLabel="Delete Waybill"
-        variant="danger"
-      />
+      {/* ── 6. Milestone Timeline Modal ── */}
+      <Modal
+        isOpen={isTimelineOpen}
+        onClose={() => setIsTimelineOpen(false)}
+        title={`Air Cargo Milestone Timeline: ${selectedFulfillment?.tracking_number || ""}`}
+        size="md"
+      >
+        <div className="space-y-6 text-xs font-sans text-slate-200">
+          <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div>
+              <span className="font-bold text-white block">{selectedFulfillment?.order_number}</span>
+              <span className="text-[11px] text-slate-400">{selectedFulfillment?.courier}</span>
+            </div>
+            <span className="text-xs font-mono font-black text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-lg border border-blue-500/20">
+              {selectedFulfillment?.status.toUpperCase()}
+            </span>
+          </div>
 
-      {/* ── 7. Toast Notification Bar ── */}
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
-          <span>✓ {toastMsg}</span>
-          <button
-            onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 cursor-pointer"
-          >
-            ×
-          </button>
+          <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+            {selectedTimeline.length === 0 ? (
+              <div className="text-slate-500">No milestones logged yet.</div>
+            ) : (
+              selectedTimeline.map((ev, idx) => (
+                <div key={ev.id || idx} className="relative space-y-1">
+                  <div className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-[#10B981] ring-4 ring-slate-900" />
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-sm">{ev.title}</span>
+                    <span className="text-[10px] text-slate-500 font-mono">{formatDate(ev.created_at)}</span>
+                  </div>
+                  <span className="text-[11px] text-amber-400 font-mono block">{ev.location}</span>
+                  {ev.description && <p className="text-[11px] text-slate-400">{ev.description}</p>}
+                </div>
+              ))
+            )}
+          </div>
         </div>
-      )}
+      </Modal>
+
+      {/* ── 7. Status Update Modal ── */}
+      <Modal
+        isOpen={isStatusUpdateOpen}
+        onClose={() => setIsStatusUpdateOpen(false)}
+        title={`Update Air Cargo Status: ${selectedFulfillment?.tracking_number || ""}`}
+        size="md"
+      >
+        <form onSubmit={handleSubmitStatusUpdate} className="space-y-4 text-xs font-sans text-slate-200">
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">New Transit Status *</label>
+            <select
+              value={updateStatus}
+              onChange={(e) => setUpdateStatus(e.target.value as FulfillmentStatus)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold"
+            >
+              <option value="shipped">Origin Dispatched</option>
+              <option value="in_transit">Flight in Transit</option>
+              <option value="out_for_delivery">Out for Delivery</option>
+              <option value="delivered">Delivered &amp; Signed</option>
+              <option value="returned">Returned to Factory</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Current Checkpoint Location *</label>
+            <input
+              type="text"
+              required
+              value={updateLocation}
+              onChange={(e) => setUpdateLocation(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Milestone Notes</label>
+            <textarea
+              rows={2}
+              value={updateNotes}
+              onChange={(e) => setUpdateNotes(e.target.value)}
+              placeholder="e.g. Cleared US customs at LAX. Transferred to local FedEx Ground courier."
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setIsStatusUpdateOpen(false)}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading shadow-md cursor-pointer"
+            >
+              Save Milestone &amp; Status
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ── 8. Add/Edit Shipping Method Modal ── */}
+      <Modal
+        isOpen={isMethodModalOpen}
+        onClose={() => setIsMethodModalOpen(false)}
+        title={selectedMethod ? "Edit Carrier Rate" : "Add Shipping Method"}
+        size="md"
+      >
+        <form onSubmit={handleSaveMethod} className="space-y-4 text-xs font-sans text-slate-200">
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Method Name *</label>
+            <input
+              type="text"
+              required
+              value={methodName}
+              onChange={(e) => setMethodName(e.target.value)}
+              placeholder="e.g. YunExpress Priority Direct Line"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Base Cost (USDT)</label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={methodBaseCost}
+                onChange={(e) => setMethodBaseCost(Number(e.target.value))}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Per-KG Addon (USDT)</label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={methodPerKg}
+                onChange={(e) => setMethodPerKg(Number(e.target.value))}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Min Days</label>
+              <input
+                type="number"
+                value={methodDaysMin}
+                onChange={(e) => setMethodDaysMin(Number(e.target.value))}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Max Days</label>
+              <input
+                type="number"
+                value={methodDaysMax}
+                onChange={(e) => setMethodDaysMax(Number(e.target.value))}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Free Air Shipping Threshold (USDT)</label>
+            <input
+              type="number"
+              value={methodFreeMin}
+              onChange={(e) => setMethodFreeMin(Number(e.target.value))}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setIsMethodModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading shadow-md cursor-pointer"
+            >
+              Save Carrier Rate
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
