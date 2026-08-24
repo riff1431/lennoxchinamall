@@ -312,10 +312,10 @@ export function Header() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
                 <span className="text-lg sm:text-2xl font-black tracking-tight text-[#00143D] leading-none">
-                  LENNOX
+                  CHINA
                 </span>
                 <span className="text-lg sm:text-2xl font-black text-[#FF1028] leading-none">
-                  CHINA MALL
+                  MALL
                 </span>
               </div>
               <span className="text-[9px] sm:text-[10px] font-extrabold tracking-widest text-slate-500 uppercase flex items-center gap-1 mt-0.5">
@@ -850,7 +850,7 @@ export function Header() {
                     />
                   </div>
                   <span className="text-sm font-black text-[#00143D]">
-                    LENNOX <span className="text-[#FF1028]">CHINA MALL</span>
+                    CHINA <span className="text-[#FF1028]">MALL</span>
                   </span>
                 </div>
                 <button

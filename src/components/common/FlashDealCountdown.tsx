@@ -13,19 +13,40 @@ export function FlashDealCountdown({
   targetDate,
   label,
 }: FlashDealCountdownProps) {
-  const defaultTarget = React.useMemo(() => {
-    return new Date(Date.now() + 14 * 3600 * 1000).toISOString();
-  }, []);
+  const [activeTarget, setActiveTarget] = useState<string>(
+    targetDate || new Date(Date.now() + 14 * 3600 * 1000).toISOString()
+  );
 
-  const finalTarget = targetDate || defaultTarget;
-  const [timeLeft, setTimeLeft] = useState(timeRemaining(finalTarget));
+  useEffect(() => {
+    if (targetDate) {
+      setActiveTarget(targetDate);
+      return;
+    }
+
+    // Attempt to sync with live active flash deal
+    fetch("/api/promotions/automatic")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.flashDeals && data.flashDeals.length > 0) {
+          const firstDeal = data.flashDeals[0];
+          if (firstDeal.end_time) {
+            setActiveTarget(firstDeal.end_time);
+          }
+        }
+      })
+      .catch(() => {
+        // Fallback to activeTarget default
+      });
+  }, [targetDate]);
+
+  const [timeLeft, setTimeLeft] = useState(timeRemaining(activeTarget));
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(timeRemaining(finalTarget));
+      setTimeLeft(timeRemaining(activeTarget));
     }, 1000);
     return () => clearInterval(timer);
-  }, [finalTarget]);
+  }, [activeTarget]);
 
   if (timeLeft.expired) {
     return (

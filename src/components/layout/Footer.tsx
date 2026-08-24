@@ -94,10 +94,10 @@ export function Footer() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
                 <span className="text-xl font-black tracking-tight text-white leading-none">
-                  LENNOX
+                  CHINA
                 </span>
                 <span className="text-xl font-black text-[#FF1028] leading-none">
-                  CHINA MALL
+                  MALL
                 </span>
               </div>
               <span className="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">

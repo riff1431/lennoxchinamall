@@ -69,10 +69,27 @@ export default function CheckoutPage() {
   const [copiedTradeNo, setCopiedTradeNo] = useState(false);
   const [qrExpirySeconds, setQrExpirySeconds] = useState(1800); // 30 mins
 
+  // Cart state
+  const isFreeShipping = useCartStore((state) => state.freeShipping);
+  const isApplyingCoupon = useCartStore((state) => state.isApplyingCoupon);
+  const applyCoupon = useCartStore((state) => state.applyCoupon);
+  const removeCoupon = useCartStore((state) => state.removeCoupon);
+  const [checkoutCoupon, setCheckoutCoupon] = useState("");
+  const [checkoutCouponMsg, setCheckoutCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
+
   // Automatic Shipping & USDT Calculations
-  const standardShippingCost = subtotal > 50 ? 0 : 4.99;
-  const shippingCost = shippingMethod === "express" ? 14.99 : standardShippingCost;
+  const standardShippingCost = isFreeShipping || subtotal > 50 ? 0 : 4.99;
+  const shippingCost = isFreeShipping ? 0 : shippingMethod === "express" ? 14.99 : standardShippingCost;
   const grandTotal = Math.max(0, subtotal - discountAmount + shippingCost);
+
+  const handleApplyCheckoutCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!checkoutCoupon.trim()) return;
+    const res = await applyCoupon(checkoutCoupon);
+    setCheckoutCouponMsg({ text: res.message, isError: !res.success });
+    if (res.success) setCheckoutCoupon("");
+  };
+
 
   // Countdown timer for QR code
   useEffect(() => {
@@ -516,6 +533,50 @@ export default function CheckoutPage() {
                 <span className="font-bold text-slate-900">{formatCurrency(subtotal)}</span>
               </div>
 
+              {/* Dynamic Coupon Input */}
+              <div className="pt-2">
+                {couponCode ? (
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
+                    <span className="flex items-center gap-1.5 text-emerald-800 font-bold">
+                      <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{couponCode} Applied (-{formatCurrency(discountAmount)})</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeCoupon()}
+                      className="text-xs text-red-600 hover:underline font-bold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        placeholder="Promo or Voucher Code"
+                        value={checkoutCoupon}
+                        onChange={(e) => setCheckoutCoupon(e.target.value)}
+                        className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs uppercase font-bold focus:outline-none focus:border-[#00143D]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCheckoutCoupon}
+                        disabled={isApplyingCoupon}
+                        className="bg-[#00143D] hover:bg-[#FF1028] text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-colors disabled:opacity-50"
+                      >
+                        {isApplyingCoupon ? "Checking..." : "Apply"}
+                      </button>
+                    </div>
+                    {checkoutCouponMsg && (
+                      <p className={`text-[11px] font-semibold ${checkoutCouponMsg.isError ? "text-red-500" : "text-emerald-600"}`}>
+                        {checkoutCouponMsg.text}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {discountAmount > 0 && (
                 <div className="flex justify-between text-[#FF1028] font-bold">
                   <span className="flex items-center gap-1">
@@ -524,6 +585,7 @@ export default function CheckoutPage() {
                   <span>-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
+
 
               <div className="flex justify-between text-slate-600 font-semibold">
                 <span>Air Freight ({shippingMethod === "express" ? "Priority" : "Standard"})</span>

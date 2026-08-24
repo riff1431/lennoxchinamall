@@ -53,18 +53,19 @@ export function CartDrawer() {
   );
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCoupon.trim()) return;
-    const res = applyCoupon(inputCoupon);
+    const res = await applyCoupon(inputCoupon);
     setCouponMsg({ text: res.message, isError: !res.success });
     if (res.success) setInputCoupon("");
   };
 
-  const handlePresetCoupon = (code: string) => {
-    const res = applyCoupon(code);
+  const handlePresetCoupon = async (code: string) => {
+    const res = await applyCoupon(code);
     setCouponMsg({ text: res.message, isError: !res.success });
   };
+
 
   return (
     <Drawer

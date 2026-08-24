@@ -5,8 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/session";
 import { logAuditEvent } from "@/lib/audit";
 import { AllStoreSettings } from "@/types/settings";
-import { DEFAULT_STORE_SETTINGS, maskSecret } from "@/lib/settings";
-import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_BRANDS, MOCK_SUPPLIERS, MOCK_COUPONS } from "@/lib/mockData";
+import { DEFAULT_STORE_SETTINGS, maskSecret } from "@/lib/settings-constants";
+import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_BRANDS, MOCK_SUPPLIERS } from "@/lib/mockData";
+
+
+
+
 
 // ─── Fetch All 17 Settings Domains ──────────────────────────────────────────
 
@@ -64,7 +68,7 @@ export async function getCompleteStoreSettings(): Promise<{
 // ─── Update Settings Domain ─────────────────────────────────────────────────
 
 export async function updateSettingsDomain(
-  domainKey: keyof AllStoreSettings,
+  domainKey: string,
   payload: any
 ): Promise<{ success: boolean; message?: string; error?: string }> {
   const session = await getSession();
@@ -73,7 +77,7 @@ export async function updateSettingsDomain(
   }
 
   // Security: only Super Admin can edit sensitive domains
-  const sensitiveDomains: (keyof AllStoreSettings)[] = ["binance_pay", "security", "backups", "order_workflow"];
+  const sensitiveDomains = ["binance_pay", "security", "backups", "order_workflow"];
   if (sensitiveDomains.includes(domainKey) && session.role !== "super_admin") {
     return {
       success: false,
@@ -126,7 +130,7 @@ export async function updateSettingsDomain(
       adminEmail: session.email,
       action: "SETTINGS_CHANGED",
       entityType: "setting",
-      entityId: domainKey,
+      entityId: String(domainKey),
       changes: { domain: domainKey, updated_keys: Object.keys(payload) },
     });
 
@@ -135,7 +139,7 @@ export async function updateSettingsDomain(
     revalidatePath("/checkout");
     return {
       success: true,
-      message: `${domainKey.replace(/_/g, " ").toUpperCase()} settings applied successfully!`,
+      message: `${String(domainKey).replace(/_/g, " ").toUpperCase()} settings applied successfully!`,
     };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to save settings." };
@@ -144,13 +148,13 @@ export async function updateSettingsDomain(
 
 // ─── Reset Domain to Default ────────────────────────────────────────────────
 
-export async function resetSettingsToDefault(domainKey: keyof AllStoreSettings) {
+export async function resetSettingsToDefault(domainKey: string) {
   const session = await getSession();
   if (!session || session.role !== "super_admin") {
     return { success: false, error: "Only Super Admins can reset configurations." };
   }
 
-  const defaultValue = DEFAULT_STORE_SETTINGS[domainKey];
+  const defaultValue = (DEFAULT_STORE_SETTINGS as any)[domainKey];
   return updateSettingsDomain(domainKey, defaultValue);
 }
 
@@ -190,7 +194,7 @@ export async function exportDatabaseBackup() {
         suppliers: suppliersRes.data || MOCK_SUPPLIERS,
       },
       commerce: {
-        coupons: couponsRes.data || MOCK_COUPONS,
+        coupons: couponsRes.data || [],
         recent_orders: ordersRes.data || [],
       },
       settings: settingsRes.data || DEFAULT_STORE_SETTINGS,

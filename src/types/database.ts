@@ -44,7 +44,23 @@ export type UserRole =
   | "order_manager"
   | "support_agent";
 
-export type CouponType = "percentage" | "fixed";
+export type CouponType =
+  | "percentage"
+  | "fixed"
+  | "fixed_amount"
+  | "free_shipping"
+  | "bogo"
+  | "tiered";
+
+export type PromotionScope = "all" | "category" | "brand" | "product" | "cart";
+export type PromotionStatus = "draft" | "scheduled" | "active" | "paused" | "expired";
+
+export interface TierRule {
+  min_qty: number;
+  discount: number;
+  discount_type?: "percentage" | "fixed";
+}
+
 
 export type TicketPriority = "low" | "medium" | "high" | "urgent";
 export type TicketStatus = "open" | "in_progress" | "resolved" | "closed";
@@ -295,33 +311,93 @@ export interface WishlistItem {
 export interface Coupon {
   id: string;
   code: string;
-  type: CouponType;
+  title?: string | null;
+  type?: CouponType;
+  discount_type?: CouponType;
   value: number;
+  discount_value?: number;
+  max_discount_amount?: number | null;
   min_spend?: number | null;
   min_order_amount?: number | null;
-  max_uses?: number | null;
+  scope?: PromotionScope | string | null;
+  target_category_ids?: string[];
+  target_brand_ids?: string[];
+  included_product_ids?: string[];
+  excluded_product_ids?: string[];
+  first_order_only?: boolean;
+  allowed_customer_ids?: string[];
+  excluded_customer_ids?: string[];
+  is_automatic?: boolean;
+  is_flash_sale?: boolean;
+  is_stackable?: boolean;
+  bogo_buy_qty?: number;
+  bogo_get_qty?: number;
+  bogo_discount_percent?: number;
+  tier_rules?: TierRule[] | Json | null;
   usage_limit?: number | null;
-  used_count?: number;
-  description?: string | null;
+  max_uses?: number | null;
+  per_customer_usage_limit?: number;
   per_user_limit?: number;
-  scope?: Json | null;
-  valid_from?: string;
-  valid_until?: string;
-  expires_at?: string | null;
-  is_active: boolean;
+  used_count?: number;
   usage_count?: number;
+  description?: string | null;
+  starts_at?: string | null;
+  valid_from?: string | null;
+  expires_at?: string | null;
+  valid_until?: string | null;
+  is_active: boolean;
+  status?: PromotionStatus | string;
+  created_by?: string | null;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface CouponRedemption {
+  id: string;
+  coupon_id: string;
+  order_id?: string | null;
+  user_id?: string | null;
+  customer_email?: string | null;
+  discount_amount: number;
+  redeemed_at: string;
+  // Relations
+  coupon?: Coupon;
 }
 
 export interface FlashDeal {
   id: string;
   title: string;
+  slug?: string | null;
+  banner_url?: string | null;
   start_time: string;
   end_time: string;
   is_active: boolean;
   discount_percentage?: number | null;
+  product_ids?: string[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface PromotionAuditLog {
+  id: string;
+  admin_id?: string | null;
+  admin_email: string;
+  action: string;
+  promotion_id?: string | null;
+  promotion_code?: string | null;
+  details?: Record<string, unknown>;
   created_at: string;
 }
+
+export interface ValidationResult {
+  valid: boolean;
+  message: string;
+  discountAmount: number;
+  freeShipping: boolean;
+  coupon?: Coupon;
+  appliedScopeItems?: string[];
+}
+
 
 // ─── Orders ─────────────────────────────────────────────────────────────────
 

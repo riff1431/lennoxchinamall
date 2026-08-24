@@ -23,8 +23,9 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { formatCurrency } from "@/utils/helpers";
 
 const PRESET_COUPONS = [
+  { code: "WELCOME10", desc: "10% OFF First Order" },
   { code: "LENNOX10", desc: "10% OFF Sourcing Order" },
-  { code: "USDT5", desc: "$5 OFF Orders > $50" },
+  { code: "FREESHIP", desc: "Free Express Shipping" },
 ];
 
 export default function CartPage() {
@@ -35,6 +36,8 @@ export default function CartPage() {
   const finalTotal = useCartStore((state) => state.getFinalTotal());
   const discountAmount = useCartStore((state) => state.discountAmount);
   const couponCode = useCartStore((state) => state.couponCode);
+  const isFreeShipping = useCartStore((state) => state.freeShipping);
+  const isApplyingCoupon = useCartStore((state) => state.isApplyingCoupon);
   const applyCoupon = useCartStore((state) => state.applyCoupon);
   const removeCoupon = useCartStore((state) => state.removeCoupon);
 
@@ -44,7 +47,7 @@ export default function CartPage() {
     isError: boolean;
   } | null>(null);
 
-  const shipping = subtotal > 50 || subtotal === 0 ? 0 : 4.99;
+  const shipping = isFreeShipping || subtotal > 50 || subtotal === 0 ? 0 : 4.99;
   const freeShippingThreshold = 50;
   const progressToFreeShipping = Math.min(
     100,
@@ -52,18 +55,19 @@ export default function CartPage() {
   );
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCoupon.trim()) return;
-    const res = applyCoupon(inputCoupon);
-    setCouponMsg({ text: res.message, isError: !res.success });
-    if (res.success) setInputCoupon("");
+    const res: any = await applyCoupon(inputCoupon);
+    setCouponMsg({ text: res?.message || "", isError: !res?.success });
+    if (res?.success) setInputCoupon("");
   };
 
-  const handlePresetCoupon = (code: string) => {
-    const res = applyCoupon(code);
-    setCouponMsg({ text: res.message, isError: !res.success });
+  const handlePresetCoupon = async (code: string) => {
+    const res: any = await applyCoupon(code);
+    setCouponMsg({ text: res?.message || "", isError: !res?.success });
   };
+
 
   if (items.length === 0) {
     return (

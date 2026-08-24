@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -18,639 +18,935 @@ import {
   Layers,
   Flame,
   TrendingUp,
-  Image as ImageIcon,
-  ExternalLink,
+  Download,
+  Search,
+  Filter,
   Calendar,
   AlertCircle,
   Eye,
   Sliders,
   DollarSign,
   Gift,
+  ShieldCheck,
+  Truck,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  ArrowRight,
+  RefreshCw,
 } from "lucide-react";
 import {
-  MOCK_COUPONS,
-  MOCK_BANNERS,
-  MOCK_PRODUCTS,
-  PromotionCoupon,
-  PromotionCampaign,
-} from "@/lib/mockData";
-import { Product } from "@/types/database";
+  Coupon,
+  FlashDeal,
+  PromotionAuditLog,
+  PromotionScope,
+  CouponType,
+} from "@/types/database";
+import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency, formatDate } from "@/utils/helpers";
 import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
-import { getPromotionsData, createCoupon, toggleCouponStatus } from "@/app/actions/admin-promotions";
+import {
+  getPromotionsData,
+  createPromotion,
+  updatePromotion,
+  duplicatePromotion,
+  togglePromotionStatus,
+  deletePromotion,
+  createFlashDeal,
+  deleteFlashDeal,
+  getPromotionAuditLogs,
+  exportPromotionsCsv,
+  PromotionPayload,
+} from "@/app/actions/admin-promotions";
 
 export default function AdminPromotionsPage() {
-  const [activeTab, setActiveTab] = useState<"coupons" | "flash" | "banners" | "curated">("coupons");
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"coupons" | "automatic" | "flash" | "audit">("coupons");
+  const [toastMsg, setToastMsg] = useState<{ text: string; isError?: boolean } | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  // Coupons State
-  const [coupons, setCoupons] = useState<any[]>(MOCK_COUPONS);
+  // Filter & Search State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [scopeFilter, setScopeFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("created_at");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+
+  // Data State
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [totalCoupons, setTotalCoupons] = useState(0);
+  const [flashDeals, setFlashDeals] = useState<FlashDeal[]>([]);
+  const [auditLogs, setAuditLogs] = useState<PromotionAuditLog[]>([]);
+  const [analytics, setAnalytics] = useState({
+    totalRevenue: 0,
+    totalDiscounts: 0,
+    totalRedemptions: 0,
+    activeCampaigns: 0,
+  });
+
+  // Modal States
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
-  const [couponCode, setCouponCode] = useState("");
+  const [isFlashModalOpen, setIsFlashModalOpen] = useState(false);
 
+  // Coupon Form State
+  const [formCode, setFormCode] = useState("");
+  const [formTitle, setFormTitle] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+  const [formDiscountType, setFormDiscountType] = useState<CouponType>("percentage");
+  const [formDiscountValue, setFormDiscountValue] = useState<number>(10);
+  const [formMaxDiscount, setFormMaxDiscount] = useState<string>("");
+  const [formMinSpend, setFormMinSpend] = useState<number>(0);
+  const [formScope, setFormScope] = useState<PromotionScope>("all");
+  const [formTargetCategories, setFormTargetCategories] = useState<string[]>([]);
+  const [formFirstOrderOnly, setFormFirstOrderOnly] = useState(false);
+  const [formIsAutomatic, setFormIsAutomatic] = useState(false);
+  const [formIsStackable, setFormIsStackable] = useState(false);
+  const [formUsageLimit, setFormUsageLimit] = useState<string>("500");
+  const [formPerCustomerLimit, setFormPerCustomerLimit] = useState<number>(1);
+  const [formStartsAt, setFormStartsAt] = useState<string>(new Date().toISOString().slice(0, 16));
+  const [formExpiresAt, setFormExpiresAt] = useState<string>(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+  );
+
+  // BOGO / Tiered states
+  const [formBogoBuy, setFormBogoBuy] = useState(1);
+  const [formBogoGet, setFormBogoGet] = useState(1);
+  const [formBogoDiscount, setFormBogoDiscount] = useState(100);
+
+  // Flash Deal Form State
+  const [flashTitle, setFlashTitle] = useState("Shenzhen Tech Expo 24h Drop");
+  const [flashDiscount, setFlashDiscount] = useState(25);
+  const [flashStart, setFlashStart] = useState(new Date().toISOString().slice(0, 16));
+  const [flashEnd, setFlashEnd] = useState(
+    new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+  );
+  const [flashProductIds, setFlashProductIds] = useState<string[]>([]);
+
+  // Load Data
   const loadData = async () => {
-    const res = await getPromotionsData();
-    if (res.success && res.coupons?.length) {
-      setCoupons(
-        res.coupons.map((c: any) => ({
-          id: c.id,
-          code: c.code,
-          discountType: c.type || "percentage",
-          value: Number(c.value) || 10,
-          minSpend: Number(c.min_order_amount) || 0,
-          maxUses: c.usage_limit || 100,
-          usageCount: c.used_count || 0,
-          description: c.description || "",
-          expiresAt: c.expires_at || new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
-          isActive: c.is_active ?? true,
-        }))
-      );
+    const res = await getPromotionsData({
+      search: searchQuery,
+      type: typeFilter,
+      status: statusFilter,
+      scope: scopeFilter,
+      page: currentPage,
+      pageSize,
+      sortBy,
+    });
+
+    if (res.success) {
+      setCoupons(res.coupons || []);
+      setTotalCoupons(res.totalCoupons || 0);
+      setFlashDeals(res.flashDeals || []);
+      if (res.analytics) setAnalytics(res.analytics);
     }
   };
 
-  React.useEffect(() => {
+  const loadLogs = async () => {
+    const res = await getPromotionAuditLogs();
+    if (res.success) {
+      setAuditLogs(res.logs || []);
+    }
+  };
+
+  useEffect(() => {
     loadData();
-  }, []);
-  const [couponType, setCouponType] = useState<"percentage" | "fixed_amount" | "free_shipping">("percentage");
-  const [couponValue, setCouponValue] = useState(10);
-  const [couponMinSpend, setCouponMinSpend] = useState(50);
-  const [couponMaxUses, setCouponMaxUses] = useState(500);
-  const [couponDesc, setCouponDesc] = useState("");
-  const [couponDays, setCouponDays] = useState(30);
+  }, [searchQuery, typeFilter, statusFilter, scopeFilter, sortBy, currentPage]);
 
-  // Banners State
-  const [banners, setBanners] = useState<PromotionCampaign[]>(MOCK_BANNERS);
-  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
-  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
-  const [bannerTitle, setBannerTitle] = useState("");
-  const [bannerSubtitle, setBannerSubtitle] = useState("");
-  const [bannerBadge, setBannerBadge] = useState("SPECIAL DROP");
-  const [bannerCtaText, setBannerCtaText] = useState("Shop with USDT");
-  const [bannerCtaLink, setBannerCtaLink] = useState("/categories/consumer-electronics");
-  const [bannerDiscountBadge, setBannerDiscountBadge] = useState("-35% OFF");
-  const [bannerBgGradient, setBannerBgGradient] = useState("from-[#00143D] via-blue-900 to-[#00143D]");
-  const [bannerImageUrl, setBannerImageUrl] = useState("https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80");
+  useEffect(() => {
+    if (activeTab === "audit") {
+      loadLogs();
+    }
+  }, [activeTab]);
 
-  // Flash Deals State
-  const [flashProducts, setFlashProducts] = useState<Product[]>(
-    MOCK_PRODUCTS.filter((p) => p.is_flash_deal)
-  );
-  const [allProducts] = useState<Product[]>(MOCK_PRODUCTS);
-  const [selectedFlashProdId, setSelectedFlashProdId] = useState(MOCK_PRODUCTS[0]?.id || "");
-  const [isAddFlashModalOpen, setIsAddFlashModalOpen] = useState(false);
+  const showToast = (text?: string, isError = false) => {
+    if (text) {
+      setToastMsg({ text, isError });
+      setTimeout(() => setToastMsg(null), 3500);
+    }
+  };
 
-  // ─── Coupon Handlers ───
-  const handleOpenCreateCoupon = () => {
+  // Open Create Modal
+  const handleOpenCreate = (isAuto = false) => {
     setEditingCouponId(null);
-    setCouponCode(`DEAL${Math.floor(10 + Math.random() * 90)}`);
-    setCouponType("percentage");
-    setCouponValue(15);
-    setCouponMinSpend(60);
-    setCouponMaxUses(500);
-    setCouponDesc("Special seasonal promotion on factory-direct items");
-    setCouponDays(30);
+    setFormCode(isAuto ? `AUTO_${Math.floor(100 + Math.random() * 900)}` : `DEAL${Math.floor(10 + Math.random() * 90)}`);
+    setFormTitle(isAuto ? "Sitewide Direct Factory Auto-Discount" : "Factory Direct Special Voucher");
+    setFormDescription(isAuto ? "Automatically applied at checkout on eligible orders." : "Save on direct-from-China hardware orders with USDT checkout.");
+    setFormDiscountType("percentage");
+    setFormDiscountValue(15);
+    setFormMaxDiscount("50");
+    setFormMinSpend(50);
+    setFormScope("all");
+    setFormTargetCategories([]);
+    setFormFirstOrderOnly(false);
+    setFormIsAutomatic(isAuto);
+    setFormIsStackable(false);
+    setFormUsageLimit("1000");
+    setFormPerCustomerLimit(2);
+    setFormStartsAt(new Date().toISOString().slice(0, 16));
+    setFormExpiresAt(new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16));
     setIsCouponModalOpen(true);
   };
 
-  const handleOpenEditCoupon = (c: PromotionCoupon) => {
+  // Open Edit Modal
+  const handleOpenEdit = (c: Coupon) => {
     setEditingCouponId(c.id);
-    setCouponCode(c.code);
-    setCouponType(c.discountType);
-    setCouponValue(c.value);
-    setCouponMinSpend(c.minSpend);
-    setCouponMaxUses(c.maxUses);
-    setCouponDesc(c.description);
-    setCouponDays(30);
+    setFormCode(c.code);
+    setFormTitle(c.title || c.code);
+    setFormDescription(c.description || "");
+    setFormDiscountType((c.discount_type || c.type || "percentage") as CouponType);
+    setFormDiscountValue(Number(c.discount_value ?? c.value) || 10);
+    setFormMaxDiscount(c.max_discount_amount ? String(c.max_discount_amount) : "");
+    setFormMinSpend(Number(c.min_order_amount ?? c.min_spend) || 0);
+    setFormScope((c.scope || "all") as PromotionScope);
+    setFormTargetCategories(c.target_category_ids || []);
+    setFormFirstOrderOnly(Boolean(c.first_order_only));
+    setFormIsAutomatic(Boolean(c.is_automatic));
+    setFormIsStackable(Boolean(c.is_stackable));
+    setFormUsageLimit(c.usage_limit ? String(c.usage_limit) : "");
+    setFormPerCustomerLimit(c.per_customer_usage_limit || 1);
+    setFormStartsAt(c.starts_at ? new Date(c.starts_at).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+    setFormExpiresAt(c.expires_at ? new Date(c.expires_at).toISOString().slice(0, 16) : "");
     setIsCouponModalOpen(true);
   };
 
+  // Save Coupon (Create or Update)
   const handleSaveCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!couponCode.trim()) return;
-
-    const formData = new FormData();
-    formData.set("code", couponCode);
-    formData.set("type", couponType === "percentage" ? "percentage" : "fixed");
-    formData.set("value", String(couponValue));
-    formData.set("min_order_amount", String(couponMinSpend));
-    formData.set("usage_limit", String(couponMaxUses));
-    formData.set("description", couponDesc);
-
-    const res = await createCoupon(formData);
-    setToastMsg(res.message || `Coupon "${couponCode.toUpperCase()}" saved!`);
-    setIsCouponModalOpen(false);
-    loadData();
-    setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  const handleToggleCoupon = async (id: string) => {
-    const target = coupons.find((c) => c.id === id);
-    const newStatus = !target?.isActive;
-    await toggleCouponStatus(id, newStatus);
-    setCoupons((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isActive: newStatus } : c))
-    );
-  };
-
-  const handleDeleteCoupon = (id: string, code: string) => {
-    if (confirm(`Are you sure you want to delete coupon "${code}"?`)) {
-      setCoupons((prev) => prev.filter((c) => c.id !== id));
-      setToastMsg(`Coupon "${code}" removed.`);
-      setTimeout(() => setToastMsg(null), 3000);
-    }
-  };
-
-  // ─── Banner Handlers ───
-  const handleOpenCreateBanner = () => {
-    setEditingBannerId(null);
-    setBannerTitle("Mega Factory Tech Expo — Shenzhen Sourcing Hub");
-    setBannerSubtitle("Over 500+ direct factory electronics with verified QC inspection & instant USDT checkout");
-    setBannerBadge("EXCLUSIVE DROP");
-    setBannerCtaText("Explore Factory Hub");
-    setBannerCtaLink("/categories/consumer-electronics");
-    setBannerDiscountBadge("-45% OFF");
-    setBannerBgGradient("from-[#00143D] via-blue-900 to-[#00143D]");
-    setBannerImageUrl("https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80");
-    setIsBannerModalOpen(true);
-  };
-
-  const handleSaveBanner = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!bannerTitle.trim()) return;
-
-    if (editingBannerId) {
-      setBanners((prev) =>
-        prev.map((b) =>
-          b.id === editingBannerId
-            ? {
-                ...b,
-                title: bannerTitle,
-                subtitle: bannerSubtitle,
-                badge: bannerBadge,
-                ctaText: bannerCtaText,
-                ctaLink: bannerCtaLink,
-                discountBadge: bannerDiscountBadge,
-                bgGradient: bannerBgGradient,
-                imageUrl: bannerImageUrl,
-              }
-            : b
-        )
-      );
-      setToastMsg("Homepage Hero Banner updated!");
-    } else {
-      const newBanner: PromotionCampaign = {
-        id: `camp-${Date.now()}`,
-        title: bannerTitle,
-        subtitle: bannerSubtitle,
-        badge: bannerBadge,
-        ctaText: bannerCtaText,
-        ctaLink: bannerCtaLink,
-        discountBadge: bannerDiscountBadge,
-        bgGradient: bannerBgGradient,
-        imageUrl: bannerImageUrl,
-        is_active: true,
-        position: banners.length + 1,
-        ends_at: new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString(),
-      };
-      setBanners([...banners, newBanner]);
-      setToastMsg("New Homepage Hero Campaign published!");
+    if (!formCode.trim()) {
+      showToast("Promotion code is required.", true);
+      return;
     }
 
-    setIsBannerModalOpen(false);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  // ─── Flash Deals Handlers ───
-  const handleAddFlashProduct = (e: React.FormEvent) => {
-    e.preventDefault();
-    const prod = allProducts.find((p) => p.id === selectedFlashProdId);
-    if (!prod) return;
-
-    const updatedProd: Product = {
-      ...prod,
-      is_flash_deal: true,
-      flash_deal_ends_at: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+    const payload: PromotionPayload = {
+      code: formCode.trim().toUpperCase(),
+      title: formTitle,
+      description: formDescription,
+      discount_type: formDiscountType,
+      discount_value: formDiscountValue,
+      max_discount_amount: formMaxDiscount ? Number(formMaxDiscount) : null,
+      min_order_amount: formMinSpend,
+      scope: formScope,
+      target_category_ids: formTargetCategories,
+      first_order_only: formFirstOrderOnly,
+      is_automatic: formIsAutomatic,
+      is_stackable: formIsStackable,
+      bogo_buy_qty: formBogoBuy,
+      bogo_get_qty: formBogoGet,
+      bogo_discount_percent: formBogoDiscount,
+      usage_limit: formUsageLimit ? Number(formUsageLimit) : null,
+      per_customer_usage_limit: formPerCustomerLimit,
+      starts_at: new Date(formStartsAt).toISOString(),
+      expires_at: formExpiresAt ? new Date(formExpiresAt).toISOString() : null,
+      is_active: true,
+      status: "active",
     };
 
-    setFlashProducts([updatedProd, ...flashProducts.filter((p) => p.id !== prod.id)]);
-    setIsAddFlashModalOpen(false);
-    setToastMsg(`"${prod.title}" added to Flash Deals Zone!`);
-    setTimeout(() => setToastMsg(null), 3000);
+    startTransition(async () => {
+      if (editingCouponId) {
+        const res = await updatePromotion(editingCouponId, payload);
+        if (res.success) {
+          showToast(res.message);
+          setIsCouponModalOpen(false);
+          loadData();
+        } else {
+          showToast(res.error || "Failed to update promotion.", true);
+        }
+      } else {
+        const res = await createPromotion(payload);
+        if (res.success) {
+          showToast(res.message);
+          setIsCouponModalOpen(false);
+          loadData();
+        } else {
+          showToast(res.error || "Failed to create promotion.", true);
+        }
+      }
+    });
   };
 
-  const handleRemoveFlashProduct = (productId: string, title: string) => {
-    setFlashProducts((prev) => prev.filter((p) => p.id !== productId));
-    setToastMsg(`"${title}" removed from Flash Deals.`);
-    setTimeout(() => setToastMsg(null), 3000);
+  // Duplicate Promotion
+  const handleDuplicate = async (id: string) => {
+    startTransition(async () => {
+      const res = await duplicatePromotion(id);
+      if (res.success) {
+        showToast(res.message);
+        loadData();
+      } else {
+        showToast(res.error || "Failed to duplicate.", true);
+      }
+    });
   };
+
+  // Toggle Active Status
+  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
+    startTransition(async () => {
+      const res = await togglePromotionStatus(id, !currentStatus);
+      if (res.success) {
+        showToast(res.message);
+        setCoupons((prev) =>
+          prev.map((c) => (c.id === id ? { ...c, is_active: !currentStatus } : c))
+        );
+      } else {
+        showToast(res.error || "Failed to toggle status.", true);
+      }
+    });
+  };
+
+  // Delete Promotion
+  const handleDelete = async (id: string, code: string) => {
+    if (!confirm(`Are you sure you want to permanently delete coupon "${code}"?`)) return;
+    startTransition(async () => {
+      const res = await deletePromotion(id);
+      if (res.success) {
+        showToast(res.message);
+        loadData();
+      } else {
+        showToast(res.error || "Failed to delete.", true);
+      }
+    });
+  };
+
+  // CSV Export
+  const handleExportCsv = async () => {
+    const res = await exportPromotionsCsv();
+    if (res.success && res.csv) {
+      const blob = new Blob([res.csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `lennox_promotions_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Promotions exported to CSV successfully.");
+    } else {
+      showToast("Failed to export CSV.", true);
+    }
+  };
+
+  // Create Flash Deal
+  const handleSaveFlash = async (e: React.FormEvent) => {
+    e.preventDefault();
+    startTransition(async () => {
+      const res = await createFlashDeal({
+        title: flashTitle,
+        discountPercentage: flashDiscount,
+        startTime: new Date(flashStart).toISOString(),
+        endTime: new Date(flashEnd).toISOString(),
+        productIds: flashProductIds,
+      });
+
+      if (res.success) {
+        showToast(res.message);
+        setIsFlashModalOpen(false);
+        loadData();
+      } else {
+        showToast(res.error || "Failed to schedule flash deal.", true);
+      }
+    });
+  };
+
+  // Delete Flash Deal
+  const handleDeleteFlash = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this flash deal?")) return;
+    startTransition(async () => {
+      const res = await deleteFlashDeal(id);
+      if (res.success) {
+        showToast(res.message);
+        loadData();
+      } else {
+        showToast(res.error || "Failed to remove flash deal.", true);
+      }
+    });
+  };
+
+  const totalPages = Math.max(1, Math.ceil(totalCoupons / pageSize));
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* ── 1. Top Header Bar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              LENNOX MARKETING OS
-            </span>
-            <span className="text-xs text-[#10B981] font-bold flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              Promotions & Campaigns Engine Active
-            </span>
-          </div>
+    <div className="space-y-8 pb-20 font-montserrat">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div
+          className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl text-xs font-black flex items-center gap-2 border animate-in slide-in-from-top-2 ${
+            toastMsg.isError
+              ? "bg-red-500 text-white border-red-600"
+              : "bg-[#00143D] text-white border-[#002366]"
+          }`}
+        >
+          {toastMsg.isError ? <AlertCircle className="w-4 h-4" /> : <Check className="w-4 h-4 text-[#10B981]" />}
+          <span>{toastMsg.text}</span>
+        </div>
+      )}
 
-          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
-            <Tag className="w-7 h-7 text-[#FF1028]" />
-            <span>Promotions, Coupons & Flash Drops</span>
-          </h1>
-          <p className="text-xs text-slate-400">
-            Control customer vouchers, scheduled flash drops, countdown timers, homepage hero slides, and curated product collections.
+      {/* ── 1. Page Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-[#FF1028]/10 text-[#FF1028]">
+              <Tag className="w-5 h-5" />
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-[#00143D]">
+              Promotions & Discounts Hub
+            </h1>
+          </div>
+          <p className="text-xs text-slate-500 font-semibold">
+            Manage dynamic coupons, automatic discounts, BOGO rules, tiered campaigns, and live flash sales.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {activeTab === "coupons" && (
-            <button
-              onClick={handleOpenCreateCoupon}
-              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Voucher</span>
-            </button>
-          )}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={handleExportCsv}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-colors cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+            <span>Export CSV</span>
+          </button>
 
-          {activeTab === "banners" && (
-            <button
-              onClick={handleOpenCreateBanner}
-              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Hero Banner</span>
-            </button>
-          )}
-
-          {activeTab === "flash" && (
-            <button
-              onClick={() => setIsAddFlashModalOpen(true)}
-              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Flash Product</span>
-            </button>
-          )}
+          <button
+            onClick={() => handleOpenCreate(false)}
+            className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-colors cursor-pointer shadow-md"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            <span>Create Coupon</span>
+          </button>
         </div>
       </div>
 
-      {toastMsg && (
-        <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
-          <span>✓ {toastMsg}</span>
-          <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
-        </div>
-      )}
-
-      {/* ── 2. KPI Metrics Bar ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Active Coupons</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-              <Gift className="w-4 h-4" />
-            </div>
+      {/* ── 2. KPI Metrics Row ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <TrendingUp className="w-6 h-6" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {coupons.filter((c) => c.isActive).length} Vouchers
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            {coupons.reduce((sum, c) => sum + c.usageCount, 0)} total redemptions
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+              Promotion Revenue
+            </span>
+            <span className="text-lg font-black text-[#00143D] price-tag">
+              {formatCurrency(analytics.totalRevenue)}
+            </span>
+            <span className="text-[10px] font-bold text-emerald-600 block mt-0.5">
+              +18.4% this month
+            </span>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Flash Drops Active</span>
-            <div className="w-8 h-8 rounded-xl bg-[#FF1028]/20 text-[#FF1028] flex items-center justify-center">
-              <Flame className="w-4 h-4" />
-            </div>
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#FF1028] flex items-center justify-center shrink-0">
+            <DollarSign className="w-6 h-6" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {flashProducts.length} Hardware Drops
-          </div>
-          <div className="text-[11px] text-amber-400 font-bold flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            <span>24-Hour Rolling Timers</span>
-          </div>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">Hero Banners</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-              <ImageIcon className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {banners.filter((b) => b.is_active).length} Live Slides
-          </div>
-          <div className="text-[11px] text-[#10B981] font-bold">
-            Frontpage Carousel Ready
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+              Discounts Granted
+            </span>
+            <span className="text-lg font-black text-[#00143D] price-tag">
+              {formatCurrency(analytics.totalDiscounts)}
+            </span>
+            <span className="text-[10px] font-bold text-slate-500 block mt-0.5">
+              Across all channels
+            </span>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">USDT Discount Volume</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-[#10B981] flex items-center justify-center">
-              <Percent className="w-4 h-4" />
-            </div>
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Users className="w-6 h-6" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-400 price-tag">
-            $14,290.00
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+              Total Redemptions
+            </span>
+            <span className="text-lg font-black text-[#00143D]">
+              {analytics.totalRedemptions.toLocaleString()}
+            </span>
+            <span className="text-[10px] font-bold text-blue-600 block mt-0.5">
+              Verified checkout uses
+            </span>
           </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            Incentivized Sales Growth
+        </div>
+
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Flame className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+              Active Campaigns
+            </span>
+            <span className="text-lg font-black text-[#00143D]">
+              {analytics.activeCampaigns} Active
+            </span>
+            <span className="text-[10px] font-bold text-amber-600 block mt-0.5">
+              {flashDeals.length} live flash drops
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── 3. Tab Navigation Bar ── */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto no-scrollbar text-xs">
-        {[
-          { id: "coupons", label: "Coupons & Vouchers", icon: Gift },
-          { id: "flash", label: "Flash Deals & Timers", icon: Flame },
-          { id: "banners", label: "Hero Banners & Campaigns", icon: ImageIcon },
-          { id: "curated", label: "Curated Homepage Collections", icon: Sliders },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors cursor-pointer whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "bg-[#00143D] text-white border border-blue-800 shadow-md"
-                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
-              }`}
-            >
-              <Icon className="w-4 h-4 text-[#FF1028]" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+      {/* ── 3. Tabbed Navigation ── */}
+      <div className="flex border-b border-slate-200 gap-6 text-xs font-black">
+        <button
+          onClick={() => setActiveTab("coupons")}
+          className={`pb-3 transition-colors flex items-center gap-2 cursor-pointer ${
+            activeTab === "coupons"
+              ? "text-[#FF1028] border-b-2 border-[#FF1028]"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Tag className="w-4 h-4" />
+          <span>Coupons & Promo Codes ({totalCoupons})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("automatic")}
+          className={`pb-3 transition-colors flex items-center gap-2 cursor-pointer ${
+            activeTab === "automatic"
+              ? "text-[#FF1028] border-b-2 border-[#FF1028]"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Automatic & BOGO Rules</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("flash")}
+          className={`pb-3 transition-colors flex items-center gap-2 cursor-pointer ${
+            activeTab === "flash"
+              ? "text-[#FF1028] border-b-2 border-[#FF1028]"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Flame className="w-4 h-4" />
+          <span>Flash Deals & Drops ({flashDeals.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("audit")}
+          className={`pb-3 transition-colors flex items-center gap-2 cursor-pointer ${
+            activeTab === "audit"
+              ? "text-[#FF1028] border-b-2 border-[#FF1028]"
+              : "text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <Activity className="w-4 h-4" />
+          <span>Admin Audit Logs</span>
+        </button>
       </div>
 
-      {/* ── 4. TAB 1: Coupons & Vouchers Manager ── */}
+      {/* ── 4. TAB 1: Coupons & Promo Codes ── */}
       {activeTab === "coupons" && (
-        <div className="space-y-6 animate-in fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {coupons.map((c) => {
-              const usagePercent = Math.round((c.usageCount / c.maxUses) * 100);
+        <div className="space-y-6">
+          {/* Search & Filters Bar */}
+          <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div className="flex-1 min-w-[240px] relative">
+              <input
+                type="text"
+                placeholder="Search by code, title, or description..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full pl-9 pr-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-[#00143D]"
+              />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            </div>
 
-              return (
-                <div
-                  key={c.id}
-                  className={`p-6 rounded-3xl border transition-all space-y-4 relative ${
-                    c.isActive
-                      ? "bg-slate-900 border-slate-800 hover:border-slate-700 shadow-md"
-                      : "bg-slate-950/60 border-slate-900 opacity-60"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-black text-lg text-white bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 flex items-center gap-1.5">
-                          <Tag className="w-4 h-4 text-[#FF1028]" />
-                          <span>{c.code}</span>
-                        </span>
-                        <span
-                          className={`text-[10px] font-black px-2.5 py-0.5 rounded uppercase ${
-                            c.discountType === "percentage"
-                              ? "bg-blue-950 text-blue-300 border border-blue-800"
-                              : c.discountType === "free_shipping"
-                              ? "bg-purple-950 text-purple-300 border border-purple-800"
-                              : "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                          }`}
-                        >
-                          {c.discountType === "percentage"
-                            ? `${c.value}% OFF`
-                            : c.discountType === "free_shipping"
-                            ? "FREE AIR CARGO"
-                            : `$${c.value} USDT OFF`}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 font-medium pt-1">
-                        {c.description}
-                      </p>
-                    </div>
+            <div className="flex flex-wrap items-center gap-2.5 text-xs">
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-700 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Discount Types</option>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed_amount">Fixed Amount ($)</option>
+                <option value="free_shipping">Free Shipping</option>
+                <option value="bogo">BOGO Deal</option>
+                <option value="tiered">Quantity Tiered</option>
+              </select>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleOpenEditCoupon(c)}
-                        className="p-2 rounded-xl bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors"
-                        title="Edit Coupon"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCoupon(c.id, c.code)}
-                        className="p-2 rounded-xl bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white transition-colors"
-                        title="Delete Coupon"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
+              <select
+                value={scopeFilter}
+                onChange={(e) => {
+                  setScopeFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-700 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Scopes</option>
+                <option value="cart">Cart-Level</option>
+                <option value="category">Category-Specific</option>
+                <option value="product">Product-Specific</option>
+                <option value="brand">Brand-Specific</option>
+              </select>
 
-                  {/* Quota Progress */}
-                  <div className="space-y-1.5 pt-2 border-t border-slate-800 text-xs">
-                    <div className="flex justify-between text-[11px] text-slate-400">
-                      <span>Redemption Quota:</span>
-                      <strong className="text-white">
-                        {c.usageCount} / {c.maxUses} used ({usagePercent}%)
-                      </strong>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-[#FF1028] transition-all"
-                        style={{ width: `${Math.min(usagePercent, 100)}%` }}
-                      />
-                    </div>
-                  </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-700 focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active Only</option>
+                <option value="paused">Paused Only</option>
+              </select>
 
-                  {/* Conditions & Active Toggle */}
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
-                    <div>
-                      <span>Min Spend: <strong>${c.minSpend} USDT</strong></span>
-                    </div>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-bold text-slate-700 focus:outline-none cursor-pointer"
+              >
+                <option value="created_at">Newest First</option>
+                <option value="usage">Most Redeemed</option>
+                <option value="value_desc">Highest Discount</option>
+                <option value="expires">Expiring Soonest</option>
+              </select>
+            </div>
+          </div>
 
+          {/* Coupons Table */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-400 font-extrabold uppercase tracking-wider border-b border-slate-200 text-[10px]">
+                  <tr>
+                    <th className="py-3.5 px-4">Coupon Code & Details</th>
+                    <th className="py-3.5 px-4">Discount Type</th>
+                    <th className="py-3.5 px-4">Scope & Conditions</th>
+                    <th className="py-3.5 px-4">Usage / Cap</th>
+                    <th className="py-3.5 px-4">Valid Period</th>
+                    <th className="py-3.5 px-4">Active</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                  {coupons.map((c) => {
+                    const discountType = c.discount_type || c.type || "percentage";
+                    const discountVal = Number(c.discount_value ?? c.value) || 0;
+                    const maxUses = c.usage_limit ?? c.max_uses;
+                    const usedCount = c.used_count ?? c.usage_count ?? 0;
+                    const usagePercent = maxUses ? Math.min(100, Math.round((usedCount / maxUses) * 100)) : 0;
+
+                    return (
+                      <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
+                        {/* Code & Title */}
+                        <td className="py-3.5 px-4">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono font-black text-xs text-[#00143D] bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
+                                {c.code}
+                              </span>
+                              {c.first_order_only && (
+                                <span className="bg-blue-50 text-blue-700 text-[9px] font-black px-1.5 py-0.5 rounded">
+                                  1st Order
+                                </span>
+                              )}
+                              {c.is_automatic && (
+                                <span className="bg-emerald-50 text-emerald-700 text-[9px] font-black px-1.5 py-0.5 rounded">
+                                  Auto
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-800 block truncate max-w-xs">
+                              {c.title || c.code}
+                            </span>
+                            {c.description && (
+                              <p className="text-[10px] text-slate-400 truncate max-w-xs font-medium">
+                                {c.description}
+                              </p>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Discount Type & Value */}
+                        <td className="py-3.5 px-4">
+                          <div className="space-y-0.5">
+                            <span className="font-black text-xs text-[#FF1028] price-tag">
+                              {discountType === "percentage" && `${discountVal}% OFF`}
+                              {(discountType === "fixed" || discountType === "fixed_amount") && `$${discountVal.toFixed(2)} OFF`}
+                              {discountType === "free_shipping" && "FREE SHIPPING"}
+                              {discountType === "bogo" && "BOGO DEAL"}
+                              {discountType === "tiered" && "TIERED BREAK"}
+                            </span>
+                            {c.max_discount_amount && (
+                              <span className="text-[10px] text-slate-400 block">
+                                Capped at ${Number(c.max_discount_amount).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Scope & Conditions */}
+                        <td className="py-3.5 px-4">
+                          <div className="space-y-0.5 text-[11px]">
+                            <span className="font-bold text-slate-800 capitalize block">
+                              Scope: {c.scope || "Sitewide"}
+                            </span>
+                            {Number(c.min_order_amount ?? c.min_spend) > 0 && (
+                              <span className="text-[10px] text-slate-500 block">
+                                Min Spend: ${Number(c.min_order_amount ?? c.min_spend).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Usage / Cap */}
+                        <td className="py-3.5 px-4">
+                          <div className="space-y-1 max-w-[120px]">
+                            <div className="flex justify-between text-[11px] font-bold text-slate-700">
+                              <span>{usedCount}</span>
+                              <span className="text-slate-400">/ {maxUses || "∞"}</span>
+                            </div>
+                            {maxUses && (
+                              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div
+                                  className="bg-[#00143D] h-full rounded-full transition-all"
+                                  style={{ width: `${usagePercent}%` }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Valid Period */}
+                        <td className="py-3.5 px-4">
+                          <div className="text-[10px] text-slate-500 space-y-0.5">
+                            {c.expires_at ? (
+                              <>
+                                <span>Expires:</span>
+                                <span className="font-bold text-slate-700 block">
+                                  {new Date(c.expires_at).toLocaleDateString()}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-emerald-600 font-bold">Never Expires</span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Active Toggle */}
+                        <td className="py-3.5 px-4">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(c.id, c.is_active)}
+                            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                              c.is_active ? "bg-[#10B981]" : "bg-slate-200"
+                            }`}
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                c.is_active ? "translate-x-4" : "translate-x-0"
+                              }`}
+                            />
+                          </button>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(c)}
+                              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+                              title="Edit Promotion"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDuplicate(c.id)}
+                              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+                              title="Duplicate"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(c.id, c.code)}
+                              className="p-1.5 hover:bg-red-50 rounded-lg text-red-600 hover:text-red-700 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between p-4 border-t border-slate-100 text-xs">
+                <span className="text-slate-500 font-bold">
+                  Showing page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> ({totalCoupons} total)
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
                     <button
-                      onClick={() => handleToggleCoupon(c.id)}
-                      className={`px-3 py-1 rounded-xl text-[11px] font-black uppercase transition-colors cursor-pointer ${
-                        c.isActive
-                          ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                          : "bg-slate-800 text-slate-400"
+                      key={num}
+                      onClick={() => setCurrentPage(num)}
+                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
+                        currentPage === num
+                          ? "bg-[#00143D] text-white"
+                          : "border border-slate-200 hover:bg-slate-50 text-slate-700"
                       }`}
                     >
-                      {c.isActive ? "● Active in Checkout" : "Paused"}
+                      {num}
                     </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── 5. TAB 2: Flash Deals & Scheduled Drops ── */}
-      {activeTab === "flash" && (
-        <div className="space-y-6 animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-md space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-              <div>
-                <h3 className="text-sm font-black text-white uppercase flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-[#FF1028]" />
-                  <span>Active Frontpage Flash Deals Drops</span>
-                </h3>
-                <p className="text-xs text-slate-400">
-                  Products displayed on homepage Flash Deals zone with live 24-hour countdown clock.
-                </p>
-              </div>
-
-              <div className="bg-slate-950 border border-slate-800 px-4 py-2 rounded-2xl flex items-center gap-3">
-                <span className="text-xs font-bold text-slate-400">Current Flash Timer:</span>
-                <FlashDealCountdown targetDate={new Date(Date.now() + 1000 * 60 * 60 * 14).toISOString()} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {flashProducts.map((p) => (
-                <div
-                  key={p.id}
-                  className="bg-slate-950 rounded-2xl border border-slate-800 p-4 space-y-3 relative group hover:border-[#FF1028]/50 transition-colors"
-                >
-                  <div className="flex gap-3">
-                    <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shrink-0">
-                      <Image
-                        src={
-                          p.media?.[0]?.url ||
-                          "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=300&auto=format&fit=crop&q=80"
-                        }
-                        alt={p.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-xs font-bold text-white line-clamp-1">
-                        {p.title}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-black text-emerald-400 price-tag">
-                          {formatCurrency(p.base_price)}
-                        </span>
-                        {p.compare_at_price && (
-                          <span className="text-xs text-slate-500 line-through">
-                            ${p.compare_at_price.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                      <span className="bg-[#FF1028] text-white text-[9px] font-black px-1.5 py-0.5 rounded mt-1 inline-block">
-                        -46% FLASH DROP
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1 text-xs pt-1 border-t border-slate-900">
-                    <div className="flex justify-between text-[11px] text-slate-400">
-                      <span>Claimed:</span>
-                      <span className="font-bold text-amber-400">78% claimed</span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
-                      <div className="h-full bg-amber-500 w-[78%]" />
-                    </div>
-                  </div>
-
+                  ))}
                   <button
-                    onClick={() => handleRemoveFlashProduct(p.id, p.title)}
-                    className="w-full py-1.5 rounded-xl bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 font-bold text-xs transition-colors"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
                   >
-                    Remove from Flash Deals
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
-              ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. TAB 2: Automatic & BOGO Rules ── */}
+      {activeTab === "automatic" && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-[#00143D] to-[#002366] text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-black">Automatic Sourcing Discounts</h3>
+              <p className="text-xs text-slate-300">
+                These rules apply directly at the cart without requiring buyers to enter a promo code.
+              </p>
+            </div>
+            <button
+              onClick={() => handleOpenCreate(true)}
+              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Auto Rule</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Truck className="w-5 h-5" />
+              </div>
+              <h4 className="text-sm font-black text-[#00143D]">Automatic Free Air Freight</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Applies 100% shipping waiver on all orders exceeding $50 USDT.
+              </p>
+              <span className="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-md">
+                Active System Rule
+              </span>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <Layers className="w-5 h-5" />
+              </div>
+              <h4 className="text-sm font-black text-[#00143D]">Category Auto-Discounts</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Applies targeted percent discount when products in specific hardware clusters are in cart.
+              </p>
+              <span className="inline-block bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-md">
+                Configured via Coupons Scope
+              </span>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Gift className="w-5 h-5" />
+              </div>
+              <h4 className="text-sm font-black text-[#00143D]">BOGO / Quantity Breaks</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Buy X units, get Y units free or at a discount rate for wholesale volume buyers.
+              </p>
+              <button
+                onClick={() => handleOpenCreate(true)}
+                className="text-xs font-bold text-[#FF1028] hover:underline block"
+              >
+                Configure BOGO Rule →
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── 6. TAB 3: Homepage Banners & Hero Campaigns ── */}
-      {activeTab === "banners" && (
-        <div className="space-y-6 animate-in fade-in">
-          <div className="space-y-6">
-            {banners.map((b, idx) => (
-              <div
-                key={b.id}
-                className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-md space-y-4"
-              >
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-slate-800 text-white font-black text-xs flex items-center justify-center">
-                      #{idx + 1}
-                    </span>
-                    <span className="font-black text-white text-sm">
-                      Hero Slide Campaign #{idx + 1}
-                    </span>
-                  </div>
+      {/* ── 6. TAB 3: Flash Deals & Timers ── */}
+      {activeTab === "flash" && (
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-black text-[#00143D] flex items-center gap-2">
+                <Flame className="w-5 h-5 text-[#FF1028]" />
+                <span>Live Flash Sourcing Drops</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                Time-limited flash sales with live synchronized countdown clocks across all product pages.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsFlashModalOpen(true)}
+              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Schedule Flash Drop</span>
+            </button>
+          </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-black px-2 py-0.5 rounded">
-                      Live on Storefront
-                    </span>
-                    <button
-                      onClick={() => {
-                        setEditingBannerId(b.id);
-                        setBannerTitle(b.title);
-                        setBannerSubtitle(b.subtitle);
-                        setBannerBadge(b.badge);
-                        setBannerCtaText(b.ctaText);
-                        setBannerCtaLink(b.ctaLink);
-                        setBannerDiscountBadge(b.discountBadge);
-                        setBannerBgGradient(b.bgGradient);
-                        setBannerImageUrl(b.imageUrl);
-                        setIsBannerModalOpen(true);
-                      }}
-                      className="p-1.5 rounded-lg bg-slate-800 text-blue-400 hover:text-white"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {flashDeals.map((deal) => (
+              <div
+                key={deal.id}
+                className="bg-gradient-to-br from-[#00143D] to-[#002366] text-white p-6 rounded-3xl shadow-md space-y-4 relative overflow-hidden"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    {deal.discount_percentage}% OFF FLASH DROP
+                  </span>
+                  <button
+                    onClick={() => handleDeleteFlash(deal.id)}
+                    className="text-white/60 hover:text-white p-1"
+                    title="Remove Flash Deal"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
 
-                {/* Banner Live Preview Simulation */}
-                <div className={`rounded-2xl p-6 bg-gradient-to-r ${b.bgGradient} border border-white/10 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6`}>
-                  <div className="space-y-2 max-w-xl z-10">
-                    <div className="flex items-center gap-2">
-                      <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
-                        {b.badge}
-                      </span>
-                      <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
-                        {b.discountBadge}
-                      </span>
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-black">{b.title}</h3>
-                    <p className="text-xs text-slate-200">{b.subtitle}</p>
-                    <div className="pt-2">
-                      <span className="inline-block bg-[#FF1028] text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg">
-                        {b.ctaText} →
-                      </span>
-                    </div>
-                  </div>
+                <div className="space-y-1">
+                  <h4 className="text-lg font-black text-white">{deal.title}</h4>
+                  <span className="text-xs text-slate-300 font-semibold block">
+                    Starts: {new Date(deal.start_time).toLocaleDateString()} — Ends: {new Date(deal.end_time).toLocaleDateString()}
+                  </span>
+                </div>
 
-                  <div className="relative w-48 h-36 rounded-xl overflow-hidden bg-slate-900 border border-white/20 shrink-0">
-                    <Image src={b.imageUrl} alt={b.title} fill className="object-cover" />
-                  </div>
+                <div className="bg-white/10 p-3.5 rounded-2xl border border-white/10 flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-200">Live Timer:</span>
+                  <FlashDealCountdown targetDate={deal.end_time} />
                 </div>
               </div>
             ))}
@@ -658,300 +954,378 @@ export default function AdminPromotionsPage() {
         </div>
       )}
 
-      {/* ── 7. TAB 4: Curated Homepage Collections ── */}
-      {activeTab === "curated" && (
-        <div className="space-y-6 animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-md space-y-4">
-            <h3 className="text-sm font-black text-white uppercase flex items-center gap-2 pb-3 border-b border-slate-800">
-              <Sliders className="w-4 h-4 text-blue-400" />
-              <span>Curated Homepage Section Toggles</span>
+      {/* ── 7. TAB 4: Admin Audit Logs ── */}
+      {activeTab === "audit" && (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="text-xs font-black text-[#00143D] uppercase tracking-wider flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#FF1028]" />
+              <span>Promotion Activity & Modification History</span>
             </h3>
+            <button
+              onClick={loadLogs}
+              className="text-xs font-bold text-slate-600 hover:text-[#00143D] flex items-center gap-1"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <span className="font-black text-white text-xs block">
-                  🌟 Featured Sourcing Products
-                </span>
-                <p className="text-xs text-slate-400">
-                  Products handpicked by Lennox procurement engineers with highest supplier reliability scores.
-                </p>
-                <span className="text-[11px] text-[#10B981] font-bold block">
-                  {allProducts.filter((p) => p.is_featured).length} Products Active
-                </span>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <span className="font-black text-white text-xs block">
-                  🔥 Best Sellers Hub
-                </span>
-                <p className="text-xs text-slate-400">
-                  Ranked automatically by verified sales volume and buyer five-star reviews.
-                </p>
-                <span className="text-[11px] text-[#10B981] font-bold block">
-                  4 Top Performing SKUs
-                </span>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <span className="font-black text-white text-xs block">
-                  ⚡ New Factory Arrivals
-                </span>
-                <p className="text-xs text-slate-400">
-                  Freshly imported hardware catalogued from Shenzhen & Ningbo production lines.
-                </p>
-                <span className="text-[11px] text-[#10B981] font-bold block">
-                  {allProducts.filter((p) => p.is_new_arrival).length} Items Listed
-                </span>
-              </div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-400 font-extrabold uppercase tracking-wider border-b border-slate-200 text-[10px]">
+                <tr>
+                  <th className="py-3 px-4">Action</th>
+                  <th className="py-3 px-4">Code / Item</th>
+                  <th className="py-3 px-4">Admin Email</th>
+                  <th className="py-3 px-4">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
+                {auditLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-slate-50/70">
+                    <td className="py-3 px-4">
+                      <span className="font-bold text-[#00143D] bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                        {log.action}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                      {log.promotion_code || "N/A"}
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">{log.admin_email}</td>
+                    <td className="py-3 px-4 text-slate-400 text-[11px]">
+                      {new Date(log.created_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {/* ── 8. Create / Edit Coupon Modal ── */}
+      {/* ── 8. CREATE / EDIT PROMOTION MODAL ── */}
       <Modal
         isOpen={isCouponModalOpen}
         onClose={() => setIsCouponModalOpen(false)}
-        title={editingCouponId ? "Edit Promotion Coupon" : "Create New Promotion Coupon"}
-        size="md"
+        title={editingCouponId ? `Edit Promotion "${formCode}"` : "Create New Promotion Rule"}
+        size="lg"
       >
-        <form onSubmit={handleSaveCoupon} className="p-6 space-y-4 font-montserrat text-xs text-slate-800">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Coupon Promo Code *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. SUMMER15, USDT10, AIRFREE"
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-black text-sm uppercase focus:outline-none focus:border-[#00143D]"
+        <form onSubmit={handleSaveCoupon} className="p-6 space-y-6 text-xs font-montserrat">
+          {/* Section A: Code & Title */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="font-black text-[#00143D] uppercase tracking-wider block text-[11px]">
+                Voucher Code *
+              </label>
+              <input
+                type="text"
+                required
+                value={formCode}
+                onChange={(e) => setFormCode(e.target.value.toUpperCase())}
+                placeholder="e.g. FACTORY20"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono font-black text-xs uppercase focus:outline-none focus:border-[#00143D]"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-black text-[#00143D] uppercase tracking-wider block text-[11px]">
+                Campaign Title
+              </label>
+              <input
+                type="text"
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                placeholder="e.g. Direct Sourcing 20% Drop"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold text-xs focus:outline-none focus:border-[#00143D]"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="font-black text-[#00143D] uppercase tracking-wider block text-[11px]">
+              Description
+            </label>
+            <textarea
+              rows={2}
+              value={formDescription}
+              onChange={(e) => setFormDescription(e.target.value)}
+              placeholder="Internal notes or customer-facing promo description..."
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-[#00143D]"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">Discount Type *</label>
+          {/* Section B: Discount Type & Value */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+            <h4 className="font-black text-[#00143D] uppercase text-[11px]">
+              Discount Calculation & Type
+            </h4>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { id: "percentage", label: "Percentage (%)" },
+                { id: "fixed_amount", label: "Fixed Amount ($)" },
+                { id: "free_shipping", label: "Free Shipping" },
+                { id: "bogo", label: "BOGO Deal" },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setFormDiscountType(t.id as CouponType)}
+                  className={`p-2.5 rounded-xl font-bold text-xs border transition-colors text-center ${
+                    formDiscountType === t.id
+                      ? "bg-[#00143D] text-white border-[#00143D]"
+                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-700 block">
+                  {formDiscountType === "percentage" ? "Discount Percentage (%)" : "Discount Value ($ USDT)"}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={formDiscountValue}
+                  onChange={(e) => setFormDiscountValue(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-black bg-white focus:outline-none focus:border-[#00143D]"
+                />
+              </div>
+
+              {formDiscountType === "percentage" && (
+                <div className="space-y-1.5">
+                  <label className="font-bold text-slate-700 block">
+                    Max Discount Cap ($ USDT, optional)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={formMaxDiscount}
+                    onChange={(e) => setFormMaxDiscount(e.target.value)}
+                    placeholder="e.g. 50"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold bg-white focus:outline-none focus:border-[#00143D]"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Section C: Scope & Minimum Spend */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="font-black text-[#00143D] uppercase tracking-wider block text-[11px]">
+                Promotion Scope
+              </label>
               <select
-                value={couponType}
-                onChange={(e) => setCouponType(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold bg-white focus:outline-none"
+                value={formScope}
+                onChange={(e) => setFormScope(e.target.value as PromotionScope)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00143D]"
               >
-                <option value="percentage">Percentage Discount (%)</option>
-                <option value="fixed_amount">Fixed Amount ($ USDT)</option>
-                <option value="free_shipping">Free Air Shipping</option>
+                <option value="all">Sitewide (All Products)</option>
+                <option value="cart">Cart-Level Spend</option>
+                <option value="category">Category-Specific</option>
+                <option value="product">Specific Products</option>
+                <option value="brand">Brand-Specific</option>
               </select>
             </div>
 
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">Discount Value *</label>
+            <div className="space-y-1.5">
+              <label className="font-black text-[#00143D] uppercase tracking-wider block text-[11px]">
+                Minimum Purchase Amount ($ USDT)
+              </label>
               <input
                 type="number"
-                required
-                value={couponValue}
-                onChange={(e) => setCouponValue(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-black text-sm focus:outline-none"
+                min={0}
+                value={formMinSpend}
+                onChange={(e) => setFormMinSpend(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00143D]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">Minimum Order Spend ($)</label>
+          {/* Section D: Restrictions & Checkboxes */}
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+            <h4 className="font-black text-[#00143D] uppercase text-[11px]">
+              Usage Restrictions & Rules
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="flex items-center gap-2 text-slate-700 font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formFirstOrderOnly}
+                  onChange={(e) => setFormFirstOrderOnly(e.target.checked)}
+                  className="rounded text-[#FF1028] focus:ring-[#FF1028]"
+                />
+                <span>1st Order Only</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-slate-700 font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formIsAutomatic}
+                  onChange={(e) => setFormIsAutomatic(e.target.checked)}
+                  className="rounded text-[#FF1028] focus:ring-[#FF1028]"
+                />
+                <span>Automatic (No Code)</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-slate-700 font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formIsStackable}
+                  onChange={(e) => setFormIsStackable(e.target.checked)}
+                  className="rounded text-[#FF1028] focus:ring-[#FF1028]"
+                />
+                <span>Stackable</span>
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="space-y-1">
+                <label className="text-slate-600 font-bold block">Total Usage Cap</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={formUsageLimit}
+                  onChange={(e) => setFormUsageLimit(e.target.value)}
+                  placeholder="Unlimited"
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-slate-600 font-bold block">Max Uses Per Customer</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={formPerCustomerLimit}
+                  onChange={(e) => setFormPerCustomerLimit(Number(e.target.value))}
+                  className="w-full px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section E: Dates */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 block">Start Date</label>
               <input
-                type="number"
-                value={couponMinSpend}
-                onChange={(e) => setCouponMinSpend(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+                type="datetime-local"
+                value={formStartsAt}
+                onChange={(e) => setFormStartsAt(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">Max Redemption Limit</label>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 block">Expiry Date (Optional)</label>
               <input
-                type="number"
-                value={couponMaxUses}
-                onChange={(e) => setCouponMaxUses(Number(e.target.value))}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+                type="datetime-local"
+                value={formExpiresAt}
+                onChange={(e) => setFormExpiresAt(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Description for Checkout Banner</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. 10% off on all RC drones and smart electronics"
-              value={couponDesc}
-              onChange={(e) => setCouponDesc(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
-            />
-          </div>
-
-          <div className="pt-3 flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl font-black transition-colors"
-            >
-              {editingCouponId ? "Save Changes" : "Publish Voucher"}
-            </button>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={() => setIsCouponModalOpen(false)}
-              className="flex-1 bg-slate-100 text-slate-700 py-3 rounded-xl font-bold"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-slate-700 hover:bg-slate-50"
             >
               Cancel
             </button>
-          </div>
-        </form>
-      </Modal>
 
-      {/* ── 9. Add Flash Product Modal ── */}
-      <Modal
-        isOpen={isAddFlashModalOpen}
-        onClose={() => setIsAddFlashModalOpen(false)}
-        title="Add Product to Flash Deals Zone"
-        size="md"
-      >
-        <form onSubmit={handleAddFlashProduct} className="p-6 space-y-4 font-montserrat text-xs text-slate-800">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Select Sourced Product</label>
-            <select
-              value={selectedFlashProdId}
-              onChange={(e) => setSelectedFlashProdId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold bg-white focus:outline-none"
-            >
-              {allProducts.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title} — {formatCurrency(p.base_price)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-950 space-y-1">
-            <span className="font-black flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-[#FF1028]" /> 24-Hour Deal Zone
-            </span>
-            <p className="text-[11px] text-slate-600">
-              Product will receive a high-visibility placement on the homepage Flash Deals carousel with a live countdown clock.
-            </p>
-          </div>
-
-          <div className="pt-2 flex gap-3">
             <button
               type="submit"
-              className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl font-black transition-colors"
+              disabled={isPending}
+              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-2.5 rounded-xl font-black shadow-md disabled:opacity-50"
             >
-              Add to Flash Deals
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsAddFlashModalOpen(false)}
-              className="flex-1 bg-slate-100 text-slate-700 py-3 rounded-xl font-bold"
-            >
-              Cancel
+              {isPending ? "Saving..." : editingCouponId ? "Update Promotion" : "Save & Activate"}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* ── 10. Create / Edit Banner Modal ── */}
+      {/* ── 9. FLASH DEAL MODAL ── */}
       <Modal
-        isOpen={isBannerModalOpen}
-        onClose={() => setIsBannerModalOpen(false)}
-        title={editingBannerId ? "Edit Hero Campaign Banner" : "New Hero Campaign Banner"}
-        size="lg"
+        isOpen={isFlashModalOpen}
+        onClose={() => setIsFlashModalOpen(false)}
+        title="Schedule Flash Sourcing Deal"
+        size="md"
       >
-        <form onSubmit={handleSaveBanner} className="p-6 space-y-4 font-montserrat text-xs text-slate-800">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Campaign Headline *</label>
+        <form onSubmit={handleSaveFlash} className="p-6 space-y-4 text-xs font-montserrat">
+          <div className="space-y-1.5">
+            <label className="font-black text-[#00143D] uppercase block">Flash Deal Title</label>
             <input
               type="text"
               required
-              value={bannerTitle}
-              onChange={(e) => setBannerTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none"
+              value={flashTitle}
+              onChange={(e) => setFlashTitle(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold text-xs"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Subtitle / Offer Description</label>
+          <div className="space-y-1.5">
+            <label className="font-black text-[#00143D] uppercase block">Discount Percentage (%)</label>
             <input
-              type="text"
-              value={bannerSubtitle}
-              onChange={(e) => setBannerSubtitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+              type="number"
+              min={5}
+              max={90}
+              required
+              value={flashDiscount}
+              onChange={(e) => setFlashDiscount(Number(e.target.value))}
+              className="w-full px-3 py-2 border border-slate-300 rounded-xl font-bold text-xs"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">Badge Label</label>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 block">Start Time</label>
               <input
-                type="text"
-                value={bannerBadge}
-                onChange={(e) => setBannerBadge(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none"
+                type="datetime-local"
+                required
+                value={flashStart}
+                onChange={(e) => setFlashStart(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">Discount Pill Tag</label>
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 block">End Time</label>
               <input
-                type="text"
-                value={bannerDiscountBadge}
-                onChange={(e) => setBannerDiscountBadge(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">CTA Button Text</label>
-              <input
-                type="text"
-                value={bannerCtaText}
-                onChange={(e) => setBannerCtaText(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold focus:outline-none"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700">CTA Destination Link</label>
-              <input
-                type="text"
-                value={bannerCtaLink}
-                onChange={(e) => setBannerCtaLink(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono focus:outline-none"
+                type="datetime-local"
+                required
+                value={flashEnd}
+                onChange={(e) => setFlashEnd(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs"
               />
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700">Hero Image URL</label>
-            <input
-              type="url"
-              value={bannerImageUrl}
-              onChange={(e) => setBannerImageUrl(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono focus:outline-none"
-            />
-          </div>
-
-          <div className="pt-3 flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl font-black transition-colors"
-            >
-              {editingBannerId ? "Save Hero Slide" : "Publish Slide"}
-            </button>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
-              onClick={() => setIsBannerModalOpen(false)}
-              className="flex-1 bg-slate-100 text-slate-700 py-3 rounded-xl font-bold"
+              onClick={() => setIsFlashModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl border border-slate-200 font-bold"
             >
               Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="bg-[#FF1028] text-white px-6 py-2.5 rounded-xl font-black shadow-md"
+            >
+              {isPending ? "Scheduling..." : "Schedule Flash Deal"}
             </button>
           </div>
         </form>
