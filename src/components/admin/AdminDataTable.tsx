@@ -210,11 +210,11 @@ export function AdminDataTable<T extends Record<string, any>>({
   return (
     <div className="space-y-4">
       {/* ── Toolbar: Search, Filters & Quick Actions ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-900/90 border border-slate-800 p-3.5 rounded-2xl">
-        <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 p-4 rounded-2xl shadow-xs">
+        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0">
           {/* Search Input */}
-          <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="relative flex-1 min-w-[220px] max-w-md">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
@@ -223,20 +223,20 @@ export function AdminDataTable<T extends Record<string, any>>({
                 setCurrentPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 text-xs rounded-xl pl-9 pr-3 py-2 outline-none focus:border-[#FF1028] transition-colors"
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 text-xs rounded-xl pl-9 pr-3 py-2 outline-none focus:border-[#2F65F6] transition-colors"
             />
           </div>
 
           {/* Filter Dropdowns */}
           {filters.map((flt) => (
-            <div key={flt.key} className="relative min-w-[130px]">
+            <div key={flt.key} className="relative min-w-[140px]">
               <select
                 value={activeFilters[flt.key] || "all"}
                 onChange={(e) => {
                   setActiveFilters((prev) => ({ ...prev, [flt.key]: e.target.value }));
                   setCurrentPage(1);
                 }}
-                className="w-full appearance-none bg-slate-950 border border-slate-800 text-slate-300 text-xs font-semibold rounded-xl px-3 py-2 pr-7 outline-none focus:border-[#FF1028] transition-colors cursor-pointer"
+                className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl px-3 py-2 pr-7 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
               >
                 <option value="all">{flt.label}: All</option>
                 {flt.options.map((opt) => (
@@ -245,7 +245,7 @@ export function AdminDataTable<T extends Record<string, any>>({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           ))}
 
@@ -253,7 +253,7 @@ export function AdminDataTable<T extends Record<string, any>>({
           {isFiltered && (
             <button
               onClick={handleResetFilters}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset</span>
@@ -266,9 +266,9 @@ export function AdminDataTable<T extends Record<string, any>>({
           {onExportCsv && (
             <button
               onClick={onExportCsv}
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 px-3 py-2 rounded-xl border border-slate-700 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors shadow-xs cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <Download className="w-3.5 h-3.5 text-emerald-500" />
               <span>Export CSV</span>
             </button>
           )}
@@ -277,9 +277,9 @@ export function AdminDataTable<T extends Record<string, any>>({
 
       {/* ── Bulk Actions Floating Bar ── */}
       {selectedIds.size > 0 && bulkActions.length > 0 && (
-        <div className="bg-slate-900 border border-[#FF1028]/40 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg shadow-red-950/20 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
-            <span className="bg-[#FF1028] text-white px-2 py-0.5 rounded text-[11px] font-mono">
+        <div className="bg-white dark:bg-slate-900 border border-blue-500/30 p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg shadow-blue-500/5 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
+            <span className="bg-[#2F65F6] text-white px-2 py-0.5 rounded-md text-[11px] font-mono">
               {selectedIds.size}
             </span>
             <span>records selected</span>
@@ -298,10 +298,10 @@ export function AdminDataTable<T extends Record<string, any>>({
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer",
                     action.variant === "danger"
-                      ? "bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40"
+                      ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30"
                       : action.variant === "success"
-                      ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40"
-                      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                      ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                      : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700"
                   )}
                 >
                   {Icon && <Icon className="w-3.5 h-3.5" />}
@@ -312,7 +312,7 @@ export function AdminDataTable<T extends Record<string, any>>({
 
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="text-xs text-slate-400 hover:text-white px-2 py-1"
+              className="text-xs text-slate-400 hover:text-slate-700 dark:hover:text-white px-2 py-1"
             >
               Clear
             </button>
@@ -321,22 +321,22 @@ export function AdminDataTable<T extends Record<string, any>>({
       )}
 
       {/* ── Main Data Table ── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-md">
+      <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto min-h-[300px]">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider select-none">
+              <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider select-none">
                 {/* Bulk Select All Checkbox */}
                 {bulkActions.length > 0 && (
                   <th className="py-3.5 px-4 w-10 text-center">
                     <button
                       type="button"
                       onClick={handleSelectAllOnPage}
-                      className="text-slate-400 hover:text-white cursor-pointer"
+                      className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                     >
                       {paginatedData.length > 0 &&
                       paginatedData.every((item) => selectedIds.has(keyExtractor(item))) ? (
-                        <CheckSquare className="w-4 h-4 text-[#FF1028]" />
+                        <CheckSquare className="w-4 h-4 text-[#2F65F6]" />
                       ) : (
                         <Square className="w-4 h-4" />
                       )}
@@ -351,7 +351,7 @@ export function AdminDataTable<T extends Record<string, any>>({
                       key={idx}
                       className={cn(
                         "py-3.5 px-4 font-bold",
-                        col.sortable && "cursor-pointer hover:text-white transition-colors",
+                        col.sortable && "cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors",
                         col.className
                       )}
                       onClick={() => col.sortable && handleSort(col.accessorKey as string)}
@@ -359,15 +359,15 @@ export function AdminDataTable<T extends Record<string, any>>({
                       <div className="flex items-center gap-1.5">
                         <span>{col.header}</span>
                         {col.sortable && (
-                          <span className="text-slate-500">
+                          <span className="text-slate-400">
                             {isCurrentSort ? (
                               sortDirection === "asc" ? (
-                                <ChevronUp className="w-3.5 h-3.5 text-[#FF1028]" />
+                                <ChevronUp className="w-3.5 h-3.5 text-[#2F65F6]" />
                               ) : (
-                                <ChevronDown className="w-3.5 h-3.5 text-[#FF1028]" />
+                                <ChevronDown className="w-3.5 h-3.5 text-[#2F65F6]" />
                               )
                             ) : (
-                              <ChevronDown className="w-3.5 h-3.5 opacity-30" />
+                              <ChevronDown className="w-3.5 h-3.5 opacity-40" />
                             )}
                           </span>
                         )}
@@ -378,18 +378,18 @@ export function AdminDataTable<T extends Record<string, any>>({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
               {isLoading ? (
                 Array.from({ length: itemsPerPage }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     {bulkActions.length > 0 && (
                       <td className="py-4 px-4 text-center">
-                        <Skeleton className="w-4 h-4 rounded bg-slate-800 inline-block" />
+                        <Skeleton className="w-4 h-4 rounded bg-slate-100 dark:bg-slate-800 inline-block" />
                       </td>
                     )}
                     {columns.map((_, colIdx) => (
                       <td key={colIdx} className="py-4 px-4">
-                        <Skeleton className="h-4 w-3/4 rounded bg-slate-800" />
+                        <Skeleton className="h-4 w-3/4 rounded bg-slate-100 dark:bg-slate-800" />
                       </td>
                     ))}
                   </tr>
@@ -401,17 +401,17 @@ export function AdminDataTable<T extends Record<string, any>>({
                     className="py-16 text-center"
                   >
                     <div className="max-w-md mx-auto space-y-3">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
                         <SlidersHorizontal className="w-6 h-6" />
                       </div>
-                      <h3 className="text-sm font-bold text-white">{emptyTitle}</h3>
-                      <p className="text-xs text-slate-400 leading-relaxed">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">{emptyTitle}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                         {emptyDescription}
                       </p>
                       {emptyAction && (
                         <button
                           onClick={emptyAction.onClick}
-                          className="mt-2 bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                          className="mt-2 bg-[#2F65F6] hover:bg-[#2563EB] text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
                         >
                           {emptyAction.label}
                         </button>
@@ -428,8 +428,8 @@ export function AdminDataTable<T extends Record<string, any>>({
                     <tr
                       key={rowId}
                       className={cn(
-                        "hover:bg-slate-950/60 transition-colors",
-                        isSelected && "bg-slate-950/80"
+                        "hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors",
+                        isSelected && "bg-blue-50/40 dark:bg-blue-950/20"
                       )}
                     >
                       {bulkActions.length > 0 && (
@@ -437,10 +437,10 @@ export function AdminDataTable<T extends Record<string, any>>({
                           <button
                             type="button"
                             onClick={() => handleSelectRow(rowId)}
-                            className="text-slate-400 hover:text-white cursor-pointer"
+                            className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                           >
                             {isSelected ? (
-                              <CheckSquare className="w-4 h-4 text-[#FF1028]" />
+                              <CheckSquare className="w-4 h-4 text-[#2F65F6]" />
                             ) : (
                               <Square className="w-4 h-4" />
                             )}
@@ -465,23 +465,23 @@ export function AdminDataTable<T extends Record<string, any>>({
 
         {/* ── Table Footer & Pagination ── */}
         {!isLoading && sortedData.length > 0 && (
-          <div className="border-t border-slate-800 bg-slate-950/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-3">
               <span>
-                Showing <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> to{" "}
-                <strong>{Math.min(currentPage * itemsPerPage, sortedData.length)}</strong> of{" "}
-                <strong>{sortedData.length}</strong> results
+                Showing <strong className="text-slate-900 dark:text-white">{(currentPage - 1) * itemsPerPage + 1}</strong> to{" "}
+                <strong className="text-slate-900 dark:text-white">{Math.min(currentPage * itemsPerPage, sortedData.length)}</strong> of{" "}
+                <strong className="text-slate-900 dark:text-white">{sortedData.length}</strong> results
               </span>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-500">Per page:</span>
+                <span className="text-slate-400">Per page:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="bg-slate-900 border border-slate-800 text-slate-300 rounded-lg px-2 py-1 outline-none text-xs"
+                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1 outline-none text-xs"
                 >
                   {itemsPerPageOptions.map((opt) => (
                     <option key={opt} value={opt}>
@@ -498,13 +498,13 @@ export function AdminDataTable<T extends Record<string, any>>({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-xs"
                 aria-label="Previous Page"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
-              <span className="px-3 py-1 font-bold text-slate-200">
+              <span className="px-3 py-1 font-bold text-slate-800 dark:text-slate-200">
                 Page {currentPage} of {totalPages}
               </span>
 
@@ -512,7 +512,7 @@ export function AdminDataTable<T extends Record<string, any>>({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shadow-xs"
                 aria-label="Next Page"
               >
                 <ChevronRight className="w-4 h-4" />

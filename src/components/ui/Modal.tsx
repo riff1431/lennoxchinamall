@@ -61,29 +61,29 @@ export function Modal({
         {/* Modal Panel (Bottom sheet on mobile, centered card on desktop) */}
         <div
           className={cn(
-            "relative transform overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white text-left shadow-2xl transition-all w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200",
+            "relative transform overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#111827] text-left shadow-2xl transition-all w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-200/80 dark:border-slate-800 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200",
             sizeClasses[size],
             maxWidth && `sm:${maxWidth}`,
             className
           )}
         >
           {title && (
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/80 shrink-0">
-              <div className="text-sm sm:text-base font-black text-slate-900 line-clamp-1">{title}</div>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
+              <div className="text-base font-bold text-slate-900 dark:text-white line-clamp-1 font-heading">{title}</div>
               <button
                 onClick={onClose}
-                className="w-10 h-10 -mr-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                className="w-9 h-9 -mr-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full flex items-center justify-center transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
-          <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain">{children}</div>
+          <div className="p-5 sm:p-6 overflow-y-auto flex-1 overscroll-contain text-slate-700 dark:text-slate-300">{children}</div>
 
           {footer && (
-            <div className="border-t border-slate-100 px-5 py-3.5 bg-slate-50 flex items-center justify-end gap-3 shrink-0 pb-safe">
+            <div className="border-t border-slate-100 dark:border-slate-800 px-6 py-4 bg-slate-50/60 dark:bg-slate-900/60 flex items-center justify-end gap-3 shrink-0 pb-safe">
               {footer}
             </div>
           )}

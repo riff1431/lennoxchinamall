@@ -2,28 +2,22 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   RotateCcw,
-  ShieldAlert,
   Plus,
   Edit2,
   Trash2,
   Eye,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   Clock,
   Video,
   Camera,
   Coins,
-  FileText,
   DollarSign,
   ExternalLink,
   ShieldCheck,
-  Check,
-  Search,
-  User,
-  Sparkles,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import {
@@ -252,7 +246,7 @@ export default function AdminReturnsPage() {
       cell: (row) => (
         <Link
           href={`/admin/orders`}
-          className="font-mono text-slate-300 hover:text-[#FF1028] transition-colors text-xs font-semibold"
+          className="font-mono text-slate-700 dark:text-slate-300 hover:text-[#2F65F6] transition-colors text-xs font-semibold"
         >
           {row.orderNumber}
         </Link>
@@ -522,10 +516,10 @@ export default function AdminReturnsPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Returns & Warranty RMA Claims"
+        title="Returns &amp; Warranty RMA Claims"
         subtitle="Manage 30-day factory direct warranty claims, inspect video/photo defect evidence, and issue Binance Pay USDT refunds."
         badge={{ text: "30-Day RMA Warranty", variant: "purple" }}
         breadcrumbs={[{ label: "Returns & Warranty" }]}
@@ -539,73 +533,76 @@ export default function AdminReturnsPage() {
         ]}
       />
 
-      {/* ── 2. KPI Summary Cards ── */}
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="bg-[#DCFCE7] dark:bg-emerald-950 border border-[#BBF7D0] dark:border-emerald-800 text-[#16A34A] dark:text-emerald-300 px-4 py-3 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+          <button onClick={() => setToastMsg(null)} className="font-bold text-sm cursor-pointer">×</button>
+        </div>
+      )}
+
+      {/* ── 2. Top 4 Pastel KPI Summary Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#F3E8FF] dark:bg-[#28183B] border border-[#E9D5FF]/50 dark:border-purple-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total RMA Pipeline
             </span>
-            <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-              <RotateCcw className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5 block">
+              {totalClaims} Claims
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">30-day factory direct warranty</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {totalClaims} Claims
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            30-Day Direct Factory Protection
+          <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-xs">
+            <RotateCcw className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Under Review
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
+              {underReviewCount} Claims
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Teardown video proof queue</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-blue-400">
-            {underReviewCount} Claims
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            Awaiting teardown video review
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               USDT Refund Settled
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
+              {formatCurrency(totalRefundedUSDT)}
+            </span>
+            <span className="text-[11px] text-[#16A34A] block mt-0.5">Zero gateway penalty fee</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-400 price-tag">
-            {formatCurrency(totalRefundedUSDT)}
-          </div>
-          <div className="text-[11px] text-[#10B981] font-bold">
-            Zero Gateway Penalty Refunds
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+            <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Warranty Approval Rate
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
+              {resolutionRate}%
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Honored factory replacements</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-amber-400">
-            {resolutionRate}%
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            Honored factory replacements
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
       </div>
@@ -644,15 +641,15 @@ export default function AdminReturnsPage() {
         title={editingClaim ? `Review RMA Claim — ${editingClaim.rmaNumber}` : "Create Warranty RMA Claim"}
         size="xl"
       >
-        <form onSubmit={handleSaveClaim} className="space-y-5 pt-1 text-xs">
+        <form onSubmit={handleSaveClaim} className="space-y-5 text-xs text-slate-800 dark:text-slate-200">
           {/* Warranty Policy Strip */}
-          <div className="p-3.5 bg-purple-950/40 rounded-2xl border border-purple-800/60 flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-[#F3E8FF] dark:bg-purple-950/40 rounded-2xl border border-[#E9D5FF]/60 dark:border-purple-800/60 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
-              <span className="font-black text-purple-300 uppercase text-[10px] tracking-wider block">
+              <span className="font-bold text-purple-700 dark:text-purple-300 uppercase text-[10px] tracking-wider block">
                 Lennox 30-Day Direct Factory Warranty Gate
               </span>
-              <p className="text-[11px] text-purple-200/80 leading-relaxed">
+              <p className="text-[11px] text-purple-900/80 dark:text-purple-200/80 leading-relaxed">
                 Review defect diagnosis, inspect audio/video proof, and issue instant zero-gas fee USDT settlement directly back to customer Binance Pay wallets.
               </p>
             </div>
@@ -660,7 +657,7 @@ export default function AdminReturnsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 RMA Authorization # *
               </label>
               <input
@@ -668,12 +665,12 @@ export default function AdminReturnsPage() {
                 required
                 value={rmaNumber}
                 onChange={(e) => setRmaNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Original Order Number *
               </label>
               <input
@@ -681,12 +678,12 @@ export default function AdminReturnsPage() {
                 required
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Customer Name *
               </label>
               <input
@@ -695,12 +692,12 @@ export default function AdminReturnsPage() {
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="e.g. Robert Taylor"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Customer Email *
               </label>
               <input
@@ -709,12 +706,12 @@ export default function AdminReturnsPage() {
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
                 placeholder="e.g. robert.t@outlook.com"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Product Title *
               </label>
               <input
@@ -723,12 +720,12 @@ export default function AdminReturnsPage() {
                 value={productTitle}
                 onChange={(e) => setProductTitle(e.target.value)}
                 placeholder="e.g. BlitzWolf BW-WA3 Pro 120W Speaker"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Primary RMA Reason *
               </label>
               <input
@@ -737,18 +734,18 @@ export default function AdminReturnsPage() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="e.g. Bluetooth Audio Distortion on Right Subwoofer"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Evidence Format Type *
               </label>
               <select
                 value={evidenceType}
-                onChange={(e) => setEvidenceType(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                onChange={(e) => setEvidenceType(e.target.value as ReturnClaim["evidenceType"])}
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="video_proof">Video Proof (Diagnostic Teardown / Audio)</option>
                 <option value="photo_inspection">Photo Inspection (Outer Box Impact / Defect)</option>
@@ -756,7 +753,7 @@ export default function AdminReturnsPage() {
             </div>
 
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Evidence Media URL (YouTube Embed / Image CDN)
               </label>
               <input
@@ -764,31 +761,31 @@ export default function AdminReturnsPage() {
                 value={evidenceUrl}
                 onChange={(e) => setEvidenceUrl(e.target.value)}
                 placeholder="https://..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Customer Defect Description & Teardown Notes
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Customer Defect Description &amp; Teardown Notes
               </label>
               <textarea
                 rows={3}
                 value={defectDescription}
                 onChange={(e) => setDefectDescription(e.target.value)}
                 placeholder="Detailed explanation of failure mode, sound distortion, impact damage..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Claim Lifecycle Status *
               </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                onChange={(e) => setStatus(e.target.value as ReturnClaim["status"])}
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="requested">Requested (Pending Staff Review)</option>
                 <option value="under_review">Under Review (Inspecting Media Proof)</option>
@@ -799,7 +796,7 @@ export default function AdminReturnsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Refund Amount (USDT) *
               </label>
               <input
@@ -809,12 +806,12 @@ export default function AdminReturnsPage() {
                 required
                 value={refundAmountUSDT}
                 onChange={(e) => setRefundAmountUSDT(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Assigned Inspector *
               </label>
               <input
@@ -822,12 +819,12 @@ export default function AdminReturnsPage() {
                 required
                 value={assignedInspector}
                 onChange={(e) => setAssignedInspector(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Staff Resolution Note
               </label>
               <textarea
@@ -835,23 +832,23 @@ export default function AdminReturnsPage() {
                 value={resolutionNote}
                 onChange={(e) => setResolutionNote(e.target.value)}
                 placeholder="e.g. Approved factory replacement warranty claim under 30-day policy."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
           </div>
 
           {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsReviewModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors cursor-pointer shadow-md"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors cursor-pointer shadow-blue-500/25 shadow-xs"
             >
               {editingClaim ? "Save RMA Resolution" : "Submit RMA Claim"}
             </button>
@@ -867,11 +864,11 @@ export default function AdminReturnsPage() {
           title={`Defect Evidence Inspection — ${viewingEvidenceClaim.rmaNumber}`}
           size="lg"
         >
-          <div className="space-y-5 pt-1 text-xs text-slate-300">
+          <div className="space-y-5 text-xs text-slate-800 dark:text-slate-200">
             {/* Header info */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="font-mono font-black text-white text-sm">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   {viewingEvidenceClaim.rmaNumber}
                 </span>
                 <StatusBadge
@@ -883,26 +880,26 @@ export default function AdminReturnsPage() {
 
               <div className="grid grid-cols-2 gap-3 text-[11px]">
                 <div>
-                  <span className="text-slate-500 block">Product:</span>
-                  <span className="font-bold text-white">
+                  <span className="text-slate-500 dark:text-slate-400 block">Product:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">
                     {viewingEvidenceClaim.productTitle}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Customer:</span>
-                  <span className="text-slate-200">
+                  <span className="text-slate-500 dark:text-slate-400 block">Customer:</span>
+                  <span className="text-slate-700 dark:text-slate-300">
                     {viewingEvidenceClaim.customerName}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Reported Fault:</span>
-                  <span className="text-amber-400 font-semibold">
+                  <span className="text-slate-500 dark:text-slate-400 block">Reported Fault:</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-semibold">
                     {viewingEvidenceClaim.reason}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Refund Value:</span>
-                  <span className="font-mono text-emerald-400 font-bold">
+                  <span className="text-slate-500 dark:text-slate-400 block">Refund Value:</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                     ${viewingEvidenceClaim.refundAmountUSDT.toFixed(2)} USDT
                   </span>
                 </div>
@@ -910,13 +907,13 @@ export default function AdminReturnsPage() {
             </div>
 
             {/* Evidence Viewer Box */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="font-black text-slate-200 uppercase text-[10px] tracking-wider flex items-center gap-1.5">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                <span className="font-bold text-slate-900 dark:text-white uppercase text-[10px] tracking-wider flex items-center gap-1.5">
                   {viewingEvidenceClaim.evidenceType === "video_proof" ? (
-                    <Video className="w-4 h-4 text-purple-400" />
+                    <Video className="w-4 h-4 text-[#8B5CF6]" />
                   ) : (
-                    <Camera className="w-4 h-4 text-cyan-400" />
+                    <Camera className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                   )}
                   <span>
                     {viewingEvidenceClaim.evidenceType === "video_proof"
@@ -930,7 +927,7 @@ export default function AdminReturnsPage() {
                     href={viewingEvidenceClaim.evidenceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[10px] text-blue-400 hover:underline inline-flex items-center gap-1"
+                    className="text-[10px] text-[#2F65F6] hover:underline inline-flex items-center gap-1 font-semibold"
                   >
                     <span>Raw Media Source</span>
                     <ExternalLink className="w-3 h-3" />
@@ -940,7 +937,7 @@ export default function AdminReturnsPage() {
 
               {/* Media Preview Container */}
               {viewingEvidenceClaim.evidenceType === "video_proof" ? (
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-800">
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-200 dark:border-slate-800">
                   <iframe
                     src={viewingEvidenceClaim.evidenceUrl}
                     title="Defect Diagnostic Video"
@@ -950,21 +947,23 @@ export default function AdminReturnsPage() {
                   />
                 </div>
               ) : (
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
-                  <img
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                  <Image
                     src={viewingEvidenceClaim.evidenceUrl}
                     alt="Defect proof"
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized
                   />
                 </div>
               )}
 
               {/* Defect Description */}
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-[11px] space-y-1">
-                <span className="font-bold text-slate-400 uppercase text-[9px] block">
+              <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px] space-y-1">
+                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[9px] block">
                   Customer Problem Log:
                 </span>
-                <p className="text-slate-200 leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-200 leading-relaxed">
                   {viewingEvidenceClaim.defectDescription || "No additional description provided."}
                 </p>
               </div>
@@ -972,17 +971,17 @@ export default function AdminReturnsPage() {
 
             {/* Resolution note */}
             {viewingEvidenceClaim.resolutionNote && (
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
-                <span className="font-bold text-slate-400 uppercase text-[10px] block">
-                  Inspector Findings & Resolution:
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase text-[10px] block">
+                  Inspector Findings &amp; Resolution:
                 </span>
-                <p className="text-slate-200 text-xs">
+                <p className="text-slate-800 dark:text-slate-200 text-xs">
                   {viewingEvidenceClaim.resolutionNote}
                 </p>
               </div>
             )}
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => {
@@ -990,14 +989,14 @@ export default function AdminReturnsPage() {
                   setViewingEvidenceClaim(null);
                   handleOpenReviewModal(c);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] cursor-pointer shadow-blue-500/25 shadow-xs"
               >
-                Review & Set Refund
+                Review &amp; Set Refund
               </button>
               <button
                 type="button"
                 onClick={() => setViewingEvidenceClaim(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
               >
                 Close
               </button>
@@ -1016,19 +1015,6 @@ export default function AdminReturnsPage() {
         confirmLabel="Delete Claim"
         variant="danger"
       />
-
-      {/* ── 7. Toast Notification Bar ── */}
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
-          <span>✓ {toastMsg}</span>
-          <button
-            onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 cursor-pointer"
-          >
-            ×
-          </button>
-        </div>
-      )}
     </div>
   );
 }

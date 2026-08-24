@@ -4,33 +4,25 @@ import React, { useState, useMemo } from "react";
 import {
   Star,
   CheckCircle2,
-  XCircle,
   Clock,
   Image as ImageIcon,
   MessageSquare,
-  Eye,
   Edit2,
   Trash2,
   Check,
   X,
   Sparkles,
-  ShieldCheck,
-  ThumbsUp,
-  AlertCircle,
   Plus,
   CornerDownRight,
   Award,
-  Filter,
-  Send,
   MessageCircle,
-  ShoppingBag,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
-import { formatCurrency, formatDate } from "@/utils/helpers";
+import { formatDate } from "@/utils/helpers";
 import { MOCK_ADMIN_REVIEWS, AdminReview } from "@/lib/mockData";
 import { cn } from "@/utils/helpers";
 
@@ -49,7 +41,7 @@ const INITIAL_REVIEWS: AdminReview[] = [
     status: "approved",
     isFeatured: true,
     sellerReply: "Thank you Robert! We calibrate all K1 Max units at our Shenzhen inspection facility before dispatch.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+    createdAt: "2026-08-17T12:00:00.000Z",
   },
   {
     id: "rev-5",
@@ -63,7 +55,7 @@ const INITIAL_REVIEWS: AdminReview[] = [
     status: "approved",
     isFeatured: false,
     sellerReply: "Hi Elena, our bilingual PDF user guide has been dispatched to your registered email address.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9).toISOString(),
+    createdAt: "2026-08-15T12:00:00.000Z",
   },
   {
     id: "rev-6",
@@ -76,7 +68,7 @@ const INITIAL_REVIEWS: AdminReview[] = [
     hasMediaProof: true,
     status: "pending",
     isFeatured: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+    createdAt: "2026-08-23T18:00:00.000Z",
   },
   {
     id: "rev-7",
@@ -89,7 +81,7 @@ const INITIAL_REVIEWS: AdminReview[] = [
     hasMediaProof: true,
     status: "approved",
     isFeatured: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
+    createdAt: "2026-08-12T12:00:00.000Z",
   },
   {
     id: "rev-8",
@@ -102,7 +94,7 @@ const INITIAL_REVIEWS: AdminReview[] = [
     hasMediaProof: false,
     status: "rejected",
     isFeatured: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
+    createdAt: "2026-08-22T08:00:00.000Z",
   },
 ];
 
@@ -249,11 +241,11 @@ export default function AdminReviewsPage() {
       createdAt: new Date().toISOString(),
     };
 
-    setReviews([newReviewItem, ...reviews]);
-    showToast("New customer review added successfully!");
+    setReviews((prev) => [newReviewItem, ...prev]);
+    showToast(`New review for "${newProductTitle}" created and ${newStatus}!`);
     setIsCreateModalOpen(false);
 
-    // Reset form
+    // Reset Form
     setNewProductTitle("");
     setNewCustomerName("");
     setNewRating(5);
@@ -266,36 +258,22 @@ export default function AdminReviewsPage() {
     setNewSellerReply("");
   };
 
-  // Table Columns Definition
+  // Table Columns Configuration
   const columns: Column<AdminReview>[] = [
     {
-      header: "Product",
+      header: "Product & Customer",
       accessorKey: "productTitle",
       sortable: true,
       cell: (row) => (
-        <div className="max-w-[190px]">
-          <div className="font-bold text-white text-xs truncate" title={row.productTitle}>
+        <div className="space-y-0.5 max-w-[220px]">
+          <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate" title={row.productTitle}>
             {row.productTitle}
           </div>
-          <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF1028] shrink-0" />
-            <span>Factory Direct</span>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">{row.customerName}</span>
+            <span className="text-slate-300 dark:text-slate-600">•</span>
+            <span className="font-mono text-[10px] text-slate-400">{row.id}</span>
           </div>
-        </div>
-      ),
-    },
-    {
-      header: "Customer",
-      accessorKey: "customerName",
-      sortable: true,
-      cell: (row) => (
-        <div className="text-xs font-semibold text-slate-200 flex items-center gap-2 max-w-[140px]">
-          <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-300 shrink-0">
-            {row.customerName.charAt(0).toUpperCase()}
-          </div>
-          <span className="truncate" title={row.customerName}>
-            {row.customerName}
-          </span>
         </div>
       ),
     },
@@ -309,13 +287,13 @@ export default function AdminReviewsPage() {
             {[1, 2, 3, 4, 5].map((star) => (
               <span
                 key={star}
-                className={star <= row.rating ? "text-amber-400 font-bold" : "text-slate-700"}
+                className={star <= row.rating ? "text-amber-400 font-bold" : "text-slate-300 dark:text-slate-700"}
               >
                 ★
               </span>
             ))}
           </div>
-          <span className="text-[11px] font-bold text-slate-300 font-mono">({row.rating}.0)</span>
+          <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 font-mono">({row.rating}.0)</span>
         </div>
       ),
     },
@@ -324,7 +302,7 @@ export default function AdminReviewsPage() {
       accessorKey: "title",
       sortable: true,
       cell: (row) => (
-        <div className="font-bold text-xs text-slate-100 max-w-[160px] truncate" title={row.title}>
+        <div className="font-bold text-xs text-slate-900 dark:text-slate-100 max-w-[160px] truncate" title={row.title}>
           {row.title}
         </div>
       ),
@@ -333,7 +311,7 @@ export default function AdminReviewsPage() {
       header: "Comment",
       accessorKey: "comment",
       cell: (row) => (
-        <div className="text-xs text-slate-400 max-w-[210px] truncate" title={row.comment}>
+        <div className="text-xs text-slate-500 dark:text-slate-400 max-w-[210px] truncate" title={row.comment}>
           {row.comment}
         </div>
       ),
@@ -344,12 +322,12 @@ export default function AdminReviewsPage() {
       sortable: true,
       cell: (row) =>
         row.verifiedPurchase ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800/80">
-            <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F0FDF4] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 border border-[#BBF7D0]/60">
+            <Check className="w-3 h-3 stroke-[3]" />
             Verified
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-800/60 text-slate-400 border border-slate-700">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
             Unverified
           </span>
         ),
@@ -360,12 +338,12 @@ export default function AdminReviewsPage() {
       sortable: true,
       cell: (row) =>
         row.hasMediaProof ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-950/60 text-purple-300 border border-purple-800/80">
-            <ImageIcon className="w-3 h-3 text-purple-400" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F3E8FF] dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-[#E9D5FF]/60">
+            <ImageIcon className="w-3 h-3" />
             Media Proof
           </span>
         ) : (
-          <span className="text-[11px] text-slate-500 font-mono text-center block">—</span>
+          <span className="text-[11px] text-slate-400 font-mono text-center block">—</span>
         ),
     },
     {
@@ -373,10 +351,10 @@ export default function AdminReviewsPage() {
       accessorKey: "status",
       sortable: true,
       cell: (row) => {
-        const toneMap: Record<string, "emerald" | "amber" | "red"> = {
+        const toneMap: Record<string, "emerald" | "amber" | "rose"> = {
           approved: "emerald",
           pending: "amber",
-          rejected: "red",
+          rejected: "rose",
         };
         return <StatusBadge status={row.status} tone={toneMap[row.status] || "slate"} />;
       },
@@ -392,10 +370,10 @@ export default function AdminReviewsPage() {
             handleToggleFeatured(row.id);
           }}
           className={cn(
-            "px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all cursor-pointer inline-flex items-center gap-1",
+            "px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-all cursor-pointer inline-flex items-center gap-1",
             row.isFeatured
-              ? "bg-[#FF1028]/15 text-[#FF1028] border-[#FF1028]/40 hover:bg-[#FF1028]/25 shadow-xs"
-              : "bg-slate-800/40 text-slate-500 border-slate-700 hover:text-slate-300"
+              ? "bg-[#EEF4FF] dark:bg-blue-950/60 text-[#2F65F6] dark:text-blue-400 border-[#BFDBFE] hover:bg-blue-100"
+              : "bg-slate-100 dark:bg-slate-800/40 text-slate-500 border-slate-200 dark:border-slate-700 hover:text-slate-800 dark:hover:text-slate-300"
           )}
           title="Click to toggle featured display on product page"
         >
@@ -410,15 +388,15 @@ export default function AdminReviewsPage() {
       cell: (row) =>
         row.sellerReply ? (
           <div
-            className="flex items-center gap-1 text-[11px] text-emerald-400 font-semibold max-w-[110px] truncate"
+            className="flex items-center gap-1 text-[11px] text-[#16A34A] dark:text-emerald-400 font-semibold max-w-[110px] truncate"
             title={row.sellerReply}
           >
-            <MessageSquare className="w-3 h-3 text-emerald-400 shrink-0" />
+            <MessageSquare className="w-3 h-3 shrink-0" />
             <span className="truncate">Replied</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1 text-[11px] text-slate-500">
-            <Clock className="w-3 h-3 text-slate-600 shrink-0" />
+          <div className="flex items-center gap-1 text-[11px] text-slate-400">
+            <Clock className="w-3 h-3 shrink-0" />
             <span>Pending reply</span>
           </div>
         ),
@@ -428,7 +406,7 @@ export default function AdminReviewsPage() {
       accessorKey: "createdAt",
       sortable: true,
       cell: (row) => (
-        <span className="text-xs text-slate-400 font-mono whitespace-nowrap">
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
           {formatDate(row.createdAt)}
         </span>
       ),
@@ -439,7 +417,7 @@ export default function AdminReviewsPage() {
         <div className="flex items-center gap-1.5 justify-end">
           <button
             onClick={() => handleOpenModerateModal(row)}
-            className="p-1.5 rounded-lg text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-[#2F65F6] bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="Moderate Review & Reply"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -447,7 +425,7 @@ export default function AdminReviewsPage() {
           {row.status !== "approved" && (
             <button
               onClick={() => handleQuickStatusChange(row.id, "approved")}
-              className="p-1.5 rounded-lg text-emerald-400 hover:text-emerald-300 bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/60 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-[#16A34A] dark:text-emerald-400 hover:text-emerald-600 bg-[#F0FDF4] dark:bg-emerald-950/40 hover:bg-emerald-100 border border-[#BBF7D0] dark:border-emerald-800/60 transition-colors cursor-pointer"
               title="Quick Approve"
             >
               <Check className="w-3.5 h-3.5" />
@@ -456,7 +434,7 @@ export default function AdminReviewsPage() {
           {row.status !== "rejected" && (
             <button
               onClick={() => handleQuickStatusChange(row.id, "rejected")}
-              className="p-1.5 rounded-lg text-red-400 hover:text-red-300 bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-[#E11D48] dark:text-rose-400 hover:text-rose-600 bg-[#FFF0F2] dark:bg-rose-950/40 hover:bg-rose-100 border border-[#FFE4E8] dark:border-rose-800/60 transition-colors cursor-pointer"
               title="Quick Reject"
             >
               <X className="w-3.5 h-3.5" />
@@ -464,7 +442,7 @@ export default function AdminReviewsPage() {
           )}
           <button
             onClick={() => handleOpenDeleteModal(row)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-[#E11D48] bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="Delete Review"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -549,12 +527,12 @@ export default function AdminReviewsPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16 font-sans">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
         title="Customer Reviews & Moderation"
         subtitle="Moderate product feedback, verify media proofs, pin top customer ratings to storefront cards, and post official factory responses."
-        badge={{ text: "QC & SOCIAL PROOF", variant: "emerald" }}
+        badge={{ text: "QC & SOCIAL PROOF", variant: "blue" }}
         breadcrumbs={[
           { label: "Admin", href: "/admin/dashboard" },
           { label: "Reviews Moderation" },
@@ -569,74 +547,92 @@ export default function AdminReviewsPage() {
         ]}
       />
 
-      {/* ── 2. Stat Metric Cards ── */}
+      {/* ── 2. Top 5 Pastel Stat Metric Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Reviews */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total Reviews
             </span>
-            <MessageCircle className="w-4 h-4 text-slate-500" />
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
+              {stats.total}
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">All submitted feedback</span>
           </div>
-          <div className="text-2xl font-black text-white font-mono">{stats.total}</div>
-          <div className="text-[10px] text-slate-400">All submitted feedback</div>
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <MessageCircle className="w-5 h-5" />
+          </div>
         </div>
 
         {/* Approved Reviews */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Approved
             </span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
+              {stats.approved}
+            </span>
+            <span className="text-[11px] text-[#16A34A] block mt-0.5">Live on storefront</span>
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-mono">{stats.approved}</div>
-          <div className="text-[10px] text-slate-400">Live on storefront</div>
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
         </div>
 
         {/* Pending Moderation */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2B2216] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Pending QC
             </span>
-            <Clock className="w-4 h-4 text-amber-400" />
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
+              {stats.pending}
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Requires moderation</span>
           </div>
-          <div className="text-2xl font-black text-amber-400 font-mono">{stats.pending}</div>
-          <div className="text-[10px] text-slate-400">Requires moderation</div>
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <Clock className="w-5 h-5" />
+          </div>
         </div>
 
         {/* Average Rating */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2B2216] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Avg Rating
             </span>
-            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+            <div className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 flex items-center gap-1">
+              {stats.avgRating}
+              <span className="text-xs text-slate-400 font-normal">/ 5.0</span>
+            </div>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Store-wide average</span>
           </div>
-          <div className="text-2xl font-black text-white font-mono flex items-center gap-1.5">
-            {stats.avgRating}
-            <span className="text-xs text-amber-400 font-normal">/ 5.0</span>
+          <div className="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
+            <Star className="w-5 h-5 fill-white" />
           </div>
-          <div className="text-[10px] text-slate-400">Store-wide average</div>
         </div>
 
         {/* Featured Reviews */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1 col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-[#FF1028] tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#F3E8FF] dark:bg-[#28183B] border border-[#E9D5FF]/50 dark:border-purple-900/30 flex items-center justify-between shadow-xs col-span-2 lg:col-span-1">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Featured
             </span>
-            <Award className="w-4 h-4 text-[#FF1028]" />
+            <span className="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5 block">
+              {stats.featured}
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Pinned to product cards</span>
           </div>
-          <div className="text-2xl font-black text-white font-mono">{stats.featured}</div>
-          <div className="text-[10px] text-slate-400">Pinned to product headers</div>
+          <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-xs">
+            <Award className="w-5 h-5" />
+          </div>
         </div>
       </div>
 
       {/* ── 3. Data Table ── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <AdminDataTable
           data={reviews}
           columns={columns}
@@ -662,19 +658,19 @@ export default function AdminReviewsPage() {
           isOpen={isModerateModalOpen}
           onClose={() => setIsModerateModalOpen(false)}
           title={`Moderate Review: ${selectedReview.productTitle}`}
-          size="xl"
+          size="lg"
         >
-          <form onSubmit={handleSaveModeration} className="space-y-6 pt-2">
+          <form onSubmit={handleSaveModeration} className="space-y-5 pt-1 text-slate-800 dark:text-slate-200">
             {/* Customer & Rating Overview Card */}
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-black text-xs text-white">
+                  <div className="w-8 h-8 rounded-full bg-[#EEF4FF] dark:bg-blue-950 border border-blue-200 dark:border-blue-800 flex items-center justify-center font-bold text-xs text-[#2F65F6]">
                     {selectedReview.customerName.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white">{selectedReview.customerName}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">
+                    <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedReview.customerName}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                       Posted on {formatDate(selectedReview.createdAt)}
                     </div>
                   </div>
@@ -687,14 +683,14 @@ export default function AdminReviewsPage() {
                       <span
                         key={star}
                         className={
-                          star <= selectedReview.rating ? "text-amber-400 font-bold" : "text-slate-700"
+                          star <= selectedReview.rating ? "text-amber-400 font-bold" : "text-slate-300 dark:text-slate-700"
                         }
                       >
                         ★
                       </span>
                     ))}
                   </div>
-                  <span className="text-xs font-bold text-white font-mono">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white font-mono">
                     ({selectedReview.rating}.0 / 5.0)
                   </span>
                 </div>
@@ -703,32 +699,32 @@ export default function AdminReviewsPage() {
               {/* Badges strip */}
               <div className="flex flex-wrap items-center gap-2">
                 {selectedReview.verifiedPurchase ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800/80">
-                    <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F0FDF4] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 border border-[#BBF7D0]/60">
+                    <Check className="w-3 h-3 stroke-[3]" />
                     Verified Binance USDT Purchase
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-800/60 text-slate-400 border border-slate-700">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
                     Non-Verified Purchase
                   </span>
                 )}
 
                 {selectedReview.hasMediaProof ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-950/60 text-purple-300 border border-purple-800/80">
-                    <ImageIcon className="w-3 h-3 text-purple-400" />
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F3E8FF] dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-[#E9D5FF]/60">
+                    <ImageIcon className="w-3 h-3" />
                     Customer Media Attached (Verified)
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-800/60 text-slate-500 border border-slate-800">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-200 dark:bg-slate-800 text-slate-500 border border-slate-300 dark:border-slate-800">
                     No Images Attached
                   </span>
                 )}
               </div>
 
               {/* Review Headline & Body */}
-              <div className="pt-2 space-y-1.5">
-                <div className="text-sm font-black text-white">{selectedReview.title}</div>
-                <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/80 p-3 rounded-xl border border-slate-800/60 font-normal">
+              <div className="pt-1 space-y-1">
+                <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedReview.title}</div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800 font-normal">
                   {selectedReview.comment}
                 </p>
               </div>
@@ -738,7 +734,7 @@ export default function AdminReviewsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Moderation Status */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                   Moderation Decision *
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -748,11 +744,11 @@ export default function AdminReviewsPage() {
                     className={cn(
                       "py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer",
                       modStatus === "approved"
-                        ? "bg-emerald-950/80 text-emerald-300 border-emerald-500 shadow-xs"
-                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-[#F0FDF4] dark:bg-emerald-950/80 text-[#16A34A] dark:text-emerald-300 border-[#BBF7D0] dark:border-emerald-500 shadow-xs"
+                        : "bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300"
                     )}
                   >
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5" />
                     <span>Approve</span>
                   </button>
 
@@ -762,11 +758,11 @@ export default function AdminReviewsPage() {
                     className={cn(
                       "py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer",
                       modStatus === "pending"
-                        ? "bg-amber-950/80 text-amber-300 border-amber-500 shadow-xs"
-                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-[#FFF8EE] dark:bg-amber-950/80 text-amber-600 dark:text-amber-300 border-[#FED7AA] dark:border-amber-500 shadow-xs"
+                        : "bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300"
                     )}
                   >
-                    <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    <Clock className="w-3.5 h-3.5" />
                     <span>Pending</span>
                   </button>
 
@@ -776,11 +772,11 @@ export default function AdminReviewsPage() {
                     className={cn(
                       "py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer",
                       modStatus === "rejected"
-                        ? "bg-red-950/80 text-red-300 border-red-500 shadow-xs"
-                        : "bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700"
+                        ? "bg-[#FFF0F2] dark:bg-rose-950/80 text-[#E11D48] dark:text-rose-300 border-[#FFE4E8] dark:border-rose-500 shadow-xs"
+                        : "bg-white dark:bg-slate-950 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300"
                     )}
                   >
-                    <X className="w-3.5 h-3.5 text-red-400" />
+                    <X className="w-3.5 h-3.5" />
                     <span>Reject</span>
                   </button>
                 </div>
@@ -788,7 +784,7 @@ export default function AdminReviewsPage() {
 
               {/* Featured On Storefront */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 block">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                   Storefront Highlighting
                 </label>
                 <div
@@ -796,13 +792,13 @@ export default function AdminReviewsPage() {
                   className={cn(
                     "h-[42px] px-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-colors select-none",
                     modIsFeatured
-                      ? "bg-[#FF1028]/10 border-[#FF1028]/50 text-white"
-                      : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                      ? "bg-[#EEF4FF] dark:bg-blue-950/60 border-blue-300 dark:border-blue-700 text-[#2F65F6] dark:text-blue-300"
+                      : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-300"
                   )}
                 >
                   <div className="flex items-center gap-2">
                     <Sparkles
-                      className={cn("w-4 h-4", modIsFeatured ? "text-[#FF1028]" : "text-slate-500")}
+                      className={cn("w-4 h-4", modIsFeatured ? "text-[#2F65F6]" : "text-slate-400")}
                     />
                     <span className="text-xs font-bold">
                       {modIsFeatured ? "Featured Review (Pinned)" : "Standard Review"}
@@ -812,8 +808,8 @@ export default function AdminReviewsPage() {
                     className={cn(
                       "w-5 h-5 rounded-md border flex items-center justify-center transition-colors",
                       modIsFeatured
-                        ? "bg-[#FF1028] border-[#FF1028] text-white"
-                        : "border-slate-700 bg-slate-900 text-transparent"
+                        ? "bg-[#2F65F6] border-[#2F65F6] text-white"
+                        : "border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 text-transparent"
                     )}
                   >
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
@@ -825,8 +821,8 @@ export default function AdminReviewsPage() {
             {/* Official Seller / Factory Reply */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <CornerDownRight className="w-3.5 h-3.5 text-[#FF1028]" />
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <CornerDownRight className="w-3.5 h-3.5 text-[#2F65F6]" />
                   <span>Official Factory Seller Reply</span>
                 </label>
                 <span className="text-[10px] text-slate-500">Visible publicly below customer review</span>
@@ -834,7 +830,7 @@ export default function AdminReviewsPage() {
 
               {/* Quick Canned Macros */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] font-bold text-slate-400">Quick template:</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Quick template:</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -842,7 +838,7 @@ export default function AdminReviewsPage() {
                       "Thank you for sourcing with Lennox ChinaMall! We have verified your unit QC certificate and our warranty team is available 24/7."
                     )
                   }
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   General Praise
                 </button>
@@ -853,7 +849,7 @@ export default function AdminReviewsPage() {
                       "We apologize for the logistics inconvenience. Our Guangzhou operations desk has dispatched an expedited replacement accessory."
                     )
                   }
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   Logistics Care
                 </button>
@@ -864,7 +860,7 @@ export default function AdminReviewsPage() {
                       "Please refer to our knowledge base for OTA firmware updates and setup instructions."
                     )
                   }
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   Technical Support
                 </button>
@@ -875,22 +871,22 @@ export default function AdminReviewsPage() {
                 value={modSellerReply}
                 onChange={(e) => setModSellerReply(e.target.value)}
                 placeholder="Type official store reply to customer..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#FF1028] transition-colors leading-relaxed placeholder-slate-600"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#2F65F6] transition-colors leading-relaxed placeholder-slate-400"
               />
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setIsModerateModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-md shadow-red-950/30 cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Save Moderation Changes</span>
@@ -905,42 +901,42 @@ export default function AdminReviewsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Add Customer Review Entry"
-        size="lg"
+        size="md"
       >
-        <form onSubmit={handleCreateReview} className="space-y-4 pt-2">
+        <form onSubmit={handleCreateReview} className="space-y-4 pt-1 text-slate-800 dark:text-slate-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Product Title *</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Product Title *</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. BlitzWolf BW-WA3 Pro 120W Speaker"
                 value={newProductTitle}
                 onChange={(e) => setNewProductTitle(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Customer Name *</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Customer Name *</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. Jason Thorne"
                 value={newCustomerName}
                 onChange={(e) => setNewCustomerName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Rating (1 to 5 Stars) *</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Rating (1 to 5 Stars) *</label>
               <select
                 value={newRating}
                 onChange={(e) => setNewRating(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-amber-400 font-bold text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-amber-600 dark:text-amber-400 font-bold text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value={5}>★★★★★ 5 Stars - Exceptional</option>
                 <option value={4}>★★★★☆ 4 Stars - Very Good</option>
@@ -951,13 +947,13 @@ export default function AdminReviewsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Moderation Status</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Moderation Status</label>
               <select
                 value={newStatus}
                 onChange={(e) =>
                   setNewStatus(e.target.value as "approved" | "pending" | "rejected")
                 }
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="approved">Approved & Published</option>
                 <option value="pending">Pending Moderation</option>
@@ -967,63 +963,63 @@ export default function AdminReviewsPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Review Headline *</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Review Headline *</label>
             <input
               type="text"
               required
               placeholder="e.g. Excellent battery life and rugged build quality"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Full Review Comment *</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Full Review Comment *</label>
             <textarea
               rows={3}
               required
               placeholder="Enter customer feedback details..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#FF1028]"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#2F65F6]"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
               <input
                 type="checkbox"
                 checked={newVerified}
                 onChange={(e) => setNewVerified(e.target.checked)}
-                className="rounded text-[#FF1028] focus:ring-[#FF1028] bg-slate-900 border-slate-700"
+                className="rounded text-[#2F65F6] focus:ring-[#2F65F6]"
               />
               <span>Verified Purchase</span>
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
               <input
                 type="checkbox"
                 checked={newHasMedia}
                 onChange={(e) => setNewHasMedia(e.target.checked)}
-                className="rounded text-[#FF1028] focus:ring-[#FF1028] bg-slate-900 border-slate-700"
+                className="rounded text-[#2F65F6] focus:ring-[#2F65F6]"
               />
               <span>Has Media Proof</span>
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
               <input
                 type="checkbox"
                 checked={newIsFeatured}
                 onChange={(e) => setNewIsFeatured(e.target.checked)}
-                className="rounded text-[#FF1028] focus:ring-[#FF1028] bg-slate-900 border-slate-700"
+                className="rounded text-[#2F65F6] focus:ring-[#2F65F6]"
               />
               <span>Featured Storefront</span>
             </label>
           </div>
 
           <div className="space-y-1.5 pt-1">
-            <label className="text-xs font-bold text-slate-300 block">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Seller Reply (Optional)
             </label>
             <input
@@ -1031,22 +1027,22 @@ export default function AdminReviewsPage() {
               placeholder="e.g. Thanks for your business! Glad you enjoyed the direct factory pricing."
               value={newSellerReply}
               onChange={(e) => setNewSellerReply(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
             />
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-md cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-xs cursor-pointer"
             >
               Publish Review
             </button>
@@ -1075,7 +1071,7 @@ export default function AdminReviewsPage() {
 
       {/* ── 7. Floating Toast Notification ── */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#16A34A] text-white px-5 py-3 rounded-2xl text-xs font-bold shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
           <span>✓ {toastMsg}</span>
           <button
             onClick={() => setToastMsg(null)}

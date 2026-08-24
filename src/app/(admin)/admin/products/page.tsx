@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,38 +12,29 @@ import {
   Eye,
   Lock,
   Search,
-  ExternalLink,
   FileSpreadsheet,
   Upload,
   Download,
-  Check,
   X,
-  Sparkles,
-  Layers,
-  Globe,
-  Tag,
-  DollarSign,
   AlertTriangle,
-  Coins,
-  ShieldCheck,
 } from "lucide-react";
 import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_BRANDS } from "@/lib/mockData";
-import { Product, ProductVideo, Variant, ProductMedia, Category, Brand } from "@/types/database";
+import { Product, Category, Brand } from "@/types/database";
 import { Modal } from "@/components/ui/Modal";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { formatCurrency } from "@/utils/helpers";
 import {
   getAdminProducts,
   createProduct,
   updateProduct,
   deleteProduct,
-  bulkUpdateProductStatus,
 } from "@/app/actions/admin-products";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES);
   const [brands, setBrands] = useState<Brand[]>(MOCK_BRANDS);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("all");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -79,11 +70,11 @@ export default function AdminProductsPage() {
   // Dedicated 2 Videos (PRD §4.4)
   const [formVideo1Title, setFormVideo1Title] = useState("Slot 1: Factory QC & Teardown Demo");
   const [formVideo1Url, setFormVideo1Url] = useState("https://www.youtube.com/embed/dQw4w9WgXcQ");
-  const [formVideo1Type, setFormVideo1Type] = useState<"embed" | "uploaded">("embed");
+  const [formVideo1Type, setFormVideo1Type] = useState("embed");
 
   const [formVideo2Title, setFormVideo2Title] = useState("Slot 2: Live Flight & Hands-on Performance");
   const [formVideo2Url, setFormVideo2Url] = useState("https://www.youtube.com/embed/dQw4w9WgXcQ");
-  const [formVideo2Type, setFormVideo2Type] = useState<"embed" | "uploaded">("embed");
+  const [formVideo2Type, setFormVideo2Type] = useState("embed");
 
   // Private Sourcing Secrets
   const [formSupplierCode, setFormSupplierCode] = useState("SUP-GZ-4419");
@@ -107,7 +98,7 @@ export default function AdminProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     setIsLoading(true);
     const res = await getAdminProducts({
       search,
@@ -119,11 +110,25 @@ export default function AdminProductsPage() {
       if (res.brands?.length) setBrands(res.brands);
     }
     setIsLoading(false);
-  };
+  }, [search, selectedCategoryFilter]);
 
   useEffect(() => {
-    loadProducts();
-  }, [selectedCategoryFilter]);
+    let mounted = true;
+    (async () => {
+      const res = await getAdminProducts({
+        search,
+        categoryId: selectedCategoryFilter,
+      });
+      if (mounted && res.success) {
+        setProducts(res.products);
+        if (res.categories?.length) setCategories(res.categories);
+        if (res.brands?.length) setBrands(res.brands);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [search, selectedCategoryFilter]);
 
   const handleOpenCreateModal = () => {
     setEditingProductId(null);
@@ -137,7 +142,6 @@ export default function AdminProductsPage() {
     setFormBasePrice(99.0);
     setFormComparePrice(179.0);
     setFormCost(52.0);
-    setFormStock(40);
     setFormIsFeatured(false);
     setFormIsFlashDeal(false);
     setFormImages([
@@ -284,74 +288,94 @@ export default function AdminProductsPage() {
     ? Math.round(((formBasePrice - formCost) / formBasePrice) * 100)
     : 0;
 
+  const totalProducts = products.length;
+  const activeVideos = products.filter((p) => (p.videos?.length || 0) > 0).length;
+  const lowStock = products.filter((p) => (p.variants?.[0]?.stock || 35) <= 10).length;
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* ── 1. Top Header Bar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              LENNOX CATALOGUE OS
-            </span>
-            <span className="text-xs text-slate-400 font-bold">
-              {products.length} Direct China Products
-            </span>
-          </div>
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
+      {/* ── 1. Page Header ── */}
+      <AdminPageHeader
+        title="Products & Catalogue"
+        subtitle="Manage product listings, dual-video demo showcases, supplier pricing, and inventory."
+        badge={{ text: `${totalProducts} Products`, variant: "blue" }}
+        breadcrumbs={[
+          { label: "Ecommerce", href: "/admin/products" },
+          { label: "Products" },
+        ]}
+        actions={[
+          {
+            label: "Import CSV",
+            icon: Upload,
+            variant: "secondary",
+            onClick: () => setIsImportModalOpen(true),
+          },
+          {
+            label: "Export CSV",
+            icon: Download,
+            variant: "secondary",
+            onClick: handleExportCSV,
+          },
+          {
+            label: "Add Product",
+            icon: Plus,
+            variant: "primary",
+            onClick: handleOpenCreateModal,
+          },
+        ]}
+      />
 
-          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
-            <Package className="w-7 h-7 text-[#FF1028]" />
-            <span>Product & Dual-Video Manager</span>
-          </h1>
-          <p className="text-xs text-slate-400">
-            Control retail pricing in USDT, secret supplier acquisition codes, media galleries, and two dedicated video slots.
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            onClick={() => setIsImportModalOpen(true)}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-          >
-            <Upload className="w-3.5 h-3.5 text-blue-400" />
-            <span>Bulk CSV Import</span>
-          </button>
-
-          <button
-            onClick={handleExportCSV}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-700 cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5 text-[#10B981]" />
-            <span>Export CSV</span>
-          </button>
-
-          <button
-            onClick={handleOpenCreateModal}
-            className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 py-2 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Sourced Product</span>
-          </button>
-        </div>
-      </div>
-
+      {/* Toast */}
       {toastMsg && (
-        <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+        <div className="bg-[#DCFCE7] dark:bg-emerald-950/60 border border-[#BBF7D0] dark:border-emerald-900 text-[#16A34A] dark:text-emerald-400 px-4 py-3 rounded-2xl text-xs font-bold shadow-xs flex items-center justify-between animate-in fade-in">
           <span>✓ {toastMsg}</span>
           <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
         </div>
       )}
 
-      {/* ── 2. Search & Department Filters Bar ── */}
-      <div className="bg-slate-900 rounded-3xl border border-slate-800 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* ── 2. Top Metric KPI Mini Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
+          <div className="space-y-0.5">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Products</span>
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono block">{totalProducts}</span>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <Package className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
+          <div className="space-y-0.5">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Dual-Video Showcase</span>
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono block">{activeVideos} Active</span>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <Video className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-[#FFF0F2] dark:bg-[#2D1B22] border border-[#FECDD3]/50 dark:border-rose-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
+          <div className="space-y-0.5">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Low Stock Trigger</span>
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono block">{lowStock} SKUs</span>
+          </div>
+          <div className="w-10 h-10 rounded-full bg-[#EF4444] text-white flex items-center justify-center shadow-xs">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── 3. Search & Filter Bar ── */}
+      <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-100 dark:border-slate-800 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
         <div className="relative w-full sm:w-96">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by Title, SKU, or Secret Supplier Code..."
+            placeholder="Search by Title, SKU, or Supplier Code..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1028]"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#2F65F6] transition-colors"
           />
         </div>
 
@@ -359,7 +383,7 @@ export default function AdminProductsPage() {
           <select
             value={selectedCategoryFilter}
             onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl focus:outline-none cursor-pointer"
+            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl focus:outline-none focus:border-[#2F65F6] cursor-pointer"
           >
             <option value="all">All Departments ({products.length})</option>
             {MOCK_CATEGORIES.map((c) => (
@@ -371,12 +395,12 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* ── 3. Product Catalogue Table ── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-md">
+      {/* ── 4. Product Catalogue Table ── */}
+      <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 font-black uppercase text-[10px] bg-slate-950/60">
+              <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] bg-slate-50/70 dark:bg-slate-900/60 tracking-wider">
                 <th className="py-3.5 px-4">Product Details</th>
                 <th className="py-3.5 px-3">SKU & Origin</th>
                 <th className="py-3.5 px-3">Retail (USDT)</th>
@@ -388,7 +412,7 @@ export default function AdminProductsPage() {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-slate-700 dark:text-slate-300">
               {filteredProducts.map((p) => {
                 const margin = p.cost
                   ? Math.round(((p.base_price - p.cost) / p.base_price) * 100)
@@ -397,11 +421,11 @@ export default function AdminProductsPage() {
                 const videoCount = p.videos?.length || 0;
 
                 return (
-                  <tr key={p.id} className="hover:bg-slate-950/40 transition-colors group">
+                  <tr key={p.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors group">
                     {/* Thumbnail & Title */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shrink-0">
+                        <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
                           <Image
                             src={
                               p.media?.[0]?.url ||
@@ -413,10 +437,10 @@ export default function AdminProductsPage() {
                           />
                         </div>
                         <div className="min-w-0 max-w-xs">
-                          <h4 className="font-bold text-slate-100 truncate group-hover:text-[#FF1028] transition-colors">
+                          <h4 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-[#2F65F6] transition-colors font-heading">
                             {p.title}
                           </h4>
-                          <span className="text-[10px] text-slate-500 font-semibold block">
+                          <span className="text-[10px] text-slate-400 font-semibold block">
                             {MOCK_CATEGORIES.find((c) => c.id === p.category_id)?.name || "General"}
                           </span>
                         </div>
@@ -424,24 +448,24 @@ export default function AdminProductsPage() {
                     </td>
 
                     {/* SKU & Origin */}
-                    <td className="py-3.5 px-3 font-mono text-[11px] text-slate-300">
+                    <td className="py-3.5 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-300">
                       <span className="block font-bold">{p.sku}</span>
-                      <span className="text-[9px] text-slate-500">{p.shipping_origin || "Shenzhen"}</span>
+                      <span className="text-[9px] text-slate-400">{p.shipping_origin || "Shenzhen"}</span>
                     </td>
 
                     {/* Retail Price */}
-                    <td className="py-3.5 px-3 font-black text-emerald-400 price-tag">
+                    <td className="py-3.5 px-3 font-mono font-black text-emerald-600 dark:text-emerald-400">
                       {formatCurrency(p.base_price)}
                     </td>
 
                     {/* Secret Cost */}
-                    <td className="py-3.5 px-3 font-mono text-slate-400">
+                    <td className="py-3.5 px-3 font-mono text-slate-500 dark:text-slate-400">
                       ${(p.cost || p.base_price * 0.55).toFixed(2)}
                     </td>
 
                     {/* Profit Margin */}
                     <td className="py-3.5 px-3">
-                      <span className="bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-black px-2 py-0.5 rounded">
+                      <span className="bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 border border-[#BBF7D0]/60 dark:border-emerald-900/40 text-[10px] font-black px-2 py-0.5 rounded-md font-mono">
                         +{margin}%
                       </span>
                     </td>
@@ -449,10 +473,10 @@ export default function AdminProductsPage() {
                     {/* Stock */}
                     <td className="py-3.5 px-3">
                       <span
-                        className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase font-mono ${
                           stock <= 10
-                            ? "bg-red-950 text-red-400 border border-red-800"
-                            : "bg-slate-800 text-slate-300"
+                            ? "bg-[#FEE2E2] dark:bg-rose-950/60 text-[#DC2626] dark:text-rose-400 border border-[#FECDD3]/60"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                         }`}
                       >
                         {stock} units
@@ -461,41 +485,41 @@ export default function AdminProductsPage() {
 
                     {/* Videos */}
                     <td className="py-3.5 px-3">
-                      <span className="bg-[#00143D] text-amber-300 border border-blue-900 text-[10px] font-black px-2 py-0.5 rounded flex items-center gap-1 w-max">
-                        <Video className="w-3 h-3 text-[#FF1028]" />
+                      <span className="bg-blue-50 dark:bg-blue-950/60 text-[#2563EB] dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 w-max">
+                        <Video className="w-3 h-3 text-[#2F65F6]" />
                         <span>{videoCount} Slots</span>
                       </span>
                     </td>
 
-                    {/* Supplier Code (Admin-Only Sourcing Secret) */}
-                    <td className="py-3.5 px-3 font-mono text-[11px] text-amber-400">
+                    {/* Supplier Code */}
+                    <td className="py-3.5 px-3 font-mono text-[11px] text-amber-600 dark:text-amber-400 font-bold">
                       <span className="flex items-center gap-1">
-                        <Lock className="w-3 h-3 text-slate-500" />
+                        <Lock className="w-3 h-3 text-slate-400" />
                         <span>{p.supplier_code || "SUP-GZ-4419"}</span>
                       </span>
                     </td>
 
                     {/* Actions */}
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Link
                           href={`/products/${p.slug}`}
                           target="_blank"
-                          className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
                           title="View Live Store Page"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </Link>
                         <button
                           onClick={() => handleOpenEditModal(p)}
-                          className="p-1.5 rounded-lg bg-slate-800 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
                           title="Edit Product"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(p.id, p.title)}
-                          className="p-1.5 rounded-lg bg-slate-800 text-red-400 hover:bg-red-600 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
                           title="Delete Product"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -510,30 +534,32 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* ── 4. Full Featured Product Creation & Edit Modal ── */}
+      {/* ── 5. Product Creation & Edit Modal ── */}
       <Modal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        title={editingProductId ? "Edit Sourced Product & Videos" : "Add Direct China Product"}
+        title={editingProductId ? "Edit Product & Dual-Videos" : "Add Product"}
         size="xl"
       >
-        <form onSubmit={handleSaveProduct} className="p-6 space-y-6 font-montserrat text-xs text-slate-800">
+        <form onSubmit={handleSaveProduct} className="p-6 space-y-6 text-xs text-slate-800 dark:text-slate-200">
           {/* Modal Tab Switcher */}
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto no-scrollbar">
-            {[
-              { id: "general", label: "General & Pricing" },
-              { id: "media", label: "Gallery & 2 Videos" },
-              { id: "supplier", label: "Secret Sourcing" },
-              { id: "seo", label: "SEO & Flags" },
-            ].map((tab) => (
+          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar">
+            {(
+              [
+                { id: "general", label: "General & Pricing" },
+                { id: "media", label: "Gallery & 2 Videos" },
+                { id: "supplier", label: "Secret Sourcing" },
+                { id: "seo", label: "SEO & Flags" },
+              ] as const
+            ).map((tab) => (
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setModalTab(tab.id as any)}
-                className={`px-3.5 py-1.5 rounded-xl font-black text-xs transition-colors cursor-pointer ${
+                onClick={() => setModalTab(tab.id)}
+                className={`px-3.5 py-1.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
                   modalTab === tab.id
-                    ? "bg-[#00143D] text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-[#2F65F6] text-white shadow-xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
                 {tab.label}
@@ -546,45 +572,45 @@ export default function AdminProductsPage() {
             <div className="space-y-4 animate-in fade-in">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="font-bold text-slate-700">Product Title *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Product Title *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Eachine EX5 4K GPS FPV RC Drone..."
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none focus:border-[#00143D]"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold focus:outline-none focus:border-[#2F65F6]"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Custom SKU *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Custom SKU *</label>
                   <input
                     type="text"
                     required
                     value={formSku}
                     onChange={(e) => setFormSku(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold focus:outline-none focus:border-[#00143D]"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold focus:outline-none focus:border-[#2F65F6]"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Custom URL Slug</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Custom URL Slug</label>
                   <input
                     type="text"
                     placeholder="auto-generated from title if blank"
                     value={formSlug}
                     onChange={(e) => setFormSlug(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono focus:outline-none focus:border-[#00143D]"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono focus:outline-none focus:border-[#2F65F6]"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Category Department *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Category Department *</label>
                   <select
                     value={formCategoryId}
                     onChange={(e) => setFormCategoryId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold bg-white focus:outline-none focus:border-[#00143D]"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 font-bold bg-white dark:bg-slate-800 focus:outline-none focus:border-[#2F65F6]"
                   >
                     {MOCK_CATEGORIES.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -595,11 +621,11 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Brand Manufacturer</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Brand Manufacturer</label>
                   <select
                     value={formBrandId}
                     onChange={(e) => setFormBrandId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold bg-white focus:outline-none focus:border-[#00143D]"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 font-bold bg-white dark:bg-slate-800 focus:outline-none focus:border-[#2F65F6]"
                   >
                     {MOCK_BRANDS.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -611,81 +637,80 @@ export default function AdminProductsPage() {
               </div>
 
               {/* Pricing Grid */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Retail Price (USDT) *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Retail Price (USDT) *</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={formBasePrice}
                     onChange={(e) => setFormBasePrice(Number(e.target.value))}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 font-black text-sm text-[#00143D] focus:outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-black text-sm text-[#2F65F6] focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Compare-At Price ($)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Compare-At Price ($)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formComparePrice}
                     onChange={(e) => setFormComparePrice(Number(e.target.value))}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-slate-500 line-through focus:outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-400 line-through focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Factory Acquisition Cost (Secret)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Factory Acquisition Cost (Secret)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formCost}
                     onChange={(e) => setFormCost(Number(e.target.value))}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 font-mono text-amber-700 font-bold focus:outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-amber-600 dark:text-amber-400 font-bold focus:outline-none"
                   />
                 </div>
 
-                <div className="sm:col-span-3 flex items-center justify-between pt-2 border-t border-slate-200 text-xs">
-                  <span className="text-slate-600 font-bold">
+                <div className="sm:col-span-3 flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700 text-xs">
+                  <span className="text-slate-600 dark:text-slate-400 font-bold">
                     Calculated Gross Sourcing Margin:
                   </span>
-                  <span className="bg-emerald-100 text-[#10B981] font-black px-3 py-1 rounded-lg">
+                  <span className="bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg">
                     +{profitMargin}% Profit Margin
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">Short Summary Description</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Short Summary Description</label>
                 <input
                   type="text"
-                  placeholder="One sentence overview for product card tooltips..."
+                  placeholder="One sentence overview..."
                   value={formShortDesc}
                   onChange={(e) => setFormShortDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">Full Description (Markdown)</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Full Description</label>
                 <textarea
                   rows={4}
-                  placeholder="Detailed specifications, included accessories, and engineering details..."
+                  placeholder="Detailed specifications and features..."
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium focus:outline-none"
                 />
               </div>
             </div>
           )}
 
-          {/* TAB 2: Media Gallery & Dedicated Dual Videos (PRD §4.4) */}
+          {/* TAB 2: Media Gallery & Dual Videos */}
           {modalTab === "media" && (
             <div className="space-y-6 animate-in fade-in">
-              {/* Image Gallery */}
               <div className="space-y-3">
-                <label className="font-black text-[#00143D] uppercase text-xs block">
+                <label className="font-bold text-slate-700 dark:text-slate-300 uppercase text-xs block">
                   Product Image Gallery
                 </label>
                 <div className="flex gap-2">
@@ -694,12 +719,12 @@ export default function AdminProductsPage() {
                     placeholder="Add Image URL (https://...)..."
                     value={newImageUrl}
                     onChange={(e) => setNewImageUrl(e.target.value)}
-                    className="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none"
+                    className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={handleAddImage}
-                    className="bg-[#00143D] text-white px-4 py-2 rounded-xl font-bold"
+                    className="bg-[#2F65F6] text-white px-4 py-2 rounded-xl font-bold shadow-xs cursor-pointer"
                   >
                     Add Image
                   </button>
@@ -709,7 +734,7 @@ export default function AdminProductsPage() {
                   {formImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 group bg-slate-100"
+                      className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group bg-slate-100 dark:bg-slate-800"
                     >
                       <Image
                         src={img}
@@ -720,72 +745,69 @@ export default function AdminProductsPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveImage(idx)}
-                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1.5 right-1.5 p-1 rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
-                      <span className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.2 rounded">
-                        #{idx + 1}
-                      </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Dedicated 2 Video Fields (PRD Requirement §4.4) */}
-              <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-4">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="font-black text-white uppercase text-xs flex items-center gap-2">
-                    <Video className="w-4 h-4 text-[#FF1028]" />
-                    <span>Dual Video Showcase Slots (PRD §4.4)</span>
+              {/* Dedicated 2 Video Fields */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                  <span className="font-bold text-slate-900 dark:text-white uppercase text-xs flex items-center gap-2">
+                    <Video className="w-4 h-4 text-[#2F65F6]" />
+                    <span>Dual Video Showcase Slots</span>
                   </span>
-                  <span className="text-[10px] text-amber-300 font-bold bg-amber-950 px-2 py-0.5 rounded">
+                  <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
                     Max 2 Videos
                   </span>
                 </div>
 
                 {/* Video Slot 1 */}
-                <div className="space-y-2 p-3 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="font-bold text-amber-400 text-[11px] block">
-                    Slot 1: Factory QC & Teardown Video
+                <div className="space-y-2 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                  <span className="font-bold text-amber-600 dark:text-amber-400 text-[11px] block">
+                    Slot 1: Quality Inspection Video
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input
                       type="text"
-                      placeholder="Slot 1 Title (e.g. Factory QC Teardown)..."
+                      placeholder="Slot 1 Title..."
                       value={formVideo1Title}
                       onChange={(e) => setFormVideo1Title(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs"
+                      className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs"
                     />
                     <input
                       type="url"
-                      placeholder="Embed URL / MP4 URL..."
+                      placeholder="Video URL..."
                       value={formVideo1Url}
                       onChange={(e) => setFormVideo1Url(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-mono"
+                      className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono"
                     />
                   </div>
                 </div>
 
                 {/* Video Slot 2 */}
-                <div className="space-y-2 p-3 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="font-bold text-[#FF1028] text-[11px] block">
-                    Slot 2: Live Performance / Flight Demonstration
+                <div className="space-y-2 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                  <span className="font-bold text-[#2F65F6] text-[11px] block">
+                    Slot 2: Live Demo Video
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input
                       type="text"
-                      placeholder="Slot 2 Title (e.g. 4K Flight Test Demo)..."
+                      placeholder="Slot 2 Title..."
                       value={formVideo2Title}
                       onChange={(e) => setFormVideo2Title(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs"
+                      className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs"
                     />
                     <input
                       type="url"
-                      placeholder="Embed URL / MP4 URL..."
+                      placeholder="Video URL..."
                       value={formVideo2Url}
                       onChange={(e) => setFormVideo2Url(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-mono"
+                      className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono"
                     />
                   </div>
                 </div>
@@ -793,47 +815,47 @@ export default function AdminProductsPage() {
             </div>
           )}
 
-          {/* TAB 3: Secret Sourcing Information (Admin-Only PRD §6.3) */}
+          {/* TAB 3: Secret Sourcing */}
           {modalTab === "supplier" && (
             <div className="space-y-4 animate-in fade-in">
-              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 space-y-1">
-                <span className="font-black flex items-center gap-1.5">
-                  <Lock className="w-4 h-4 text-amber-700" /> Private Sourcing Protection (PRD §6.3)
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-900/40 text-xs text-amber-900 dark:text-amber-300 space-y-1">
+                <span className="font-bold flex items-center gap-1.5">
+                  <Lock className="w-4 h-4 text-amber-600" /> Private Sourcing Protection
                 </span>
-                <p className="text-[11px] text-amber-800 leading-relaxed">
-                  Secret supplier codes, factory acquisition links, and real factory cost margins are never exposed to public storefront queries or customer-facing API responses.
+                <p className="text-[11px] text-amber-800 dark:text-amber-400 leading-relaxed">
+                  Supplier codes and factory acquisition URLs are encrypted and never visible on storefront APIs.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Secret Supplier Code *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Secret Supplier Code *</label>
                   <input
                     type="text"
                     required
                     value={formSupplierCode}
                     onChange={(e) => setFormSupplierCode(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono font-bold text-amber-700 focus:outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-amber-600 dark:text-amber-400 focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Factory Shipping Origin</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Factory Shipping Origin</label>
                   <input
                     type="text"
                     value={formShippingOrigin}
                     onChange={(e) => setFormShippingOrigin(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold focus:outline-none"
                   />
                 </div>
 
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="font-bold text-slate-700">Direct Factory Acquisition Link (1688 / Taobao)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Direct Factory Acquisition Link</label>
                   <input
                     type="url"
                     value={formPurchaseUrl}
                     onChange={(e) => setFormPurchaseUrl(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-mono focus:outline-none"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono focus:outline-none"
                   />
                 </div>
               </div>
@@ -844,30 +866,30 @@ export default function AdminProductsPage() {
           {modalTab === "seo" && (
             <div className="space-y-4 animate-in fade-in">
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">Custom SEO Meta Title</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Custom SEO Meta Title</label>
                 <input
                   type="text"
-                  placeholder="e.g. Buy Eachine EX5 4K Drone with USDT..."
+                  placeholder="e.g. Buy Eachine EX5 4K Drone..."
                   value={formSeoTitle}
                   onChange={(e) => setFormSeoTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-semibold focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">SEO Meta Description</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">SEO Meta Description</label>
                 <textarea
                   rows={3}
-                  placeholder="Compelling search snippet with keywords and USDT settlement..."
+                  placeholder="Search snippet description..."
                   value={formSeoDesc}
                   onChange={(e) => setFormSeoDesc(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 font-medium focus:outline-none"
                 />
               </div>
 
               {/* Badges Toggles */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                <span className="font-black text-[#00143D] text-xs uppercase block">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                <span className="font-bold text-slate-900 dark:text-white text-xs uppercase block">
                   Promotional Flags
                 </span>
                 <div className="flex gap-6">
@@ -876,7 +898,7 @@ export default function AdminProductsPage() {
                       type="checkbox"
                       checked={formIsFeatured}
                       onChange={(e) => setFormIsFeatured(e.target.checked)}
-                      className="rounded text-[#FF1028] focus:ring-[#FF1028]"
+                      className="rounded text-[#2F65F6] focus:ring-[#2F65F6]"
                     />
                     <span className="font-bold text-xs">Featured on Homepage</span>
                   </label>
@@ -886,9 +908,9 @@ export default function AdminProductsPage() {
                       type="checkbox"
                       checked={formIsFlashDeal}
                       onChange={(e) => setFormIsFlashDeal(e.target.checked)}
-                      className="rounded text-[#FF1028] focus:ring-[#FF1028]"
+                      className="rounded text-[#2F65F6] focus:ring-[#2F65F6]"
                     />
-                    <span className="font-bold text-xs">Active in Flash Deals Zone</span>
+                    <span className="font-bold text-xs">Active in Flash Deals</span>
                   </label>
                 </div>
               </div>
@@ -896,58 +918,58 @@ export default function AdminProductsPage() {
           )}
 
           {/* Modal Footer Actions */}
-          <div className="pt-4 border-t border-slate-200 flex justify-end gap-3">
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
             <button
               type="button"
               onClick={() => setIsProductModalOpen(false)}
-              className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black shadow-md"
+              className="px-5 py-2 rounded-xl bg-[#2F65F6] hover:bg-[#2563EB] text-white font-bold shadow-blue-500/25 shadow-md transition-colors cursor-pointer"
             >
-              {editingProductId ? "Save Product Changes" : "Publish Sourced Product"}
+              {editingProductId ? "Save Product Changes" : "Publish Product"}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* ── 5. Bulk CSV Import Modal ── */}
+      {/* ── 6. Bulk CSV Import Modal ── */}
       <Modal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
-        title="Bulk Import China Sourcing Products (CSV)"
+        title="Bulk Import Products (CSV)"
         size="md"
       >
-        <div className="p-6 space-y-4 font-montserrat text-xs text-slate-800">
-          <p className="text-slate-600 leading-relaxed">
-            Upload a CSV file containing your product titles, SKUs, retail USDT prices, secret supplier codes, and media URLs.
+        <div className="p-6 space-y-4 text-xs text-slate-800 dark:text-slate-200">
+          <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+            Upload a CSV file containing your product titles, SKUs, retail USDT prices, supplier codes, and media URLs.
           </p>
 
-          <div className="p-8 rounded-2xl border-2 border-dashed border-slate-300 text-center space-y-2 bg-slate-50 cursor-pointer hover:bg-slate-100">
-            <FileSpreadsheet className="w-10 h-10 mx-auto text-[#10B981]" />
-            <span className="font-bold text-slate-800 block">Click or Drag CSV File Here</span>
-            <span className="text-[10px] text-slate-400 block">Supported format: .csv, .tsv</span>
+          <div className="p-8 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-center space-y-2 bg-slate-50 dark:bg-slate-900 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <FileSpreadsheet className="w-10 h-10 mx-auto text-emerald-500" />
+            <span className="font-bold text-slate-800 dark:text-slate-200 block">Click or Drag CSV File Here</span>
+            <span className="text-[10px] text-slate-400 block">Supported formats: .csv, .tsv</span>
           </div>
 
           <div className="pt-3 flex gap-3">
             <button
               type="button"
               onClick={() => {
-                setToastMsg("Bulk imported 14 products from CSV manifest!");
+                setToastMsg("Bulk imported products from CSV manifest!");
                 setIsImportModalOpen(false);
                 setTimeout(() => setToastMsg(null), 3000);
               }}
-              className="flex-1 bg-[#10B981] hover:bg-emerald-600 text-white py-3 rounded-xl font-black transition-colors"
+              className="flex-1 bg-[#2F65F6] hover:bg-[#2563EB] text-white py-2.5 rounded-xl font-bold transition-colors shadow-xs cursor-pointer"
             >
-              Process & Import Products
+              Process & Import
             </button>
             <button
               type="button"
               onClick={() => setIsImportModalOpen(false)}
-              className="flex-1 bg-slate-100 text-slate-700 py-3 rounded-xl font-bold"
+              className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-2.5 rounded-xl font-bold transition-colors cursor-pointer"
             >
               Cancel
             </button>

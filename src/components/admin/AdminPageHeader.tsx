@@ -35,31 +35,31 @@ export function AdminPageHeader({
   children,
 }: AdminPageHeaderProps) {
   const badgeVariants = {
-    red: "bg-[#FF1028]/10 text-[#FF1028] border-[#FF1028]/30",
-    emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-    amber: "bg-amber-500/10 text-amber-400 border-amber-500/30",
-    blue: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-    purple: "bg-purple-500/10 text-purple-400 border-purple-500/30",
-    slate: "bg-slate-800 text-slate-300 border-slate-700",
+    red: "bg-[#FEE2E2] text-[#DC2626] dark:bg-rose-950/60 dark:text-rose-400 border border-[#FECDD3]/60 dark:border-rose-900/40",
+    emerald: "bg-[#DCFCE7] text-[#16A34A] dark:bg-emerald-950/60 dark:text-emerald-400 border border-[#BBF7D0]/60 dark:border-emerald-900/40",
+    amber: "bg-[#FEF3C7] text-[#D97706] dark:bg-amber-950/60 dark:text-amber-400 border border-[#FDE68A]/60 dark:border-amber-900/40",
+    blue: "bg-[#EEF2FF] text-[#2563EB] dark:bg-blue-950/60 dark:text-blue-400 border border-[#BFDBFE]/60 dark:border-blue-900/40",
+    purple: "bg-[#F3E8FF] text-[#7E22CE] dark:bg-purple-950/60 dark:text-purple-400 border border-[#E9D5FF]/60 dark:border-purple-900/40",
+    slate: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700",
   };
 
   return (
-    <div className="space-y-3 pb-6 border-b border-slate-800/80">
+    <div className="space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800/80">
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-          <Link href="/admin/dashboard" className="hover:text-slate-200 transition-colors">
+          <Link href="/admin/dashboard" className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
             Admin
           </Link>
           {breadcrumbs.map((bc, idx) => (
             <React.Fragment key={idx}>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               {bc.href ? (
-                <Link href={bc.href} className="hover:text-slate-200 transition-colors">
+                <Link href={bc.href} className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
                   {bc.label}
                 </Link>
               ) : (
-                <span className="text-slate-200 font-semibold">{bc.label}</span>
+                <span className="text-slate-700 dark:text-slate-200 font-semibold">{bc.label}</span>
               )}
             </React.Fragment>
           ))}
@@ -70,14 +70,14 @@ export function AdminPageHeader({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-heading">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-heading">
               {title}
             </h1>
             {badge && (
               <span
                 className={cn(
-                  "text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
-                  badgeVariants[badge.variant || "red"]
+                  "text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full font-mono",
+                  badgeVariants[badge.variant || "blue"]
                 )}
               >
                 {badge.text}
@@ -85,7 +85,7 @@ export function AdminPageHeader({
             )}
           </div>
           {subtitle && (
-            <p className="text-xs sm:text-sm text-slate-400 max-w-3xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-3xl leading-relaxed">
               {subtitle}
             </p>
           )}
@@ -97,14 +97,14 @@ export function AdminPageHeader({
             {actions.map((act, i) => {
               const Icon = act.icon;
               const buttonClasses = cn(
-                "px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed",
+                "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed",
                 act.variant === "primary" || !act.variant
-                  ? "bg-[#FF1028] hover:bg-[#E00B20] text-white shadow-red-950/40"
+                  ? "bg-[#2F65F6] hover:bg-[#2563EB] text-white shadow-blue-500/25"
                   : act.variant === "secondary"
-                  ? "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                  ? "bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700"
                   : act.variant === "danger"
-                  ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30"
-                  : "bg-transparent hover:bg-slate-800 text-slate-300 border border-slate-700"
+                  ? "bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/30"
+                  : "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
               );
 
               if (act.href) {
@@ -137,3 +137,4 @@ export function AdminPageHeader({
     </div>
   );
 }
+

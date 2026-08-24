@@ -174,51 +174,10 @@ export function HomePageClient({ sections }: HomePageClientProps) {
 
   return (
     <div className="space-y-12 pb-16">
-      {/* ── 1. Banggood-Style Multi-Zone Hero Section ── */}
+      {/* ── 1. Multi-Zone Hero Section ── */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Left Column: Category Directory (3 Cols on Desktop) */}
-        <div className="hidden lg:flex lg:col-span-3 flex-col justify-between bg-white rounded-2xl border border-slate-200 p-4 shadow-xs">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
-              <span className="text-xs font-black tracking-wider text-[#00143D] uppercase flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#FF1028]" />
-                Sourcing Hubs
-              </span>
-              <span className="text-[10px] bg-[#FF1028]/10 text-[#FF1028] px-2 py-0.5 rounded font-black uppercase">
-                DIRECT
-              </span>
-            </div>
-
-            <ul className="space-y-1">
-              {MOCK_CATEGORIES.map((cat) => (
-                <li key={cat.id}>
-                  <Link
-                    href={`/categories/${cat.slug}`}
-                    className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-red-50 hover:text-[#FF1028] transition-all group"
-                  >
-                    <span className="truncate">{cat.name}</span>
-                    <span className="text-[10px] text-slate-400 group-hover:text-[#FF1028] font-semibold">
-                      {cat.product_count}+
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Sourcing Model Notice */}
-          <div className="mt-4 pt-3 border-t border-slate-100 bg-[#00143D] text-white p-3.5 rounded-xl">
-            <div className="flex items-center gap-1.5 text-[#10B981] text-xs font-black mb-1">
-              <Coins className="w-3.5 h-3.5" /> Binance Pay USDT
-            </div>
-            <p className="text-[11px] text-slate-300 leading-relaxed">
-              No credit card chargebacks. Fast crypto settlement at real factory price.
-            </p>
-          </div>
-        </div>
-
-        {/* Center Column: High-Impact Carousel Banner (6 Cols on Desktop) */}
-        <div className="lg:col-span-6 relative bg-slate-900 rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[380px] sm:min-h-[460px] group border border-slate-800">
+        {/* Main Column: High-Impact Carousel Banner (8 Cols on Desktop) */}
+        <div className="lg:col-span-8 relative bg-slate-900 rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[380px] sm:min-h-[460px] group border border-slate-800">
           <Image
             src={activeSlide.image}
             alt={activeSlide.title}
@@ -308,8 +267,8 @@ export function HomePageClient({ sections }: HomePageClientProps) {
           </div>
         </div>
 
-        {/* Right Column: Factory Product Video Highlights (3 Cols on Desktop) */}
-        <div className="lg:col-span-3 flex flex-col gap-4">
+        {/* Right Column: Factory Product Video Highlights (4 Cols on Desktop) */}
+        <div className="lg:col-span-4 flex flex-col gap-4">
           {/* Video Card 1: 4K Laser Drone QC Flight Test */}
           <div
             onClick={() =>

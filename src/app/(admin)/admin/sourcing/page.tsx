@@ -11,18 +11,8 @@ import {
   Trash2,
   Eye,
   CheckCircle2,
-  AlertTriangle,
   Clock,
-  Truck,
-  Package,
-  Layers,
-  ArrowUpRight,
-  Search,
   DollarSign,
-  FileText,
-  Copy,
-  Check,
-  Building2,
   ShieldCheck,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -236,10 +226,10 @@ export default function AdminSourcingPage() {
       sortable: true,
       cell: (row) => (
         <div className="space-y-0.5">
-          <span className="font-mono font-bold text-white block text-xs">
+          <span className="font-mono font-bold text-slate-900 dark:text-white block text-xs">
             {row.poNumber}
           </span>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-slate-400 font-mono">
             {formatDate(row.orderDate)}
           </span>
         </div>
@@ -252,7 +242,7 @@ export default function AdminSourcingPage() {
       cell: (row) => (
         <Link
           href={`/admin/orders`}
-          className="font-mono text-slate-300 hover:text-[#FF1028] transition-colors text-xs font-semibold"
+          className="font-mono text-slate-700 dark:text-slate-300 hover:text-[#2F65F6] transition-colors text-xs font-semibold"
         >
           {row.orderNumber}
         </Link>
@@ -263,7 +253,7 @@ export default function AdminSourcingPage() {
       accessorKey: "supplierCode",
       sortable: true,
       cell: (row) => (
-        <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-400 bg-amber-950/40 border border-amber-800/60 px-2 py-0.5 rounded-lg text-[11px]">
+        <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-600 dark:text-amber-400 bg-[#FFF8EE] dark:bg-amber-950/60 border border-[#FED7AA]/60 px-2 py-0.5 rounded-full text-[11px]">
           <Lock className="w-3 h-3 text-amber-500 shrink-0" />
           <span>{row.supplierCode}</span>
         </span>
@@ -275,10 +265,10 @@ export default function AdminSourcingPage() {
       sortable: true,
       cell: (row) => (
         <div className="space-y-0.5 max-w-[180px]">
-          <span className="font-bold text-slate-200 block truncate text-xs">
+          <span className="font-bold text-slate-900 dark:text-slate-200 block truncate text-xs">
             {row.supplierName}
           </span>
-          <span className="text-[10px] text-slate-400 font-medium block">
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
             {row.supplierPlatform}
           </span>
         </div>
@@ -291,7 +281,7 @@ export default function AdminSourcingPage() {
       cell: (row) => (
         <div className="max-w-[200px]">
           <span
-            className="text-slate-200 font-medium line-clamp-1 text-xs block"
+            className="text-slate-800 dark:text-slate-200 font-medium line-clamp-1 text-xs block"
             title={row.productTitle}
           >
             {row.productTitle}
@@ -301,7 +291,7 @@ export default function AdminSourcingPage() {
               href={row.supplierItemUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[10px] text-blue-400 hover:underline inline-flex items-center gap-1 mt-0.5"
+              className="text-[10px] text-[#2F65F6] hover:underline inline-flex items-center gap-1 mt-0.5 font-semibold"
             >
               <span>1688 Sourcing Link</span>
               <ExternalLink className="w-2.5 h-2.5" />
@@ -315,7 +305,7 @@ export default function AdminSourcingPage() {
       accessorKey: "quantity",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono font-bold text-slate-200 text-center block">
+        <span className="font-mono font-bold text-slate-700 dark:text-slate-300 text-center block">
           {row.quantity}
         </span>
       ),
@@ -325,7 +315,7 @@ export default function AdminSourcingPage() {
       accessorKey: "factoryUnitCost",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono font-bold text-emerald-400 price-tag text-xs">
+        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs">
           ${row.factoryUnitCost.toFixed(2)}
         </span>
       ),
@@ -335,7 +325,7 @@ export default function AdminSourcingPage() {
       accessorKey: "totalCostUSDT",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono font-black text-emerald-300 price-tag text-xs">
+        <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
           {formatCurrency(row.totalCostUSDT)}
         </span>
       ),
@@ -345,7 +335,7 @@ export default function AdminSourcingPage() {
       accessorKey: "buyerAdmin",
       sortable: true,
       cell: (row) => (
-        <span className="text-slate-300 text-[11px] font-medium">
+        <span className="text-slate-600 dark:text-slate-400 text-[11px] font-medium">
           {row.buyerAdmin}
         </span>
       ),
@@ -367,7 +357,7 @@ export default function AdminSourcingPage() {
       accessorKey: "trackingOrPoRef",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono text-slate-300 text-[11px] block truncate max-w-[120px]">
+        <span className="font-mono text-slate-500 dark:text-slate-400 text-[11px] block truncate max-w-[120px]">
           {row.trackingOrPoRef || "—"}
         </span>
       ),
@@ -377,7 +367,7 @@ export default function AdminSourcingPage() {
       accessorKey: "expectedDeliveryToHub",
       sortable: true,
       cell: (row) => (
-        <span className="text-slate-400 font-mono text-[11px]">
+        <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
           {row.expectedDeliveryToHub}
         </span>
       ),
@@ -390,7 +380,7 @@ export default function AdminSourcingPage() {
           <button
             type="button"
             onClick={() => setViewingPO(row)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             title="View Details"
           >
             <Eye className="w-3.5 h-3.5" />
@@ -398,7 +388,7 @@ export default function AdminSourcingPage() {
           <button
             type="button"
             onClick={() => handleOpenEditModal(row)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#2F65F6] hover:text-white text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
             title="Edit Purchase Order"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -409,7 +399,7 @@ export default function AdminSourcingPage() {
               setDeletingPOId(row.id);
               setIsDeleteDialogOpen(true);
             }}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
             title="Delete Purchase Order"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -492,12 +482,12 @@ export default function AdminSourcingPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Sourcing & Purchase Orders"
-        subtitle="Direct B2B factory procurement pipeline across Shenzhen, Ningbo & Guangzhou manufacturing hubs."
-        badge={{ text: "B2B Procurement OS", variant: "red" }}
+        title="Sourcing &amp; Purchase Orders"
+        subtitle="Direct B2B factory procurement pipeline across Shenzhen, Ningbo &amp; Guangzhou manufacturing hubs."
+        badge={{ text: "B2B Procurement OS", variant: "blue" }}
         breadcrumbs={[{ label: "Sourcing & Purchases" }]}
         actions={[
           {
@@ -509,73 +499,76 @@ export default function AdminSourcingPage() {
         ]}
       />
 
-      {/* ── 2. KPI Summary Cards ── */}
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="bg-[#DCFCE7] dark:bg-emerald-950 border border-[#BBF7D0] dark:border-emerald-800 text-[#16A34A] dark:text-emerald-300 px-4 py-3 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+          <button onClick={() => setToastMsg(null)} className="font-bold text-sm cursor-pointer">×</button>
+        </div>
+      )}
+
+      {/* ── 2. Top 4 Pastel KPI Summary Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total PO Pipeline
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
+              {purchaseOrders.length} POs
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Across 3 Direct China Factory Platforms</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {purchaseOrders.length} POs
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            Across 3 Direct China Factory Platforms
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <ShoppingBag className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Factory Sourcing Spend
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
+              {formatCurrency(totalSpend)}
+            </span>
+            <span className="text-[11px] text-[#16A34A] block mt-0.5">Direct Factory Settlement (USDT)</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-emerald-400 price-tag">
-            {formatCurrency(totalSpend)}
-          </div>
-          <div className="text-[11px] text-emerald-400/80 font-bold flex items-center gap-1">
-            <span>Direct Factory Settlement (USDT)</span>
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+            <DollarSign className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Pending / In Production
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
+              {pendingCount} Orders
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Awaiting dispatch or tracking ref</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-amber-400">
-            {pendingCount} Orders
-          </div>
-          <div className="text-[11px] text-slate-400 font-semibold">
-            Awaiting dispatch or tracking ref
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-md space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#F3E8FF] dark:bg-[#28183B] border border-[#E9D5FF]/50 dark:border-purple-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               QC Received at Hub
             </span>
-            <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
+            <span className="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5 block">
+              {qcReceivedCount} Batches
+            </span>
+            <span className="text-[11px] text-[#16A34A] block mt-0.5">Shenzhen Sorting Center Ready</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {qcReceivedCount} Batches
-          </div>
-          <div className="text-[11px] text-[#10B981] font-bold">
-            Shenzhen Sorting Center Ready
+          <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-xs">
+            <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
       </div>
@@ -614,15 +607,15 @@ export default function AdminSourcingPage() {
         title={editingPO ? `Edit Purchase Order — ${editingPO.poNumber}` : "Create Sourcing Purchase Order (PO)"}
         size="xl"
       >
-        <form onSubmit={handleSavePO} className="space-y-5 pt-1 text-xs">
+        <form onSubmit={handleSavePO} className="space-y-5 text-xs text-slate-800 dark:text-slate-200">
           {/* Secret Sourcing Callout */}
-          <div className="p-3.5 bg-amber-950/40 rounded-2xl border border-amber-800/60 flex items-start gap-2.5">
-            <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-[#FFF8EE] dark:bg-amber-950/40 rounded-2xl border border-[#FED7AA]/60 dark:border-amber-800/60 flex items-start gap-2.5">
+            <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="space-y-0.5">
-              <span className="font-black text-amber-300 uppercase text-[10px] tracking-wider block">
+              <span className="font-bold text-amber-700 dark:text-amber-300 uppercase text-[10px] tracking-wider block">
                 Private Factory Sourcing Guard (PRD §6.3)
               </span>
-              <p className="text-[11px] text-amber-200/80 leading-relaxed">
+              <p className="text-[11px] text-amber-900/80 dark:text-amber-200/80 leading-relaxed">
                 Factory unit cost and supplier secret codes are strictly confidential to procurement admins and will never be exposed to public buyer accounts.
               </p>
             </div>
@@ -630,7 +623,7 @@ export default function AdminSourcingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 PO Reference Number *
               </label>
               <input
@@ -638,12 +631,12 @@ export default function AdminSourcingPage() {
                 required
                 value={poNumber}
                 onChange={(e) => setPoNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Customer Order Number *
               </label>
               <input
@@ -651,12 +644,12 @@ export default function AdminSourcingPage() {
                 required
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Secret Supplier Code *
               </label>
               <input
@@ -665,12 +658,12 @@ export default function AdminSourcingPage() {
                 value={supplierCode}
                 onChange={(e) => setSupplierCode(e.target.value)}
                 placeholder="e.g. SUP-SZ-9021"
-                className="w-full bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-amber-600 dark:text-amber-400 font-mono font-bold text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Factory Corporate Name *
               </label>
               <input
@@ -679,18 +672,18 @@ export default function AdminSourcingPage() {
                 value={supplierName}
                 onChange={(e) => setSupplierName(e.target.value)}
                 placeholder="e.g. Shenzhen BlitzWolf Acoustic Tech"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Procurement Platform *
               </label>
               <select
                 value={supplierPlatform}
                 onChange={(e) => setSupplierPlatform(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="1688 Direct B2B">1688 Direct B2B</option>
                 <option value="AliExpress Wholesale">AliExpress Wholesale</option>
@@ -700,7 +693,7 @@ export default function AdminSourcingPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 1688 / Direct Factory Item Link
               </label>
               <input
@@ -708,13 +701,13 @@ export default function AdminSourcingPage() {
                 value={supplierItemUrl}
                 onChange={(e) => setSupplierItemUrl(e.target.value)}
                 placeholder="https://1688.com/item/..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Product Title & Sourcing Specification *
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Product Title &amp; Sourcing Specification *
               </label>
               <input
                 type="text"
@@ -722,12 +715,12 @@ export default function AdminSourcingPage() {
                 value={productTitle}
                 onChange={(e) => setProductTitle(e.target.value)}
                 placeholder="e.g. Eachine EX5 4K GPS FPV Brushless Drone (1 Battery)"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Quantity Sourced *
               </label>
               <input
@@ -736,12 +729,12 @@ export default function AdminSourcingPage() {
                 required
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Factory Unit Cost (USDT) *
               </label>
               <input
@@ -751,21 +744,21 @@ export default function AdminSourcingPage() {
                 required
                 value={factoryUnitCost}
                 onChange={(e) => setFactoryUnitCost(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-emerald-400 font-mono font-bold text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
-            <div className="sm:col-span-2 p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-semibold">
+            <div className="sm:col-span-2 p-3 bg-[#F0FDF4] dark:bg-emerald-950/60 rounded-xl border border-[#BBF7D0]/60 flex items-center justify-between text-xs">
+              <span className="text-slate-600 dark:text-slate-300 font-semibold">
                 Calculated Total Factory Cost (USDT):
               </span>
-              <span className="text-emerald-400 font-mono font-black text-sm">
+              <span className="text-emerald-600 dark:text-emerald-400 font-mono font-black text-sm">
                 ${(quantity * factoryUnitCost).toFixed(2)} USDT
               </span>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Assigned Buyer Admin *
               </label>
               <input
@@ -773,18 +766,18 @@ export default function AdminSourcingPage() {
                 required
                 value={buyerAdmin}
                 onChange={(e) => setBuyerAdmin(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 PO Lifecycle Status *
               </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                onChange={(e) => setStatus(e.target.value as SourcingPO["status"])}
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="pending_po">Pending PO Submission</option>
                 <option value="ordered">Ordered / Factory Processing</option>
@@ -795,7 +788,7 @@ export default function AdminSourcingPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Tracking / 1688 PO Ref
               </label>
               <input
@@ -803,12 +796,12 @@ export default function AdminSourcingPage() {
                 value={trackingOrPoRef}
                 onChange={(e) => setTrackingOrPoRef(e.target.value)}
                 placeholder="e.g. 1688-PO-8829104 or SF-8891204899CN"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Expected Delivery to Hub
               </label>
               <input
@@ -816,23 +809,23 @@ export default function AdminSourcingPage() {
                 value={expectedDeliveryToHub}
                 onChange={(e) => setExpectedDeliveryToHub(e.target.value)}
                 placeholder="e.g. Aug 28, 2026"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
           </div>
 
           {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsFormModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors cursor-pointer shadow-md"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors cursor-pointer shadow-blue-500/25 shadow-xs"
             >
               {editingPO ? "Save Changes" : "Submit Factory PO"}
             </button>
@@ -848,10 +841,10 @@ export default function AdminSourcingPage() {
           title={`Purchase Order Dossier — ${viewingPO.poNumber}`}
           size="lg"
         >
-          <div className="space-y-5 pt-1 text-xs text-slate-300">
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="font-mono font-black text-white text-sm">
+          <div className="space-y-5 text-xs text-slate-800 dark:text-slate-200">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
                   {viewingPO.poNumber}
                 </span>
                 <StatusBadge
@@ -863,59 +856,59 @@ export default function AdminSourcingPage() {
 
               <div className="grid grid-cols-2 gap-3 text-[11px]">
                 <div>
-                  <span className="text-slate-500 block">Customer Order Ref:</span>
-                  <span className="font-mono font-bold text-white">
+                  <span className="text-slate-500 dark:text-slate-400 block">Customer Order Ref:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {viewingPO.orderNumber}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">PO Date:</span>
-                  <span className="text-slate-300">
+                  <span className="text-slate-500 dark:text-slate-400 block">PO Date:</span>
+                  <span className="text-slate-700 dark:text-slate-300">
                     {formatDate(viewingPO.orderDate)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Buyer Admin:</span>
-                  <span className="text-slate-300 font-semibold">
+                  <span className="text-slate-500 dark:text-slate-400 block">Buyer Admin:</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold">
                     {viewingPO.buyerAdmin}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Hub ETA:</span>
-                  <span className="font-mono text-amber-400 font-bold">
+                  <span className="text-slate-500 dark:text-slate-400 block">Hub ETA:</span>
+                  <span className="font-mono text-amber-600 dark:text-amber-400 font-bold">
                     {viewingPO.expectedDeliveryToHub}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <span className="font-black text-slate-200 uppercase text-[10px] tracking-wider block border-b border-slate-800 pb-1">
-                Factory & Supplier Intelligence
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+              <span className="font-bold text-slate-900 dark:text-white uppercase text-[10px] tracking-wider block border-b border-slate-200 dark:border-slate-800 pb-1">
+                Factory &amp; Supplier Intelligence
               </span>
               <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Secret Supplier Code:</span>
-                  <span className="font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800 flex items-center gap-1">
+                  <span className="text-slate-500 dark:text-slate-400">Secret Supplier Code:</span>
+                  <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-[#FFF8EE] dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-[#FED7AA]/60 flex items-center gap-1">
                     <Lock className="w-3 h-3" />
                     {viewingPO.supplierCode}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Factory Corporate Name:</span>
-                  <span className="font-bold text-white">
+                  <span className="text-slate-500 dark:text-slate-400">Factory Corporate Name:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">
                     {viewingPO.supplierName}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Platform:</span>
-                  <span className="text-slate-300">
+                  <span className="text-slate-500 dark:text-slate-400">Platform:</span>
+                  <span className="text-slate-700 dark:text-slate-300">
                     {viewingPO.supplierPlatform}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Domestic Tracking Ref:</span>
-                  <span className="font-mono text-slate-200">
+                  <span className="text-slate-500 dark:text-slate-400">Domestic Tracking Ref:</span>
+                  <span className="font-mono text-slate-700 dark:text-slate-300">
                     {viewingPO.trackingOrPoRef || "Pending Dispatch"}
                   </span>
                 </div>
@@ -927,7 +920,7 @@ export default function AdminSourcingPage() {
                     href={viewingPO.supplierItemUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-2 bg-slate-900 hover:bg-[#FF1028] text-white rounded-xl font-bold text-center block transition-colors"
+                    className="w-full py-2 bg-[#2F65F6] hover:bg-[#2563EB] text-white rounded-xl font-bold text-center block transition-colors shadow-blue-500/25 shadow-xs"
                   >
                     Open 1688 Factory Listing ↗
                   </a>
@@ -935,38 +928,38 @@ export default function AdminSourcingPage() {
               )}
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <span className="font-black text-slate-200 uppercase text-[10px] tracking-wider block border-b border-slate-800 pb-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+              <span className="font-bold text-slate-900 dark:text-white uppercase text-[10px] tracking-wider block border-b border-slate-200 dark:border-slate-800 pb-1">
                 Hardware Product Breakdown
               </span>
               <div className="space-y-1 text-xs">
-                <span className="font-bold text-white block">
+                <span className="font-bold text-slate-900 dark:text-white block font-heading">
                   {viewingPO.productTitle}
                 </span>
                 <div className="flex justify-between pt-1 text-[11px]">
-                  <span className="text-slate-400">Quantity Sourced:</span>
-                  <span className="font-mono font-bold text-white">
+                  <span className="text-slate-500 dark:text-slate-400">Quantity Sourced:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
                     {viewingPO.quantity} units
                   </span>
                 </div>
                 <div className="flex justify-between text-[11px]">
-                  <span className="text-slate-400">Unit Factory Cost:</span>
-                  <span className="font-mono text-emerald-400 font-bold">
+                  <span className="text-slate-500 dark:text-slate-400">Unit Factory Cost:</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
                     ${viewingPO.factoryUnitCost.toFixed(2)} USDT
                   </span>
                 </div>
-                <div className="flex justify-between text-xs pt-1 border-t border-slate-800">
-                  <span className="text-slate-200 font-bold">
+                <div className="flex justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-700 dark:text-slate-300 font-bold">
                     Total Sourcing Settlement:
                   </span>
-                  <span className="font-mono text-emerald-300 font-black text-sm">
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-black text-sm">
                     {formatCurrency(viewingPO.totalCostUSDT)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => {
@@ -974,14 +967,14 @@ export default function AdminSourcingPage() {
                   setViewingPO(null);
                   handleOpenEditModal(po);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] cursor-pointer shadow-blue-500/25 shadow-xs"
               >
                 Edit PO
               </button>
               <button
                 type="button"
                 onClick={() => setViewingPO(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
               >
                 Close
               </button>
@@ -1000,19 +993,6 @@ export default function AdminSourcingPage() {
         confirmLabel="Delete PO"
         variant="danger"
       />
-
-      {/* ── 7. Toast Notification Bar ── */}
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
-          <span>✓ {toastMsg}</span>
-          <button
-            onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 cursor-pointer"
-          >
-            ×
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -22,15 +22,13 @@ import {
   Cpu,
   Boxes,
   Sparkles,
-  Search,
-  ExternalLink,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
-import { formatDate, slugify } from "@/utils/helpers";
+import { slugify } from "@/utils/helpers";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { Category } from "@/types/database";
 
@@ -420,12 +418,12 @@ export default function AdminCategoriesPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* 1. Header */}
       <AdminPageHeader
         title="Categories & Taxonomy"
-        subtitle="Organize your direct-from-China catalogue hierarchy, navigation branches, icons, and SEO metadata."
-        badge={{ text: "CATALOGUE TREE", variant: "emerald" }}
+        subtitle="Organize your catalogue hierarchy, navigation departments, icons, and SEO metadata."
+        badge={{ text: `${totalCategories} Categories`, variant: "blue" }}
         breadcrumbs={[
           { label: "Catalogue", href: "/admin/products" },
           { label: "Categories" },
@@ -442,58 +440,58 @@ export default function AdminCategoriesPage() {
 
       {/* 2. KPI Summary Bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total Categories
             </span>
-            <span className="text-2xl font-black text-white font-mono mt-1 block">
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
               {totalCategories}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
             <FolderTree className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Active Displayed
             </span>
-            <span className="text-2xl font-black text-emerald-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
               {activeCategories}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Root Branches
             </span>
-            <span className="text-2xl font-black text-blue-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
               {rootCategories}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
             <Layers className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#F3E8FF] dark:bg-[#28183B] border border-[#E9D5FF]/50 dark:border-purple-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Total Products Linked
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Products Linked
             </span>
-            <span className="text-2xl font-black text-amber-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5 block">
               {totalProducts}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+          <div className="w-10 h-10 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center shadow-xs">
             <Boxes className="w-5 h-5" />
           </div>
         </div>
@@ -525,32 +523,32 @@ export default function AdminCategoriesPage() {
         title={editingCategory ? `Edit Category: ${editingCategory.name}` : "Create New Category"}
         maxWidth="max-w-2xl"
       >
-        <form onSubmit={handleSave} className="space-y-4 pt-2">
+        <form onSubmit={handleSave} className="space-y-4 pt-1 text-xs text-slate-800 dark:text-slate-200">
           {/* Row 1: Name & Slug */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Category Name <span className="text-red-400">*</span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Category Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formName}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g. Consumer Electronics"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
                 required
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Slug <span className="text-slate-500 text-[10px]">(URL segment)</span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Slug <span className="text-slate-400 text-[10px]">(URL segment)</span>
               </label>
               <input
                 type="text"
                 value={formSlug}
                 onChange={(e) => setFormSlug(e.target.value)}
                 placeholder="e.g. consumer-electronics"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#2F65F6] transition-colors"
                 required
               />
             </div>
@@ -559,13 +557,13 @@ export default function AdminCategoriesPage() {
           {/* Row 2: Parent Category & Icon */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Parent Category
               </label>
               <select
                 value={formParentId}
                 onChange={(e) => setFormParentId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
               >
                 <option value="root">None (Top-Level Root Category)</option>
                 {categories
@@ -579,13 +577,13 @@ export default function AdminCategoriesPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Category Icon
               </label>
               <select
                 value={formIcon}
                 onChange={(e) => setFormIcon(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
               >
                 {AVAILABLE_ICONS.map((icon) => (
                   <option key={icon} value={icon}>
@@ -599,7 +597,7 @@ export default function AdminCategoriesPage() {
           {/* Row 3: Position & Image URL */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Display Position
               </label>
               <input
@@ -607,11 +605,11 @@ export default function AdminCategoriesPage() {
                 min="1"
                 value={formPosition}
                 onChange={(e) => setFormPosition(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#2F65F6] transition-colors"
               />
             </div>
             <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Cover Image URL
               </label>
               <input
@@ -619,14 +617,14 @@ export default function AdminCategoriesPage() {
                 value={formImageUrl}
                 onChange={(e) => setFormImageUrl(e.target.value)}
                 placeholder="https://images.unsplash.com/..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
               />
             </div>
           </div>
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Description
             </label>
             <textarea
@@ -634,28 +632,28 @@ export default function AdminCategoriesPage() {
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
               placeholder="Short category description for storefront and SEO..."
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2 outline-none focus:border-[#FF1028] transition-colors resize-none"
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2 outline-none focus:border-[#2F65F6] transition-colors resize-none"
             />
           </div>
 
           {/* Subcategories */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">
-              Subcategory Tags <span className="text-slate-500 text-[10px]">(comma-separated)</span>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+              Subcategory Tags <span className="text-slate-400 text-[10px]">(comma-separated)</span>
             </label>
             <input
               type="text"
               value={formSubcategories}
               onChange={(e) => setFormSubcategories(e.target.value)}
               placeholder="e.g. Audio & Headphones, Smartwatches, Action Cameras"
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
             />
           </div>
 
           {/* SEO Meta Box */}
-          <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-3">
-            <span className="text-[11px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+            <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               SEO & Metadata
             </span>
             <div className="space-y-2">
@@ -664,23 +662,23 @@ export default function AdminCategoriesPage() {
                 value={formSeoTitle}
                 onChange={(e) => setFormSeoTitle(e.target.value)}
                 placeholder="SEO Title (e.g. Consumer Electronics - Direct Factory)"
-                className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6]"
               />
               <textarea
                 rows={2}
                 value={formSeoDesc}
                 onChange={(e) => setFormSeoDesc(e.target.value)}
                 placeholder="SEO Meta Description (150-160 characters)..."
-                className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028] resize-none"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6] resize-none"
               />
             </div>
           </div>
 
           {/* Is Active Toggle */}
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div>
-              <span className="text-xs font-bold text-white block">Active Status</span>
-              <span className="text-[11px] text-slate-400">
+              <span className="text-xs font-bold text-slate-900 dark:text-white block">Active Status</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
                 Visible to customers in storefront navigation and search
               </span>
             </div>
@@ -691,22 +689,22 @@ export default function AdminCategoriesPage() {
                 onChange={(e) => setFormIsActive(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF1028]"></div>
+              <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2F65F6]"></div>
             </label>
           </div>
 
           {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-lg shadow-red-950/50"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-md cursor-pointer"
             >
               {editingCategory ? "Update Category" : "Create Category"}
             </button>
@@ -727,12 +725,12 @@ export default function AdminCategoriesPage() {
 
       {/* 6. Toast */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 border border-emerald-400/40">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#DCFCE7] dark:bg-emerald-950 border border-[#BBF7D0] dark:border-emerald-800 text-[#16A34A] dark:text-emerald-300 px-5 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
           <span>✓ {toastMsg}</span>
           <button
             type="button"
             onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 ml-2"
+            className="font-bold text-sm hover:opacity-70 ml-2 cursor-pointer"
           >
             ×
           </button>

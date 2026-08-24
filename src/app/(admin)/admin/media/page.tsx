@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import {
   Image as ImageIcon,
@@ -10,19 +10,13 @@ import {
   Copy,
   Check,
   Trash2,
-  ExternalLink,
   Search,
-  Filter,
   Eye,
-  Sparkles,
   CheckSquare,
   Square,
   Play,
   Layers,
   HardDrive,
-  Calendar,
-  Tag,
-  Plus,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { StatusBadge, BadgeTone } from "@/components/admin/StatusBadge";
@@ -167,19 +161,17 @@ export default function AdminMediaPage() {
   };
 
   // Filtered Assets
-  const filteredMedia = useMemo(() => {
-    return mediaList.filter((asset) => {
-      const matchesSearch =
-        asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        asset.format.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        asset.category.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredMedia = mediaList.filter((asset) => {
+    const matchesSearch =
+      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.format.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      asset.category.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesType = selectedType === "all" || asset.type === selectedType;
-      const matchesCategory = selectedCategory === "all" || asset.category === selectedCategory;
+    const matchesType = selectedType === "all" || asset.type === selectedType;
+    const matchesCategory = selectedCategory === "all" || asset.category === selectedCategory;
 
-      return matchesSearch && matchesType && matchesCategory;
-    });
-  }, [mediaList, searchTerm, selectedType, selectedCategory]);
+    return matchesSearch && matchesType && matchesCategory;
+  });
 
   // Metrics
   const totalAssets = mediaList.length;
@@ -205,12 +197,12 @@ export default function AdminMediaPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* 1. Header */}
       <AdminPageHeader
         title="Media Asset Library"
-        subtitle="High-definition product imagery, QC dual-video embeds, campaign banners, and CDN assets."
-        badge={{ text: "CDN ASSETS", variant: "purple" }}
+        subtitle="Manage product imagery, factory QC video demonstrations, promotional banners, and CDN assets."
+        badge={{ text: `${totalAssets} Media Files`, variant: "blue" }}
         breadcrumbs={[
           { label: "Catalogue", href: "/admin/products" },
           { label: "Media Library" },
@@ -227,75 +219,75 @@ export default function AdminMediaPage() {
 
       {/* 2. KPI Metrics Bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total Assets
             </span>
-            <span className="text-2xl font-black text-white font-mono mt-1 block">
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
               {totalAssets}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
             <HardDrive className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Photos & Graphics
             </span>
-            <span className="text-2xl font-black text-emerald-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
               {imageCount}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
             <ImageIcon className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#FFF0F2] dark:bg-[#2D1B22] border border-[#FECDD3]/50 dark:border-rose-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Dual QC Videos
             </span>
-            <span className="text-2xl font-black text-red-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5 block">
               {videoCount}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+          <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xs">
             <Video className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Marketing Banners
             </span>
-            <span className="text-2xl font-black text-blue-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
               {bannerCount}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
             <Layers className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* 3. Filter & Search Controls Bar */}
-      <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
+      <div className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 space-y-4 shadow-xs">
         <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           {/* Search Box */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search assets by file name, format, or category..."
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl pl-9 pr-4 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
             />
           </div>
 
@@ -305,7 +297,7 @@ export default function AdminMediaPage() {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
             >
               <option value="all">All Media Types</option>
               <option value="image">Images Only</option>
@@ -317,7 +309,7 @@ export default function AdminMediaPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-slate-200 text-xs font-medium rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
             >
               <option value="all">All Categories</option>
               <option value="product">Product Photography</option>
@@ -332,11 +324,11 @@ export default function AdminMediaPage() {
               <button
                 type="button"
                 onClick={handleSelectAll}
-                className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 {selectedIds.size === filteredMedia.length && filteredMedia.length > 0 ? (
                   <>
-                    <CheckSquare className="w-3.5 h-3.5 text-red-400" />
+                    <CheckSquare className="w-3.5 h-3.5 text-[#2F65F6]" />
                     Deselect All
                   </>
                 ) : (
@@ -351,7 +343,7 @@ export default function AdminMediaPage() {
                 <button
                   type="button"
                   onClick={handleBulkDelete}
-                  className="px-3 py-2 rounded-xl text-xs font-bold bg-red-950/60 hover:bg-red-900 text-red-300 border border-red-800/80 transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#FEE2E2] dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/80 text-[#DC2626] dark:text-rose-300 border border-[#FECDD3] dark:border-rose-900/40 transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Delete ({selectedIds.size})
@@ -364,20 +356,20 @@ export default function AdminMediaPage() {
 
       {/* 4. Responsive Grid Display */}
       {filteredMedia.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto text-slate-400">
+        <div className="p-12 text-center rounded-2xl bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 space-y-4 shadow-xs">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center mx-auto text-slate-400">
             <ImageIcon className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-black text-white">No media assets found</h3>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">No media assets found</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
               No files match your current search or filter criteria. Upload images or clear filters.
             </p>
           </div>
           <button
             type="button"
             onClick={handleOpenUploadModal}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors"
+            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-md cursor-pointer"
           >
             Upload First Asset
           </button>
@@ -391,14 +383,14 @@ export default function AdminMediaPage() {
             return (
               <div
                 key={asset.id}
-                className={`group rounded-3xl bg-slate-900 border transition-all duration-200 overflow-hidden flex flex-col ${
+                className={`group rounded-2xl bg-white dark:bg-[#111827] border transition-all duration-200 overflow-hidden flex flex-col shadow-xs ${
                   isSelected
-                    ? "border-[#FF1028] ring-1 ring-[#FF1028]/50 shadow-lg shadow-red-950/30"
-                    : "border-slate-800 hover:border-slate-700"
+                    ? "border-[#2F65F6] ring-2 ring-[#2F65F6]/40"
+                    : "border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                 }`}
               >
                 {/* Thumbnail Preview Area */}
-                <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
+                <div className="relative aspect-video w-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
                   {asset.type === "image" ? (
                     <Image
                       src={asset.url}
@@ -408,17 +400,17 @@ export default function AdminMediaPage() {
                       unoptimized
                     />
                   ) : asset.type === "video" ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 group-hover:bg-slate-900/80 transition-colors">
-                      <div className="w-12 h-12 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg shadow-red-950/50 group-hover:scale-110 transition-transform">
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 group-hover:bg-slate-800 transition-colors">
+                      <div className="w-12 h-12 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
                         <Play className="w-5 h-5 ml-0.5" />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 mt-2 font-mono">
+                      <span className="text-[10px] font-bold text-slate-300 mt-2 font-mono">
                         QC Video Stream
                       </span>
                     </div>
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 text-slate-400">
-                      <FileText className="w-10 h-10 text-slate-500" />
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-900 text-slate-400">
+                      <FileText className="w-10 h-10 text-slate-400" />
                       <span className="text-[10px] font-mono mt-1">{asset.format} Document</span>
                     </div>
                   )}
@@ -431,26 +423,26 @@ export default function AdminMediaPage() {
                         e.stopPropagation();
                         handleToggleSelect(asset.id);
                       }}
-                      className="pointer-events-auto w-6 h-6 rounded-lg bg-slate-950/80 backdrop-blur-md border border-slate-700 flex items-center justify-center hover:bg-slate-900 transition-colors text-white"
+                      className="pointer-events-auto w-6 h-6 rounded-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:scale-105 transition-transform cursor-pointer shadow-xs"
                     >
                       {isSelected ? (
-                        <CheckSquare className="w-4 h-4 text-red-400" />
+                        <CheckSquare className="w-4 h-4 text-[#2F65F6]" />
                       ) : (
                         <Square className="w-3.5 h-3.5 text-slate-400" />
                       )}
                     </button>
 
-                    <span className="font-mono text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md text-white border border-slate-700">
+                    <span className="font-mono text-[9px] font-bold uppercase px-2 py-0.5 rounded-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs">
                       {asset.format}
                     </span>
                   </div>
 
                   {/* Hover Quick Actions Overlay */}
-                  <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-auto">
+                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-auto">
                     <button
                       type="button"
                       onClick={() => setPreviewAsset(asset)}
-                      className="p-2 rounded-xl bg-slate-800/90 text-white hover:bg-slate-700 border border-slate-600 transition-all hover:scale-105"
+                      className="p-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white hover:scale-110 border border-slate-200 dark:border-slate-600 transition-all cursor-pointer shadow-xs"
                       title="Preview Media"
                     >
                       <Eye className="w-4 h-4" />
@@ -458,11 +450,11 @@ export default function AdminMediaPage() {
                     <button
                       type="button"
                       onClick={() => handleCopyUrl(asset)}
-                      className="p-2 rounded-xl bg-slate-800/90 text-white hover:bg-slate-700 border border-slate-600 transition-all hover:scale-105"
+                      className="p-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white hover:scale-110 border border-slate-200 dark:border-slate-600 transition-all cursor-pointer shadow-xs"
                       title="Copy URL"
                     >
                       {isCopied ? (
-                        <Check className="w-4 h-4 text-emerald-400" />
+                        <Check className="w-4 h-4 text-emerald-500" />
                       ) : (
                         <Copy className="w-4 h-4" />
                       )}
@@ -470,7 +462,7 @@ export default function AdminMediaPage() {
                     <button
                       type="button"
                       onClick={() => handleDeleteAsset(asset)}
-                      className="p-2 rounded-xl bg-red-950/80 text-red-300 hover:bg-red-900 border border-red-700 transition-all hover:scale-105"
+                      className="p-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700 hover:scale-110 border border-rose-500 transition-all cursor-pointer shadow-xs"
                       title="Delete Asset"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -494,7 +486,7 @@ export default function AdminMediaPage() {
                     </div>
 
                     <h4
-                      className="font-bold text-xs text-white truncate mt-2 hover:text-red-400 transition-colors"
+                      className="font-bold text-xs text-slate-900 dark:text-white truncate mt-2 hover:text-[#2F65F6] transition-colors"
                       title={asset.name}
                     >
                       {asset.name}
@@ -502,7 +494,7 @@ export default function AdminMediaPage() {
                   </div>
 
                   {/* Metadata Row */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400 font-mono">
                     <span>{asset.dimensions || "—"}</span>
                     <span>{formatDate(asset.uploaded_at)}</span>
                   </div>
@@ -520,33 +512,33 @@ export default function AdminMediaPage() {
         title="Upload Media Asset to CDN"
         maxWidth="max-w-xl"
       >
-        <form onSubmit={handleSaveUpload} className="space-y-4 pt-2">
+        <form onSubmit={handleSaveUpload} className="space-y-4 pt-1 text-xs text-slate-800 dark:text-slate-200">
           {/* File Name */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">
-              Asset File Name <span className="text-red-400">*</span>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+              Asset File Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               placeholder="e.g. eachine-ex5-4k-unboxing.jpg"
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028]"
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#2F65F6]"
               required
             />
           </div>
 
           {/* URL */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">
-              Asset Direct / Embed URL <span className="text-red-400">*</span>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+              Asset Direct / Embed URL <span className="text-red-500">*</span>
             </label>
             <input
               type="url"
               value={formUrl}
               onChange={(e) => setFormUrl(e.target.value)}
               placeholder="https://images.unsplash.com/... or https://youtube.com/embed/..."
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028]"
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#2F65F6]"
               required
             />
           </div>
@@ -554,11 +546,11 @@ export default function AdminMediaPage() {
           {/* Type & Category Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Media Type</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Media Type</label>
               <select
                 value={formType}
-                onChange={(e) => setFormType(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
+                onChange={(e) => setFormType(e.target.value as "image" | "video" | "document")}
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="image">Image (JPG, PNG, WebP)</option>
                 <option value="video">Dual-Video (MP4 / YouTube Embed)</option>
@@ -567,11 +559,11 @@ export default function AdminMediaPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Usage Tag</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Usage Tag</label>
               <select
                 value={formCategory}
-                onChange={(e) => setFormCategory(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
+                onChange={(e) => setFormCategory(e.target.value as MediaAsset["category"])}
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="product">Product Photography</option>
                 <option value="banner">Promotional Banner</option>
@@ -585,49 +577,49 @@ export default function AdminMediaPage() {
           {/* Dimensions, Size, Format */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Dimensions</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Dimensions</label>
               <input
                 type="text"
                 value={formDimensions}
                 onChange={(e) => setFormDimensions(e.target.value)}
                 placeholder="1920x1080"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#2F65F6]"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">File Size</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">File Size</label>
               <input
                 type="text"
                 value={formSize}
                 onChange={(e) => setFormSize(e.target.value)}
                 placeholder="2.4 MB"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#2F65F6]"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Format</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Format</label>
               <input
                 type="text"
                 value={formFormat}
                 onChange={(e) => setFormFormat(e.target.value)}
                 placeholder="JPG"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#2F65F6]"
               />
             </div>
           </div>
 
           {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsUploadModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-lg shadow-red-950/50"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-md cursor-pointer"
             >
               Register Asset
             </button>
@@ -643,8 +635,8 @@ export default function AdminMediaPage() {
           title={`Asset Preview: ${previewAsset.name}`}
           maxWidth="max-w-3xl"
         >
-          <div className="space-y-4 pt-2">
-            <div className="relative aspect-video w-full rounded-2xl bg-slate-950 overflow-hidden border border-slate-800">
+          <div className="space-y-4 pt-1 text-xs text-slate-800 dark:text-slate-200">
+            <div className="relative aspect-video w-full rounded-2xl bg-slate-900 overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xs">
               {previewAsset.type === "image" ? (
                 <Image
                   src={previewAsset.url}
@@ -663,28 +655,28 @@ export default function AdminMediaPage() {
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                  <FileText className="w-16 h-16 text-slate-600 mb-2" />
+                  <FileText className="w-16 h-16 text-slate-500 mb-2" />
                   <span>Document File Preview</span>
                 </div>
               )}
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-mono text-slate-300 font-bold">{previewAsset.name}</span>
-                <span className="font-mono text-slate-400">{previewAsset.dimensions} • {previewAsset.size}</span>
+                <span className="font-mono text-slate-900 dark:text-white font-bold">{previewAsset.name}</span>
+                <span className="font-mono text-slate-500 dark:text-slate-400">{previewAsset.dimensions} • {previewAsset.size}</span>
               </div>
-              <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                 <input
                   type="text"
                   readOnly
                   value={previewAsset.url}
-                  className="flex-1 bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-xl px-3 py-2 font-mono outline-none"
+                  className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-xl px-3 py-2 font-mono outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => handleCopyUrl(previewAsset)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#FF1028] text-white hover:bg-[#E00B20] transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#2F65F6] text-white hover:bg-[#2563EB] transition-colors cursor-pointer shadow-blue-500/25 shadow-xs"
                 >
                   Copy URL
                 </button>
@@ -707,12 +699,12 @@ export default function AdminMediaPage() {
 
       {/* 8. Toast */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 border border-emerald-400/40">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#DCFCE7] dark:bg-emerald-950 border border-[#BBF7D0] dark:border-emerald-800 text-[#16A34A] dark:text-emerald-300 px-5 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
           <span>✓ {toastMsg}</span>
           <button
             type="button"
             onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 ml-2"
+            className="font-bold text-sm hover:opacity-70 ml-2 cursor-pointer"
           >
             ×
           </button>

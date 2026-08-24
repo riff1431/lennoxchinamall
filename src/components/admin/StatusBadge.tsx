@@ -35,46 +35,46 @@ export function StatusBadge({
 
   const toneClasses: Record<BadgeTone, { bg: string; text: string; border: string; dot: string }> = {
     emerald: {
-      bg: "bg-emerald-950/60",
-      text: "text-emerald-300",
-      border: "border-emerald-800/80",
-      dot: "bg-emerald-400",
+      bg: "bg-[#DCFCE7] dark:bg-emerald-950/60",
+      text: "text-[#16A34A] dark:text-emerald-400",
+      border: "border-[#BBF7D0]/60 dark:border-emerald-900/40",
+      dot: "bg-[#16A34A] dark:bg-emerald-400",
     },
     red: {
-      bg: "bg-red-950/60",
-      text: "text-red-300",
-      border: "border-red-800/80",
-      dot: "bg-red-400",
+      bg: "bg-[#FEE2E2] dark:bg-rose-950/60",
+      text: "text-[#DC2626] dark:text-rose-400",
+      border: "border-[#FECDD3]/60 dark:border-rose-900/40",
+      dot: "bg-[#DC2626] dark:bg-rose-400",
     },
     amber: {
-      bg: "bg-amber-950/60",
-      text: "text-amber-300",
-      border: "border-amber-800/80",
-      dot: "bg-amber-400",
+      bg: "bg-[#FEF3C7] dark:bg-amber-950/60",
+      text: "text-[#D97706] dark:text-amber-400",
+      border: "border-[#FDE68A]/60 dark:border-amber-900/40",
+      dot: "bg-[#D97706] dark:bg-amber-400",
     },
     blue: {
-      bg: "bg-blue-950/60",
-      text: "text-blue-300",
-      border: "border-blue-800/80",
-      dot: "bg-blue-400",
+      bg: "bg-[#EEF2FF] dark:bg-blue-950/60",
+      text: "text-[#2563EB] dark:text-blue-400",
+      border: "border-[#BFDBFE]/60 dark:border-blue-900/40",
+      dot: "bg-[#2563EB] dark:bg-blue-400",
     },
     purple: {
-      bg: "bg-purple-950/60",
-      text: "text-purple-300",
-      border: "border-purple-800/80",
-      dot: "bg-purple-400",
+      bg: "bg-[#F3E8FF] dark:bg-purple-950/60",
+      text: "text-[#7E22CE] dark:text-purple-400",
+      border: "border-[#E9D5FF]/60 dark:border-purple-900/40",
+      dot: "bg-[#7E22CE] dark:bg-purple-400",
     },
     cyan: {
-      bg: "bg-cyan-950/60",
-      text: "text-cyan-300",
-      border: "border-cyan-800/80",
-      dot: "bg-cyan-400",
+      bg: "bg-[#CFFAFE] dark:bg-cyan-950/60",
+      text: "text-[#0891B2] dark:text-cyan-400",
+      border: "border-[#A5F3FC]/60 dark:border-cyan-900/40",
+      dot: "bg-[#0891B2] dark:bg-cyan-400",
     },
     slate: {
-      bg: "bg-slate-900",
-      text: "text-slate-300",
-      border: "border-slate-800",
-      dot: "bg-slate-400",
+      bg: "bg-slate-100 dark:bg-slate-800",
+      text: "text-slate-700 dark:text-slate-300",
+      border: "border-slate-200 dark:border-slate-700",
+      dot: "bg-slate-500 dark:bg-slate-400",
     },
   };
 
@@ -87,7 +87,7 @@ export function StatusBadge({
         style.bg,
         style.text,
         style.border,
-        size === "sm" ? "text-[9px] px-1.5 py-0.5" : "text-[10px] px-2.5 py-1",
+        size === "sm" ? "text-[9px] px-2 py-0.5" : "text-[10px] px-2.5 py-0.5",
         className
       )}
     >

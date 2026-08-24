@@ -9,20 +9,14 @@ import {
   Trash2,
   CheckCircle2,
   XCircle,
-  ExternalLink,
-  Search,
-  Sparkles,
-  Building2,
   Package,
-  Globe,
-  Tag,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
-import { formatDate, slugify } from "@/utils/helpers";
+import { slugify } from "@/utils/helpers";
 import { MOCK_BRANDS } from "@/lib/mockData";
 import { Brand } from "@/types/database";
 
@@ -301,12 +295,12 @@ export default function AdminBrandsPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* 1. Header */}
       <AdminPageHeader
         title="Brands Directory"
-        subtitle="Manage official China direct brands, manufacturing labels, logos, and catalog filtering."
-        badge={{ text: "FACTORY BRANDS", variant: "red" }}
+        subtitle="Manage verified factory partner brands, labels, logos, and catalog filtering."
+        badge={{ text: `${totalBrands} Brands`, variant: "blue" }}
         breadcrumbs={[
           { label: "Catalogue", href: "/admin/products" },
           { label: "Brands" },
@@ -323,44 +317,44 @@ export default function AdminBrandsPage() {
 
       {/* 2. KPI Metrics Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total Brands
             </span>
-            <span className="text-2xl font-black text-white font-mono mt-1 block">
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
               {totalBrands}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
             <Award className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Active Official Brands
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Active Brands
             </span>
-            <span className="text-2xl font-black text-emerald-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
               {activeBrands}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Assigned Products
             </span>
-            <span className="text-2xl font-black text-blue-400 font-mono mt-1 block">
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
               {totalProducts}
             </span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
             <Package className="w-5 h-5" />
           </div>
         </div>
@@ -392,32 +386,32 @@ export default function AdminBrandsPage() {
         title={editingBrand ? `Edit Brand: ${editingBrand.name}` : "Add New Brand"}
         maxWidth="max-w-xl"
       >
-        <form onSubmit={handleSave} className="space-y-4 pt-2">
+        <form onSubmit={handleSave} className="space-y-4 pt-1 text-xs text-slate-800 dark:text-slate-200">
           {/* Brand Name & Slug */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Brand Name <span className="text-red-400">*</span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Brand Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formName}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g. Eachine Labs"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
                 required
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Slug <span className="text-slate-500 text-[10px]">(URL prefix)</span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Slug <span className="text-slate-400 text-[10px]">(URL prefix)</span>
               </label>
               <input
                 type="text"
                 value={formSlug}
                 onChange={(e) => setFormSlug(e.target.value)}
                 placeholder="e.g. eachine-labs"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#2F65F6] transition-colors"
                 required
               />
             </div>
@@ -425,7 +419,7 @@ export default function AdminBrandsPage() {
 
           {/* Logo URL */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Logo Image URL
             </label>
             <input
@@ -433,30 +427,30 @@ export default function AdminBrandsPage() {
               value={formLogoUrl}
               onChange={(e) => setFormLogoUrl(e.target.value)}
               placeholder="https://images.unsplash.com/... or CDN link"
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Brand Overview / Niche
             </label>
             <textarea
               rows={3}
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
-              placeholder="FPV drone systems, high-discharge batteries, industrial quadcopters..."
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors resize-none"
+              placeholder="FPV drone systems, high-discharge batteries, industrial hardware..."
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors resize-none"
             />
           </div>
 
           {/* Is Active Toggle */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div>
-              <span className="text-xs font-bold text-white block">Active Status</span>
-              <span className="text-[11px] text-slate-400">
-                Display in brand filters and product brand badges
+              <span className="text-xs font-bold text-slate-900 dark:text-white block">Active Status</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                Display in brand filters and product badges
               </span>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -466,22 +460,22 @@ export default function AdminBrandsPage() {
                 onChange={(e) => setFormIsActive(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF1028]"></div>
+              <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2F65F6]"></div>
             </label>
           </div>
 
           {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-lg shadow-red-950/50"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-md cursor-pointer"
             >
               {editingBrand ? "Update Brand" : "Create Brand"}
             </button>
@@ -502,12 +496,12 @@ export default function AdminBrandsPage() {
 
       {/* 6. Toast */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 border border-emerald-400/40">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#DCFCE7] dark:bg-emerald-950 border border-[#BBF7D0] dark:border-emerald-800 text-[#16A34A] dark:text-emerald-300 px-5 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
           <span>✓ {toastMsg}</span>
           <button
             type="button"
             onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 ml-2"
+            className="font-bold text-sm hover:opacity-70 ml-2 cursor-pointer"
           >
             ×
           </button>
