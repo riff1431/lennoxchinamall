@@ -39,6 +39,7 @@ import {
   ThumbsUp,
   Filter,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import { Product, Category } from "@/types/database";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
@@ -180,9 +181,9 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900">
-      {/* ── 1. Top Breadcrumbs (Sticky Navigation Bar) ── */}
+      {/* ── 1. Top Breadcrumbs & Factory Trust Micro-Strip ── */}
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 py-3 shadow-2xs transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           <Breadcrumbs
             items={[
               { label: "Home", href: "/" },
@@ -193,6 +194,16 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               { label: product.title },
             ]}
           />
+
+          <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono">
+            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Shenzhen Sourcing Hub Active
+            </span>
+            <span className="text-slate-500 font-medium">
+              100% Pre-Departure QC Tested
+            </span>
+          </div>
         </div>
       </div>
 
@@ -218,8 +229,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     onClick={() => setSelectedImageIndex(idx)}
                     className={`relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-slate-100 border-2 transition-all shrink-0 cursor-pointer ${
                       selectedImageIndex === idx
-                        ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20"
-                        : "border-slate-200 hover:border-slate-400"
+                        ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20 scale-102"
+                        : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100"
                     }`}
                   >
                     <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
@@ -252,6 +263,13 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                   )}
                 </div>
 
+                {/* Image Count & Zoom Hint */}
+                <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
+                  <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/15 shadow-sm">
+                    {selectedImageIndex + 1} / {images.length} Photos
+                  </span>
+                </div>
+
                 {/* Lightbox Trigger */}
                 <button
                   onClick={() => setIsZoomModalOpen(true)}
@@ -273,7 +291,20 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 <span className="text-xs font-black uppercase tracking-wider text-blue-600 font-mono bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200">
                   {product.brand?.name || "Direct Factory Hardware"}
                 </span>
-                <span className="text-[11px] font-mono text-slate-400">SKU: {currentVariant?.sku || product.sku}</span>
+                <button
+                  onClick={() => {
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(currentVariant?.sku || product.sku);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2000);
+                    }
+                  }}
+                  className="text-[11px] font-mono text-slate-500 hover:text-[#00143D] flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                  title="Click to copy SKU"
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>SKU: {currentVariant?.sku || product.sku}</span>
+                </button>
               </div>
 
               <h1 className="text-xl sm:text-2xl font-black font-heading text-[#00143D] leading-snug">
@@ -282,11 +313,18 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
 
               {/* Rating & Sold Row */}
               <div className="flex items-center gap-4 text-xs pt-1">
-                <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    setActiveTab("reviews");
+                    const el = document.getElementById("product-tabs-section");
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center gap-1 hover:underline cursor-pointer"
+                >
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                   <span className="font-black text-slate-900">{(product.avg_rating || 4.9).toFixed(1)}</span>
                   <span className="text-slate-400">({product.review_count || 32} reviews)</span>
-                </div>
+                </button>
                 <span className="text-slate-300">•</span>
                 <span className="text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded-md font-mono">
                   {product.sold_count >= 1000
@@ -304,14 +342,14 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
             </div>
 
             {/* ── Price Block & Flash Sale Countdown ── */}
-            <div className="p-5 rounded-3xl bg-slate-900 text-white space-y-4 border border-slate-800 shadow-md">
+            <div className="p-5 rounded-3xl bg-slate-950 text-white space-y-4 border border-slate-800 shadow-md">
               <div className="flex items-baseline justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-mono">
                     Direct Wholesale Price
                   </span>
                   <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-black text-white font-mono leading-none">
+                    <span className="text-3xl sm:text-4xl font-black text-white font-mono leading-none">
                       {formatCurrency(activePrice)}
                     </span>
                     {activeComparePrice && activeComparePrice > activePrice && (
@@ -331,9 +369,9 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
 
               {/* Flash Drop Micro Timer */}
               {product.is_flash_deal && (
-                <div className="p-3 rounded-2xl bg-[#00143D] border border-amber-300/30 flex items-center justify-between text-xs font-mono text-amber-300">
+                <div className="p-3 rounded-2xl bg-[#00143D] border border-amber-300/30 flex items-center justify-between text-xs font-mono text-amber-300 shadow-inner">
                   <span className="flex items-center gap-1.5 font-bold text-white">
-                    <Clock className="w-4 h-4 text-amber-300" /> Flash Sourcing Deal Ends:
+                    <Clock className="w-4 h-4 text-amber-300 animate-pulse" /> Flash Sourcing Deal Ends:
                   </span>
                   <span className="font-black text-sm text-amber-300">
                     {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:
@@ -342,18 +380,32 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 </div>
               )}
 
-              {/* Coupon Voucher Callout */}
-              <div className="p-2.5 rounded-xl bg-white/10 text-slate-200 text-xs flex items-center justify-between">
-                <span className="text-[11px]">Extra 10% Off with Coupon:</span>
-                <span className="bg-[#FF1028] text-white font-black px-2 py-0.5 rounded font-mono text-[11px]">
-                  LENNOX10
+              {/* Interactive Coupon Voucher Callout */}
+              <div
+                onClick={() => {
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText("LENNOX10");
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }
+                }}
+                className="p-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs flex items-center justify-between cursor-pointer border border-white/10 transition-colors"
+                title="Click to copy coupon code"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span className="text-[11px] font-medium">Extra 10% Off with Coupon:</span>
+                </div>
+                <span className="bg-[#FF1028] hover:bg-[#E00B20] text-white font-black px-2.5 py-0.5 rounded-md font-mono text-[11px] flex items-center gap-1">
+                  <span>LENNOX10</span>
+                  <Copy className="w-3 h-3" />
                 </span>
               </div>
             </div>
 
             {/* ── Variant Selectors ── */}
             {product.variants && product.variants.length > 1 && (
-              <div className="space-y-3 p-4 rounded-2xl bg-white border border-slate-200">
+              <div className="space-y-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-[#00143D] uppercase tracking-wider font-heading">
                     Model / Spec Configuration
@@ -375,7 +427,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                       }`}
                     >
                       <span className="text-xs font-bold block truncate">{variant.title || variant.sku}</span>
-                      <span className="text-xs font-mono font-bold mt-1 block">
+                      <span className="text-xs font-mono font-bold mt-1 block text-emerald-600 dark:text-emerald-400">
                         ${variant.price.toFixed(2)} USDT
                       </span>
                     </button>
@@ -384,13 +436,13 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               </div>
             )}
 
-            {/* ── Quantity & Inventory Stock State ── */}
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200">
+            {/* ── Quantity & Live Inventory Stock State ── */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
               <div>
                 <span className="text-xs font-bold text-slate-700 block">Order Quantity</span>
-                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 font-mono">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  {isOutOfStock ? "Out of Stock" : `In Stock (${activeStock} units in Shenzhen)`}
+                  {isOutOfStock ? "Out of Stock" : `In Stock (${activeStock} Units in Shenzhen)`}
                 </span>
               </div>
 
@@ -399,7 +451,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1 || isOutOfStock}
-                  className="p-2.5 text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
+                  className="p-2.5 text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer transition-colors"
                   aria-label="Decrease quantity"
                 >
                   <Minus className="w-3.5 h-3.5" />
@@ -410,7 +462,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 <button
                   onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
                   disabled={quantity >= activeStock || isOutOfStock}
-                  className="p-2.5 text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
+                  className="p-2.5 text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer transition-colors"
                   aria-label="Increase quantity"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -423,17 +475,17 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               <button
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
-                className="w-full py-4 rounded-2xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading text-sm uppercase tracking-wider transition-all shadow-lg hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading text-sm uppercase tracking-wider transition-all shadow-lg hover:shadow-xl active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4 fill-white" />
-                <span>Buy Now with Binance Pay (${(activePrice * quantity).toFixed(2)})</span>
+                <span>Buy Now with Binance Pay (${(activePrice * quantity).toFixed(2)} USDT)</span>
               </button>
 
               <div className="grid grid-cols-4 gap-2.5">
                 <button
                   onClick={() => handleAddToCart(true)}
                   disabled={isOutOfStock}
-                  className="col-span-2 py-3.5 rounded-2xl bg-[#00143D] hover:bg-[#002366] text-white font-black font-heading text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40"
+                  className="col-span-2 py-3.5 rounded-2xl bg-[#00143D] hover:bg-[#002366] text-white font-black font-heading text-xs uppercase tracking-wider transition-all shadow-md active:scale-98 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40"
                 >
                   <ShoppingCart className="w-4 h-4" />
                   <span>Add to Cart</span>
@@ -493,9 +545,11 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               <div className="flex items-start gap-3">
                 <Plane className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold text-slate-900 block">Air Express Cargo: 5–8 Business Days</span>
-                  <span className="text-[11px] text-slate-500">
-                    Tracked door-to-door via YunExpress / SF International / DHL. Free shipping on orders over $75 USDT.
+                  <span className="font-bold text-slate-900 block font-heading">
+                    Air Cargo Priority: 5–8 Business Days
+                  </span>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">
+                    Dispatches within 24h via YunExpress / SF International. Free air shipping over $75 USDT.
                   </span>
                 </div>
               </div>
@@ -503,9 +557,11 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               <div className="flex items-start gap-3 pt-2 border-t border-slate-200/80">
                 <Coins className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold text-slate-900 block">Binance Pay USDT Zero-Fee Escrow</span>
-                  <span className="text-[11px] text-slate-500">
-                    Funds released upon verified airline delivery. 30-Day Money-Back Warranty policy.
+                  <span className="font-bold text-slate-900 block font-heading">
+                    Binance Pay USDT Zero-Fee Escrow
+                  </span>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">
+                    Zero gas fees on Binance. Funds released upon verified airline delivery.
                   </span>
                 </div>
               </div>
@@ -625,7 +681,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
         </div>
 
         {/* ── 3. Expandable Deep Information Tabs ── */}
-        <div className="mt-16 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div id="product-tabs-section" className="mt-16 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           {/* Tab Navigation */}
           <div className="flex items-center border-b border-slate-200 bg-slate-50 overflow-x-auto">
             <button
