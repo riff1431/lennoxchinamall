@@ -55,16 +55,32 @@ export function generateBinanceSignature(
 }
 
 /**
- * Verify incoming webhook signature from Binance Pay
+ * Verify incoming webhook signature from Binance Pay with replay attack protection
  */
 export function verifyBinanceWebhookSignature(
   timestamp: string,
   nonce: string,
   body: string,
   receivedSignature: string,
-  secretKey: string
+  secretKey: string,
+  maxAgeMs = 5 * 60 * 1000 // 5 minutes max clock drift / replay window
 ): boolean {
   try {
+    if (!timestamp || !nonce || !receivedSignature || !secretKey) {
+      return false;
+    }
+
+    // 1. Verify Timestamp Freshness (prevent replay attacks)
+    const requestTime = parseInt(timestamp, 10);
+    if (isNaN(requestTime)) {
+      return false;
+    }
+    const currentTime = Date.now();
+    if (Math.abs(currentTime - requestTime) > maxAgeMs) {
+      return false; // Stale or replayed webhook
+    }
+
+    // 2. Compute HMAC-SHA512
     const payload = `${timestamp}\n${nonce}\n${body}\n`;
     const computedSignature = crypto
       .createHmac("sha512", secretKey)
@@ -72,12 +88,16 @@ export function verifyBinanceWebhookSignature(
       .digest("hex")
       .toUpperCase();
 
-    return (
-      crypto.timingSafeEqual(
-        Buffer.from(computedSignature),
-        Buffer.from(receivedSignature.toUpperCase())
-      )
-    );
+    const cleanReceived = receivedSignature.trim().toUpperCase();
+
+    const computedBuffer = Buffer.from(computedSignature, "utf-8");
+    const receivedBuffer = Buffer.from(cleanReceived, "utf-8");
+
+    if (computedBuffer.length !== receivedBuffer.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(computedBuffer, receivedBuffer);
   } catch {
     return false;
   }

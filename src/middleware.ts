@@ -1,6 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/**
+ * Lennox ChinaMall — Edge Middleware
+ *
+ * Handles session refresh, route protection, and admin role gating.
+ * Role is checked from app_metadata (server-set, not user-editable).
+ */
+
+const ADMIN_ROLES = [
+  "super_admin",
+  "catalogue_manager",
+  "order_manager",
+  "support_agent",
+];
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -8,63 +22,85 @@ export async function middleware(request: NextRequest) {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    }
-  );
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value)
+        );
+        supabaseResponse = NextResponse.next({
+          request,
+        });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
+      },
+    },
+  });
 
   // IMPORTANT: Do not add logic between createServerClient and supabase.auth.getUser().
-  // A simple mistake could make it very hard to debug session refresh issues.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect admin routes
-  if (request.nextUrl.pathname.startsWith("/admin")) {
+  const pathname = request.nextUrl.pathname;
+
+  // ─── Admin Routes (/admin/*) ─────────────────────────────────────────────
+  if (pathname.startsWith("/admin")) {
+    // Not authenticated → redirect to admin login
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/admin-login";
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    // Authenticated but not an admin role → redirect to home (don't reveal admin exists)
+    const role = user.app_metadata?.role;
+    if (!role || !ADMIN_ROLES.includes(role)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      url.searchParams.delete("redirect");
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // ─── Account Routes (/account/*) ─────────────────────────────────────────
+  if (pathname.startsWith("/account")) {
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
-      url.searchParams.set("redirect", request.nextUrl.pathname);
-      return NextResponse.redirect(url);
-    }
-    // Additional role check will be done server-side in admin layouts
-  }
-
-  // Protect account routes
-  if (request.nextUrl.pathname.startsWith("/account")) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/auth/login";
-      url.searchParams.set("redirect", request.nextUrl.pathname);
+      url.searchParams.set("redirect", pathname);
       return NextResponse.redirect(url);
     }
   }
 
-  // Redirect logged-in users away from auth pages
-  if (request.nextUrl.pathname.startsWith("/auth/")) {
-    if (user && !request.nextUrl.pathname.includes("verify-email")) {
-      const redirect = request.nextUrl.searchParams.get("redirect") || "/";
+  // ─── Auth Routes (/auth/*) ───────────────────────────────────────────────
+  // Redirect logged-in users away from auth pages (except verify-email and reset-password)
+  if (pathname.startsWith("/auth/")) {
+    const isExempt =
+      pathname.includes("verify-email") ||
+      pathname.includes("reset-password");
+
+    if (user && !isExempt) {
+      // If visiting admin-login while already an admin, go to admin dashboard
+      if (pathname.includes("admin-login")) {
+        const role = user.app_metadata?.role;
+        if (role && ADMIN_ROLES.includes(role)) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/admin/dashboard";
+          return NextResponse.redirect(url);
+        }
+      }
+
+      const redirect =
+        request.nextUrl.searchParams.get("redirect") || "/account";
       const url = request.nextUrl.clone();
       url.pathname = redirect;
       url.searchParams.delete("redirect");
@@ -83,7 +119,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder assets
-     * - api routes (handled separately)
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

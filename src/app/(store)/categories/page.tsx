@@ -1,12 +1,36 @@
 import React from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Layers, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lennoxchinamall.com";
+
+export const metadata: Metadata = {
+  title: "Direct China Factory Departments & Sourcing Hubs",
+  description:
+    "Explore certified China manufacturing clusters in Shenzhen, Ningbo, and Dongguan. Sourcing 4K camera drones, 3D printers, electronics, and automotive tools.",
+  alternates: {
+    canonical: `${APP_URL}/categories`,
+  },
+  openGraph: {
+    title: "Direct China Factory Departments & Sourcing Hubs | Lennox ChinaMall",
+    description:
+      "Explore certified China manufacturing clusters in Shenzhen, Ningbo, and Dongguan. Sourcing 4K camera drones, 3D printers, electronics, and automotive tools.",
+    url: `${APP_URL}/categories`,
+    type: "website",
+  },
+};
 
 export default function CategoriesDirectoryPage() {
+  const breadcrumbItems = [{ label: "All Departments & Sourcing Hubs", href: "/categories" }];
+
   return (
     <div className="space-y-6 pb-16">
+      <BreadcrumbJsonLd items={breadcrumbItems} />
       <Breadcrumbs items={[{ label: "All Departments & Sourcing Hubs" }]} />
 
       <div className="text-center max-w-xl mx-auto space-y-2 py-4">
@@ -25,14 +49,16 @@ export default function CategoriesDirectoryPage() {
             className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
           >
             <div className="relative h-48 bg-slate-100 overflow-hidden">
-              <img
-                src={cat.image_url || ""}
-                alt={cat.name}
-                className="w-full h-full object-cover"
+              <Image
+                src={cat.image_url || "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=600&auto=format&fit=crop&q=80"}
+                alt={`${cat.name} - Direct China Manufacturing Cluster`}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
               <div className="absolute bottom-3 left-4 right-4">
-                <h3 className="text-lg font-black text-white">{cat.name}</h3>
+                <h2 className="text-lg font-black text-white">{cat.name}</h2>
                 <span className="text-xs text-orange-400 font-bold">
                   {cat.product_count}+ Verified Items
                 </span>
@@ -71,3 +97,4 @@ export default function CategoriesDirectoryPage() {
     </div>
   );
 }
+

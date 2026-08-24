@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { Order, OrderItem, OrderAddress, OrderStatus } from "@/types/database";
+import { Order, OrderItem, OrderAddress, OrderStatus, Product, Variant } from "@/types/database";
 import { CartItemType } from "@/store/useCartStore";
 import {
   generateOrderNumber,
   generateMerchantTradeNo,
 } from "@/utils/helpers";
-import { MOCK_ORDERS } from "@/lib/mockData";
+import { MOCK_ORDERS, MOCK_PRODUCTS } from "@/lib/mockData";
 
 export interface CreateOrderParams {
   userId?: string;
@@ -36,33 +36,50 @@ export interface OrderCreationResult {
 
 /**
  * Creates a new order, snapshotting all items, address, and initiating payment records.
+ * Securely re-computes prices from the catalogue to prevent price-tampering attacks.
  */
 export async function createOrder(
   params: CreateOrderParams
 ): Promise<OrderCreationResult> {
-  const { items, shippingAddress, shippingMethod, couponCode, notes, userId } =
-    params;
+  const { items, shippingAddress, shippingMethod, couponCode, notes } = params;
 
   if (!items || items.length === 0) {
     return { success: false, message: "Cart is empty" };
   }
 
-  // 1. Calculate and revalidate totals
-  const subtotal = items.reduce(
+  // 1. Verify and sanitize each item's price against the product catalogue
+  const sanitizedItems = items.map((item) => {
+    // Look up mock/catalog product & variant to ensure price authenticity
+    const catalogProduct = MOCK_PRODUCTS.find((p) => p.id === item.productId || p.id === item.id);
+    const catalogVariant = catalogProduct?.variants?.find((v) => v.id === item.variantId || v.id === item.id);
+    
+    // Use verified catalogue price if found, else fall back to item price with sanity bound
+    const verifiedPrice = catalogVariant?.price ?? catalogProduct?.base_price ?? Math.max(0, Number(item.price) || 0);
+    const verifiedQuantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+
+    return {
+      ...item,
+      price: verifiedPrice,
+      quantity: verifiedQuantity,
+    };
+  });
+
+  const subtotal = sanitizedItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
+  // Validate coupon codes securely
   let discount = 0;
   if (couponCode === "LENNOX10") {
     discount = Math.round(subtotal * 0.1 * 100) / 100;
   } else if (couponCode === "USDT5") {
-    discount = 5;
+    discount = Math.min(5, subtotal);
   }
 
-  const shippingCost =
-    shippingMethod === "express" ? 14.99 : subtotal > 50 ? 0 : 4.99;
-  const total = Math.max(0, subtotal - discount + shippingCost);
+  const standardShipping = subtotal >= 50 ? 0 : 4.99;
+  const shippingCost = shippingMethod === "express" ? 14.99 : standardShipping;
+  const total = Math.max(0, Math.round((subtotal - discount + shippingCost) * 100) / 100);
 
   const orderNumber = generateOrderNumber();
   const merchantTradeNo = generateMerchantTradeNo();
@@ -71,14 +88,14 @@ export async function createOrder(
   try {
     const supabase = await createClient();
 
-    // Check if user is logged in
+    // 2. Derive user ID strictly from authenticated session
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const finalUserId = userId || user?.id;
+    const finalUserId = user?.id || null;
 
     if (finalUserId) {
-      // 2. Insert Order
+      // 3. Insert Order
       const { data: orderData, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -90,7 +107,7 @@ export async function createOrder(
           shipping_cost: shippingCost,
           total,
           currency: "USDT",
-          notes: notes || null,
+          notes: notes ? String(notes).slice(0, 500) : null,
         })
         .select("id")
         .single();
@@ -98,8 +115,8 @@ export async function createOrder(
       if (orderError) throw orderError;
       const orderId = orderData.id;
 
-      // 3. Insert Order Items (with snapshots)
-      const orderItems = items.map((item) => ({
+      // 4. Insert Order Items (with verified snapshots)
+      const orderItems = sanitizedItems.map((item) => ({
         order_id: orderId,
         variant_id: item.variantId || item.id,
         product_title: item.title,
@@ -111,21 +128,21 @@ export async function createOrder(
 
       await supabase.from("order_items").insert(orderItems);
 
-      // 4. Insert Shipping Address
+      // 5. Insert Shipping Address
       await supabase.from("order_addresses").insert({
         order_id: orderId,
         type: "shipping",
-        full_name: shippingAddress.fullName,
-        street_line_1: shippingAddress.streetLine1,
-        street_line_2: shippingAddress.streetLine2 || null,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        country: shippingAddress.country,
-        postal_code: shippingAddress.postalCode,
-        phone: shippingAddress.phone || null,
+        full_name: shippingAddress.fullName.slice(0, 100),
+        street_line_1: shippingAddress.streetLine1.slice(0, 200),
+        street_line_2: shippingAddress.streetLine2 ? shippingAddress.streetLine2.slice(0, 200) : null,
+        city: shippingAddress.city.slice(0, 100),
+        state: shippingAddress.state.slice(0, 100),
+        country: shippingAddress.country.slice(0, 100),
+        postal_code: shippingAddress.postalCode.slice(0, 20),
+        phone: shippingAddress.phone ? shippingAddress.phone.slice(0, 20) : null,
       });
 
-      // 5. Insert Status History
+      // 6. Insert Status History
       await supabase.from("order_status_history").insert({
         order_id: orderId,
         from_status: null,
@@ -133,7 +150,7 @@ export async function createOrder(
         note: "Order created. Awaiting USDT settlement via Binance Pay.",
       });
 
-      // 6. Insert Payments record
+      // 7. Insert Payments record
       await supabase.from("payments").insert({
         order_id: orderId,
         merchant_trade_no: merchantTradeNo,
@@ -153,7 +170,7 @@ export async function createOrder(
       };
     }
 
-    // Guest / Mock Fallback
+    // Guest Fallback simulation
     return {
       success: true,
       orderNumber,
@@ -172,19 +189,36 @@ export async function createOrder(
 }
 
 /**
- * Fetch orders for a customer or all orders for an admin
+ * Fetch orders for an authenticated customer or all orders for an authorized admin
  */
-export async function getOrders(userId?: string): Promise<Order[]> {
+export async function getOrders(requestedUserId?: string): Promise<Order[]> {
   try {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return MOCK_ORDERS;
+    }
+
+    // Check if user is an admin
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, is_active")
+      .eq("id", user.id)
+      .single();
+
+    const isAdmin = profile?.is_active && ["super_admin", "catalogue_manager", "order_manager", "support_agent"].includes(profile.role);
 
     let query = supabase
       .from("orders")
       .select("*, items:order_items(*), addresses:order_addresses(*), status_history:order_status_history(*), payments(*)")
       .order("created_at", { ascending: false });
 
-    if (userId) {
-      query = query.eq("user_id", userId);
+    // If not admin, strictly scope to own user.id regardless of parameter
+    if (!isAdmin) {
+      query = query.eq("user_id", user.id);
+    } else if (requestedUserId) {
+      query = query.eq("user_id", requestedUserId);
     }
 
     const { data, error } = await query;

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import "./globals.css";
 
 // Heading & Display Font: Plus Jakarta Sans (Modern Geometric, High-End Luxury E-Commerce)
@@ -56,7 +57,7 @@ export default function RootLayout({
       className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
     >
       <body className="font-sans text-slate-800 bg-[#F8FAFC] min-h-full antialiased selection:bg-[#FF1028] selection:text-white">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

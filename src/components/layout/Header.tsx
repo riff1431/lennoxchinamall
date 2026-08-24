@@ -34,6 +34,9 @@ import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { isAdminRole, ROLE_LABELS } from "@/lib/auth/roles";
+import { signout } from "@/app/actions/auth";
 
 const HOT_SEARCH_TAGS = [
   "4K Drones",
@@ -83,6 +86,9 @@ export function Header() {
   // Selected Language & Currency
   const [selectedLang, setSelectedLang] = useState(LANGUAGES[0]);
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
+
+  // Auth State
+  const { user, role, displayName, isAuthenticated } = useAuth();
 
   // Stores
   const cartTotalItems = useCartStore((state) => state.getTotalItems());
@@ -493,33 +499,73 @@ export function Header() {
 
               {/* Account Dropdown Menu */}
               {isAccountMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="pb-2.5 mb-2 border-b border-slate-100">
-                    <span className="text-xs font-bold text-slate-800 block">
-                      Welcome to Lennox
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      Wholesale China Sourcing Portal
-                    </span>
-                    <div className="flex gap-2 mt-2.5">
-                      <Link
-                        href="/auth/login"
-                        onClick={() => setIsAccountMenuOpen(false)}
-                        className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white text-center py-1.5 rounded-lg text-xs font-bold transition-colors"
-                      >
-                        Sign In
-                      </Link>
-                      <Link
-                        href="/auth/register"
-                        onClick={() => setIsAccountMenuOpen(false)}
-                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-center py-1.5 rounded-lg text-xs font-bold transition-colors"
-                      >
-                        Register
-                      </Link>
+                <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3.5 z-50 animate-in fade-in slide-in-from-top-2 font-sans">
+                  {isAuthenticated ? (
+                    <div className="pb-3 mb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-[#00143D] text-white flex items-center justify-center font-bold text-xs font-heading">
+                          {(displayName || user?.email || "U")[0].toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-slate-800 block truncate font-heading">
+                            {displayName || user?.email?.split("@")[0]}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block truncate">
+                            {user?.email}
+                          </span>
+                        </div>
+                      </div>
+                      {isAdminRole(role) && (
+                        <Link
+                          href="/admin/dashboard"
+                          onClick={() => setIsAccountMenuOpen(false)}
+                          className="mt-2.5 flex items-center justify-between bg-[#00143D] hover:bg-[#FF1028] text-white px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors"
+                        >
+                          <span>Admin OS Portal</span>
+                          <span className="bg-[#FF1028] text-[9px] px-1.5 py-0.5 rounded font-mono">
+                            {ROLE_LABELS[role!]}
+                          </span>
+                        </Link>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="pb-2.5 mb-2 border-b border-slate-100">
+                      <span className="text-xs font-bold text-slate-800 block font-heading">
+                        Welcome to Lennox
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        Wholesale China Sourcing Portal
+                      </span>
+                      <div className="flex gap-2 mt-2.5">
+                        <Link
+                          href="/auth/login"
+                          onClick={() => setIsAccountMenuOpen(false)}
+                          className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white text-center py-1.5 rounded-lg text-xs font-bold font-heading transition-colors"
+                        >
+                          Sign In
+                        </Link>
+                        <Link
+                          href="/auth/register"
+                          onClick={() => setIsAccountMenuOpen(false)}
+                          className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-center py-1.5 rounded-lg text-xs font-bold font-heading transition-colors"
+                        >
+                          Register
+                        </Link>
+                      </div>
+                    </div>
+                  )}
 
                   <ul className="space-y-1 text-xs font-medium text-slate-700">
+                    <li>
+                      <Link
+                        href="/account"
+                        onClick={() => setIsAccountMenuOpen(false)}
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 hover:text-[#FF1028] transition-colors"
+                      >
+                        <User className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Account Dashboard</span>
+                      </Link>
+                    </li>
                     <li>
                       <Link
                         href="/account/orders"
@@ -560,6 +606,20 @@ export function Header() {
                         <span>30-Day Returns</span>
                       </Link>
                     </li>
+                    {isAuthenticated && (
+                      <li className="pt-1 border-t border-slate-100">
+                        <button
+                          onClick={async () => {
+                            setIsAccountMenuOpen(false);
+                            await signout();
+                          }}
+                          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors w-full text-left font-bold cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Sign Out</span>
+                        </button>
+                      </li>
+                    )}
                   </ul>
                 </div>
               )}
@@ -856,18 +916,55 @@ export function Header() {
 
             {/* Drawer Footer Account CTA */}
             <div className="pt-4 border-t border-slate-200 space-y-2">
-              <Link
-                href="/auth/login"
-                className="block text-center bg-[#00143D] text-white py-2 rounded-xl text-xs font-bold"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/register"
-                className="block text-center bg-[#FF1028] text-white py-2 rounded-xl text-xs font-bold"
-              >
-                Create Sourcing Account
-              </Link>
+              {isAuthenticated ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl">
+                    <div className="w-7 h-7 rounded-lg bg-[#00143D] text-white flex items-center justify-center font-bold text-xs font-heading">
+                      {(displayName || user?.email || "U")[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs font-bold text-slate-800 block truncate font-heading">
+                        {displayName || user?.email?.split("@")[0]}
+                      </span>
+                    </div>
+                  </div>
+                  {isAdminRole(role) && (
+                    <Link
+                      href="/admin/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block text-center bg-[#00143D] text-white py-2 rounded-xl text-xs font-bold font-heading"
+                    >
+                      Admin OS Portal ({ROLE_LABELS[role!]})
+                    </Link>
+                  )}
+                  <button
+                    onClick={async () => {
+                      setIsMobileMenuOpen(false);
+                      await signout();
+                    }}
+                    className="w-full text-center bg-red-50 text-red-600 hover:bg-red-100 py-2 rounded-xl text-xs font-bold font-heading transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block text-center bg-[#00143D] text-white py-2 rounded-xl text-xs font-bold font-heading"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block text-center bg-[#FF1028] text-white py-2 rounded-xl text-xs font-bold font-heading"
+                  >
+                    Create Sourcing Account
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

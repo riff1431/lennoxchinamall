@@ -36,6 +36,42 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
+  // 301 Permanent SEO Redirects
+  async redirects() {
+    return [
+      {
+        source: "/product/:slug*",
+        destination: "/products/:slug*",
+        permanent: true,
+      },
+      {
+        source: "/category/:slug*",
+        destination: "/categories/:slug*",
+        permanent: true,
+      },
+      {
+        source: "/about",
+        destination: "/pages/about",
+        permanent: true,
+      },
+      {
+        source: "/faq",
+        destination: "/pages/faq",
+        permanent: true,
+      },
+      {
+        source: "/shipping",
+        destination: "/pages/shipping-policy",
+        permanent: true,
+      },
+      {
+        source: "/shipping-policy",
+        destination: "/pages/shipping-policy",
+        permanent: true,
+      },
+    ];
+  },
+
   // Security & Performance Caching headers
   async headers() {
     return [
@@ -65,3 +101,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

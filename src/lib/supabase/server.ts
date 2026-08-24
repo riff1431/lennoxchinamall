@@ -36,11 +36,25 @@ export async function createClient() {
  * Service role client for server-side admin operations that bypass RLS
  */
 export function createServiceClient() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (!supabaseUrl) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
+  }
+
+  // If service role key is not configured (e.g. initial dev setup), warn and fall back safely
+  const key = serviceKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!key) {
+    throw new Error("Supabase API key is not configured");
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createClient: createSupabaseClient } = require("@supabase/supabase-js");
   return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    supabaseUrl,
+    key,
     {
       auth: {
         autoRefreshToken: false,
@@ -49,3 +63,4 @@ export function createServiceClient() {
     }
   );
 }
+

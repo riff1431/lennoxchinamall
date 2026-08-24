@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server";
 import { MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mockData";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function GET(request: Request) {
+  // 1. Rate limiting (max 100 search requests/min per IP)
+  const clientIp = getClientIp(request);
+  const rateCheck = checkRateLimit(`search:${clientIp}`, {
+    limit: 100,
+    windowMs: 60000,
+  });
+
+  if (!rateCheck.success) {
+    return NextResponse.json(
+      { error: "Too many search requests. Please slow down." },
+      { status: 429 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
-  const q = (searchParams.get("q") || "").toLowerCase().trim();
+  const rawQ = searchParams.get("q") || "";
+  const q = rawQ.slice(0, 100).toLowerCase().trim();
 
   if (!q || q.length < 2) {
     return NextResponse.json({
@@ -13,7 +29,7 @@ export async function GET(request: Request) {
     });
   }
 
-  // 1. Match products
+  // 2. Match products
   const matchedProducts = MOCK_PRODUCTS.filter(
     (p) =>
       p.title.toLowerCase().includes(q) ||
@@ -21,12 +37,12 @@ export async function GET(request: Request) {
       p.tags.some((t) => t.toLowerCase().includes(q))
   ).slice(0, 6);
 
-  // 2. Match categories
+  // 3. Match categories
   const matchedCategories = MOCK_CATEGORIES.filter((c) =>
     c.name.toLowerCase().includes(q)
   ).slice(0, 3);
 
-  // 3. Suggested search terms
+  // 4. Suggested search terms
   const suggestions = [
     "4K Camera Drone",
     "Creality 3D Printer",
@@ -53,3 +69,4 @@ export async function GET(request: Request) {
     suggestions,
   });
 }
+

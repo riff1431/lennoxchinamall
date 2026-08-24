@@ -24,6 +24,7 @@ import {
 import { MOCK_ORDERS, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { ProductCard } from "@/components/product/ProductCard";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 const NOTIFICATIONS = [
   {
@@ -50,10 +51,13 @@ const NOTIFICATIONS = [
 ];
 
 export default function AccountDashboardPage() {
+  const { user, displayName } = useAuth();
   const [activeTab, setActiveTab] = useState<"orders" | "notifs">("orders");
 
   const recentOrders = MOCK_ORDERS.slice(0, 2);
   const recentlyViewed = MOCK_PRODUCTS.slice(0, 4);
+
+  const greetingName = displayName || user?.email?.split("@")[0] || "Valued Buyer";
 
   return (
     <div className="space-y-8">
@@ -61,7 +65,7 @@ export default function AccountDashboardPage() {
       <div className="bg-gradient-to-r from-[#00143D] to-[#002366] text-white rounded-3xl p-6 sm:p-8 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-heading">
               VIP BUYER TIER
             </span>
             <span className="text-xs text-amber-300 font-bold flex items-center gap-1">
@@ -69,8 +73,8 @@ export default function AccountDashboardPage() {
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-white">
-            Welcome back, Alex Harrison
+          <h1 className="text-2xl sm:text-3xl font-black text-white font-heading">
+            Welcome back, {greetingName}
           </h1>
           <p className="text-xs text-slate-300">
             Manage your China factory purchase orders, live air freight tracking, and saved delivery addresses.
