@@ -6,40 +6,24 @@ import {
   MessageSquare,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   XCircle,
-  User,
-  Mail,
   Send,
-  Tag,
-  ChevronRight,
   UserCheck,
-  Search,
-  Filter,
   Plus,
-  Edit2,
   Trash2,
   Shield,
   Plane,
   Coins,
   Wrench,
-  Headphones,
-  FileText,
-  ExternalLink,
-  AlertOctagon,
-  CornerDownRight,
-  Check,
   Flame,
-  ArrowUpRight,
   RefreshCw,
-  PackageCheck,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
-import { formatCurrency, formatDate, formatDateTime } from "@/utils/helpers";
+import { formatDate, formatDateTime } from "@/utils/helpers";
 import { MOCK_TICKETS, AdminTicket } from "@/lib/mockData";
 import { cn } from "@/utils/helpers";
 
@@ -68,7 +52,7 @@ const INITIAL_TICKETS: AdminTicket[] = [
     assignedAgent: "Factory QA Engineer",
     messagesCount: 2,
     lastReply: "Customer uploaded video of pitch motor error code 0x4A. Awaiting return shipping label confirmation.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    createdAt: "2026-08-24T14:00:00.000Z",
   },
   {
     id: "tck-5",
@@ -83,7 +67,7 @@ const INITIAL_TICKETS: AdminTicket[] = [
     assignedAgent: "Guangzhou Logistics Desk",
     messagesCount: 3,
     lastReply: "Export HS code stamped commercial declaration dispatched via email.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 14).toISOString(),
+    createdAt: "2026-08-24T02:00:00.000Z",
   },
   {
     id: "tck-6",
@@ -98,7 +82,7 @@ const INITIAL_TICKETS: AdminTicket[] = [
     assignedAgent: "Binance Settlement Desk",
     messagesCount: 1,
     lastReply: "TxHash verified on Polygonscan, 25.00 USDT refund scheduled.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    createdAt: "2026-08-24T15:30:00.000Z",
   },
   {
     id: "tck-7",
@@ -113,7 +97,7 @@ const INITIAL_TICKETS: AdminTicket[] = [
     assignedAgent: "Shenzhen Tech Specialist",
     messagesCount: 5,
     lastReply: "Customer confirmed both units paired in stereo mode successfully.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
+    createdAt: "2026-08-20T12:00:00.000Z",
   },
 ];
 
@@ -203,50 +187,53 @@ export default function AdminSupportPage() {
     setIsThreadModalOpen(true);
   };
 
-  // Send Reply and Update Ticket
+  // Send Reply & Update Ticket State
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTicket) return;
 
     const trimmedReply = replyInput.trim();
-    if (trimmedReply) {
-      const newMsg = {
-        id: `msg-${Date.now()}`,
-        sender: ticketAgent !== "Unassigned" ? ticketAgent : "Admin Support Desk",
-        role: "agent" as const,
-        text: trimmedReply,
-        time: "Just now",
-      };
-      setTicketHistory((prev) => [...prev, newMsg]);
-    }
 
     setTickets((prev) =>
-      prev.map((t) =>
-        t.id === selectedTicket.id
-          ? {
-              ...t,
-              status: ticketStatus,
-              priority: ticketPriority,
-              assignedAgent: ticketAgent,
-              lastReply: trimmedReply || t.lastReply,
-              messagesCount: trimmedReply ? t.messagesCount + 1 : t.messagesCount,
-            }
-          : t
-      )
+      prev.map((t) => {
+        if (t.id === selectedTicket.id) {
+          return {
+            ...t,
+            status: ticketStatus,
+            priority: ticketPriority,
+            assignedAgent: ticketAgent,
+            messagesCount: trimmedReply ? t.messagesCount + 1 : t.messagesCount,
+            lastReply: trimmedReply ? trimmedReply : t.lastReply,
+          };
+        }
+        return t;
+      })
     );
 
+    if (trimmedReply) {
+      setTicketHistory((prev) => [
+        ...prev,
+        {
+          id: `msg-${Date.now()}`,
+          sender: ticketAgent !== "Unassigned" ? ticketAgent : "Lennox Staff",
+          role: "agent",
+          text: trimmedReply,
+          time: "Just now",
+        },
+      ]);
+    }
+
     showToast(`Ticket #${selectedTicket.ticketNumber} updated successfully!`);
-    setReplyInput("");
     setIsThreadModalOpen(false);
     setSelectedTicket(null);
   };
 
-  // Quick Status change
-  const handleQuickStatusChange = (id: string, status: "open" | "in_progress" | "resolved" | "closed") => {
+  // Quick Status Changes
+  const handleQuickStatusChange = (id: string, status: "resolved" | "closed" | "in_progress") => {
     setTickets((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status } : t))
     );
-    showToast(`Ticket status updated to ${status.toUpperCase().replace("_", " ")}.`);
+    showToast(`Ticket status updated to ${status.replace("_", " ").toUpperCase()}.`);
   };
 
   // Delete Action
@@ -259,10 +246,10 @@ export default function AdminSupportPage() {
   const handleConfirmDelete = () => {
     if (ticketToDelete) {
       setTickets((prev) => prev.filter((t) => t.id !== ticketToDelete.id));
-      showToast(`Ticket #${ticketToDelete.ticketNumber} deleted permanently.`);
+      showToast("Support ticket record deleted.");
       setTicketToDelete(null);
     } else if (bulkTicketsToDelete.length > 0) {
-      const idsToDelete = new Set(bulkTicketsToDelete.map((t) => t.id));
+      const idsToDelete = new Set(bulkTicketsToDelete.map((r) => r.id));
       setTickets((prev) => prev.filter((t) => !idsToDelete.has(t.id)));
       showToast(`${bulkTicketsToDelete.length} tickets deleted permanently.`);
       setBulkTicketsToDelete([]);
@@ -275,28 +262,31 @@ export default function AdminSupportPage() {
     e.preventDefault();
     if (!newSubject.trim() || !newCustomerName.trim() || !newCustomerEmail.trim()) return;
 
-    const randomNum = Math.floor(10000 + Math.random() * 90000);
+    const newTicketNumber = "TCK-88250";
+
     const newTicketItem: AdminTicket = {
       id: `tck-${Date.now()}`,
-      ticketNumber: `TCK-${randomNum}`,
+      ticketNumber: newTicketNumber,
       subject: newSubject.trim(),
       customerName: newCustomerName.trim(),
       customerEmail: newCustomerEmail.trim(),
-      orderNumber: newOrderNumber.trim() ? newOrderNumber.trim().toUpperCase() : undefined,
+      orderNumber: newOrderNumber.trim() ? newOrderNumber.trim() : undefined,
       category: newCategory,
       priority: newPriority,
       status: "open",
       assignedAgent: newAssignedAgent,
       messagesCount: 1,
-      lastReply: newInitialMessage.trim() || "Ticket opened by administrator desk.",
+      lastReply: newInitialMessage.trim()
+        ? newInitialMessage.trim()
+        : "Inquiry opened via Admin Support Portal.",
       createdAt: new Date().toISOString(),
     };
 
-    setTickets([newTicketItem, ...tickets]);
-    showToast(`New support ticket #${newTicketItem.ticketNumber} created!`);
+    setTickets((prev) => [newTicketItem, ...prev]);
+    showToast(`Support ticket #${newTicketNumber} opened successfully!`);
     setIsCreateModalOpen(false);
 
-    // Reset
+    // Reset Form
     setNewSubject("");
     setNewCustomerName("");
     setNewCustomerEmail("");
@@ -311,27 +301,27 @@ export default function AdminSupportPage() {
   const renderPriorityBadge = (priority: "low" | "medium" | "high" | "urgent") => {
     const config: Record<string, { bg: string; text: string; border: string; label: string }> = {
       urgent: {
-        bg: "bg-red-950/70",
-        text: "text-red-300",
-        border: "border-red-800/80",
+        bg: "bg-[#FFF0F2] dark:bg-rose-950/60",
+        text: "text-[#E11D48] dark:text-rose-400",
+        border: "border-[#FFE4E8] dark:border-rose-900/50",
         label: "Urgent SLA",
       },
       high: {
-        bg: "bg-amber-950/70",
-        text: "text-amber-300",
-        border: "border-amber-800/80",
+        bg: "bg-[#FFF8EE] dark:bg-amber-950/60",
+        text: "text-amber-600 dark:text-amber-400",
+        border: "border-[#FED7AA] dark:border-amber-900/50",
         label: "High Priority",
       },
       medium: {
-        bg: "bg-blue-950/70",
-        text: "text-blue-300",
-        border: "border-blue-800/80",
+        bg: "bg-[#EEF4FF] dark:bg-blue-950/60",
+        text: "text-[#2F65F6] dark:text-blue-400",
+        border: "border-[#BFDBFE] dark:border-blue-900/50",
         label: "Medium",
       },
       low: {
-        bg: "bg-slate-800/80",
-        text: "text-slate-300",
-        border: "border-slate-700",
+        bg: "bg-slate-100 dark:bg-slate-800/80",
+        text: "text-slate-600 dark:text-slate-300",
+        border: "border-slate-200 dark:border-slate-700",
         label: "Low",
       },
     };
@@ -339,13 +329,13 @@ export default function AdminSupportPage() {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border",
+          "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border",
           c.bg,
           c.text,
           c.border
         )}
       >
-        {priority === "urgent" && <Flame className="w-3 h-3 text-red-400" />}
+        {priority === "urgent" && <Flame className="w-3 h-3 text-[#E11D48]" />}
         {c.label}
       </span>
     );
@@ -355,27 +345,27 @@ export default function AdminSupportPage() {
   const renderCategoryBadge = (category: AdminTicket["category"]) => {
     const config: Record<string, { bg: string; text: string; border: string; Icon: React.ElementType }> = {
       "Air Shipping & Tracking": {
-        bg: "bg-cyan-950/60",
-        text: "text-cyan-300",
-        border: "border-cyan-800/80",
+        bg: "bg-[#EEF4FF] dark:bg-blue-950/60",
+        text: "text-[#2F65F6] dark:text-blue-400",
+        border: "border-[#BFDBFE] dark:border-blue-900/50",
         Icon: Plane,
       },
       "Binance Pay USDT": {
-        bg: "bg-amber-950/60",
-        text: "text-amber-300",
-        border: "border-amber-800/80",
+        bg: "bg-[#FFF8EE] dark:bg-amber-950/60",
+        text: "text-amber-600 dark:text-amber-400",
+        border: "border-[#FED7AA] dark:border-amber-900/50",
         Icon: Coins,
       },
       "Factory Warranty 30-Day": {
-        bg: "bg-purple-950/60",
-        text: "text-purple-300",
-        border: "border-purple-800/80",
+        bg: "bg-[#F3E8FF] dark:bg-purple-950/60",
+        text: "text-purple-600 dark:text-purple-400",
+        border: "border-[#E9D5FF] dark:border-purple-900/50",
         Icon: Shield,
       },
       "Technical Setup": {
-        bg: "bg-slate-800/70",
-        text: "text-slate-300",
-        border: "border-slate-700",
+        bg: "bg-slate-100 dark:bg-slate-800/70",
+        text: "text-slate-600 dark:text-slate-300",
+        border: "border-slate-200 dark:border-slate-700",
         Icon: Wrench,
       },
     };
@@ -384,7 +374,7 @@ export default function AdminSupportPage() {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap",
+          "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap",
           c.bg,
           c.text,
           c.border
@@ -403,7 +393,7 @@ export default function AdminSupportPage() {
       accessorKey: "ticketNumber",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono font-bold text-xs text-white bg-slate-800/90 border border-slate-700 px-2 py-1 rounded-lg">
+        <span className="font-mono font-bold text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg">
           {row.ticketNumber}
         </span>
       ),
@@ -414,11 +404,11 @@ export default function AdminSupportPage() {
       sortable: true,
       cell: (row) => (
         <div className="max-w-[210px]">
-          <div className="font-bold text-xs text-slate-100 truncate leading-snug" title={row.subject}>
+          <div className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate leading-snug" title={row.subject}>
             {row.subject}
           </div>
           {row.orderNumber && (
-            <div className="text-[10px] font-mono text-emerald-400 flex items-center gap-1 mt-0.5">
+            <div className="text-[10px] font-mono text-[#16A34A] dark:text-emerald-400 flex items-center gap-1 mt-0.5">
               <span>Order: {row.orderNumber}</span>
             </div>
           )}
@@ -430,8 +420,8 @@ export default function AdminSupportPage() {
       accessorKey: "customerName",
       sortable: true,
       cell: (row) => (
-        <div className="text-xs font-semibold text-slate-200 flex items-center gap-2 max-w-[130px]">
-          <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-300 shrink-0">
+        <div className="text-xs font-semibold text-slate-900 dark:text-slate-200 flex items-center gap-2 max-w-[130px]">
+          <div className="w-6 h-6 rounded-full bg-[#EEF4FF] dark:bg-blue-950 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-[10px] font-bold text-[#2F65F6] shrink-0">
             {row.customerName.charAt(0).toUpperCase()}
           </div>
           <span className="truncate" title={row.customerName}>
@@ -445,7 +435,7 @@ export default function AdminSupportPage() {
       accessorKey: "customerEmail",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono text-xs text-slate-400 max-w-[140px] truncate block" title={row.customerEmail}>
+        <span className="font-mono text-xs text-slate-500 dark:text-slate-400 max-w-[140px] truncate block" title={row.customerEmail}>
           {row.customerEmail}
         </span>
       ),
@@ -456,11 +446,11 @@ export default function AdminSupportPage() {
       sortable: true,
       cell: (row) =>
         row.orderNumber ? (
-          <span className="font-mono text-[11px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-1.5 py-0.5 rounded">
+          <span className="font-mono text-[11px] font-bold text-[#16A34A] dark:text-emerald-400 bg-[#F0FDF4] dark:bg-emerald-950/40 border border-[#BBF7D0] dark:border-emerald-800/60 px-1.5 py-0.5 rounded">
             {row.orderNumber}
           </span>
         ) : (
-          <span className="text-[11px] text-slate-500 font-mono text-center block">—</span>
+          <span className="text-[11px] text-slate-400 font-mono text-center block">—</span>
         ),
     },
     {
@@ -504,13 +494,13 @@ export default function AdminSupportPage() {
           <UserCheck
             className={cn(
               "w-3.5 h-3.5 shrink-0",
-              row.assignedAgent === "Unassigned" ? "text-amber-400" : "text-blue-400"
+              row.assignedAgent === "Unassigned" ? "text-amber-500" : "text-[#2F65F6]"
             )}
           />
           <span
             className={cn(
               "truncate font-medium",
-              row.assignedAgent === "Unassigned" ? "text-amber-400 italic font-semibold" : "text-slate-200"
+              row.assignedAgent === "Unassigned" ? "text-amber-600 dark:text-amber-400 italic font-semibold" : "text-slate-800 dark:text-slate-200"
             )}
             title={row.assignedAgent}
           >
@@ -524,7 +514,7 @@ export default function AdminSupportPage() {
       accessorKey: "messagesCount",
       sortable: true,
       cell: (row) => (
-        <div className="flex items-center gap-1 text-xs font-mono font-bold text-slate-300 bg-slate-800/60 px-2 py-0.5 rounded-md border border-slate-700/60 w-fit">
+        <div className="flex items-center gap-1 text-xs font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700/60 w-fit">
           <MessageSquare className="w-3 h-3 text-slate-400" />
           <span>{row.messagesCount}</span>
         </div>
@@ -534,8 +524,8 @@ export default function AdminSupportPage() {
       header: "Last Reply",
       accessorKey: "lastReply",
       cell: (row) => (
-        <div className="text-xs text-slate-400 italic max-w-[190px] truncate" title={row.lastReply}>
-          "{row.lastReply}"
+        <div className="text-xs text-slate-500 dark:text-slate-400 italic max-w-[190px] truncate" title={row.lastReply}>
+          &quot;{row.lastReply}&quot;
         </div>
       ),
     },
@@ -544,7 +534,7 @@ export default function AdminSupportPage() {
       accessorKey: "createdAt",
       sortable: true,
       cell: (row) => (
-        <span className="text-xs text-slate-400 font-mono whitespace-nowrap">
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
           {formatDate(row.createdAt)}
         </span>
       ),
@@ -555,15 +545,15 @@ export default function AdminSupportPage() {
         <div className="flex items-center gap-1.5 justify-end">
           <button
             onClick={() => handleOpenThreadModal(row)}
-            className="p-1.5 rounded-lg text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
-            title="View Ticket Conversation & Reply"
+            className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-[#2F65F6] bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+            title="View Ticket Conversation &amp; Reply"
           >
             <MessageSquare className="w-3.5 h-3.5" />
           </button>
           {row.status !== "resolved" && (
             <button
               onClick={() => handleQuickStatusChange(row.id, "resolved")}
-              className="p-1.5 rounded-lg text-emerald-400 hover:text-emerald-300 bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/60 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-[#16A34A] dark:text-emerald-400 hover:text-emerald-600 bg-[#F0FDF4] dark:bg-emerald-950/40 hover:bg-emerald-100 border border-[#BBF7D0] dark:border-emerald-800/60 transition-colors cursor-pointer"
               title="Mark as Resolved"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -572,7 +562,7 @@ export default function AdminSupportPage() {
           {row.status !== "closed" && (
             <button
               onClick={() => handleQuickStatusChange(row.id, "closed")}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-slate-800/60 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-700 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               title="Close Ticket"
             >
               <XCircle className="w-3.5 h-3.5" />
@@ -580,7 +570,7 @@ export default function AdminSupportPage() {
           )}
           <button
             onClick={() => handleOpenDeleteModal(row)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-[#E11D48] bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="Delete Ticket"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -679,10 +669,10 @@ export default function AdminSupportPage() {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16 font-sans">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Support Helpdesk & Tickets"
+        title="Support Helpdesk &amp; Tickets"
         subtitle="Manage cross-border customer inquiries, factory warranty claims, Binance Pay transaction verifications, and logistics tracking disputes."
         badge={{ text: "HELPDESK & SLA OS", variant: "blue" }}
         breadcrumbs={[
@@ -699,73 +689,91 @@ export default function AdminSupportPage() {
         ]}
       />
 
-      {/* ── 2. Stat Metric Cards ── */}
+      {/* ── 2. Top 5 Pastel Stat Metric Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Tickets */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total Inquiries
             </span>
-            <LifeBuoy className="w-4 h-4 text-slate-500" />
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
+              {stats.total}
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">All customer tickets</span>
           </div>
-          <div className="text-2xl font-black text-white font-mono">{stats.total}</div>
-          <div className="text-[10px] text-slate-400">All customer tickets</div>
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <LifeBuoy className="w-5 h-5" />
+          </div>
         </div>
 
         {/* Open Tickets */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">
-              Open & Awaiting
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2B2216] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Open &amp; Awaiting
             </span>
-            <Clock className="w-4 h-4 text-amber-400" />
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
+              {stats.open}
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Requires agent reply</span>
           </div>
-          <div className="text-2xl font-black text-amber-400 font-mono">{stats.open}</div>
-          <div className="text-[10px] text-slate-400">Requires agent reply</div>
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <Clock className="w-5 h-5" />
+          </div>
         </div>
 
         {/* Urgent SLA */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-red-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#FFF0F2] dark:bg-[#2B171B] border border-[#FFE4E8]/50 dark:border-rose-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Urgent SLA
             </span>
-            <Flame className="w-4 h-4 text-red-400" />
+            <span className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5 block">
+              {stats.urgent}
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">&lt; 4h priority response</span>
           </div>
-          <div className="text-2xl font-black text-red-400 font-mono">{stats.urgent}</div>
-          <div className="text-[10px] text-slate-400">&lt; 4h priority response</div>
+          <div className="w-10 h-10 rounded-full bg-[#E11D48] text-white flex items-center justify-center shadow-xs">
+            <Flame className="w-5 h-5" />
+          </div>
         </div>
 
         {/* In Progress */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-blue-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               In Progress
             </span>
-            <RefreshCw className="w-4 h-4 text-blue-400" />
+            <span className="text-xl font-black text-blue-600 dark:text-blue-400 font-mono mt-0.5 block">
+              {stats.inProgress}
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Under specialist review</span>
           </div>
-          <div className="text-2xl font-black text-blue-400 font-mono">{stats.inProgress}</div>
-          <div className="text-[10px] text-slate-400">Under specialist review</div>
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <RefreshCw className="w-5 h-5" />
+          </div>
         </div>
 
         {/* Resolved & Closed */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-sm space-y-1 col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs col-span-2 lg:col-span-1">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Resolved / Closed
             </span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">
+              {stats.resolved + stats.closed}
+            </span>
+            <span className="text-[11px] text-[#16A34A] block mt-0.5">Successfully handled</span>
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-mono">
-            {stats.resolved + stats.closed}
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
-          <div className="text-[10px] text-slate-400">Successfully handled</div>
         </div>
       </div>
 
       {/* ── 3. Data Table ── */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
         <AdminDataTable
           data={tickets}
           columns={columns}
@@ -791,24 +799,24 @@ export default function AdminSupportPage() {
           isOpen={isThreadModalOpen}
           onClose={() => setIsThreadModalOpen(false)}
           title={`Ticket #${selectedTicket.ticketNumber} — ${selectedTicket.subject}`}
-          size="2xl"
+          size="xl"
         >
-          <form onSubmit={handleSendReply} className="space-y-6 pt-2">
+          <form onSubmit={handleSendReply} className="space-y-5 pt-1 text-slate-800 dark:text-slate-200">
             {/* Ticket Header Metadata Bar */}
-            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+            <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-black text-xs text-white">
+                  <div className="w-9 h-9 rounded-full bg-[#EEF4FF] dark:bg-blue-950 border border-blue-200 dark:border-blue-800 flex items-center justify-center font-bold text-xs text-[#2F65F6]">
                     {selectedTicket.customerName.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                       <span>{selectedTicket.customerName}</span>
-                      <span className="text-[10px] text-slate-400 font-mono font-normal">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-normal">
                         ({selectedTicket.customerEmail})
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-400 font-mono">
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                       Opened: {formatDateTime(selectedTicket.createdAt)}
                     </div>
                   </div>
@@ -821,21 +829,21 @@ export default function AdminSupportPage() {
               </div>
 
               {/* Order Reference Strip */}
-              <div className="flex flex-wrap items-center justify-between text-xs text-slate-300">
+              <div className="flex flex-wrap items-center justify-between text-xs text-slate-700 dark:text-slate-300">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 font-medium">Order Reference:</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Order Reference:</span>
                   {selectedTicket.orderNumber ? (
-                    <span className="font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded">
+                    <span className="font-mono font-bold text-[#16A34A] dark:text-emerald-400 bg-[#F0FDF4] dark:bg-emerald-950/60 border border-[#BBF7D0] px-2 py-0.5 rounded">
                       {selectedTicket.orderNumber}
                     </span>
                   ) : (
-                    <span className="text-slate-500 font-mono italic">No Order Attached</span>
+                    <span className="text-slate-400 font-mono italic">No Order Attached</span>
                   )}
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 font-medium">Assigned To:</span>
-                  <span className="font-bold text-blue-400">{ticketAgent}</span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Assigned To:</span>
+                  <span className="font-bold text-[#2F65F6]">{ticketAgent}</span>
                 </div>
               </div>
             </div>
@@ -843,8 +851,8 @@ export default function AdminSupportPage() {
             {/* Conversation History Timeline */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase text-slate-300 tracking-wider flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-[#FF1028]" />
+                <span className="text-xs font-bold uppercase text-slate-900 dark:text-white tracking-wider flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-[#2F65F6]" />
                   <span>Conversation History ({ticketHistory.length} entries)</span>
                 </span>
                 <span className="text-[10px] text-slate-500">Live synchronized</span>
@@ -859,8 +867,8 @@ export default function AdminSupportPage() {
                       className={cn(
                         "p-3.5 rounded-2xl border text-xs space-y-1.5",
                         isAgent
-                          ? "bg-slate-900/90 border-blue-900/50 text-slate-200 ml-6"
-                          : "bg-slate-950 border-slate-800 text-slate-300 mr-6"
+                          ? "bg-[#EEF4FF] dark:bg-blue-950/60 border-blue-200 dark:border-blue-900/50 text-slate-800 dark:text-slate-200 ml-6"
+                          : "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 mr-6"
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -868,13 +876,13 @@ export default function AdminSupportPage() {
                           <span
                             className={cn(
                               "font-bold text-[11px]",
-                              isAgent ? "text-blue-400" : "text-slate-200"
+                              isAgent ? "text-[#2F65F6]" : "text-slate-900 dark:text-slate-100"
                             )}
                           >
                             {item.sender}
                           </span>
                           {isAgent && (
-                            <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-blue-100 dark:bg-blue-900/40 text-[#2F65F6] border border-blue-200">
                               Lennox Staff
                             </span>
                           )}
@@ -889,16 +897,16 @@ export default function AdminSupportPage() {
             </div>
 
             {/* Moderation Controls: Status, Priority, Agent Assignment */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
               {/* Status */}
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300 block">Update Status</label>
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">Update Status</label>
                 <select
                   value={ticketStatus}
                   onChange={(e) =>
                     setTicketStatus(e.target.value as "open" | "in_progress" | "resolved" | "closed")
                   }
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6] cursor-pointer"
                 >
                   <option value="open">Open</option>
                   <option value="in_progress">In Progress</option>
@@ -909,13 +917,13 @@ export default function AdminSupportPage() {
 
               {/* Priority */}
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300 block">Priority Level</label>
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">Priority Level</label>
                 <select
                   value={ticketPriority}
                   onChange={(e) =>
                     setTicketPriority(e.target.value as "low" | "medium" | "high" | "urgent")
                   }
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6] cursor-pointer"
                 >
                   <option value="urgent">Urgent SLA</option>
                   <option value="high">High Priority</option>
@@ -926,11 +934,11 @@ export default function AdminSupportPage() {
 
               {/* Agent */}
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300 block">Assign Agent Desk</label>
+                <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">Assign Agent Desk</label>
                 <select
                   value={ticketAgent}
                   onChange={(e) => setTicketAgent(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6] cursor-pointer"
                 >
                   {AGENT_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
@@ -944,8 +952,8 @@ export default function AdminSupportPage() {
             {/* Support Reply Composition Area */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <Send className="w-3.5 h-3.5 text-[#FF1028]" />
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <Send className="w-3.5 h-3.5 text-[#2F65F6]" />
                   <span>Send Helpdesk Response</span>
                 </label>
                 <span className="text-[10px] text-slate-500">Will notify customer email</span>
@@ -953,7 +961,7 @@ export default function AdminSupportPage() {
 
               {/* Quick Canned Macros */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] font-bold text-slate-400">Insert Macro:</span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Insert Macro:</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -961,7 +969,7 @@ export default function AdminSupportPage() {
                       "Hello! We have contacted YunExpress Guangzhou sorting hub. Your shipment cleared international export and local tracking will activate upon USPS arrival."
                     )
                   }
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   Air Tracking Info
                 </button>
@@ -972,7 +980,7 @@ export default function AdminSupportPage() {
                       "Your Binance Pay USDT transaction has been verified on our merchant portal. Order fulfillment status has progressed to Factory QC Gate."
                     )
                   }
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   Binance Pay Confirmation
                 </button>
@@ -983,7 +991,7 @@ export default function AdminSupportPage() {
                       "Under our 30-day factory replacement warranty, a replacement unit has been pre-authorized. Please retain the original manufacturer packaging."
                     )
                   }
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                 >
                   Warranty RMA
                 </button>
@@ -994,25 +1002,25 @@ export default function AdminSupportPage() {
                 value={replyInput}
                 onChange={(e) => setReplyInput(e.target.value)}
                 placeholder="Type your response to the customer..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#FF1028] transition-colors leading-relaxed placeholder-slate-600"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#2F65F6] transition-colors leading-relaxed placeholder-slate-400"
               />
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setIsThreadModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-md shadow-red-950/30 cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>Update Ticket & Send Reply</span>
+                <span>Update Ticket &amp; Send Reply</span>
               </button>
             </div>
           </form>
@@ -1024,50 +1032,50 @@ export default function AdminSupportPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Open New Support Ticket"
-        size="lg"
+        size="md"
       >
-        <form onSubmit={handleCreateTicket} className="space-y-4 pt-2">
+        <form onSubmit={handleCreateTicket} className="space-y-4 pt-1 text-slate-800 dark:text-slate-200">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Ticket Subject *</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Ticket Subject *</label>
             <input
               type="text"
               required
               placeholder="e.g. Flight controller firmware update assistance request"
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Customer Name *</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Customer Name *</label>
               <input
                 type="text"
                 required
                 placeholder="e.g. Jordan Mitchell"
                 value={newCustomerName}
                 onChange={(e) => setNewCustomerName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Customer Email *</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Customer Email *</label>
               <input
                 type="email"
                 required
                 placeholder="e.g. j.mitchell@example.com"
                 value={newCustomerEmail}
                 onChange={(e) => setNewCustomerEmail(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Related Order # (Optional)
               </label>
               <input
@@ -1075,12 +1083,12 @@ export default function AdminSupportPage() {
                 placeholder="e.g. LCM-20260824-99AA"
                 value={newOrderNumber}
                 onChange={(e) => setNewOrderNumber(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 font-mono text-emerald-400 font-bold text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono text-[#16A34A] dark:text-emerald-400 font-bold text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Ticket Category *</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Ticket Category *</label>
               <select
                 value={newCategory}
                 onChange={(e) =>
@@ -1092,9 +1100,9 @@ export default function AdminSupportPage() {
                       | "Technical Setup"
                   )
                 }
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
-                <option value="Air Shipping & Tracking">Air Shipping & Tracking</option>
+                <option value="Air Shipping & Tracking">Air Shipping &amp; Tracking</option>
                 <option value="Binance Pay USDT">Binance Pay USDT</option>
                 <option value="Factory Warranty 30-Day">Factory Warranty 30-Day</option>
                 <option value="Technical Setup">Technical Setup</option>
@@ -1104,13 +1112,13 @@ export default function AdminSupportPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Priority Level</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Priority Level</label>
               <select
                 value={newPriority}
                 onChange={(e) =>
                   setNewPriority(e.target.value as "low" | "medium" | "high" | "urgent")
                 }
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="urgent">Urgent SLA</option>
                 <option value="high">High Priority</option>
@@ -1120,11 +1128,11 @@ export default function AdminSupportPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Assign Agent Desk</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Assign Agent Desk</label>
               <select
                 value={newAssignedAgent}
                 onChange={(e) => setNewAssignedAgent(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 {AGENT_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -1136,29 +1144,29 @@ export default function AdminSupportPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Initial Issue Notes *</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Initial Issue Notes *</label>
             <textarea
               rows={3}
               required
               placeholder="Describe customer issue, log details or shipment inquiries..."
               value={newInitialMessage}
               onChange={(e) => setNewInitialMessage(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#FF1028]"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#2F65F6]"
             />
           </div>
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-md cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-xs cursor-pointer"
             >
               Open Ticket
             </button>
@@ -1187,7 +1195,7 @@ export default function AdminSupportPage() {
 
       {/* ── 7. Floating Toast Notification ── */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#16A34A] text-white px-5 py-3 rounded-2xl text-xs font-bold shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
           <span>✓ {toastMsg}</span>
           <button
             onClick={() => setToastMsg(null)}

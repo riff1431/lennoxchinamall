@@ -88,7 +88,7 @@ export default function AdminNotificationsPage() {
                 type,
                 status,
                 sentAt: status === "sent" && n.status !== "sent" ? new Date().toISOString() : n.sentAt,
-                sentCount: status === "sent" && n.status !== "sent" ? Math.floor(1000 + Math.random() * 2000) : n.sentCount,
+                sentCount: status === "sent" && n.status !== "sent" ? 1850 : n.sentCount,
                 openRate: status === "sent" && n.status !== "sent" ? "54.8%" : n.openRate,
               }
             : n
@@ -103,10 +103,10 @@ export default function AdminNotificationsPage() {
         message: message.trim(),
         targetAudience,
         type,
-        sentCount: isSentNow ? Math.floor(1200 + Math.random() * 2500) : 0,
+        sentCount: isSentNow ? 2150 : 0,
         openRate: isSentNow ? "58.2%" : "—",
         status,
-        sentAt: isSentNow ? new Date().toISOString() : new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+        sentAt: isSentNow ? new Date().toISOString() : "2026-08-25T10:00:00.000Z",
       };
       setNotifications([newItem, ...notifications]);
       showToast(isSentNow ? `Broadcast notification dispatched to ${targetAudience}!` : `Notification saved as ${status}.`);
@@ -124,7 +124,7 @@ export default function AdminNotificationsPage() {
               ...n,
               status: "sent",
               sentAt: new Date().toISOString(),
-              sentCount: n.sentCount > 0 ? n.sentCount : Math.floor(1500 + Math.random() * 1500),
+              sentCount: n.sentCount > 0 ? n.sentCount : 1750,
               openRate: n.openRate === "—" ? "49.6%" : n.openRate,
             }
           : n
@@ -159,7 +159,7 @@ export default function AdminNotificationsPage() {
               ...n,
               status: "sent",
               sentAt: new Date().toISOString(),
-              sentCount: n.sentCount > 0 ? n.sentCount : Math.floor(1400 + Math.random() * 1600),
+              sentCount: n.sentCount > 0 ? n.sentCount : 1600,
               openRate: n.openRate === "—" ? "52.3%" : n.openRate,
             }
           : n
@@ -171,13 +171,13 @@ export default function AdminNotificationsPage() {
   // Helper: Audience Badges
   const renderAudienceBadge = (audience: AdminNotificationItem["targetAudience"]) => {
     const config = {
-      all_users: { label: "All Users", color: "bg-blue-500/10 text-blue-400 border-blue-500/30" },
-      vip_customers: { label: "VIP Customers", color: "bg-purple-500/10 text-purple-400 border-purple-500/30" },
-      staff_only: { label: "Staff Only", color: "bg-amber-500/10 text-amber-400 border-amber-500/30" },
-    }[audience] || { label: audience, color: "bg-slate-800 text-slate-300 border-slate-700" };
+      all_users: { label: "All Users", color: "bg-[#EEF4FF] dark:bg-blue-950/60 text-[#2F65F6] dark:text-blue-400 border-blue-200 dark:border-blue-900/50" },
+      vip_customers: { label: "VIP Customers", color: "bg-[#F3E8FF] dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border-[#E9D5FF] dark:border-purple-900/50" },
+      staff_only: { label: "Staff Only", color: "bg-[#FFF8EE] dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-[#FED7AA] dark:border-amber-900/50" },
+    }[audience] || { label: audience, color: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700" };
 
     return (
-      <span className={cn("text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1 font-mono", config.color)}>
+      <span className={cn("text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1", config.color)}>
         <Users className="w-3 h-3" />
         <span>{config.label}</span>
       </span>
@@ -187,15 +187,15 @@ export default function AdminNotificationsPage() {
   // Helper: Type Badges
   const renderTypeBadge = (t: AdminNotificationItem["type"]) => {
     const config = {
-      announcement: { label: "Announcement", icon: Megaphone, color: "bg-cyan-500/10 text-cyan-300 border-cyan-500/30" },
-      price_drop: { label: "Price Drop", icon: TrendingDown, color: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30" },
-      security_alert: { label: "Security Alert", icon: ShieldAlert, color: "bg-red-500/10 text-red-300 border-red-500/30" },
-      system_maintenance: { label: "Maintenance", icon: Wrench, color: "bg-amber-500/10 text-amber-300 border-amber-500/30" },
-    }[t] || { label: t, icon: Bell, color: "bg-slate-800 text-slate-300 border-slate-700" };
+      announcement: { label: "Announcement", icon: Megaphone, color: "bg-[#EEF4FF] dark:bg-blue-950/60 text-[#2F65F6] dark:text-blue-400 border-blue-200 dark:border-blue-900/50" },
+      price_drop: { label: "Price Drop", icon: TrendingDown, color: "bg-[#F0FDF4] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 border-[#BBF7D0] dark:border-emerald-900/50" },
+      security_alert: { label: "Security Alert", icon: ShieldAlert, color: "bg-[#FFF0F2] dark:bg-rose-950/60 text-[#E11D48] dark:text-rose-400 border-[#FFE4E8] dark:border-rose-900/50" },
+      system_maintenance: { label: "Maintenance", icon: Wrench, color: "bg-[#FFF8EE] dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-[#FED7AA] dark:border-amber-900/50" },
+    }[t] || { label: t, icon: Bell, color: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700" };
 
     const Icon = config.icon;
     return (
-      <span className={cn("text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1 font-mono", config.color)}>
+      <span className={cn("text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5", config.color)}>
         <Icon className="w-3 h-3" />
         <span>{config.label}</span>
       </span>
@@ -211,11 +211,11 @@ export default function AdminNotificationsPage() {
       className: "min-w-[240px]",
       cell: (row) => (
         <div className="space-y-1">
-          <div className="font-bold text-white text-xs flex items-center gap-2">
-            <Bell className="w-3.5 h-3.5 text-[#FF1028] shrink-0" />
+          <div className="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-2">
+            <Bell className="w-3.5 h-3.5 text-[#2F65F6] shrink-0" />
             <span className="line-clamp-1">{row.title}</span>
           </div>
-          <p className="text-[11px] text-slate-400 line-clamp-1 leading-snug">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-snug">
             {row.message}
           </p>
         </div>
@@ -238,7 +238,7 @@ export default function AdminNotificationsPage() {
       accessorKey: "sentCount",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono text-xs text-slate-200 font-bold">
+        <span className="font-mono text-xs text-slate-800 dark:text-slate-200 font-bold">
           {row.sentCount > 0 ? row.sentCount.toLocaleString() : "—"}
         </span>
       ),
@@ -250,7 +250,7 @@ export default function AdminNotificationsPage() {
       cell: (row) => (
         <span className={cn(
           "font-mono text-xs font-bold",
-          row.openRate !== "—" ? "text-emerald-400" : "text-slate-500"
+          row.openRate !== "—" ? "text-[#16A34A] dark:text-emerald-400" : "text-slate-400"
         )}>
           {row.openRate}
         </span>
@@ -271,9 +271,9 @@ export default function AdminNotificationsPage() {
       accessorKey: "sentAt",
       sortable: true,
       cell: (row) => (
-        <div className="text-[11px] text-slate-400 space-y-0.5">
-          <div className="font-semibold text-slate-300">{formatDate(row.sentAt)}</div>
-          <div className="text-[10px] text-slate-500 font-mono">
+        <div className="text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
+          <div className="font-semibold text-slate-800 dark:text-slate-200">{formatDate(row.sentAt)}</div>
+          <div className="text-[10px] text-slate-400 font-mono">
             {new Date(row.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </div>
         </div>
@@ -288,7 +288,7 @@ export default function AdminNotificationsPage() {
             <button
               onClick={() => handleSendNow(row)}
               title="Broadcast Live"
-              className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-[#F0FDF4] dark:bg-emerald-950/40 hover:bg-emerald-100 text-[#16A34A] dark:text-emerald-400 border border-[#BBF7D0] dark:border-emerald-900/40 transition-colors cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
             </button>
@@ -296,7 +296,7 @@ export default function AdminNotificationsPage() {
             <button
               onClick={() => handleSendNow(row)}
               title="Resend Broadcast"
-              className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-[#EEF4FF] dark:bg-blue-950/40 hover:bg-blue-100 text-[#2F65F6] dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 transition-colors cursor-pointer"
             >
               <Radio className="w-3.5 h-3.5" />
             </button>
@@ -305,7 +305,7 @@ export default function AdminNotificationsPage() {
           <button
             onClick={() => handleOpenEdit(row)}
             title="Edit Notification"
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
           >
             <Edit2 className="w-3.5 h-3.5" />
           </button>
@@ -313,7 +313,7 @@ export default function AdminNotificationsPage() {
           <button
             onClick={() => setDeleteTarget(row)}
             title="Delete Notification"
-            className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700 text-slate-400 hover:text-[#E11D48] border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -359,7 +359,7 @@ export default function AdminNotificationsPage() {
     {
       label: "Send Selected",
       icon: Send,
-      variant: "success",
+      variant: "default",
       onClick: (rows) => handleBulkSend(rows),
     },
     {
@@ -375,13 +375,13 @@ export default function AdminNotificationsPage() {
   const activeScheduled = notifications.filter((n) => n.status === "scheduled").length;
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16 font-montserrat">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
         title="Broadcast Notifications"
         subtitle="Manage customer push announcements, hardware flash drop alerts, and staff security broadcasts across web & Telegram."
-        badge={{ text: "BROADCAST HUB", variant: "red" }}
-        breadcrumbs={[{ label: "Notifications" }]}
+        badge={{ text: "BROADCAST HUB", variant: "blue" }}
+        breadcrumbs={[{ label: "Admin", href: "/admin/dashboard" }, { label: "Notifications" }]}
         actions={[
           {
             label: "Create Notification",
@@ -392,94 +392,102 @@ export default function AdminNotificationsPage() {
         ]}
       />
 
-      {/* ── 2. Header KPI Stats ── */}
+      {/* ── 2. Header KPI Stats (Pastel NETIC Style) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-1 shadow-md">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-            <span>Total Broadcast Recipients</span>
-            <Users className="w-4 h-4 text-blue-400" />
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Total Recipients</span>
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">{totalSentCount.toLocaleString()}</span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Across all delivered campaigns</span>
           </div>
-          <div className="text-2xl font-black text-white font-mono">{totalSentCount.toLocaleString()}</div>
-          <div className="text-[11px] text-slate-500">Across all delivered campaigns</div>
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <Users className="w-5 h-5" />
+          </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-1 shadow-md">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-            <span>Average Open Rate</span>
-            <Sparkles className="w-4 h-4 text-emerald-400" />
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Average Open Rate</span>
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 block">55.3%</span>
+            <span className="text-[11px] text-[#16A34A] block mt-0.5">Hardware &amp; drop notifications</span>
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-mono">55.3%</div>
-          <div className="text-[11px] text-slate-500">Hardware & drop notifications</div>
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+            <Sparkles className="w-5 h-5" />
+          </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-1 shadow-md">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-bold">
-            <span>Scheduled Broadcasts</span>
-            <Clock className="w-4 h-4 text-amber-400" />
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2B2216] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Scheduled Broadcasts</span>
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">{activeScheduled} Pending</span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">Queued for automated delivery</span>
           </div>
-          <div className="text-2xl font-black text-amber-400 font-mono">{activeScheduled} Pending</div>
-          <div className="text-[11px] text-slate-500">Queued for automated delivery</div>
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <Clock className="w-5 h-5" />
+          </div>
         </div>
       </div>
 
       {/* ── 3. Data Table ── */}
-      <AdminDataTable<AdminNotificationItem>
-        data={notifications}
-        columns={columns}
-        keyExtractor={(item) => item.id}
-        searchPlaceholder="Search broadcasts by title or message..."
-        searchFields={["title", "message"]}
-        filters={filters}
-        bulkActions={bulkActions}
-        defaultSortKey="sentAt"
-        defaultSortDirection="desc"
-        emptyTitle="No notifications found"
-        emptyDescription="Create a new broadcast campaign to notify users about flash drops, price decreases, or maintenance."
-        emptyAction={{
-          label: "Create First Notification",
-          onClick: handleOpenCreate,
-        }}
-      />
+      <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+        <AdminDataTable<AdminNotificationItem>
+          data={notifications}
+          columns={columns}
+          keyExtractor={(item) => item.id}
+          searchPlaceholder="Search broadcasts by title or message..."
+          searchFields={["title", "message"]}
+          filters={filters}
+          bulkActions={bulkActions}
+          defaultSortKey="sentAt"
+          defaultSortDirection="desc"
+          emptyTitle="No notifications found"
+          emptyDescription="Create a new broadcast campaign to notify users about flash drops, price decreases, or maintenance."
+          emptyAction={{
+            label: "Create First Notification",
+            onClick: handleOpenCreate,
+          }}
+        />
+      </div>
 
       {/* ── 4. Create / Edit Notification Modal ── */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingItem ? "Edit Notification Broadcast" : "Create New Broadcast"}
-        size="xl"
+        size="lg"
       >
-        <form onSubmit={handleSave} className="space-y-5 pt-2">
+        <form onSubmit={handleSave} className="space-y-4 pt-1 text-slate-800 dark:text-slate-200">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Notification Title *</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Notification Title *</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. ⚡ Flash Sourcing Drop: Eachine 4K Drones Restocked"
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Message Body *</label>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Message Body *</label>
             <textarea
               required
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Write the full broadcast text for web banners, customer notifications, and mobile alerts..."
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl p-3.5 outline-none focus:border-[#FF1028] transition-colors"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3.5 outline-none focus:border-[#2F65F6] transition-colors"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Target Audience</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Target Audience</label>
               <select
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value as AdminNotificationItem["targetAudience"])}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="all_users">All Users</option>
                 <option value="vip_customers">VIP Customers Only</option>
@@ -488,11 +496,11 @@ export default function AdminNotificationsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Notification Type</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Notification Type</label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as AdminNotificationItem["type"])}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="announcement">Announcement</option>
                 <option value="price_drop">Price Drop</option>
@@ -502,11 +510,11 @@ export default function AdminNotificationsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Publish Status</label>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Publish Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as AdminNotificationItem["status"])}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#FF1028] cursor-pointer"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="draft">Draft</option>
                 <option value="scheduled">Scheduled</option>
@@ -515,17 +523,17 @@ export default function AdminNotificationsPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-md cursor-pointer"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-xs cursor-pointer"
             >
               {editingItem ? "Update Broadcast" : status === "sent" ? "Dispatch Now" : "Save Notification"}
             </button>
@@ -557,7 +565,7 @@ export default function AdminNotificationsPage() {
 
       {/* ── 7. Toast Notification Bar ── */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#16A34A] text-white px-5 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
           <span>✓ {toastMsg}</span>
           <button
             onClick={() => setToastMsg(null)}

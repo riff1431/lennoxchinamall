@@ -12,9 +12,6 @@ import {
   FileCheck,
   Shield,
   HelpCircle,
-  Building,
-  Sparkles,
-  ExternalLink,
   BookOpen,
 } from "lucide-react";
 import { MOCK_PAGES, AdminPage } from "@/lib/mockData";
@@ -222,11 +219,11 @@ export default function AdminPagesPage() {
       accessorKey: "title",
       sortable: true,
       cell: (row) => (
-        <div className="space-y-1 max-w-sm">
-          <div className="font-bold text-white text-xs leading-snug flex items-center gap-1.5">
-            <span>{row.title}</span>
+        <div className="space-y-0.5 max-w-sm">
+          <div className="font-bold text-slate-900 dark:text-white text-xs leading-snug">
+            {row.title}
           </div>
-          <div className="text-[11px] text-slate-400 truncate">
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
             {row.seoDescription || "No meta description defined"}
           </div>
         </div>
@@ -237,7 +234,7 @@ export default function AdminPagesPage() {
       accessorKey: "slug",
       sortable: true,
       cell: (row) => (
-        <span className="font-mono text-xs text-red-400 bg-red-950/30 px-2 py-0.5 rounded border border-red-900/40 select-all">
+        <span className="font-mono text-xs text-[#2F65F6] bg-[#EEF4FF] dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200 dark:border-blue-900/40 select-all font-semibold">
           /{row.slug}
         </span>
       ),
@@ -249,15 +246,14 @@ export default function AdminPagesPage() {
       cell: (row) => {
         const catConfig: Record<
           string,
-          { tone: BadgeTone; icon: any; label: string }
+          { tone: BadgeTone; label: string }
         > = {
-          Policy: { tone: "purple", icon: Shield, label: "Policy" },
-          Company: { tone: "blue", icon: Building, label: "Company" },
-          Help: { tone: "cyan", icon: HelpCircle, label: "Help & Guides" },
+          Policy: { tone: "purple", label: "Policy" },
+          Company: { tone: "blue", label: "Company" },
+          Help: { tone: "cyan", label: "Help & Guides" },
         };
         const cfg = catConfig[row.category] || {
           tone: "slate",
-          icon: FileText,
           label: row.category,
         };
         return (
@@ -271,8 +267,8 @@ export default function AdminPagesPage() {
       sortable: true,
       cell: (row) => (
         <div className="space-y-0.5 max-w-xs">
-          <div className="text-xs text-slate-200 truncate">{row.seoTitle}</div>
-          <div className="text-[10px] text-slate-500 font-mono">
+          <div className="text-xs text-slate-700 dark:text-slate-200 truncate">{row.seoTitle}</div>
+          <div className="text-[10px] text-slate-400 font-mono">
             {row.seoTitle.length} chars
           </div>
         </div>
@@ -296,7 +292,7 @@ export default function AdminPagesPage() {
       accessorKey: "lastEditedBy",
       sortable: true,
       cell: (row) => (
-        <span className="text-xs text-slate-300 font-medium">
+        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
           {row.lastEditedBy}
         </span>
       ),
@@ -306,7 +302,7 @@ export default function AdminPagesPage() {
       accessorKey: "updatedAt",
       sortable: true,
       cell: (row) => (
-        <span className="text-xs text-slate-400 font-mono">
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
           {formatDate(row.updatedAt)}
         </span>
       ),
@@ -319,7 +315,7 @@ export default function AdminPagesPage() {
           <button
             type="button"
             onClick={() => setPreviewPage(row)}
-            className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-[#2F65F6] border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="Preview Page"
           >
             <Eye className="w-3.5 h-3.5" />
@@ -327,7 +323,7 @@ export default function AdminPagesPage() {
           <button
             type="button"
             onClick={() => handleOpenEdit(row)}
-            className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="Edit Page"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -338,7 +334,7 @@ export default function AdminPagesPage() {
               setPageToDelete(row);
               setDeleteConfirmOpen(true);
             }}
-            className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             title="Delete Page"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -354,15 +350,15 @@ export default function AdminPagesPage() {
   const helpCount = pages.filter((p) => p.category === "Help").length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Pages & CMS Content"
+        title="Pages &amp; CMS Content"
         subtitle="Manage static legal policies, DDP shipping guides, Binance Pay tutorials, and company documentation."
-        badge={{ text: "CMS", variant: "red" }}
+        badge={{ text: "CMS", variant: "blue" }}
         breadcrumbs={[
-          { label: "Content" },
-          { label: "Pages & CMS", href: "/admin/pages" },
+          { label: "Admin", href: "/admin/dashboard" },
+          { label: "Pages & CMS" },
         ]}
         actions={[
           {
@@ -374,58 +370,78 @@ export default function AdminPagesPage() {
         ]}
       />
 
-      {/* ── 2. Top Summary KPI Cards ── */}
+      {/* ── 2. Top Summary KPI Cards (Pastels) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
+        {/* Total CMS Pages */}
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total CMS Pages
             </span>
-            <FileText className="w-4 h-4 text-blue-400" />
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
+              {pages.length} Pages
+            </span>
+            <span className="text-[11px] font-bold text-[#2F65F6] block mt-0.5">
+              Published &amp; draft documents
+            </span>
           </div>
-          <div className="text-2xl font-black text-white font-heading">
-            {pages.length}
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <FileText className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">Published & draft documents</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              Live & Published
+        {/* Live & Published */}
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Live &amp; Published
             </span>
-            <FileCheck className="w-4 h-4 text-emerald-400" />
+            <span className="text-xl font-black text-[#16A34A] dark:text-emerald-400 font-mono mt-0.5 block">
+              {publishedCount} Live
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">
+              Accessible by public URL
+            </span>
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-heading">
-            {publishedCount}
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+            <FileCheck className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">Accessible by public URL</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              Policy & Warranty
+        {/* Policy & Warranty */}
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2B2216] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Policy &amp; Warranty
             </span>
-            <Shield className="w-4 h-4 text-purple-400" />
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
+              {policyCount} Docs
+            </span>
+            <span className="text-[11px] font-bold text-amber-600 block mt-0.5">
+              30-day warranty &amp; legal terms
+            </span>
           </div>
-          <div className="text-2xl font-black text-white font-heading">
-            {policyCount}
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <Shield className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">30-day warranty & legal terms</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              Help & Tutorials
+        {/* Help & Tutorials */}
+        <div className="p-4.5 rounded-2xl bg-[#FFF0F2] dark:bg-[#2B171B] border border-[#FFE4E8]/50 dark:border-rose-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Help &amp; Tutorials
             </span>
-            <HelpCircle className="w-4 h-4 text-cyan-400" />
+            <span className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5 block">
+              {helpCount} Guides
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">
+              Binance Pay &amp; DDP air guides
+            </span>
           </div>
-          <div className="text-2xl font-black text-white font-heading">
-            {helpCount}
+          <div className="w-10 h-10 rounded-full bg-[#E11D48] text-white flex items-center justify-center shadow-xs">
+            <HelpCircle className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">Binance Pay & DDP air guides</p>
         </div>
       </div>
 
@@ -454,13 +470,12 @@ export default function AdminPagesPage() {
         onClose={() => setIsModalOpen(false)}
         title={editingPageId ? "Edit CMS Document" : "Create CMS Document"}
         size="2xl"
-        className="!bg-slate-900 !border-slate-800 text-slate-100 [&>div:first-child]:!bg-slate-900/90 [&>div:first-child]:!border-slate-800 [&>div:first-child_div]:!text-white [&>div:first-child_button]:!text-slate-400 hover:[&>div:first-child_button]:!text-white hover:[&>div:first-child_button]:!bg-slate-800"
       >
-        <form onSubmit={handleSavePage} className="space-y-5 pt-1">
+        <form onSubmit={handleSavePage} className="space-y-5 pt-1 text-slate-900 dark:text-slate-100">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Page Title <span className="text-[#FF1028]">*</span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Page Title <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -468,25 +483,25 @@ export default function AdminPagesPage() {
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="e.g. 30-Day Factory Direct Warranty Policy"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300">
-                  URL Slug <span className="text-[#FF1028]">*</span>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  URL Slug <span className="text-rose-500">*</span>
                 </label>
                 <button
                   type="button"
                   onClick={handleGenerateSlug}
-                  className="text-[10px] text-blue-400 hover:text-blue-300 font-bold cursor-pointer"
+                  className="text-[10px] text-[#2F65F6] hover:text-[#2563EB] font-bold cursor-pointer"
                 >
                   Generate Slug
                 </button>
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-xs">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">
                   /
                 </span>
                 <input
@@ -495,7 +510,7 @@ export default function AdminPagesPage() {
                   value={formSlug}
                   onChange={(e) => setFormSlug(e.target.value)}
                   placeholder="warranty-policy"
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl pl-6 pr-3 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl pl-6 pr-3 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
                 />
               </div>
             </div>
@@ -503,7 +518,7 @@ export default function AdminPagesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Category
               </label>
               <select
@@ -511,16 +526,16 @@ export default function AdminPagesPage() {
                 onChange={(e) =>
                   setFormCategory(e.target.value as "Policy" | "Company" | "Help")
                 }
-                className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors cursor-pointer"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
               >
-                <option value="Policy">Policy & Legal</option>
+                <option value="Policy">Policy &amp; Legal</option>
                 <option value="Company">Company Information</option>
-                <option value="Help">Help, FAQ & Shipping Guides</option>
+                <option value="Help">Help, FAQ &amp; Shipping Guides</option>
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Publish Status
               </label>
               <select
@@ -528,7 +543,7 @@ export default function AdminPagesPage() {
                 onChange={(e) =>
                   setFormStatus(e.target.value as "published" | "draft")
                 }
-                className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors cursor-pointer"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
               >
                 <option value="published">Published (Live)</option>
                 <option value="draft">Draft (Internal Only)</option>
@@ -537,18 +552,18 @@ export default function AdminPagesPage() {
           </div>
 
           {/* SEO Meta Box */}
-          <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-2xl space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-300 border-b border-slate-800/80 pb-2">
-              <Globe className="w-4 h-4 text-emerald-400" />
+          <div className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 pb-2">
+              <Globe className="w-4 h-4 text-[#16A34A]" />
               <span>Search Engine Optimization (SEO Meta Tags)</span>
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-slate-400">
+                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
                   SEO Title Tag
                 </label>
-                <span className="text-[10px] font-mono text-slate-500">
+                <span className="text-[10px] font-mono text-slate-400">
                   {formSeoTitle.length}/60 recommended
                 </span>
               </div>
@@ -557,16 +572,16 @@ export default function AdminPagesPage() {
                 value={formSeoTitle}
                 onChange={(e) => setFormSeoTitle(e.target.value)}
                 placeholder="e.g. 30-Day Hardware Warranty & QC Policy - Lennox ChinaMall"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6] transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-slate-400">
+                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
                   Meta Description
                 </label>
-                <span className="text-[10px] font-mono text-slate-500">
+                <span className="text-[10px] font-mono text-slate-400">
                   {formSeoDescription.length}/160 recommended
                 </span>
               </div>
@@ -575,7 +590,7 @@ export default function AdminPagesPage() {
                 value={formSeoDescription}
                 onChange={(e) => setFormSeoDescription(e.target.value)}
                 placeholder="Brief summary displayed in Google and Bing search results..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3 outline-none focus:border-[#2F65F6] transition-colors"
               />
             </div>
           </div>
@@ -583,11 +598,11 @@ export default function AdminPagesPage() {
           {/* Markdown Content Area */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-[#2F65F6]" />
                 <span>Page Markdown Content</span>
               </label>
-              <span className="text-[10px] text-slate-500 font-mono">
+              <span className="text-[10px] text-slate-400 font-mono">
                 {formContent.split(/\s+/).filter(Boolean).length} words
               </span>
             </div>
@@ -597,22 +612,22 @@ export default function AdminPagesPage() {
               value={formContent}
               onChange={(e) => setFormContent(e.target.value)}
               placeholder="# Heading 1&#10;&#10;Write markdown documentation here..."
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl p-3.5 outline-none focus:border-[#FF1028] transition-colors leading-relaxed"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl p-3.5 outline-none focus:border-[#2F65F6] transition-colors leading-relaxed"
             />
           </div>
 
           {/* Modal Footer Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors cursor-pointer shadow-sm shadow-red-950"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] shadow-blue-500/25 shadow-xs transition-colors cursor-pointer"
             >
               {editingPageId ? "Save Changes" : "Publish Document"}
             </button>
@@ -626,14 +641,13 @@ export default function AdminPagesPage() {
         onClose={() => setPreviewPage(null)}
         title={previewPage?.title || "Page Preview"}
         size="xl"
-        className="!bg-slate-900 !border-slate-800 text-slate-100 [&>div:first-child]:!bg-slate-900/90 [&>div:first-child]:!border-slate-800 [&>div:first-child_div]:!text-white [&>div:first-child_button]:!text-slate-400 hover:[&>div:first-child_button]:!text-white hover:[&>div:first-child_button]:!bg-slate-800"
       >
         {previewPage && (
-          <div className="space-y-5 pt-1">
-            <div className="flex items-center justify-between p-3.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs">
+          <div className="space-y-5 pt-1 text-slate-900 dark:text-slate-100">
+            <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-bold">Public URL:</span>
-                <span className="font-mono text-red-400 font-bold">
+                <span className="text-slate-500 dark:text-slate-400 font-bold">Public URL:</span>
+                <span className="font-mono text-[#2F65F6] font-bold">
                   https://lennoxchinamall.com/{previewPage.slug}
                 </span>
               </div>
@@ -644,33 +658,33 @@ export default function AdminPagesPage() {
               />
             </div>
 
-            <div className="space-y-2 p-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <div className="space-y-2 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 SEO Preview in Google
               </div>
-              <div className="text-sm font-bold text-blue-400 hover:underline">
+              <div className="text-sm font-bold text-[#2F65F6] hover:underline cursor-pointer">
                 {previewPage.seoTitle}
               </div>
-              <div className="text-xs text-emerald-400 font-mono">
+              <div className="text-xs text-[#16A34A] font-mono">
                 https://lennoxchinamall.com/{previewPage.slug}
               </div>
-              <div className="text-xs text-slate-300 leading-relaxed">
+              <div className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 {previewPage.seoDescription}
               </div>
             </div>
 
             <div className="space-y-2">
-              <div className="text-xs font-bold text-slate-300">Raw Content Preview</div>
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+              <div className="text-xs font-bold text-slate-700 dark:text-slate-300">Raw Content Preview</div>
+              <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl font-mono text-xs text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
                 {previewPage.content}
               </div>
             </div>
 
-            <div className="flex items-center justify-end pt-3 border-t border-slate-800">
+            <div className="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setPreviewPage(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 cursor-pointer"
               >
                 Close Preview
               </button>
@@ -692,7 +706,7 @@ export default function AdminPagesPage() {
 
       {/* ── 7. Toast Notification ── */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#16A34A] text-white px-5 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 border border-emerald-500">
           <span>✓ {toastMsg}</span>
           <button
             type="button"

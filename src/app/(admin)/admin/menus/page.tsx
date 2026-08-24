@@ -16,9 +16,6 @@ import {
   Compass,
   Smartphone,
   Layout,
-  CheckCircle2,
-  Globe,
-  CornerDownRight,
 } from "lucide-react";
 import { MOCK_MENUS, AdminMenu } from "@/lib/mockData";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -37,7 +34,7 @@ interface MenuItemForm {
 export default function AdminMenusPage() {
   const [menus, setMenus] = useState<AdminMenu[]>(MOCK_MENUS);
   const [expandedMenuIds, setExpandedMenuIds] = useState<Set<string>>(
-    new Set(MOCK_MENUS.map((m) => m.id))
+    () => new Set(MOCK_MENUS.map((m) => m.id))
   );
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -288,15 +285,15 @@ export default function AdminMenusPage() {
   const footerMenusCount = menus.filter((m) => m.location === "footer_links").length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
         title="Storefront Navigation Menus"
         subtitle="Organize header navigation bars, mega menu dropdowns, mobile bottom tab bars, and footer links."
-        badge={{ text: "STOREFRONT", variant: "red" }}
+        badge={{ text: "STOREFRONT", variant: "blue" }}
         breadcrumbs={[
-          { label: "Storefront" },
-          { label: "Menus", href: "/admin/menus" },
+          { label: "Admin", href: "/admin/dashboard" },
+          { label: "Navigation Menus" },
         ]}
         actions={[
           {
@@ -308,58 +305,78 @@ export default function AdminMenusPage() {
         ]}
       />
 
-      {/* ── 2. Top Summary KPI Cards ── */}
+      {/* ── 2. Top Summary KPI Cards (Pastels) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
+        {/* Total Menus */}
+        <div className="p-4.5 rounded-2xl bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               Total Menus
             </span>
-            <MenuIcon className="w-4 h-4 text-blue-400" />
+            <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
+              {menus.length} Trees
+            </span>
+            <span className="text-[11px] font-bold text-[#2F65F6] block mt-0.5">
+              Navigation trees defined
+            </span>
           </div>
-          <div className="text-2xl font-black text-white font-heading">
-            {menus.length}
+          <div className="w-10 h-10 rounded-full bg-[#2F65F6] text-white flex items-center justify-center shadow-xs">
+            <MenuIcon className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">Navigation trees defined</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              Total Active Links
+        {/* Total Active Links */}
+        <div className="p-4.5 rounded-2xl bg-[#F0FDF4] dark:bg-[#162720] border border-[#BBF7D0]/50 dark:border-emerald-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Active Links
             </span>
-            <LinkIcon className="w-4 h-4 text-emerald-400" />
+            <span className="text-xl font-black text-[#16A34A] dark:text-emerald-400 font-mono mt-0.5 block">
+              {totalItemsCount} Links
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">
+              Live navigation destinations
+            </span>
           </div>
-          <div className="text-2xl font-black text-emerald-400 font-heading">
-            {totalItemsCount}
+          <div className="w-10 h-10 rounded-full bg-[#10B981] text-white flex items-center justify-center shadow-xs">
+            <LinkIcon className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">Live navigation destinations</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              Header Locations
+        {/* Header Locations */}
+        <div className="p-4.5 rounded-2xl bg-[#FFF8EE] dark:bg-[#2B2216] border border-[#FED7AA]/50 dark:border-amber-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Header Menus
             </span>
-            <Compass className="w-4 h-4 text-purple-400" />
+            <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
+              {headerMenusCount} Active
+            </span>
+            <span className="text-[11px] font-bold text-amber-600 block mt-0.5">
+              Top bar &amp; dropdowns
+            </span>
           </div>
-          <div className="text-2xl font-black text-white font-heading">
-            {headerMenusCount}
+          <div className="w-10 h-10 rounded-full bg-[#F59E0B] text-white flex items-center justify-center shadow-xs">
+            <Compass className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">Main header nav active</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              Footer Locations
+        {/* Footer Locations */}
+        <div className="p-4.5 rounded-2xl bg-[#FFF0F2] dark:bg-[#2B171B] border border-[#FFE4E8]/50 dark:border-rose-900/30 flex items-center justify-between shadow-xs">
+          <div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
+              Footer Menus
             </span>
-            <Layout className="w-4 h-4 text-amber-400" />
+            <span className="text-xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5 block">
+              {footerMenusCount} Active
+            </span>
+            <span className="text-[11px] text-slate-400 block mt-0.5">
+              Corporate &amp; policy links
+            </span>
           </div>
-          <div className="text-2xl font-black text-white font-heading">
-            {footerMenusCount}
+          <div className="w-10 h-10 rounded-full bg-[#E11D48] text-white flex items-center justify-center shadow-xs">
+            <Layout className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400">Corporate & policy links</p>
         </div>
       </div>
 
@@ -373,17 +390,17 @@ export default function AdminMenusPage() {
           return (
             <div
               key={menu.id}
-              className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden transition-all shadow-md hover:border-slate-700/80"
+              className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden transition-all shadow-xs"
             >
               {/* Card Header Bar */}
-              <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/90">
+              <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#111827]">
                 <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
-                    <LocationIcon className="w-5 h-5 text-blue-400" />
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900/40 flex items-center justify-center text-[#2F65F6] shrink-0">
+                    <LocationIcon className="w-5 h-5" />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <h3 className="text-base font-black text-white font-heading">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
                         {menu.name}
                       </h3>
                       <StatusBadge
@@ -393,9 +410,9 @@ export default function AdminMenusPage() {
                         dot={false}
                       />
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
                       <span>
-                        <strong className="text-slate-200 font-mono font-bold">
+                        <strong className="text-slate-700 dark:text-slate-200 font-mono font-bold">
                           {menu.items?.length || 0}
                         </strong>{" "}
                         links
@@ -403,7 +420,7 @@ export default function AdminMenusPage() {
                       <span>•</span>
                       <span>
                         Updated on{" "}
-                        <strong className="text-slate-300">
+                        <strong className="text-slate-600 dark:text-slate-300">
                           {formatDate(menu.updatedAt)}
                         </strong>
                       </span>
@@ -421,18 +438,18 @@ export default function AdminMenusPage() {
                       );
                       if (!isExpanded) toggleExpand(menu.id);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5 text-[#FF1028]" />
+                    <Plus className="w-3.5 h-3.5 text-[#2F65F6]" />
                     <span>Add Link</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(menu)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
                   >
-                    <Edit2 className="w-3.5 h-3.5 text-blue-400" />
+                    <Edit2 className="w-3.5 h-3.5 text-[#2F65F6]" />
                     <span>Edit Menu</span>
                   </button>
 
@@ -442,7 +459,7 @@ export default function AdminMenusPage() {
                       setMenuToDelete(menu);
                       setDeleteConfirmOpen(true);
                     }}
-                    className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                     title="Delete Menu"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -451,7 +468,7 @@ export default function AdminMenusPage() {
                   <button
                     type="button"
                     onClick={() => toggleExpand(menu.id)}
-                    className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                     title={isExpanded ? "Collapse Links" : "Expand Links"}
                   >
                     {isExpanded ? (
@@ -465,19 +482,19 @@ export default function AdminMenusPage() {
 
               {/* Expanded Card Content: Menu Items List */}
               {isExpanded && (
-                <div className="border-t border-slate-800 bg-slate-950/40 p-5 sm:p-6 space-y-4">
+                <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-5 space-y-4">
                   {/* Inline Quick Add Item Row */}
                   {quickItemMenuId === menu.id && (
-                    <div className="p-4 bg-slate-900 border border-blue-500/40 rounded-2xl space-y-3 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-200">
+                    <div className="p-4 bg-white dark:bg-slate-900 border border-blue-300 dark:border-blue-900/60 rounded-2xl space-y-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
                         <span className="flex items-center gap-1.5">
-                          <Plus className="w-4 h-4 text-[#FF1028]" />
+                          <Plus className="w-4 h-4 text-[#2F65F6]" />
                           Add Link to &ldquo;{menu.name}&rdquo;
                         </span>
                         <button
                           type="button"
                           onClick={() => setQuickItemMenuId(null)}
-                          className="text-slate-400 hover:text-white"
+                          className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                         >
                           Cancel
                         </button>
@@ -490,7 +507,7 @@ export default function AdminMenusPage() {
                             placeholder="Link Label (e.g. Flash Deals)"
                             value={quickLabel}
                             onChange={(e) => setQuickLabel(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6]"
                           />
                         </div>
                         <div className="sm:col-span-5">
@@ -499,23 +516,23 @@ export default function AdminMenusPage() {
                             placeholder="Href URL (e.g. /categories/drones)"
                             value={quickHref}
                             onChange={(e) => setQuickHref(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6]"
                           />
                         </div>
                         <div className="sm:col-span-3 flex items-center gap-2">
-                          <label className="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer select-none">
+                          <label className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 cursor-pointer select-none">
                             <input
                               type="checkbox"
                               checked={quickIsExternal}
                               onChange={(e) => setQuickIsExternal(e.target.checked)}
-                              className="rounded border-slate-800 bg-slate-950 text-[#FF1028] focus:ring-0"
+                              className="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-[#2F65F6] focus:ring-0"
                             />
                             <span>External</span>
                           </label>
                           <button
                             type="button"
                             onClick={() => handleQuickAddItem(menu.id)}
-                            className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white px-3 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                            className="flex-1 bg-[#2F65F6] hover:bg-[#2563EB] text-white px-3 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
                           >
                             Save Link
                           </button>
@@ -526,27 +543,27 @@ export default function AdminMenusPage() {
 
                   {/* Items List */}
                   {menu.items && menu.items.length > 0 ? (
-                    <div className="divide-y divide-slate-800/60 border border-slate-800 rounded-2xl overflow-hidden bg-slate-900/60">
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900/60">
                       {menu.items.map((item, idx) => (
                         <div
                           key={item.id || idx}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 gap-3 hover:bg-slate-950/40 transition-colors"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <span className="w-6 h-6 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 font-mono font-bold text-[11px] flex items-center justify-center shrink-0">
+                            <span className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900/40 text-[#2F65F6] font-mono font-bold text-[11px] flex items-center justify-center shrink-0">
                               #{idx + 1}
                             </span>
                             <div className="space-y-0.5 min-w-0">
-                              <div className="font-bold text-white text-xs flex items-center gap-2">
+                              <div className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-2">
                                 <span>{item.label}</span>
                                 {item.isExternal && (
-                                  <span className="flex items-center gap-0.5 text-[10px] text-blue-400 font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-800/40">
+                                  <span className="flex items-center gap-0.5 text-[10px] text-[#2F65F6] font-mono bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800/40">
                                     <ExternalLink className="w-2.5 h-2.5" />
                                     External
                                   </span>
                                 )}
                               </div>
-                              <div className="font-mono text-[11px] text-blue-400 truncate">
+                              <div className="font-mono text-[11px] text-[#2F65F6] truncate">
                                 {item.href}
                               </div>
                             </div>
@@ -558,7 +575,7 @@ export default function AdminMenusPage() {
                               type="button"
                               onClick={() => handleMoveCardItem(menu.id, idx, "up")}
                               disabled={idx === 0}
-                              className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                              className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
                               title="Move Up"
                             >
                               <ArrowUp className="w-3.5 h-3.5" />
@@ -569,7 +586,7 @@ export default function AdminMenusPage() {
                                 handleMoveCardItem(menu.id, idx, "down")
                               }
                               disabled={idx === menu.items.length - 1}
-                              className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                              className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
                               title="Move Down"
                             >
                               <ArrowDown className="w-3.5 h-3.5" />
@@ -580,7 +597,7 @@ export default function AdminMenusPage() {
                               onClick={() =>
                                 handleDeleteCardItem(menu.id, item.id, item.label)
                               }
-                              className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                               title="Remove Link"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -590,7 +607,7 @@ export default function AdminMenusPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 border border-dashed border-slate-800 rounded-2xl text-xs text-slate-400">
+                    <div className="text-center py-8 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-xs text-slate-400">
                       No links added to this menu yet. Click &ldquo;Add Link&rdquo; to start.
                     </div>
                   )}
@@ -607,13 +624,12 @@ export default function AdminMenusPage() {
         onClose={() => setIsModalOpen(false)}
         title={editingMenuId ? "Edit Navigation Menu" : "Create Navigation Menu"}
         size="xl"
-        className="!bg-slate-900 !border-slate-800 text-slate-100 [&>div:first-child]:!bg-slate-900/90 [&>div:first-child]:!border-slate-800 [&>div:first-child_div]:!text-white [&>div:first-child_button]:!text-slate-400 hover:[&>div:first-child_button]:!text-white hover:[&>div:first-child_button]:!bg-slate-800"
       >
-        <form onSubmit={handleSaveMenu} className="space-y-5 pt-1">
+        <form onSubmit={handleSaveMenu} className="space-y-5 pt-1 text-slate-900 dark:text-slate-100">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Menu Title <span className="text-[#FF1028]">*</span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Menu Title <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -621,13 +637,13 @@ export default function AdminMenusPage() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="e.g. Main Header Navigation"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Display Location <span className="text-[#FF1028]">*</span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Display Location <span className="text-rose-500">*</span>
               </label>
               <select
                 value={formLocation}
@@ -640,7 +656,7 @@ export default function AdminMenusPage() {
                       | "mega_menu"
                   )
                 }
-                className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028] transition-colors cursor-pointer"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer"
               >
                 <option value="header_nav">Header Navigation Bar</option>
                 <option value="footer_links">Footer Corporate Links</option>
@@ -653,14 +669,14 @@ export default function AdminMenusPage() {
           {/* Dynamic Links Builder */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <LinkIcon className="w-3.5 h-3.5 text-blue-400" />
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <LinkIcon className="w-3.5 h-3.5 text-[#2F65F6]" />
                 <span>Menu Link Items ({formItems.length})</span>
               </label>
               <button
                 type="button"
                 onClick={handleAddFormItem}
-                className="flex items-center gap-1 text-[11px] font-bold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                className="flex items-center gap-1 text-[11px] font-bold text-[#2F65F6] hover:text-[#2563EB] transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Item</span>
@@ -671,14 +687,14 @@ export default function AdminMenusPage() {
               {formItems.map((item, index) => (
                 <div
                   key={item.id || index}
-                  className="flex items-center gap-2.5 p-3 bg-slate-950 border border-slate-800 rounded-2xl"
+                  className="flex items-center gap-2.5 p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl"
                 >
                   <div className="flex flex-col gap-0.5 shrink-0">
                     <button
                       type="button"
                       onClick={() => handleMoveFormItem(index, "up")}
                       disabled={index === 0}
-                      className="p-1 rounded bg-slate-900 text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                      className="p-1 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
                     >
                       <ArrowUp className="w-3 h-3" />
                     </button>
@@ -686,7 +702,7 @@ export default function AdminMenusPage() {
                       type="button"
                       onClick={() => handleMoveFormItem(index, "down")}
                       disabled={index === formItems.length - 1}
-                      className="p-1 rounded bg-slate-900 text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                      className="p-1 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
                     >
                       <ArrowDown className="w-3 h-3" />
                     </button>
@@ -703,7 +719,7 @@ export default function AdminMenusPage() {
                           prev.map((it, i) => (i === index ? { ...it, label: val } : it))
                         );
                       }}
-                      className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6]"
                     />
                     <input
                       type="text"
@@ -715,11 +731,11 @@ export default function AdminMenusPage() {
                           prev.map((it, i) => (i === index ? { ...it, href: val } : it))
                         );
                       }}
-                      className="w-full bg-slate-900 border border-slate-800 text-slate-100 font-mono text-xs rounded-xl px-3 py-2 outline-none focus:border-[#FF1028]"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3 py-2 outline-none focus:border-[#2F65F6]"
                     />
                   </div>
 
-                  <label className="flex items-center gap-1 text-[10px] text-slate-400 shrink-0 cursor-pointer">
+                  <label className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 shrink-0 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={item.isExternal || false}
@@ -731,7 +747,7 @@ export default function AdminMenusPage() {
                           )
                         );
                       }}
-                      className="rounded border-slate-800 bg-slate-900 text-[#FF1028]"
+                      className="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[#2F65F6]"
                     />
                     <span>External</span>
                   </label>
@@ -739,7 +755,7 @@ export default function AdminMenusPage() {
                   <button
                     type="button"
                     onClick={() => handleRemoveFormItem(index)}
-                    className="p-1.5 rounded-lg bg-slate-900 text-slate-400 hover:text-red-400 shrink-0 cursor-pointer"
+                    className="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-600 shrink-0 cursor-pointer"
                     title="Delete item"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -750,17 +766,17 @@ export default function AdminMenusPage() {
           </div>
 
           {/* Modal Footer Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors cursor-pointer shadow-sm shadow-red-950"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] shadow-blue-500/25 shadow-xs transition-colors cursor-pointer"
             >
               {editingMenuId ? "Save Changes" : "Create Menu"}
             </button>
@@ -781,7 +797,7 @@ export default function AdminMenusPage() {
 
       {/* ── 6. Toast Notification ── */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#16A34A] text-white px-5 py-3 rounded-2xl text-xs font-bold shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 border border-emerald-500">
           <span>✓ {toastMsg}</span>
           <button
             type="button"

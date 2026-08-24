@@ -351,10 +351,10 @@ export default function AdminReviewsPage() {
       accessorKey: "status",
       sortable: true,
       cell: (row) => {
-        const toneMap: Record<string, "emerald" | "amber" | "rose"> = {
+        const toneMap: Record<string, "emerald" | "amber" | "red"> = {
           approved: "emerald",
           pending: "amber",
-          rejected: "rose",
+          rejected: "red",
         };
         return <StatusBadge status={row.status} tone={toneMap[row.status] || "slate"} />;
       },
