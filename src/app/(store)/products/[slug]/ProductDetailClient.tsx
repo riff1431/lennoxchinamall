@@ -43,6 +43,7 @@ import {
 import { Product, Category } from "@/types/database";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
 import { ProductCard } from "@/components/product/ProductCard";
+import { ProductReviewsAndQA } from "@/components/product/ProductReviewsAndQA";
 import { Rating } from "@/components/ui/Rating";
 import { Modal } from "@/components/ui/Modal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -717,65 +718,18 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               </div>
             )}
 
-            {/* Reviews Tab */}
+            {/* Reviews & Q&A Tab */}
             {activeTab === "reviews" && (
-              <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-200">
-                  <div className="text-center sm:text-left">
-                    <span className="text-3xl font-black text-[#00143D] font-mono">
-                      {(product.avg_rating || 4.9).toFixed(1)}
-                    </span>
-                    <div className="flex items-center justify-center sm:justify-start text-amber-400 mt-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
-                    </div>
-                    <span className="text-xs text-slate-500 mt-1 block">
-                      Based on {product.review_count || 32} verified customer reviews
-                    </span>
-                  </div>
-
-                  {/* Rating Filters */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {["all", 5, 4, 3].map((r) => (
-                      <button
-                        key={String(r)}
-                        onClick={() => setReviewFilter(r as any)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                          reviewFilter === r
-                            ? "bg-[#00143D] text-white"
-                            : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
-                        }`}
-                      >
-                        {r === "all" ? "All Reviews" : `${r} Stars`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Sample Verified Reviews */}
-                <div className="space-y-4">
-                  <div className="p-4 rounded-2xl border border-slate-200 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 text-xs">Marcus V. (Austin, US)</span>
-                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          ✓ Verified Buyer
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-400 font-mono">2 days ago</span>
-                    </div>
-                    <div className="flex items-center text-amber-400">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-current" />
-                      ))}
-                    </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Incredible build quality. Sourced directly and paid via Binance USDT seamlessly. Arrived in Austin via YunExpress within 6 days.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ProductReviewsAndQA
+                productId={product.id}
+                productTitle={product.title}
+                productImage={images[0]}
+                variants={product.variants?.map((v) => ({
+                  id: v.id,
+                  title: v.title || v.sku || "Standard Edition",
+                  sku: v.sku,
+                }))}
+              />
             )}
 
             {/* Shipping & Warranty Tab */}
