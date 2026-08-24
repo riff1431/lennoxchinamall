@@ -180,8 +180,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900">
-      {/* ── 1. Top Breadcrumbs ── */}
-      <div className="bg-white border-b border-slate-200 py-3.5">
+      {/* ── 1. Top Breadcrumbs (Sticky Navigation Bar) ── */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 py-3 shadow-2xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Breadcrumbs
             items={[
@@ -207,8 +207,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
       {/* ── 2. Main Product Hero (Gallery + Buy Box + Right-Hand Dual Video Column) ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* ── Left Column: Media Gallery (5 Cols on Desktop) ── */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* ── Left Column: Media Gallery (Sticky on Desktop) ── */}
+          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-20 self-start">
             <div className="flex flex-col-reverse sm:flex-row gap-3.5">
               {/* Thumbnail Strip */}
               <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto sm:max-h-[460px] scrollbar-none shrink-0">
@@ -512,8 +512,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
             </div>
           </div>
 
-          {/* ── Right Column: 2 Factory QC Videos (3 Cols on Desktop) ── */}
-          <div className="lg:col-span-3 space-y-4">
+          {/* ── Right Column: 2 Factory QC Videos (Sticky on Desktop) ── */}
+          <div className="lg:col-span-3 space-y-4 lg:sticky lg:top-20 self-start">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#FF1028]" />
