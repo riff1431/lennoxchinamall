@@ -77,46 +77,52 @@ const HERO_SLIDES = [
 
 const CATEGORY_SHORTCUTS = [
   {
-    name: "RC Drones & Aerial",
-    slug: "rc-drones-toys",
+    name: "4K Aerial Drones & FPV",
+    slug: "consumer-electronics",
     count: "1,240+",
-    image: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=300&auto=format&fit=crop&q=80",
-    icon: "🚁",
+    hub: "Shenzhen Hub",
+    image: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=500&auto=format&fit=crop&q=80",
+    tag: "AERIAL",
   },
   {
-    name: "3D Printers & Tools",
-    slug: "tools-diy-hardware",
+    name: "3D Printers & CNC",
+    slug: "consumer-electronics",
     count: "890+",
-    image: "https://images.unsplash.com/photo-1615655406736-b37c4fabf923?w=300&auto=format&fit=crop&q=80",
-    icon: "🖨️",
+    hub: "Ningbo Cluster",
+    image: "https://images.unsplash.com/photo-1615655406736-b37c4fabf923?w=500&auto=format&fit=crop&q=80",
+    tag: "INDUSTRIAL",
   },
   {
-    name: "Audio & Electronics",
+    name: "High-Fidelity Audio",
     slug: "consumer-electronics",
     count: "3,400+",
-    image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=300&auto=format&fit=crop&q=80",
-    icon: "🔊",
+    hub: "Dongguan Lab",
+    image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=500&auto=format&fit=crop&q=80",
+    tag: "ACOUSTICS",
   },
   {
-    name: "Car OBD2 Diagnostics",
-    slug: "automotive-parts",
+    name: "Car OBD2 & Diagnostic",
+    slug: "consumer-electronics",
     count: "650+",
-    image: "https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=300&auto=format&fit=crop&q=80",
-    icon: "🚗",
+    hub: "Guangzhou Line",
+    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&auto=format&fit=crop&q=80",
+    tag: "DIAGNOSTICS",
   },
   {
-    name: "Tactical Flashlights",
-    slug: "outdoor-sports",
+    name: "Tactical & Outdoor Gear",
+    slug: "consumer-electronics",
     count: "480+",
-    image: "https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?w=300&auto=format&fit=crop&q=80",
-    icon: "🔦",
+    hub: "Yiwu Cluster",
+    image: "https://images.unsplash.com/photo-1510519138161-58474ebf8993?w=500&auto=format&fit=crop&q=80",
+    tag: "TACTICAL",
   },
   {
-    name: "Power Workshop Gear",
-    slug: "industrial-machinery",
+    name: "Smart Robotics & IoT",
+    slug: "consumer-electronics",
     count: "720+",
-    image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=300&auto=format&fit=crop&q=80",
-    icon: "⚡",
+    hub: "Shenzhen Hub",
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=500&auto=format&fit=crop&q=80",
+    tag: "ROBOTICS",
   },
 ];
 
@@ -430,48 +436,64 @@ export function HomePageClient({ sections }: HomePageClientProps) {
         </div>
       </section>
 
-      {/* ── 2. Category Shortcuts Grid ── */}
-      <section className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs">
-        <div className="flex items-center justify-between mb-5">
+      {/* ── 2. Direct Sourcing Departments Grid ── */}
+      <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-base sm:text-lg font-black text-[#00143D] flex items-center gap-2">
-              <span>🏭 Direct Sourcing Departments</span>
+            <div className="flex items-center gap-2">
+              <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                CHINA MANUFACTURING CLUSTERS
+              </span>
+            </div>
+            <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading mt-1">
+              Direct Sourcing Departments
             </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              Explore specialized manufacturing lines across China
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Explore specialized manufacturing lines and verified factory clusters across China
             </p>
           </div>
+
           <Link
             href="/categories"
-            className="text-xs font-black text-[#FF1028] hover:underline flex items-center gap-1"
+            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group"
           >
             <span>All Departments</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {CATEGORY_SHORTCUTS.map((cat) => (
             <Link
-              key={cat.slug}
+              key={cat.name}
               href={`/categories/${cat.slug}`}
-              className="group flex flex-col items-center text-center p-3 rounded-2xl bg-slate-50 hover:bg-red-50/50 border border-slate-100 hover:border-[#FF1028]/30 transition-all card-hover-effect"
+              className="group bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/80 hover:border-[#FF1028]/40 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-md card-hover-effect"
             >
-              <div className="w-16 h-16 rounded-2xl overflow-hidden relative mb-2.5 bg-white border border-slate-200 shadow-xs group-hover:scale-105 transition-transform">
+              <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-200 mb-2.5">
                 <Image
                   src={cat.image}
                   alt={`${cat.name} Department - China Sourcing Hub`}
                   fill
-                  sizes="64px"
-                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                  className="object-cover object-center transition-transform duration-500 group-hover:scale-108"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                {/* Hub Badge */}
+                <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded shadow-2xs">
+                  {cat.tag}
+                </span>
               </div>
-              <span className="text-xs font-bold text-slate-800 group-hover:text-[#FF1028] transition-colors line-clamp-1">
-                {cat.name}
-              </span>
-              <span className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                {cat.count} items
-              </span>
+
+              <div className="space-y-1">
+                <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#FF1028] transition-colors line-clamp-1 leading-snug">
+                  {cat.name}
+                </h4>
+                <div className="flex items-center justify-between text-[10px] text-slate-500">
+                  <span className="font-semibold text-emerald-600 font-mono">{cat.count} Items</span>
+                  <span className="text-[9px] text-slate-400 font-mono hidden sm:inline">{cat.hub}</span>
+                </div>
+              </div>
             </Link>
           ))}
         </div>

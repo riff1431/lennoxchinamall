@@ -6,12 +6,8 @@ import {
   MapPin,
   Coins,
   Save,
-  RotateCcw,
   Building,
   Mail,
-  Phone,
-  Layers,
-  Globe,
   Truck,
   FileText,
   Bell,
@@ -23,11 +19,9 @@ import {
   Download,
   AlertTriangle,
   CheckCircle2,
-  Lock,
   Eye,
   EyeOff,
   RefreshCw,
-  Sparkles,
   Sliders,
   Server,
   Zap,
@@ -78,6 +72,7 @@ export default function AdminSettingsPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, []);
 
@@ -96,18 +91,6 @@ export default function AdminSettingsPage() {
     }));
   };
 
-  // Save specific domain
-  const handleSaveDomain = async (domainKey: keyof AllStoreSettings) => {
-    setIsSaving(true);
-    const res = await updateSettingsDomain(domainKey, settings[domainKey]);
-    setIsSaving(false);
-    if (res.success) {
-      showToast(res.message || "Settings updated!");
-      loadData();
-    } else {
-      showToast(res.error || "Failed to update settings.");
-    }
-  };
 
   // Save active tab bundle
   const handleSaveActiveTab = async () => {
@@ -180,25 +163,25 @@ export default function AdminSettingsPage() {
   const isSuperAdmin = userRole === "super_admin";
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-24 font-sans text-slate-100">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-sans">
       {/* ── 1. Top Executive Header Bar ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-heading">
+            <span className="bg-[#2F65F6] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               ENTERPRISE CONFIG OS
             </span>
-            <span className="text-xs text-amber-400 font-bold flex items-center gap-1">
+            <span className="text-xs text-[#2F65F6] font-bold flex items-center gap-1">
               <Shield className="w-3 h-3" />
               Role: {userRole.toUpperCase()}
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-white font-heading flex items-center gap-2">
-            <Sliders className="w-7 h-7 text-[#FF1028]" />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <Sliders className="w-7 h-7 text-[#2F65F6]" />
             <span>Storefront &amp; System Settings</span>
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Centrally manage China procurement hubs, Binance Pay gateway API, zero-fee USDT conversions, air cargo zones, and storefront branding.
           </p>
         </div>
@@ -207,7 +190,7 @@ export default function AdminSettingsPage() {
           <button
             onClick={loadData}
             title="Refresh Live Database Settings"
-            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700 cursor-pointer"
+            className="p-2.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
           </button>
@@ -215,9 +198,9 @@ export default function AdminSettingsPage() {
           {isSuperAdmin && (
             <button
               onClick={handleDownloadBackup}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+              className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-[#10B981]" />
+              <Download className="w-3.5 h-3.5 text-[#16A34A]" />
               <span>Export System Backup (JSON)</span>
             </button>
           )}
@@ -225,7 +208,7 @@ export default function AdminSettingsPage() {
           <button
             onClick={handleSaveActiveTab}
             disabled={isSaving}
-            className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black font-heading transition-colors flex items-center gap-2 shadow-lg cursor-pointer disabled:opacity-50"
+            className="bg-[#2F65F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shadow-blue-500/25 shadow-xs cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{isSaving ? "Saving..." : "Save Changes"}</span>
@@ -235,7 +218,7 @@ export default function AdminSettingsPage() {
 
       {/* Toast Alert */}
       {toastMsg && (
-        <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-xl text-xs font-black flex items-center justify-between shadow-lg animate-in fade-in">
+        <div className="bg-[#16A34A] text-white px-5 py-3 rounded-2xl text-xs font-bold border border-emerald-500 flex items-center justify-between shadow-xl animate-in fade-in">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{toastMsg}</span>
@@ -245,7 +228,7 @@ export default function AdminSettingsPage() {
       )}
 
       {/* ── 2. Navigation Tabs ── */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-800/80 no-scrollbar">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100 dark:border-slate-800/80 no-scrollbar">
         {[
           { key: "store_info", label: "Store & Logistics Hubs", icon: Building },
           { key: "branding", label: "Branding & Media", icon: ImageIcon },
@@ -264,8 +247,8 @@ export default function AdminSettingsPage() {
               onClick={() => setActiveTab(tab.key as TabKey)}
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
                 isActive
-                  ? "bg-[#FF1028] text-white shadow-md font-black font-heading"
-                  : "bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800"
+                  ? "bg-[#2F65F6] text-white shadow-xs"
+                  : "bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -281,63 +264,63 @@ export default function AdminSettingsPage() {
       {activeTab === "store_info" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Section 1.1: Business & Store Information */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Store className="w-5 h-5 text-[#FF1028]" />
-                <h3 className="font-heading font-black text-white text-base">Store Identity</h3>
+                <Store className="w-5 h-5 text-[#2F65F6]" />
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Store Identity</h3>
               </div>
               <span className="text-[10px] text-slate-400 font-mono">domain: store_info</span>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Public Store Name *</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Public Store Name *</label>
                 <input
                   type="text"
                   value={settings.store_info.store_name}
                   onChange={(e) => updateDomainField("store_info", "store_name", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Legal Entity Name</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Legal Entity Name</label>
                 <input
                   type="text"
                   value={settings.store_info.legal_entity}
                   onChange={(e) => updateDomainField("store_info", "legal_entity", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Hero Tagline / Pitch</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Hero Tagline / Pitch</label>
                 <input
                   type="text"
                   value={settings.store_info.tagline}
                   onChange={(e) => updateDomainField("store_info", "tagline", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Support Desk Email *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Support Desk Email *</label>
                   <input
                     type="email"
                     value={settings.store_info.support_email}
                     onChange={(e) => updateDomainField("store_info", "support_email", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Business Phone</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Business Phone</label>
                   <input
                     type="text"
                     value={settings.store_info.business_phone}
                     onChange={(e) => updateDomainField("store_info", "business_phone", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                   />
                 </div>
               </div>
@@ -345,53 +328,53 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* Section 1.2: Chinese Procurement Hubs */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-amber-400" />
-                <h3 className="font-heading font-black text-white text-base">China Operations Hubs</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">China Operations Hubs</h3>
               </div>
               <span className="text-[10px] text-amber-400 font-bold font-mono">Shenzhen &amp; Guangzhou</span>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Shenzhen Drone &amp; Electronics Hub</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Shenzhen Drone &amp; Electronics Hub</label>
                 <textarea
                   rows={2}
                   value={settings.store_info.shenzhen_hub}
                   onChange={(e) => updateDomainField("store_info", "shenzhen_hub", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Guangzhou Logistics &amp; QC Center</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Guangzhou Logistics &amp; QC Center</label>
                 <textarea
                   rows={2}
                   value={settings.store_info.guangzhou_hub}
                   onChange={(e) => updateDomainField("store_info", "guangzhou_hub", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Operating Hours</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Operating Hours</label>
                   <input
                     type="text"
                     value={settings.store_info.business_hours}
                     onChange={(e) => updateDomainField("store_info", "business_hours", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Timezone</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Timezone</label>
                   <input
                     type="text"
                     value={settings.store_info.timezone}
                     onChange={(e) => updateDomainField("store_info", "timezone", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                   />
                 </div>
               </div>
@@ -403,38 +386,38 @@ export default function AdminSettingsPage() {
       {/* ─── TAB 2: Branding, Colors & Storage ─── */}
       {activeTab === "branding" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-[#FF1028]" />
-                <h3 className="font-heading font-black text-white text-base">Logos &amp; Visual Identity</h3>
+                <ImageIcon className="w-5 h-5 text-[#2F65F6]" />
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Logos &amp; Visual Identity</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Primary Storefront Logo URL</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Primary Storefront Logo URL</label>
                 <input
                   type="text"
                   value={settings.branding.primary_logo_url}
                   onChange={(e) => updateDomainField("branding", "primary_logo_url", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Favicon Path / URL</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Favicon Path / URL</label>
                 <input
                   type="text"
                   value={settings.branding.favicon_url}
                   onChange={(e) => updateDomainField("branding", "favicon_url", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-[#FF1028]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
                 />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Primary Red</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Primary Red</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -446,13 +429,13 @@ export default function AdminSettingsPage() {
                       type="text"
                       value={settings.branding.primary_color}
                       onChange={(e) => updateDomainField("branding", "primary_color", e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
+                      className="w-full px-2 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-[11px]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Secondary Navy</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Secondary Navy</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -464,13 +447,13 @@ export default function AdminSettingsPage() {
                       type="text"
                       value={settings.branding.secondary_color}
                       onChange={(e) => updateDomainField("branding", "secondary_color", e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
+                      className="w-full px-2 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-[11px]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Accent Green</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Accent Green</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -482,7 +465,7 @@ export default function AdminSettingsPage() {
                       type="text"
                       value={settings.branding.accent_color}
                       onChange={(e) => updateDomainField("branding", "accent_color", e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
+                      className="w-full px-2 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-[11px]"
                     />
                   </div>
                 </div>
@@ -490,53 +473,53 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Server className="w-5 h-5 text-blue-400" />
-                <h3 className="font-heading font-black text-white text-base">Supabase Storage &amp; Asset Limits</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Supabase Storage &amp; Asset Limits</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Products Media Bucket</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Products Media Bucket</label>
                   <input
                     type="text"
                     value={settings.storage.products_bucket}
                     onChange={(e) => updateDomainField("storage", "products_bucket", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Banners Bucket</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Banners Bucket</label>
                   <input
                     type="text"
                     value={settings.storage.banners_bucket}
                     onChange={(e) => updateDomainField("storage", "banners_bucket", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Max Image Size (MB)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Max Image Size (MB)</label>
                   <input
                     type="number"
                     value={settings.storage.max_image_mb}
                     onChange={(e) => updateDomainField("storage", "max_image_mb", Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Max Video Size (MB)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Max Video Size (MB)</label>
                   <input
                     type="number"
                     value={settings.storage.max_video_mb}
                     onChange={(e) => updateDomainField("storage", "max_video_mb", Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -548,11 +531,11 @@ export default function AdminSettingsPage() {
       {/* ─── TAB 3: Currencies, Shipping & Localization ─── */}
       {activeTab === "currencies_shipping" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Coins className="w-5 h-5 text-emerald-400" />
-                <h3 className="font-heading font-black text-white text-base">Exchange Rates &amp; Multi-Currency</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Exchange Rates &amp; Multi-Currency</h3>
               </div>
             </div>
 
@@ -568,11 +551,11 @@ export default function AdminSettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="font-bold text-slate-300 block">Secondary Currencies (vs 1 USDT)</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300 block">Secondary Currencies (vs 1 USDT)</label>
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   {Object.entries(settings.currencies.rates || {}).map(([curr, rate]) => (
-                    <div key={curr} className="p-2 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                      <span className="font-bold text-slate-300">{curr}</span>
+                    <div key={curr} className="p-2 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">{curr}</span>
                       <input
                         type="number"
                         step="0.01"
@@ -590,53 +573,53 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Truck className="w-5 h-5 text-amber-400" />
-                <h3 className="font-heading font-black text-white text-base">Air Express Freight Rules</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Air Express Freight Rules</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Free Air Shipping Threshold ($ USDT)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Free Air Shipping Threshold ($ USDT)</label>
                   <input
                     type="number"
                     value={settings.shipping_zones.free_shipping_threshold}
                     onChange={(e) => updateDomainField("shipping_zones", "free_shipping_threshold", Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono font-bold"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono font-bold"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Standard Air Freight Cost</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Standard Air Freight Cost</label>
                   <input
                     type="number"
                     value={settings.shipping_zones.standard_air_cost}
                     onChange={(e) => updateDomainField("shipping_zones", "standard_air_cost", Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Default Logistics Air Carrier</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Default Logistics Air Carrier</label>
                 <input
                   type="text"
                   value={settings.shipping_zones.default_carrier}
                   onChange={(e) => updateDomainField("shipping_zones", "default_carrier", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Target Air Delivery Lead Time (Days)</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Target Air Delivery Lead Time (Days)</label>
                 <input
                   type="number"
                   value={settings.shipping_zones.air_express_lead_days}
                   onChange={(e) => updateDomainField("shipping_zones", "air_express_lead_days", Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -647,95 +630,95 @@ export default function AdminSettingsPage() {
       {/* ─── TAB 4: Orders & Invoices ─── */}
       {activeTab === "orders_invoice" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#FF1028]" />
-                <h3 className="font-heading font-black text-white text-base">Order Workflow Rules</h3>
+                <FileText className="w-5 h-5 text-[#2F65F6]" />
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Order Workflow Rules</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Order Number Prefix</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Order Number Prefix</label>
                   <input
                     type="text"
                     value={settings.order_workflow.order_number_prefix}
                     onChange={(e) => updateDomainField("order_workflow", "order_number_prefix", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono font-bold"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono font-bold"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Unpaid Cancel Timer (Minutes)</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Unpaid Cancel Timer (Minutes)</label>
                   <input
                     type="number"
                     value={settings.order_workflow.unpaid_cancel_minutes}
                     onChange={(e) => updateDomainField("order_workflow", "unpaid_cancel_minutes", Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Min Order USDT</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Min Order USDT</label>
                   <input
                     type="number"
                     value={settings.order_workflow.min_order_amount_usdt}
                     onChange={(e) => updateDomainField("order_workflow", "min_order_amount_usdt", Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-300">Max Order USDT</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Max Order USDT</label>
                   <input
                     type="number"
                     value={settings.order_workflow.max_order_amount_usdt}
                     onChange={(e) => updateDomainField("order_workflow", "max_order_amount_usdt", Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-blue-400" />
-                <h3 className="font-heading font-black text-white text-base">Commercial Invoice Header</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Commercial Invoice Header</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Invoice Number Prefix</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Invoice Number Prefix</label>
                 <input
                   type="text"
                   value={settings.invoice.invoice_prefix}
                   onChange={(e) => updateDomainField("invoice", "invoice_prefix", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Tax / Registration No.</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Tax / Registration No.</label>
                 <input
                   type="text"
                   value={settings.invoice.tax_registration_no}
                   onChange={(e) => updateDomainField("invoice", "tax_registration_no", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Invoice Terms &amp; Escrow Note</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Invoice Terms &amp; Escrow Note</label>
                 <textarea
                   rows={2}
                   value={settings.invoice.terms_note}
                   onChange={(e) => updateDomainField("invoice", "terms_note", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
             </div>
@@ -746,63 +729,63 @@ export default function AdminSettingsPage() {
       {/* ─── TAB 5: Email & Notifications ─── */}
       {activeTab === "email_notifications" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Mail className="w-5 h-5 text-amber-400" />
-                <h3 className="font-heading font-black text-white text-base">Transactional Email Subjects</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Transactional Email Subjects</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Order Confirmation Subject</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Order Confirmation Subject</label>
                 <input
                   type="text"
                   value={settings.email_templates.order_confirmation_subject}
                   onChange={(e) => updateDomainField("email_templates", "order_confirmation_subject", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Payment Verified Subject</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Payment Verified Subject</label>
                 <input
                   type="text"
                   value={settings.email_templates.payment_received_subject}
                   onChange={(e) => updateDomainField("email_templates", "payment_received_subject", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Air Cargo Dispatched Subject</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Air Cargo Dispatched Subject</label>
                 <input
                   type="text"
                   value={settings.email_templates.shipping_dispatched_subject}
                   onChange={(e) => updateDomainField("email_templates", "shipping_dispatched_subject", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Bell className="w-5 h-5 text-purple-400" />
-                <h3 className="font-heading font-black text-white text-base">Staff Alerts &amp; Triggers</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Staff Alerts &amp; Triggers</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Staff Alert Recipient Email</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Staff Alert Recipient Email</label>
                 <input
                   type="email"
                   value={settings.notifications.alert_recipient_email}
                   onChange={(e) => updateDomainField("notifications", "alert_recipient_email", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -812,7 +795,7 @@ export default function AdminSettingsPage() {
                     type="checkbox"
                     checked={settings.notifications.notify_on_new_order}
                     onChange={(e) => updateDomainField("notifications", "notify_on_new_order", e.target.checked)}
-                    className="w-4 h-4 rounded text-[#FF1028]"
+                    className="w-4 h-4 rounded text-[#2F65F6]"
                   />
                   <span className="font-bold text-slate-200">Alert staff on every new paid order</span>
                 </label>
@@ -822,7 +805,7 @@ export default function AdminSettingsPage() {
                     type="checkbox"
                     checked={settings.notifications.notify_on_low_stock}
                     onChange={(e) => updateDomainField("notifications", "notify_on_low_stock", e.target.checked)}
-                    className="w-4 h-4 rounded text-[#FF1028]"
+                    className="w-4 h-4 rounded text-[#2F65F6]"
                   />
                   <span className="font-bold text-slate-200">Alert on low factory stock (&lt; 5 units)</span>
                 </label>
@@ -832,7 +815,7 @@ export default function AdminSettingsPage() {
                     type="checkbox"
                     checked={settings.notifications.notify_on_payment_failed}
                     onChange={(e) => updateDomainField("notifications", "notify_on_payment_failed", e.target.checked)}
-                    className="w-4 h-4 rounded text-[#FF1028]"
+                    className="w-4 h-4 rounded text-[#2F65F6]"
                   />
                   <span className="font-bold text-slate-200">Alert on crypto gateway signature failure</span>
                 </label>
@@ -844,12 +827,12 @@ export default function AdminSettingsPage() {
 
       {/* ─── TAB 6: Binance Pay API Gateway (Restricted) ─── */}
       {activeTab === "binance_pay" && (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 max-w-3xl">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-6 max-w-3xl">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <Coins className="w-6 h-6 text-[#10B981]" />
               <div>
-                <h3 className="font-heading font-black text-white text-base">Binance Pay Merchant API Credentials</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Binance Pay Merchant API Credentials</h3>
                 <span className="text-[11px] text-slate-400">Zero-Fee USDT Escrow Settlement Gateway</span>
               </div>
             </div>
@@ -873,23 +856,23 @@ export default function AdminSettingsPage() {
           <div className="space-y-4 text-xs">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Merchant ID *</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Merchant ID *</label>
                 <input
                   type="text"
                   disabled={!isSuperAdmin}
                   value={settings.binance_pay.merchant_id}
                   onChange={(e) => updateDomainField("binance_pay", "merchant_id", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono font-bold disabled:opacity-60"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono font-bold disabled:opacity-60"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Environment</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Environment</label>
                 <select
                   disabled={!isSuperAdmin}
                   value={settings.binance_pay.environment}
-                  onChange={(e) => updateDomainField("binance_pay", "environment", e.target.value as any)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold disabled:opacity-60"
+                  onChange={(e) => updateDomainField("binance_pay", "environment", e.target.value as "live" | "sandbox")}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold disabled:opacity-60"
                 >
                   <option value="live">Live Production (mainnet)</option>
                   <option value="sandbox">Sandbox Testnet</option>
@@ -898,19 +881,19 @@ export default function AdminSettingsPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-slate-300">Binance API Key *</label>
+              <label className="font-bold text-slate-700 dark:text-slate-300">Binance API Key *</label>
               <input
                 type="text"
                 disabled={!isSuperAdmin}
                 value={settings.binance_pay.api_key}
                 onChange={(e) => updateDomainField("binance_pay", "api_key", e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono disabled:opacity-60"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono disabled:opacity-60"
               />
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="font-bold text-slate-300">Binance API Secret (Encrypted) *</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Binance API Secret (Encrypted) *</label>
                 {isSuperAdmin && (
                   <button
                     type="button"
@@ -927,18 +910,18 @@ export default function AdminSettingsPage() {
                 disabled={!isSuperAdmin}
                 value={settings.binance_pay.api_secret}
                 onChange={(e) => updateDomainField("binance_pay", "api_secret", e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono disabled:opacity-60"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono disabled:opacity-60"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-slate-300">Webhook HMAC Secret *</label>
+              <label className="font-bold text-slate-700 dark:text-slate-300">Webhook HMAC Secret *</label>
               <input
                 type={showSecretKey ? "text" : "password"}
                 disabled={!isSuperAdmin}
                 value={settings.binance_pay.webhook_secret}
                 onChange={(e) => updateDomainField("binance_pay", "webhook_secret", e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono disabled:opacity-60"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono disabled:opacity-60"
               />
             </div>
           </div>
@@ -948,86 +931,86 @@ export default function AdminSettingsPage() {
       {/* ─── TAB 7: SEO & Analytics ─── */}
       {activeTab === "seo_analytics" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Search className="w-5 h-5 text-blue-400" />
-                <h3 className="font-heading font-black text-white text-base">Global SEO Metadata</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Global SEO Metadata</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Default Meta Title</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Default Meta Title</label>
                 <input
                   type="text"
                   value={settings.seo.default_meta_title}
                   onChange={(e) => updateDomainField("seo", "default_meta_title", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Default Meta Description</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Default Meta Description</label>
                 <textarea
                   rows={3}
                   value={settings.seo.default_meta_description}
                   onChange={(e) => updateDomainField("seo", "default_meta_description", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Robots.txt Directives</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Robots.txt Directives</label>
                 <textarea
                   rows={3}
                   value={settings.seo.robots_txt}
                   onChange={(e) => updateDomainField("seo", "robots_txt", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-[11px]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-[11px]"
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <BarChart className="w-5 h-5 text-purple-400" />
-                <h3 className="font-heading font-black text-white text-base">Analytics &amp; Pixels</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Analytics &amp; Pixels</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Google Analytics 4 (GA4) ID</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Google Analytics 4 (GA4) ID</label>
                 <input
                   type="text"
                   placeholder="G-XXXXXXXXXX"
                   value={settings.analytics.google_analytics_id}
                   onChange={(e) => updateDomainField("analytics", "google_analytics_id", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Facebook Pixel ID</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Facebook Pixel ID</label>
                 <input
                   type="text"
                   placeholder="123456789012345"
                   value={settings.analytics.facebook_pixel_id}
                   onChange={(e) => updateDomainField("analytics", "facebook_pixel_id", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">TikTok Pixel ID</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">TikTok Pixel ID</label>
                 <input
                   type="text"
                   placeholder="CXXXXXXXXXXXXXX"
                   value={settings.analytics.tiktok_pixel_id}
                   onChange={(e) => updateDomainField("analytics", "tiktok_pixel_id", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
                 />
               </div>
             </div>
@@ -1038,61 +1021,61 @@ export default function AdminSettingsPage() {
       {/* ─── TAB 8: Security, Maintenance & Disaster Recovery ─── */}
       {activeTab === "security_backups" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
-                <h3 className="font-heading font-black text-white text-base">Storefront Maintenance Gate</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Storefront Maintenance Gate</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
-              <label className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800 cursor-pointer">
+              <label className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/60 cursor-pointer">
                 <div>
-                  <span className="font-bold text-white block">Maintenance Mode</span>
+                  <span className="font-bold text-slate-900 dark:text-white block">Maintenance Mode</span>
                   <span className="text-[11px] text-slate-400">Lock storefront with scheduled upgrade screen</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={settings.maintenance.enabled}
                   onChange={(e) => updateDomainField("maintenance", "enabled", e.target.checked)}
-                  className="w-5 h-5 rounded text-[#FF1028]"
+                  className="w-5 h-5 rounded text-[#2F65F6]"
                 />
               </label>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Maintenance Notice Heading</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Maintenance Notice Heading</label>
                 <input
                   type="text"
                   value={settings.maintenance.heading}
                   onChange={(e) => updateDomainField("maintenance", "heading", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-300">Customer Message</label>
+                <label className="font-bold text-slate-700 dark:text-slate-300">Customer Message</label>
                 <textarea
                   rows={2}
                   value={settings.maintenance.message}
                   onChange={(e) => updateDomainField("maintenance", "message", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Download className="w-5 h-5 text-[#10B981]" />
-                <h3 className="font-heading font-black text-white text-base">Disaster Recovery &amp; Backups</h3>
+                <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">Disaster Recovery &amp; Backups</h3>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <span className="font-bold text-white block font-heading">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/60 space-y-3">
+                <span className="font-bold text-slate-900 dark:text-white block font-heading">
                   1-Click Full System Export
                 </span>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
@@ -1101,16 +1084,16 @@ export default function AdminSettingsPage() {
                 <button
                   type="button"
                   onClick={handleDownloadBackup}
-                  className="w-full bg-[#10B981] hover:bg-[#0EA271] text-slate-950 py-2.5 rounded-xl font-black font-heading text-xs transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                  className="w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Complete Backup JSON</span>
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/60">
                 <div>
-                  <span className="font-bold text-slate-300 block">Reset to Factory Defaults</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300 block">Reset to Factory Defaults</span>
                   <span className="text-[10px] text-slate-500">Restore factory baseline configuration</span>
                 </div>
                 <button
