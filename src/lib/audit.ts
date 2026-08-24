@@ -20,7 +20,7 @@ export interface LogAuditParams {
   adminId: string;
   adminEmail?: string;
   action: AuditAction;
-  entityType: "user" | "role" | "order" | "product" | "setting";
+  entityType: "user" | "role" | "order" | "product" | "setting" | "inventory";
   entityId?: string;
   changes?: Record<string, unknown>;
   ip?: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Boxes,
   Plus,
@@ -11,7 +11,6 @@ import {
   XCircle,
   RotateCcw,
   SlidersHorizontal,
-  Lock,
   Search,
   Building,
   Plane,
@@ -20,854 +19,861 @@ import {
   Coins,
   Package,
   History,
-  ArrowUpDown,
   Download,
   Warehouse,
+  Shield,
+  RefreshCw,
+  Clock,
+  ArrowRight,
+  Layers,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
-import { StatusBadge, BadgeTone } from "@/components/admin/StatusBadge";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency, formatDate } from "@/utils/helpers";
-import { MOCK_INVENTORY, InventoryItem } from "@/lib/mockData";
+import {
+  InventoryItemRecord,
+  InventoryMovementRecord,
+  InventoryOverviewMetrics,
+  StockAdjustmentPayload,
+} from "@/types/inventory";
+import {
+  getInventoryOverview,
+  getInventoryItems,
+  adjustItemStock,
+  saveInventoryItem,
+  deleteInventoryItem,
+  getItemMovements,
+  exportInventoryCSV,
+} from "@/app/actions/admin-inventory";
 
 export default function AdminInventoryPage() {
-  const [inventory, setInventory] = useState<InventoryItem[]>(MOCK_INVENTORY);
+  const [items, setItems] = useState<InventoryItemRecord[]>([]);
+  const [metrics, setMetrics] = useState<InventoryOverviewMetrics>({
+    total_skus: 0,
+    total_stock_units: 0,
+    available_units: 0,
+    reserved_units: 0,
+    low_stock_alerts: 0,
+    out_of_stock_count: 0,
+    total_inventory_value_usdt: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Filters & Search
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "in_stock" | "low_stock" | "out_of_stock">("all");
 
   // Modals
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItemRecord | null>(null);
+  const [movements, setMovements] = useState<InventoryMovementRecord[]>([]);
+  const [isMovementsLoading, setIsMovementsLoading] = useState(false);
 
-  // Confirm dialog state
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    title: string;
-    description: string;
-    onConfirm: () => void;
-  }>({
-    isOpen: false,
-    title: "",
-    description: "",
-    onConfirm: () => {},
-  });
+  // Delete dialog
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<InventoryItemRecord | null>(null);
 
   // Stock Adjustment Form State
   const [adjustWarehouse, setAdjustWarehouse] = useState<"shenzhenStock" | "guangzhouStock" | "hkAirStock">("shenzhenStock");
   const [adjustType, setAdjustType] = useState<"add" | "subtract" | "set">("add");
   const [adjustQuantity, setAdjustQuantity] = useState<number>(10);
-  const [adjustReason, setAdjustReason] = useState<string>("Factory Restock (1688)");
+  const [adjustReason, setAdjustReason] = useState<string>("Factory Restock (1688 Direct)");
+  const [adjustNotes, setAdjustNotes] = useState<string>("");
+  const [isSubmittingAdjust, setIsSubmittingAdjust] = useState(false);
 
   // Full Item Form State
   const [formSku, setFormSku] = useState("");
-  const [formProductTitle, setFormProductTitle] = useState("");
-  const [formVariantTitle, setFormVariantTitle] = useState("");
+  const [formProductName, setFormProductName] = useState("");
+  const [formVariantName, setFormVariantName] = useState("");
   const [formCategory, setFormCategory] = useState("Consumer Electronics");
+  const [formSupplierCode, setFormSupplierCode] = useState("SUP-SZ-9021");
+  const [formSourcingCost, setFormSourcingCost] = useState(45.0);
   const [formShenzhenStock, setFormShenzhenStock] = useState(20);
   const [formGuangzhouStock, setFormGuangzhouStock] = useState(10);
   const [formHkAirStock, setFormHkAirStock] = useState(5);
-  const [formReservedStock, setFormReservedStock] = useState(0);
   const [formLowStockThreshold, setFormLowStockThreshold] = useState(10);
-  const [formReorderPoint, setFormReorderPoint] = useState(15);
-  const [formUnitCost, setFormUnitCost] = useState(45.0);
-  const [formSupplierCode, setFormSupplierCode] = useState("SUP-SZ-9021");
+  const [formReorderPoint, setFormReorderPoint] = useState(20);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 4000);
   };
 
+  const loadData = async () => {
+    setIsLoading(true);
+    const [overviewRes, itemsRes] = await Promise.all([
+      getInventoryOverview(),
+      getInventoryItems({
+        search: searchTerm,
+        category: categoryFilter,
+        status: statusFilter,
+      }),
+    ]);
+
+    if (overviewRes.success && overviewRes.metrics) {
+      setMetrics(overviewRes.metrics);
+    }
+    if (itemsRes.success && itemsRes.items) {
+      setItems(itemsRes.items);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [searchTerm, categoryFilter, statusFilter]);
+
   // Open Adjust Modal
-  const handleOpenAdjustModal = (item?: InventoryItem) => {
-    const target = item || inventory[0];
-    setSelectedItem(target);
+  const handleOpenAdjust = (item: InventoryItemRecord) => {
+    setSelectedItem(item);
     setAdjustWarehouse("shenzhenStock");
     setAdjustType("add");
     setAdjustQuantity(10);
-    setAdjustReason("Factory Restock (1688)");
+    setAdjustReason("Factory Restock (1688 Direct)");
+    setAdjustNotes("");
     setIsAdjustModalOpen(true);
   };
 
-  // Submit Adjustment
-  const handleSaveAdjustment = (e: React.FormEvent) => {
+  // Submit Stock Adjustment
+  const handleSubmitAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedItem) return;
 
-    setInventory((prev) =>
-      prev.map((item) => {
-        if (item.id !== selectedItem.id) return item;
+    setIsSubmittingAdjust(true);
+    const res = await adjustItemStock({
+      itemId: selectedItem.id,
+      warehouse: adjustWarehouse,
+      type: adjustType,
+      quantity: adjustQuantity,
+      reason: adjustReason,
+      notes: adjustNotes,
+    });
+    setIsSubmittingAdjust(false);
 
-        let currentWarehouseVal = item[adjustWarehouse] || 0;
-        if (adjustType === "add") {
-          currentWarehouseVal += Number(adjustQuantity);
-        } else if (adjustType === "subtract") {
-          currentWarehouseVal = Math.max(0, currentWarehouseVal - Number(adjustQuantity));
-        } else if (adjustType === "set") {
-          currentWarehouseVal = Math.max(0, Number(adjustQuantity));
-        }
-
-        const newShenzhen = adjustWarehouse === "shenzhenStock" ? currentWarehouseVal : item.shenzhenStock;
-        const newGuangzhou = adjustWarehouse === "guangzhouStock" ? currentWarehouseVal : item.guangzhouStock;
-        const newHk = adjustWarehouse === "hkAirStock" ? currentWarehouseVal : item.hkAirStock;
-        const newTotal = newShenzhen + newGuangzhou + newHk;
-
-        let newStatus: InventoryItem["status"] = item.status;
-        if (newTotal <= 0) {
-          newStatus = "out_of_stock";
-        } else if (newTotal <= item.lowStockThreshold) {
-          newStatus = "low_stock";
-        } else if (item.status !== "reordering") {
-          newStatus = "in_stock";
-        }
-
-        return {
-          ...item,
-          [adjustWarehouse]: currentWarehouseVal,
-          totalStock: newTotal,
-          status: newStatus,
-          lastRestocked: new Date().toISOString(),
-        };
-      })
-    );
-
-    showToast(`Stock updated for ${selectedItem.sku} (${adjustReason}).`);
-    setIsAdjustModalOpen(false);
+    if (res.success) {
+      showToast(res.message || "Stock adjusted successfully!");
+      setIsAdjustModalOpen(false);
+      loadData();
+    } else {
+      showToast(res.error || "Adjustment failed");
+    }
   };
 
-  // Open Full Item Modal
-  const handleOpenCreateItem = () => {
+  // Open Movement History
+  const handleOpenHistory = async (item: InventoryItemRecord) => {
+    setSelectedItem(item);
+    setIsHistoryModalOpen(true);
+    setIsMovementsLoading(true);
+    const res = await getItemMovements(item.id);
+    if (res.success && res.movements) {
+      setMovements(res.movements);
+    }
+    setIsMovementsLoading(false);
+  };
+
+  // Open Create/Edit Modal
+  const handleOpenCreateModal = () => {
     setSelectedItem(null);
-    setFormSku(`LCM-SKU-${Math.floor(1000 + Math.random() * 9000)}`);
-    setFormProductTitle("");
-    setFormVariantTitle("Standard Edition");
+    setFormSku("");
+    setFormProductName("");
+    setFormVariantName("Standard");
     setFormCategory("Consumer Electronics");
-    setFormShenzhenStock(25);
+    setFormSupplierCode("SUP-SZ-9021");
+    setFormSourcingCost(45.0);
+    setFormShenzhenStock(20);
     setFormGuangzhouStock(10);
     setFormHkAirStock(5);
-    setFormReservedStock(0);
     setFormLowStockThreshold(10);
-    setFormReorderPoint(15);
-    setFormUnitCost(45.0);
-    setFormSupplierCode(`SUP-SZ-${Math.floor(1000 + Math.random() * 9000)}`);
+    setFormReorderPoint(20);
     setIsItemModalOpen(true);
   };
 
-  const handleOpenEditItem = (item: InventoryItem) => {
+  const handleOpenEditModal = (item: InventoryItemRecord) => {
     setSelectedItem(item);
     setFormSku(item.sku);
-    setFormProductTitle(item.productTitle);
-    setFormVariantTitle(item.variantTitle);
-    setFormCategory(item.category);
-    setFormShenzhenStock(item.shenzhenStock);
-    setFormGuangzhouStock(item.guangzhouStock);
-    setFormHkAirStock(item.hkAirStock);
-    setFormReservedStock(item.reservedStock);
-    setFormLowStockThreshold(item.lowStockThreshold);
-    setFormReorderPoint(item.reorderPoint);
-    setFormUnitCost(item.unitCost);
-    setFormSupplierCode(item.supplierCode);
+    setFormProductName(item.product_name);
+    setFormVariantName(item.variant_name || "Standard");
+    setFormCategory(item.category_name);
+    setFormSupplierCode(item.supplier_code);
+    setFormSourcingCost(item.sourcing_cost_usdt);
+    setFormShenzhenStock(item.shenzhen_stock);
+    setFormGuangzhouStock(item.guangzhou_stock);
+    setFormHkAirStock(item.hk_air_stock);
+    setFormLowStockThreshold(item.low_stock_threshold);
+    setFormReorderPoint(item.reorder_point);
     setIsItemModalOpen(true);
   };
 
-  const handleSaveItem = (e: React.FormEvent) => {
+  // Save Item
+  const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formSku.trim() || !formProductTitle.trim()) {
-      showToast("SKU and Product Title are required.");
-      return;
-    }
+    if (!formSku.trim() || !formProductName.trim()) return;
 
-    const total = Number(formShenzhenStock) + Number(formGuangzhouStock) + Number(formHkAirStock);
-    let status: InventoryItem["status"] = "in_stock";
-    if (total <= 0) {
-      status = "out_of_stock";
-    } else if (total <= Number(formLowStockThreshold)) {
-      status = "low_stock";
-    }
+    const payload: Partial<InventoryItemRecord> = {
+      id: selectedItem?.id,
+      sku: formSku.trim().toUpperCase(),
+      product_name: formProductName.trim(),
+      variant_name: formVariantName.trim(),
+      category_name: formCategory,
+      supplier_code: formSupplierCode.trim(),
+      sourcing_cost_usdt: Number(formSourcingCost) || 0,
+      shenzhen_stock: Number(formShenzhenStock) || 0,
+      guangzhou_stock: Number(formGuangzhouStock) || 0,
+      hk_air_stock: Number(formHkAirStock) || 0,
+      low_stock_threshold: Number(formLowStockThreshold) || 10,
+      reorder_point: Number(formReorderPoint) || 20,
+    };
 
-    if (selectedItem) {
-      setInventory((prev) =>
-        prev.map((i) =>
-          i.id === selectedItem.id
-            ? {
-                ...i,
-                sku: formSku.trim(),
-                productTitle: formProductTitle.trim(),
-                variantTitle: formVariantTitle.trim(),
-                category: formCategory,
-                shenzhenStock: Number(formShenzhenStock),
-                guangzhouStock: Number(formGuangzhouStock),
-                hkAirStock: Number(formHkAirStock),
-                totalStock: total,
-                reservedStock: Number(formReservedStock),
-                lowStockThreshold: Number(formLowStockThreshold),
-                reorderPoint: Number(formReorderPoint),
-                unitCost: Number(formUnitCost),
-                status,
-                supplierCode: formSupplierCode.trim(),
-              }
-            : i
-        )
-      );
-      showToast(`SKU ${formSku} updated.`);
+    const res = await saveInventoryItem(payload);
+    if (res.success) {
+      showToast(res.message || "Inventory SKU saved!");
+      setIsItemModalOpen(false);
+      loadData();
     } else {
-      const newItem: InventoryItem = {
-        id: `inv-${Date.now()}`,
-        sku: formSku.trim(),
-        productTitle: formProductTitle.trim(),
-        variantTitle: formVariantTitle.trim(),
-        category: formCategory,
-        shenzhenStock: Number(formShenzhenStock),
-        guangzhouStock: Number(formGuangzhouStock),
-        hkAirStock: Number(formHkAirStock),
-        totalStock: total,
-        reservedStock: Number(formReservedStock),
-        lowStockThreshold: Number(formLowStockThreshold),
-        reorderPoint: Number(formReorderPoint),
-        unitCost: Number(formUnitCost),
-        status,
-        supplierCode: formSupplierCode.trim(),
-        lastRestocked: new Date().toISOString(),
-      };
-      setInventory((prev) => [newItem, ...prev]);
-      showToast(`SKU ${formSku} registered in inventory.`);
-    }
-
-    setIsItemModalOpen(false);
-  };
-
-  const handleDeleteItem = (item: InventoryItem) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: `Delete SKU ${item.sku}?`,
-      description: `Are you sure you want to remove this SKU record from inventory tracking?`,
-      onConfirm: () => {
-        setInventory((prev) => prev.filter((i) => i.id !== item.id));
-        showToast(`SKU ${item.sku} deleted.`);
-      },
-    });
-  };
-
-  // Metrics
-  const totalSkus = inventory.length;
-  const totalStockUnits = inventory.reduce((sum, i) => sum + i.totalStock, 0);
-  const lowStockCount = inventory.filter((i) => i.status === "low_stock" || i.status === "out_of_stock").length;
-  const totalAssetValue = inventory.reduce((sum, i) => sum + i.totalStock * i.unitCost, 0);
-
-  // Status Tone Helper
-  const getStatusTone = (status: InventoryItem["status"]): BadgeTone => {
-    switch (status) {
-      case "in_stock":
-        return "emerald";
-      case "low_stock":
-        return "amber";
-      case "out_of_stock":
-        return "red";
-      case "reordering":
-        return "blue";
-      default:
-        return "slate";
+      showToast(res.error || "Save failed");
     }
   };
 
-  // Columns
-  const columns: Column<InventoryItem>[] = [
-    {
-      header: "SKU / Item",
-      accessorKey: "sku",
-      sortable: true,
-      cell: (row) => (
-        <div>
-          <span className="font-mono text-xs font-bold text-white bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-            {row.sku}
-          </span>
-          <div className="text-[10px] text-slate-400 font-medium mt-1">
-            {row.category}
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Product & Variant",
-      accessorKey: "productTitle",
-      sortable: true,
-      cell: (row) => (
-        <div className="max-w-xs">
-          <div className="text-xs font-bold text-slate-200 truncate hover:text-white transition-colors">
-            {row.productTitle}
-          </div>
-          <div className="text-[11px] text-red-400 font-medium mt-0.5">
-            {row.variantTitle}
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Shenzhen Hub",
-      accessorKey: "shenzhenStock",
-      sortable: true,
-      cell: (row) => (
-        <div className="flex items-center gap-1.5 font-mono text-xs">
-          <Building className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-          <span className="font-bold text-slate-200">{row.shenzhenStock}</span>
-        </div>
-      ),
-    },
-    {
-      header: "Guangzhou Central",
-      accessorKey: "guangzhouStock",
-      sortable: true,
-      cell: (row) => (
-        <div className="flex items-center gap-1.5 font-mono text-xs">
-          <Warehouse className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-          <span className="font-bold text-slate-200">{row.guangzhouStock}</span>
-        </div>
-      ),
-    },
-    {
-      header: "HK Air Hub",
-      accessorKey: "hkAirStock",
-      sortable: true,
-      cell: (row) => (
-        <div className="flex items-center gap-1.5 font-mono text-xs">
-          <Plane className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="font-bold text-slate-200">{row.hkAirStock}</span>
-        </div>
-      ),
-    },
-    {
-      header: "Total Stock",
-      accessorKey: "totalStock",
-      sortable: true,
-      cell: (row) => (
-        <span
-          className={`font-mono text-xs font-black px-2.5 py-1 rounded-lg border ${
-            row.totalStock <= 0
-              ? "bg-red-950/60 text-red-300 border-red-800/60"
-              : row.totalStock <= row.lowStockThreshold
-              ? "bg-amber-950/60 text-amber-300 border-amber-800/60"
-              : "bg-emerald-950/60 text-emerald-300 border-emerald-800/60"
-          }`}
-        >
-          {row.totalStock} units
-        </span>
-      ),
-    },
-    {
-      header: "Reserved",
-      accessorKey: "reservedStock",
-      sortable: true,
-      cell: (row) => (
-        <span className="font-mono text-xs text-slate-400">
-          {row.reservedStock > 0 ? (
-            <span className="text-amber-400 font-bold">{row.reservedStock} held</span>
-          ) : (
-            "—"
-          )}
-        </span>
-      ),
-    },
-    {
-      header: "Stock Status",
-      accessorKey: "status",
-      sortable: true,
-      cell: (row) => (
-        <StatusBadge
-          status={row.status}
-          tone={getStatusTone(row.status)}
-          label={row.status.replace(/_/g, " ")}
-        />
-      ),
-    },
-    {
-      header: "Supplier Code",
-      accessorKey: "supplierCode",
-      cell: (row) => (
-        <span className="inline-flex items-center gap-1 font-mono text-[10px] font-bold text-red-300 bg-red-950/30 border border-red-800/40 px-2 py-0.5 rounded-md">
-          <Lock className="w-2.5 h-2.5 text-red-400" />
-          {row.supplierCode}
-        </span>
-      ),
-    },
-    {
-      header: "Actions",
-      cell: (row) => (
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => handleOpenAdjustModal(row)}
-            className="p-1.5 rounded-lg bg-blue-950/40 hover:bg-blue-900/60 text-blue-300 hover:text-blue-200 border border-blue-800/50 transition-colors"
-            title="Quick Stock Adjustment"
-          >
-            <ArrowUpDown className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOpenEditItem(row)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
-            title="Edit SKU Details"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDeleteItem(row)}
-            className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 hover:text-red-300 border border-red-800/50 transition-colors"
-            title="Delete SKU Record"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  // Delete Item
+  const handleConfirmDelete = async () => {
+    if (itemToDelete) {
+      const res = await deleteInventoryItem(itemToDelete.id);
+      if (res.success) {
+        showToast(res.message || "Item deleted");
+        loadData();
+      }
+      setDeleteConfirmOpen(false);
+      setItemToDelete(null);
+    }
+  };
 
-  // Filters
-  const filters: FilterOption[] = [
-    {
-      key: "status",
-      label: "Stock Level",
-      options: [
-        { value: "all", label: "All Stock Levels" },
-        { value: "in_stock", label: "In Stock (Healthy)" },
-        { value: "low_stock", label: "Low Stock Alert" },
-        { value: "out_of_stock", label: "Out of Stock" },
-        { value: "reordering", label: "PO Reordering" },
-      ],
-    },
-  ];
-
-  // Bulk Actions
-  const bulkActions: BulkAction<InventoryItem>[] = [
-    {
-      label: "Batch Reorder PO",
-      variant: "default",
-      icon: Truck,
-      onClick: (selectedRows) => {
-        const ids = new Set(selectedRows.map((r) => r.id));
-        setInventory((prev) =>
-          prev.map((i) => (ids.has(i.id) ? { ...i, status: "reordering" } : i))
-        );
-        showToast(`Triggered batch reorder PO for ${selectedRows.length} items.`);
-      },
-    },
-    {
-      label: "Mark as In Stock",
-      variant: "success",
-      icon: CheckCircle2,
-      onClick: (selectedRows) => {
-        const ids = new Set(selectedRows.map((r) => r.id));
-        setInventory((prev) =>
-          prev.map((i) => (ids.has(i.id) ? { ...i, status: "in_stock" } : i))
-        );
-        showToast(`Marked ${selectedRows.length} items as In Stock.`);
-      },
-    },
-    {
-      label: "Delete Selected",
-      variant: "danger",
-      icon: Trash2,
-      onClick: (selectedRows) => {
-        setConfirmDialog({
-          isOpen: true,
-          title: `Delete ${selectedRows.length} Inventory Records?`,
-          description: `This will remove inventory tracking for selected SKUs.`,
-          onConfirm: () => {
-            const ids = new Set(selectedRows.map((r) => r.id));
-            setInventory((prev) => prev.filter((i) => !ids.has(i.id)));
-            showToast(`Deleted ${selectedRows.length} inventory records.`);
-          },
-        });
-      },
-    },
-  ];
+  // CSV Export
+  const handleExportCSV = async () => {
+    showToast("Generating inventory CSV export...");
+    const res = await exportInventoryCSV();
+    if (res.success && res.csvContent) {
+      const blob = new Blob([res.csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = res.filename || "inventory_export.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Inventory CSV downloaded successfully!");
+    } else {
+      showToast(res.error || "Failed to export CSV");
+    }
+  };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* 1. Header */}
+    <div className="space-y-8 max-w-7xl mx-auto pb-24 font-sans text-slate-100">
+      {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Multi-Warehouse Inventory"
-        subtitle="Real-time multi-depot stock sync across Shenzhen Bao'an, Guangzhou Hub, and HK Air Gateway."
-        badge={{ text: "MULTI-HUB SYNC", variant: "emerald" }}
-        breadcrumbs={[
-          { label: "Catalogue", href: "/admin/products" },
-          { label: "Inventory" },
-        ]}
+        title="Real-Time Inventory &amp; Stock OS"
+        subtitle="Multi-hub stock levels (Shenzhen, Guangzhou, HK Air), Binance Pay reservation tracking, and factory replenishment history."
+        badge={{ text: "ESCROW STOCK ENGINE", variant: "red" }}
+        breadcrumbs={[{ label: "Inventory Studio" }]}
         actions={[
           {
-            label: "Stock Adjustment",
-            icon: ArrowUpDown,
+            label: "Refresh Stock",
+            onClick: loadData,
+            icon: RefreshCw,
             variant: "secondary",
-            onClick: () => handleOpenAdjustModal(),
           },
           {
-            label: "Add SKU Item",
+            label: "Export CSV",
+            onClick: handleExportCSV,
+            icon: Download,
+            variant: "secondary",
+          },
+          {
+            label: "Add Inventory SKU",
+            onClick: handleOpenCreateModal,
             icon: Plus,
             variant: "primary",
-            onClick: handleOpenCreateItem,
           },
         ]}
       />
 
-      {/* 2. KPI Metrics Bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Tracked SKUs
-            </span>
-            <span className="text-2xl font-black text-white font-mono mt-1 block">
-              {totalSkus}
-            </span>
+      {/* Toast Alert */}
+      {toastMsg && (
+        <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-2xl text-xs font-black flex items-center justify-between shadow-lg animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{toastMsg}</span>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <Boxes className="w-5 h-5" />
+          <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
+        </div>
+      )}
+
+      {/* ── 2. Top Metrics KPI Summary ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Metric 1: Total SKUs */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase font-heading">Total SKUs</span>
+            <Boxes className="w-4 h-4 text-[#FF1028]" />
           </div>
+          <div className="text-2xl font-black text-white font-mono">{metrics.total_skus}</div>
+          <div className="text-[11px] text-slate-400">Active tracked items</div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Total Stock Units
-            </span>
-            <span className="text-2xl font-black text-emerald-400 font-mono mt-1 block">
-              {totalStockUnits}
-            </span>
+        {/* Metric 2: Available Units */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase font-heading">Available Stock</span>
+            <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <Warehouse className="w-5 h-5" />
-          </div>
+          <div className="text-2xl font-black text-[#10B981] font-mono">{metrics.available_units}</div>
+          <div className="text-[11px] text-slate-400">Ready for instant air dispatch</div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Low / Zero Stock Alerts
-            </span>
-            <span className={`text-2xl font-black font-mono mt-1 block ${lowStockCount > 0 ? "text-red-400" : "text-slate-400"}`}>
-              {lowStockCount}
-            </span>
+        {/* Metric 3: Reserved in Escrow */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase font-heading">Reserved in Escrow</span>
+            <Coins className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
+          <div className="text-2xl font-black text-amber-400 font-mono">{metrics.reserved_units}</div>
+          <div className="text-[11px] text-slate-400">Confirmed Binance Pay orders</div>
         </div>
 
-        <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Inventory Value (USDT)
-            </span>
-            <span className="text-2xl font-black text-amber-400 font-mono mt-1 block">
-              ${totalAssetValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
+        {/* Metric 4: Low Stock Alerts */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase font-heading">Low Stock Alerts</span>
+            <AlertTriangle className="w-4 h-4 text-orange-400" />
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <Coins className="w-5 h-5" />
+          <div className="text-2xl font-black text-orange-400 font-mono">{metrics.low_stock_alerts}</div>
+          <div className="text-[11px] text-slate-400">Below factory reorder point</div>
+        </div>
+
+        {/* Metric 5: Total Sourcing Valuation */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xs space-y-1 col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-xs font-bold uppercase font-heading">Inventory Value</span>
+            <Building className="w-4 h-4 text-blue-400" />
           </div>
+          <div className="text-2xl font-black text-white font-mono">${metrics.total_inventory_value_usdt.toLocaleString()}</div>
+          <div className="text-[11px] text-slate-400">At direct Chinese cost price</div>
         </div>
       </div>
 
-      {/* 3. Main Data Table */}
-      <AdminDataTable
-        data={inventory}
-        columns={columns}
-        keyExtractor={(item) => item.id}
-        searchPlaceholder="Search by SKU, product name, variant, or supplier code..."
-        searchFields={["sku", "productTitle", "variantTitle", "supplierCode", "category"]}
-        filters={filters}
-        bulkActions={bulkActions}
-        defaultSortKey="totalStock"
-        defaultSortDirection="asc"
-        emptyTitle="No inventory items found"
-        emptyDescription="Add SKUs or adjust your search filters to view inventory stock."
-        emptyAction={{
-          label: "Add SKU Item",
-          onClick: handleOpenCreateItem,
-        }}
-      />
+      {/* ── 3. Filters & Inventory Data Table ── */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs">
+        {/* Filter Controls Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search SKU, Product, Supplier Code..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-[#FF1028]"
+            />
+          </div>
 
-      {/* 4. Quick Stock Adjustment Modal */}
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-bold"
+            >
+              <option value="all">All Product Categories</option>
+              <option value="Consumer Electronics">Consumer Electronics</option>
+              <option value="3D Printers & CNC">3D Printers &amp; CNC</option>
+              <option value="Audio & Sound">Audio &amp; Sound</option>
+              <option value="Automotive Hardware">Automotive Hardware</option>
+              <option value="Outdoor & Tactical">Outdoor &amp; Tactical</option>
+              <option value="Industrial Machinery">Industrial Machinery</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-bold"
+            >
+              <option value="all">All Stock Statuses</option>
+              <option value="in_stock">In Stock (&gt; Threshold)</option>
+              <option value="low_stock">Low Stock (≤ Threshold)</option>
+              <option value="out_of_stock">Out of Stock (0 units)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-950 text-slate-400 text-[11px] uppercase font-mono border-b border-slate-800">
+              <tr>
+                <th className="py-3 px-4 font-bold">SKU / Supplier Code</th>
+                <th className="py-3 px-4 font-bold">Product &amp; Variant</th>
+                <th className="py-3 px-4 font-bold">Category</th>
+                <th className="py-3 px-4 font-bold text-center">Multi-Warehouse Stock</th>
+                <th className="py-3 px-4 font-bold text-center">Reserved</th>
+                <th className="py-3 px-4 font-bold text-center">Available</th>
+                <th className="py-3 px-4 font-bold text-center">Stock Health</th>
+                <th className="py-3 px-4 font-bold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              {items.map((item) => {
+                const totalStock = item.shenzhen_stock + item.guangzhou_stock + item.hk_air_stock;
+                const availableStock = Math.max(0, totalStock - item.reserved_stock);
+                const isOutOfStock = availableStock === 0;
+                const isLowStock = availableStock > 0 && availableStock <= item.low_stock_threshold;
+
+                return (
+                  <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                    {/* SKU & Supplier Code */}
+                    <td className="py-4 px-4">
+                      <div className="space-y-0.5">
+                        <span className="font-mono font-bold text-white block">{item.sku}</span>
+                        <span className="text-[10px] text-amber-400 font-mono font-bold bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 inline-block">
+                          {item.supplier_code}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Product & Variant */}
+                    <td className="py-4 px-4">
+                      <div className="space-y-0.5 max-w-xs">
+                        <span className="font-bold text-white block truncate">{item.product_name}</span>
+                        <span className="text-[11px] text-slate-400 block truncate">
+                          Variant: {item.variant_name || "Standard"}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Category */}
+                    <td className="py-4 px-4 text-slate-400">{item.category_name}</td>
+
+                    {/* Multi-Warehouse Distribution */}
+                    <td className="py-4 px-4 text-center">
+                      <div className="inline-flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800 font-mono text-[11px]">
+                        <span title="Shenzhen Drone Hub" className="text-blue-400 font-bold">
+                          SZ: {item.shenzhen_stock}
+                        </span>
+                        <span className="text-slate-600">|</span>
+                        <span title="Guangzhou QC Center" className="text-emerald-400 font-bold">
+                          GZ: {item.guangzhou_stock}
+                        </span>
+                        <span className="text-slate-600">|</span>
+                        <span title="HK International Air Hub" className="text-purple-400 font-bold">
+                          HK: {item.hk_air_stock}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Reserved Stock */}
+                    <td className="py-4 px-4 text-center font-mono font-bold text-amber-400">
+                      {item.reserved_stock > 0 ? (
+                        <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
+                          {item.reserved_stock} locked
+                        </span>
+                      ) : (
+                        <span className="text-slate-600">0</span>
+                      )}
+                    </td>
+
+                    {/* Available Stock */}
+                    <td className="py-4 px-4 text-center font-mono text-sm font-black text-white">
+                      {availableStock}
+                    </td>
+
+                    {/* Stock Health Status */}
+                    <td className="py-4 px-4 text-center">
+                      {isOutOfStock ? (
+                        <span className="bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-red-500/20 inline-flex items-center gap-1">
+                          <XCircle className="w-3 h-3" />
+                          <span>Out of Stock</span>
+                        </span>
+                      ) : isLowStock ? (
+                        <span className="bg-orange-500/10 text-orange-400 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-orange-500/20 inline-flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Low Stock ({availableStock})</span>
+                        </span>
+                      ) : (
+                        <span className="bg-emerald-500/10 text-[#10B981] px-2.5 py-1 rounded-full text-[10px] font-black uppercase border border-emerald-500/20 inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Healthy</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Action Buttons */}
+                    <td className="py-4 px-4 text-right">
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenAdjust(item)}
+                          title="Adjust Stock Quantity"
+                          className="px-2.5 py-1 rounded-lg bg-[#FF1028] hover:bg-[#E00B20] text-white text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          Adjust
+                        </button>
+                        <button
+                          onClick={() => handleOpenHistory(item)}
+                          title="View Movement Audit History"
+                          className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-colors cursor-pointer"
+                        >
+                          <History className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEditModal(item)}
+                          title="Edit SKU Details"
+                          className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-amber-400 border border-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setItemToDelete(item);
+                            setDeleteConfirmOpen(true);
+                          }}
+                          title="Delete SKU"
+                          className="p-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-red-400 border border-slate-800 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── 4. Stock Adjustment Modal ── */}
       <Modal
         isOpen={isAdjustModalOpen}
         onClose={() => setIsAdjustModalOpen(false)}
-        title={`Stock Adjustment: ${selectedItem?.sku || "Inventory"}`}
-        maxWidth="max-w-lg"
+        title={`Adjust Stock: ${selectedItem?.sku || ""}`}
+        size="md"
       >
-        <form onSubmit={handleSaveAdjustment} className="space-y-4 pt-2">
-          {selectedItem && (
-            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-1">
-              <span className="font-bold text-white block">{selectedItem.productTitle}</span>
-              <span className="text-slate-400">{selectedItem.variantTitle}</span>
-              <div className="flex gap-4 pt-1 font-mono text-[11px]">
-                <span className="text-blue-400">Shenzhen: {selectedItem.shenzhenStock}</span>
-                <span className="text-purple-400">Guangzhou: {selectedItem.guangzhouStock}</span>
-                <span className="text-amber-400">HK Air: {selectedItem.hkAirStock}</span>
-              </div>
-            </div>
-          )}
+        <form onSubmit={handleSubmitAdjust} className="space-y-5 text-xs font-sans text-slate-200">
+          <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+            <span className="font-bold text-white block">{selectedItem?.product_name}</span>
+            <span className="text-[11px] text-slate-400">Variant: {selectedItem?.variant_name || "Standard"}</span>
+          </div>
 
-          {/* Warehouse Selector */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Target Warehouse Hub</label>
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Target Warehouse Hub *</label>
             <select
               value={adjustWarehouse}
               onChange={(e) => setAdjustWarehouse(e.target.value as any)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold"
             >
-              <option value="shenzhenStock">Shenzhen Bao'an Hub (Main QC)</option>
-              <option value="guangzhouStock">Guangzhou Central Depot</option>
-              <option value="hkAirStock">HK Air Cargo Gateway</option>
+              <option value="shenzhenStock">Shenzhen Main Factory Hub (SZ-MAIN)</option>
+              <option value="guangzhouStock">Guangzhou Logistics &amp; QC Center (GZ-LOG)</option>
+              <option value="hkAirStock">HK International Air Freight Hub (HK-AIR)</option>
             </select>
           </div>
 
-          {/* Operation & Quantity */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Operation</label>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Action Type</label>
               <select
                 value={adjustType}
                 onChange={(e) => setAdjustType(e.target.value as any)}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold"
               >
-                <option value="add">+ Add Received Units</option>
-                <option value="subtract">- Deduct Units (Damaged/Lost)</option>
-                <option value="set">= Set Exact Count (Audit)</option>
+                <option value="add">+ Add Restock (Arrival)</option>
+                <option value="subtract">- Subtract (Damage / Scrap)</option>
+                <option value="set">= Set Exact Count</option>
               </select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Quantity</label>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Quantity *</label>
               <input
                 type="number"
                 min="1"
+                required
                 value={adjustQuantity}
                 onChange={(e) => setAdjustQuantity(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028]"
-                required
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono font-bold"
               />
             </div>
           </div>
 
-          {/* Reason */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-300 block">Adjustment Reason / Reference</label>
-            <input
-              type="text"
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Audit Reason *</label>
+            <select
               value={adjustReason}
               onChange={(e) => setAdjustReason(e.target.value)}
-              placeholder="e.g. Batch received from 1688 supplier"
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
-              required
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+            >
+              <option value="Factory Restock (1688 Direct)">Factory Restock (1688 Direct)</option>
+              <option value="Damaged / Scrapped in Transit">Damaged / Scrapped in Transit</option>
+              <option value="Customer Return (Restocked)">Customer Return (Restocked)</option>
+              <option value="Physical Warehouse Audit Count">Physical Warehouse Audit Count</option>
+              <option value="Sample / Quality Inspection Hold">Sample / Quality Inspection Hold</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-bold text-slate-300">Admin Notes / PO Number</label>
+            <input
+              type="text"
+              placeholder="e.g. PO-SZ-2026-081 arrived via SF Express"
+              value={adjustNotes}
+              onChange={(e) => setAdjustNotes(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
             />
           </div>
 
-          {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
             <button
               type="button"
               onClick={() => setIsAdjustModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700"
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-lg shadow-red-950/50"
+              disabled={isSubmittingAdjust}
+              className="px-6 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading shadow-md cursor-pointer disabled:opacity-50"
             >
-              Confirm Stock Update
+              {isSubmittingAdjust ? "Applying..." : "Confirm Stock Adjustment"}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* 5. Create / Edit Full SKU Modal */}
+      {/* ── 5. Movement History Audit Drawer Modal ── */}
+      <Modal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        title={`Movement Audit Trail: ${selectedItem?.sku || ""}`}
+        size="lg"
+      >
+        <div className="space-y-4 text-xs font-sans text-slate-200">
+          <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div>
+              <span className="font-bold text-white block">{selectedItem?.product_name}</span>
+              <span className="text-[11px] text-slate-400">Supplier: {selectedItem?.supplier_code}</span>
+            </div>
+            <span className="text-base font-black text-[#10B981] font-mono">
+              Total: {(selectedItem?.shenzhen_stock || 0) + (selectedItem?.guangzhou_stock || 0) + (selectedItem?.hk_air_stock || 0)} Units
+            </span>
+          </div>
+
+          <div className="max-h-96 overflow-y-auto space-y-2">
+            {isMovementsLoading ? (
+              <div className="p-8 text-center text-slate-400">Loading audit history...</div>
+            ) : movements.length === 0 ? (
+              <div className="p-8 text-center text-slate-500">No stock movements recorded yet.</div>
+            ) : (
+              movements.map((mov) => (
+                <div
+                  key={mov.id}
+                  className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white">{mov.reason}</span>
+                      <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                        {mov.warehouse}
+                      </span>
+                    </div>
+                    {mov.notes && <p className="text-[11px] text-slate-400">{mov.notes}</p>}
+                    <span className="text-[10px] text-slate-500 block">
+                      {formatDate(mov.created_at)} • By {mov.created_by}
+                    </span>
+                  </div>
+
+                  <div className="text-right space-y-0.5">
+                    <span
+                      className={`text-sm font-black font-mono block ${
+                        mov.change_qty > 0 ? "text-[#10B981]" : "text-red-400"
+                      }`}
+                    >
+                      {mov.change_qty > 0 ? `+${mov.change_qty}` : mov.change_qty}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      {mov.previous_total} → {mov.new_total}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── 6. Create / Edit SKU Modal ── */}
       <Modal
         isOpen={isItemModalOpen}
         onClose={() => setIsItemModalOpen(false)}
-        title={selectedItem ? `Edit SKU Details: ${selectedItem.sku}` : "Register New SKU Item"}
-        maxWidth="max-w-2xl"
+        title={selectedItem ? "Edit Inventory SKU" : "Register New Inventory SKU"}
+        size="lg"
       >
-        <form onSubmit={handleSaveItem} className="space-y-4 pt-2">
-          {/* SKU & Product Title */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                SKU Code <span className="text-red-400">*</span>
-              </label>
+        <form onSubmit={handleSaveItem} className="space-y-4 text-xs font-sans text-slate-200">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Inventory SKU *</label>
               <input
                 type="text"
+                required
                 value={formSku}
                 onChange={(e) => setFormSku(e.target.value)}
-                placeholder="e.g. EAC-EX5-1BAT"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028]"
-                required
+                placeholder="e.g. DRONE-4K-STD"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono font-bold"
               />
             </div>
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">
-                Product Title <span className="text-red-400">*</span>
-              </label>
+
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Confidential Supplier Code *</label>
               <input
                 type="text"
-                value={formProductTitle}
-                onChange={(e) => setFormProductTitle(e.target.value)}
-                placeholder="e.g. Eachine EX5 4K GPS Drone"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
                 required
+                value={formSupplierCode}
+                onChange={(e) => setFormSupplierCode(e.target.value)}
+                placeholder="e.g. SUP-SZ-9021"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-amber-400 font-mono font-bold"
               />
             </div>
           </div>
 
-          {/* Variant Title & Category */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Variant Option</label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Product Title *</label>
               <input
                 type="text"
-                value={formVariantTitle}
-                onChange={(e) => setFormVariantTitle(e.target.value)}
-                placeholder="e.g. 1 Battery / Standard"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
+                required
+                value={formProductName}
+                onChange={(e) => setFormProductName(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Category</label>
+
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Variant Name</label>
+              <input
+                type="text"
+                value={formVariantName}
+                onChange={(e) => setFormVariantName(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Category</label>
               <input
                 type="text"
                 value={formCategory}
                 onChange={(e) => setFormCategory(e.target.value)}
-                placeholder="e.g. RC Drones & Toys"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#FF1028]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white"
               />
             </div>
-          </div>
 
-          {/* Warehouse Stock Grid */}
-          <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-            <span className="text-[11px] font-black text-slate-300 uppercase tracking-wider block">
-              Multi-Warehouse Quantities
-            </span>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-blue-400 flex items-center gap-1">
-                  <Building className="w-3 h-3" /> Shenzhen
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formShenzhenStock}
-                  onChange={(e) => setFormShenzhenStock(Number(e.target.value))}
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#FF1028]"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-purple-400 flex items-center gap-1">
-                  <Warehouse className="w-3 h-3" /> Guangzhou
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formGuangzhouStock}
-                  onChange={(e) => setFormGuangzhouStock(Number(e.target.value))}
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#FF1028]"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
-                  <Plane className="w-3 h-3" /> HK Air Hub
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formHkAirStock}
-                  onChange={(e) => setFormHkAirStock(Number(e.target.value))}
-                  className="w-full bg-slate-900 border border-slate-800 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none font-mono focus:border-[#FF1028]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Thresholds & Sourcing Secrets */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Low Stock Alert Level</label>
-              <input
-                type="number"
-                min="0"
-                value={formLowStockThreshold}
-                onChange={(e) => setFormLowStockThreshold(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028]"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 block">Unit Cost (USDT)</label>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Unit Sourcing Cost (USDT) *</label>
               <input
                 type="number"
                 step="0.01"
-                min="0"
-                value={formUnitCost}
-                onChange={(e) => setFormUnitCost(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028]"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-red-400 flex items-center gap-1">
-                <Lock className="w-3 h-3" /> Supplier Code
-              </label>
-              <input
-                type="text"
-                value={formSupplierCode}
-                onChange={(e) => setFormSupplierCode(e.target.value)}
-                placeholder="SUP-SZ-9021"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none font-mono focus:border-[#FF1028]"
+                value={formSourcingCost}
+                onChange={(e) => setFormSourcingCost(Number(e.target.value))}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
               />
             </div>
           </div>
 
-          {/* Submit Row */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-800">
+            <div className="space-y-1">
+              <label className="font-bold text-blue-400">Shenzhen Hub</label>
+              <input
+                type="number"
+                value={formShenzhenStock}
+                onChange={(e) => setFormShenzhenStock(Number(e.target.value))}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-bold text-emerald-400">Guangzhou Hub</label>
+              <input
+                type="number"
+                value={formGuangzhouStock}
+                onChange={(e) => setFormGuangzhouStock(Number(e.target.value))}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-bold text-purple-400">HK Air Hub</label>
+              <input
+                type="number"
+                value={formHkAirStock}
+                onChange={(e) => setFormHkAirStock(Number(e.target.value))}
+                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Low Stock Alert Threshold</label>
+              <input
+                type="number"
+                value={formLowStockThreshold}
+                onChange={(e) => setFormLowStockThreshold(Number(e.target.value))}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-bold text-slate-300">Factory Reorder Point</label>
+              <input
+                type="number"
+                value={formReorderPoint}
+                onChange={(e) => setFormReorderPoint(Number(e.target.value))}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
             <button
               type="button"
               onClick={() => setIsItemModalOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700"
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-lg shadow-red-950/50"
+              className="px-6 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading shadow-md cursor-pointer"
             >
-              {selectedItem ? "Save SKU Changes" : "Create SKU Item"}
+              Save Inventory SKU
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* 6. Delete Confirm Dialog */}
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
-        onConfirm={confirmDialog.onConfirm}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        confirmLabel="Delete SKU"
-        variant="danger"
-      />
-
-      {/* 7. Toast */}
-      {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl text-xs font-black shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 border border-emerald-400/40">
-          <span>✓ {toastMsg}</span>
-          <button
-            type="button"
-            onClick={() => setToastMsg(null)}
-            className="font-bold text-sm hover:opacity-70 ml-2"
-          >
-            ×
-          </button>
-        </div>
+      {/* ── 7. Confirm Delete Modal ── */}
+      {deleteConfirmOpen && itemToDelete && (
+        <ConfirmDialog
+          isOpen={true}
+          title="Delete Inventory SKU?"
+          description={`Are you sure you want to delete SKU "${itemToDelete.sku}" (${itemToDelete.product_name})? This will permanently remove its multi-warehouse stock history.`}
+          confirmLabel="Delete SKU"
+          variant="danger"
+          onConfirm={handleConfirmDelete}
+          onClose={() => setDeleteConfirmOpen(false)}
+        />
       )}
     </div>
   );
