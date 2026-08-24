@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
+import { HomepageSection } from "@/types/homepage";
 
 const HERO_SLIDES = [
   {
@@ -115,7 +116,30 @@ const CATEGORY_SHORTCUTS = [
   },
 ];
 
-export function HomePageClient() {
+export interface HomePageClientProps {
+  sections?: HomepageSection[];
+}
+
+export function HomePageClient({ sections }: HomePageClientProps) {
+  const heroSection = sections?.find((s) => s.type === "hero_banner" && s.is_active);
+  const rawSlides = heroSection?.config?.slides;
+
+  const slides = rawSlides && rawSlides.length > 0
+    ? rawSlides.map((s, idx) => ({
+        id: s.id || idx + 1,
+        badge: s.badge,
+        title: s.title,
+        subtitle: s.subtitle,
+        price: s.price,
+        originalPrice: s.original_price,
+        tag: s.tag,
+        image: s.desktop_image,
+        mobileImage: s.mobile_image,
+        link: s.link,
+        hub: s.hub || "Shenzhen Drone Hub",
+      }))
+    : HERO_SLIDES;
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("all");
 
@@ -125,17 +149,17 @@ export function HomePageClient() {
   // Auto rotate hero carousel
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   const filteredProducts =
     activeCategoryFilter === "all"
       ? MOCK_PRODUCTS
       : MOCK_PRODUCTS.filter((p) => p.category_id === activeCategoryFilter);
 
-  const activeSlide = HERO_SLIDES[currentSlide];
+  const activeSlide = slides[currentSlide] || slides[0];
 
   return (
     <div className="space-y-12 pb-16">

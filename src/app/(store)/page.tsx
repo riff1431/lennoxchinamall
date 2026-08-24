@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { HomePageClient } from "./HomePageClient";
 import { WebsiteJsonLd } from "@/components/seo/JsonLd";
+import { getStorefrontSections } from "@/services/homepage";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lennoxchinamall.com";
 
@@ -30,11 +31,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function StoreHomePage() {
+export default async function StoreHomePage() {
+  const sections = await getStorefrontSections();
+
   return (
     <>
       <WebsiteJsonLd />
-      <HomePageClient />
+      <HomePageClient sections={sections} />
     </>
   );
 }
