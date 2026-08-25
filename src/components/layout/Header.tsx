@@ -371,7 +371,7 @@ export function Header() {
       {/* ── 2. Main Executive Header Bar (Sticky) ── */}
       <div
         className={`sticky top-0 z-40 bg-white/98 backdrop-blur-md transition-all duration-300 border-b ${
-          isScrolled ? "shadow-md border-slate-200 py-2.5" : "border-slate-100 py-3.5"
+          isScrolled ? "shadow-md border-slate-200 py-1.5 sm:py-2.5" : "border-slate-100 py-2 sm:py-3.5"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -386,8 +386,8 @@ export function Header() {
             </button>
 
             {/* ── Brand Logo Area ── */}
-            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-xs border border-slate-200 bg-white group-hover:scale-105 transition-transform shrink-0">
+            <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 group">
+              <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-xs border border-slate-200 bg-white group-hover:scale-105 transition-transform shrink-0">
                 <Image
                   src="/logo-lennoxchinamall.jpeg"
                   alt="China Mall Logo"
@@ -397,15 +397,15 @@ export function Header() {
                 />
               </div>
               <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <span className="text-xl sm:text-2xl font-black tracking-tight text-[#00143D] leading-none">
+                <div className="flex items-center gap-0.5 sm:gap-1">
+                  <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-[#00143D] leading-none">
                     CHINA
                   </span>
-                  <span className="text-xl sm:text-2xl font-black text-[#FF1028] leading-none">
+                  <span className="text-lg sm:text-xl md:text-2xl font-black text-[#FF1028] leading-none">
                     MALL
                   </span>
                 </div>
-                <span className="text-[8px] sm:text-[9px] font-extrabold tracking-widest text-slate-500 uppercase flex items-center gap-1 mt-0.5">
+                <span className="hidden xs:flex text-[7px] sm:text-[8px] font-extrabold tracking-widest text-slate-500 uppercase items-center gap-1 mt-0.5">
                   <span>Direct China Sourcing</span>
                   <span className="w-1 h-1 rounded-full bg-[#10B981]" />
                   <span className="text-[#10B981]">Wholesale</span>
@@ -566,7 +566,7 @@ export function Header() {
             </div>
 
             {/* ── Header Actions (Compare, Wishlist, Account, Cart) ── */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
               {/* Compare Action */}
               <Link
                 href="/categories"
@@ -586,7 +586,7 @@ export function Header() {
               <Link
                 href="/account/wishlist"
                 title="My Wishlist"
-                className="relative p-2.5 rounded-xl text-slate-700 hover:text-[#FF1028] hover:bg-slate-100 transition-colors flex items-center justify-center"
+                className="relative p-2 sm:p-2.5 rounded-xl text-slate-700 hover:text-[#FF1028] hover:bg-slate-100 transition-colors flex items-center justify-center"
                 aria-label="View Wishlist"
               >
                 <Heart className="w-5 h-5 text-slate-700" />
@@ -597,18 +597,20 @@ export function Header() {
                 )}
               </Link>
 
-              {/* Notification Bell */}
-              <NotificationBell variant="storefront" />
+              {/* Notification Bell — hidden on xs to save header space */}
+              <div className="hidden sm:block">
+                <NotificationBell variant="storefront" />
+              </div>
 
               {/* Account Dropdown Menu */}
               <div className="relative" ref={accountMenuRef}>
                 <button
                   onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-                  className="flex items-center gap-2 p-1.5 sm:p-2 rounded-xl text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-xl text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-colors cursor-pointer"
                   aria-label="Account Menu"
                 >
-                  <div className="w-8 h-8 rounded-full bg-[#00143D] text-white flex items-center justify-center text-xs font-black shadow-xs">
-                    {user ? (displayName ? displayName[0].toUpperCase() : "U") : <User className="w-4 h-4" />}
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#00143D] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs shrink-0">
+                    {user ? (displayName ? displayName[0].toUpperCase() : "U") : <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                   </div>
                   <div className="hidden xl:flex flex-col text-left">
                     <span className="text-[10px] text-slate-400 font-semibold leading-tight">
@@ -726,13 +728,13 @@ export function Header() {
               {/* Shopping Cart Button */}
               <button
                 onClick={openCart}
-                className="flex items-center gap-2 bg-[#00143D] hover:bg-[#002366] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer group"
+                className="flex items-center gap-1.5 sm:gap-2 bg-[#00143D] hover:bg-[#002366] text-white px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer group"
                 aria-label={`Shopping cart with ${cartTotalItems} items`}
               >
                 <div className="relative">
-                  <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
                   {cartTotalItems > 0 && (
-                    <span className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] bg-[#FF1028] text-white rounded-full text-[10px] font-black flex items-center justify-center px-1 border-2 border-[#00143D]">
+                    <span className="absolute -top-2 -right-2.5 min-w-[16px] sm:min-w-[18px] h-[16px] sm:h-[18px] bg-[#FF1028] text-white rounded-full text-[9px] sm:text-[10px] font-black flex items-center justify-center px-1 border-2 border-[#00143D]">
                       {cartTotalItems}
                     </span>
                   )}
@@ -750,29 +752,30 @@ export function Header() {
           </div>
 
           {/* ── Mobile Full-Width Search Input (Below Header Bar) ── */}
-          <div className="mt-2.5 md:hidden relative">
+          <div className="mt-2 md:hidden relative">
             <form onSubmit={handleSearch} className="relative flex items-center">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search 100,000+ factory products..."
+                placeholder="Search factory products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                className="w-full pl-9 pr-16 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#FF1028] font-medium"
+                className="w-full pl-10 pr-[72px] min-h-[44px] rounded-xl bg-slate-100 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-[#FF1028] focus:ring-2 focus:ring-[#FF1028]/10 font-medium transition-all"
+                style={{ fontSize: '16px' }}
               />
               {searchQuery ? (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-12 text-slate-400 p-1"
+                  className="absolute right-[56px] text-slate-400 p-1.5 min-h-[44px] flex items-center"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-4 h-4" />
                 </button>
               ) : null}
               <button
                 type="submit"
-                className="absolute right-1 px-3 py-1.5 rounded-lg bg-[#FF1028] text-white text-[11px] font-black uppercase shadow-xs"
+                className="absolute right-1.5 px-3.5 py-2 rounded-lg bg-[#FF1028] text-white text-xs font-black uppercase shadow-xs min-h-[36px]"
               >
                 Go
               </button>

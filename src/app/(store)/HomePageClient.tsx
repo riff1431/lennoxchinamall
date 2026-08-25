@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
+import { FlashDealsSection } from "@/components/sections/FlashDealsSection";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
@@ -186,52 +187,52 @@ export function HomePageClient({ sections }: HomePageClientProps) {
       <SectionReveal effect="fade-in">
         <section className="space-y-4">
           {/* Top Trust Micro-Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
-              <div className="w-8 h-8 rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center shrink-0">
-                <Zap className="w-4 h-4" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3.5">
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-2 sm:p-3 flex items-center gap-2 sm:gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center shrink-0">
+                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-black text-[#00143D] block truncate font-heading">Direct Factory Gate</span>
-                <span className="text-[10px] text-slate-500 block truncate">Shenzhen &amp; Ningbo Hubs</span>
+                <span className="text-[10px] sm:text-xs font-black text-[#00143D] block truncate font-heading">Direct Factory Gate</span>
+                <span className="text-[9px] sm:text-[10px] text-slate-500 block truncate">Shenzhen &amp; Ningbo</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                <Video className="w-4 h-4" />
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-2 sm:p-3 flex items-center gap-2 sm:gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-black text-[#00143D] block truncate font-heading">Dual-Video QC Lab</span>
-                <span className="text-[10px] text-slate-500 block truncate">1080p Pre-Departure Test</span>
+                <span className="text-[10px] sm:text-xs font-black text-[#00143D] block truncate font-heading">Dual-Video QC Lab</span>
+                <span className="text-[9px] sm:text-[10px] text-slate-500 block truncate">1080p Pre-Departure</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <Coins className="w-4 h-4" />
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-2 sm:p-3 flex items-center gap-2 sm:gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-black text-[#00143D] block truncate font-heading">Binance Pay USDT</span>
-                <span className="text-[10px] text-slate-500 block truncate">0% Fees • Escrow Safe</span>
+                <span className="text-[10px] sm:text-xs font-black text-[#00143D] block truncate font-heading">Binance Pay USDT</span>
+                <span className="text-[9px] sm:text-[10px] text-slate-500 block truncate">0% Fees • Escrow Safe</span>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
-              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <Plane className="w-4 h-4" />
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-2 sm:p-3 flex items-center gap-2 sm:gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Plane className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-black text-[#00143D] block truncate font-heading">5–8 Days Air Cargo</span>
-                <span className="text-[10px] text-slate-500 block truncate">YunExpress &amp; SF Flight</span>
+                <span className="text-[10px] sm:text-xs font-black text-[#00143D] block truncate font-heading">5–8 Days Air Cargo</span>
+                <span className="text-[9px] sm:text-[10px] text-slate-500 block truncate">YunExpress &amp; SF Flight</span>
               </div>
             </div>
           </div>
 
           {/* Hero Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 items-stretch">
             {/* Main Column: High-Impact Carousel Banner (8 Cols on Desktop) */}
-            <div className="lg:col-span-8 relative bg-slate-950 rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[340px] sm:min-h-[420px] md:min-h-[460px] lg:min-h-[500px] group border border-slate-800">
+            <div className="lg:col-span-8 relative bg-slate-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[280px] sm:min-h-[380px] md:min-h-[460px] lg:min-h-[500px] group border border-slate-800">
             <Image
               src={activeSlide.image}
               alt={activeSlide.title}
@@ -265,17 +266,17 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </button>
 
             {/* Slide Content */}
-            <div className="relative z-10 p-4 sm:p-7 md:p-9 space-y-2.5 sm:space-y-4">
+            <div className="relative z-10 p-3.5 sm:p-7 md:p-9 space-y-2 sm:space-y-4">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="bg-[#FF1028] text-white text-[9px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg uppercase tracking-wider shadow-xs font-heading">
+                <span className="bg-[#FF1028] text-white text-[8px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg uppercase tracking-wider shadow-xs font-heading">
                   {activeSlide.badge}
                 </span>
-                <span className="bg-white/15 backdrop-blur-md text-amber-300 text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 sm:py-1 rounded-lg border border-amber-300/30">
+                <span className="bg-white/15 backdrop-blur-md text-amber-300 text-[8px] sm:text-[10px] font-mono font-bold px-2 py-0.5 sm:py-1 rounded-lg border border-amber-300/30">
                   {activeSlide.hub}
                 </span>
               </div>
 
-              <h2 className="text-lg sm:text-2xl md:text-4xl font-black text-white leading-snug sm:leading-tight font-heading max-w-xl">
+              <h2 className="text-base sm:text-2xl md:text-4xl font-black text-white leading-snug sm:leading-tight font-heading max-w-xl">
                 {activeSlide.title}
               </h2>
 
@@ -321,8 +322,8 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </div>
           </div>
 
-          {/* Right Column: Factory Product Video Highlights (4 Cols on Desktop / 2-Col Grid on Tablet/Mobile) */}
-          <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+          {/* Right Column: Factory Product Video Highlights */}
+          <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
             {/* Video Card 1: 4K Laser Drone QC Flight Test */}
             <div
               onClick={() =>
@@ -506,50 +507,7 @@ export function HomePageClient({ sections }: HomePageClientProps) {
 
       {/* ── 3. Flash Deals Section ── */}
       <SectionReveal effect="fade-up" delay={100}>
-        <section className="bg-white rounded-3xl border-2 border-[#FF1028]/20 overflow-hidden shadow-md">
-          <div className="bg-[#FF1028] text-white px-4 py-3.5 sm:p-5 flex flex-row items-center justify-between gap-2 sm:gap-4 flex-wrap">
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <Zap className="w-5 h-5 sm:w-6 sm:h-6 fill-white text-white animate-bounce" />
-                <h2 className="text-base sm:text-xl font-black tracking-tight font-heading">
-                  FLASH DEALS
-                </h2>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-red-100 uppercase">Ends In:</span>
-                <FlashDealCountdown />
-              </div>
-            </div>
-
-            <Link
-              href="/categories/flash-deals"
-              className="text-[11px] sm:text-xs font-black text-white hover:text-amber-200 flex items-center gap-1 bg-black/20 hover:bg-black/30 px-3 py-1.5 rounded-xl transition-colors btn-smooth shrink-0"
-            >
-              <span>View All</span>
-              <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </Link>
-          </div>
-
-          <div className="p-3.5 sm:p-5 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
-            {flashDeals.slice(0, 4).map((product, idx) => (
-              <div key={product.id} className="flex flex-col hover-lift">
-                <ProductCard product={product} priority={idx < 2} />
-                <div className="mt-2 px-1">
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-1">
-                    <span className="text-[#FF1028]">🔥 {75 + idx * 6}% Claimed</span>
-                    <span>{12 - idx * 2} left</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-amber-400 to-[#FF1028] h-full rounded-full"
-                      style={{ width: `${75 + idx * 6}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <FlashDealsSection flashDeals={flashDeals} />
       </SectionReveal>
 
       {/* ── 4. Trending & Top Ranking Products ── */}

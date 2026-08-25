@@ -7,11 +7,13 @@ import { timeRemaining } from "@/utils/helpers";
 interface FlashDealCountdownProps {
   targetDate?: string;
   label?: string;
+  variant?: "default" | "premium";
 }
 
 export function FlashDealCountdown({
   targetDate,
   label,
+  variant = "default",
 }: FlashDealCountdownProps) {
   const [activeTarget, setActiveTarget] = useState<string>(
     targetDate || new Date(Date.now() + 14 * 3600 * 1000).toISOString()
@@ -58,6 +60,34 @@ export function FlashDealCountdown({
 
   const formatDigit = (num: number) => num.toString().padStart(2, "0");
 
+  // ── Premium variant: larger glowing amber digit blocks ──
+  if (variant === "premium") {
+    return (
+      <div className="flex items-center gap-2 sm:gap-3">
+        {label && (
+          <span className="text-white flex items-center gap-1 text-xs sm:text-sm font-bold uppercase tracking-wider">
+            <Clock className="w-4 h-4 text-amber-400" />
+            {label}
+          </span>
+        )}
+        <div className="flex items-center gap-1.5 sm:gap-2 font-mono tabular-nums">
+          <span className="flash-countdown-digit text-amber-300 text-sm sm:text-base font-black px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl">
+            {formatDigit(timeLeft.hours)}
+          </span>
+          <span className="text-amber-400/70 font-black text-sm sm:text-base">:</span>
+          <span className="flash-countdown-digit text-amber-300 text-sm sm:text-base font-black px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl">
+            {formatDigit(timeLeft.minutes)}
+          </span>
+          <span className="text-amber-400/70 font-black text-sm sm:text-base">:</span>
+          <span className="flash-countdown-digit text-[#FF1028] text-sm sm:text-base font-black px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border-[#FF1028]/40! shadow-[0_0_10px_rgba(255,16,40,0.25)]!">
+            {formatDigit(timeLeft.seconds)}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Default variant (unchanged) ──
   return (
     <div className="flex items-center gap-2 text-xs font-bold font-sans">
       {label && (
