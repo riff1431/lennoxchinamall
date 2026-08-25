@@ -280,31 +280,57 @@ export async function signup(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         display_name: displayName || email.split("@")[0],
       },
-      emailRedirectTo: `${appUrl}/api/auth/callback?next=/account/profile`,
     },
   });
 
-  if (error) {
-    if (error.message.includes("already registered")) {
+  if (signUpError) {
+    if (signUpError.message.includes("already registered")) {
       return {
         success: false,
         error: "An account with this email already exists. Try signing in.",
       };
     }
-    return { success: false, error: error.message };
+    return { success: false, error: signUpError.message };
+  }
+
+  // Immediately sign in user to establish active session without requiring email confirmation
+  const { data: loginData } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  const activeUser = loginData?.user || signUpData?.user;
+
+  if (activeUser) {
+    await recordLoginHistory({
+      userId: activeUser.id,
+      email,
+      ipAddress: ip,
+      userAgent: await getClientUserAgent(),
+      status: "success",
+    });
+
+    await logSecurityAudit({
+      actorId: activeUser.id,
+      actorEmail: email,
+      actorRole: "customer",
+      action: "CUSTOMER_SIGNUP_DIRECT",
+      targetType: "user",
+      ipAddress: ip,
+      severity: "info",
+    });
   }
 
   revalidatePath("/", "layout");
-  redirect("/auth/verify-email");
+  redirect("/account/profile");
 }
 
 // ─── 4. Sign Out (Local or Global) ──────────────────────────────────────────
