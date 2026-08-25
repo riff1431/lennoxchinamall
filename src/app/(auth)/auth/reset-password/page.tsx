@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
     try {
       const result = await resetPassword(formData);
       if (result && !result.success) {
-        setError(result.error);
+        setError(result.error || "Password reset failed.");
         setIsLoading(false);
       }
     } catch {

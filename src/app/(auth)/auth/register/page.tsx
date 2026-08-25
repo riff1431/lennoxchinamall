@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { User, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { signup } from "@/app/actions/auth";
+import { signup, validatePasswordStrength } from "@/app/actions/auth";
+import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 
 export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
@@ -11,18 +12,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Password strength
-  const hasMinLength = password.length >= 8;
-  const hasNumber = /\d/.test(password);
-  const hasUppercase = /[A-Z]/.test(password);
-  const strengthScore = [hasMinLength, hasNumber, hasUppercase].filter(Boolean).length;
-
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    if (!hasMinLength) {
-      setError("Password must be at least 8 characters.");
+    const validation = validatePasswordStrength(password);
+    if (!validation.valid) {
+      setError(validation.error || "Password does not meet security requirements.");
       return;
     }
 
@@ -32,7 +28,7 @@ export default function RegisterPage() {
     try {
       const result = await signup(formData);
       if (result && !result.success) {
-        setError(result.error);
+        setError(result.error || "Registration failed.");
         setIsLoading(false);
       }
     } catch {
@@ -52,15 +48,17 @@ export default function RegisterPage() {
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#FF1028]" />
           <span>{error}</span>
         </div>
       )}
 
       <form onSubmit={handleRegister} className="space-y-4 text-xs">
-        <div className="space-y-1">
-          <label className="font-bold text-slate-300 block">Full Name</label>
+        <div className="space-y-1.5">
+          <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
+            Full Name / Business Name
+          </label>
           <div className="relative">
             <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -69,13 +67,15 @@ export default function RegisterPage() {
               required
               autoComplete="name"
               placeholder="Alex Harrison"
-              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1028]"
+              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
             />
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="font-bold text-slate-300 block">Email Address</label>
+        <div className="space-y-1.5">
+          <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
+            Email Address
+          </label>
           <div className="relative">
             <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -84,13 +84,15 @@ export default function RegisterPage() {
               required
               autoComplete="email"
               placeholder="alex@example.com"
-              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1028]"
+              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
             />
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="font-bold text-slate-300 block">Create Password</label>
+        <div className="space-y-1.5">
+          <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
+            Create Master Password
+          </label>
           <div className="relative">
             <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -98,61 +100,31 @@ export default function RegisterPage() {
               name="password"
               required
               autoComplete="new-password"
-              placeholder="Minimum 8 characters"
+              placeholder="Minimum 8 characters with upper, lower, number, symbol"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#FF1028]"
+              className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Password Strength Indicator */}
-          {password.length > 0 && (
-            <div className="space-y-1.5 pt-1">
-              <div className="flex gap-1">
-                {[1, 2, 3].map((level) => (
-                  <div
-                    key={level}
-                    className={`h-1 flex-1 rounded-full transition-colors ${
-                      strengthScore >= level
-                        ? strengthScore === 1
-                          ? "bg-red-500"
-                          : strengthScore === 2
-                          ? "bg-amber-500"
-                          : "bg-[#10B981]"
-                        : "bg-slate-800"
-                    }`}
-                  />
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px]">
-                <span className={hasMinLength ? "text-[#10B981]" : "text-slate-500"}>
-                  ✓ 8+ characters
-                </span>
-                <span className={hasNumber ? "text-[#10B981]" : "text-slate-500"}>
-                  ✓ Contains number
-                </span>
-                <span className={hasUppercase ? "text-[#10B981]" : "text-slate-500"}>
-                  ✓ Uppercase letter
-                </span>
-              </div>
-            </div>
-          )}
+          {/* Real-time Password Strength Meter */}
+          {password.length > 0 && <PasswordStrengthMeter password={password} />}
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl text-xs font-black font-heading flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-md disabled:opacity-50"
+          className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 rounded-xl text-xs font-black font-heading uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-red-600/25 active:scale-98 disabled:opacity-50"
         >
           {isLoading ? (
-            <span>Creating Account...</span>
+            <span>Generating Secure Sourcing Account...</span>
           ) : (
             <>
               <span>Join Lennox ChinaMall Free</span>
@@ -163,15 +135,15 @@ export default function RegisterPage() {
 
         <div className="pt-2 text-center text-xs text-slate-400">
           Already have an account?{" "}
-          <Link href="/auth/login" className="text-white hover:text-[#FF1028] font-bold">
+          <Link href="/auth/login" className="text-white hover:text-[#FF1028] font-bold transition-colors">
             Sign In
           </Link>
         </div>
       </form>
 
-      <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center gap-2.5 text-[11px] text-slate-400">
+      <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center gap-2.5 text-[11px] text-slate-400">
         <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
-        <span>By signing up, you agree to Lennox ChinaMall&apos;s Sourcing &amp; Delivery Terms.</span>
+        <span>By signing up, you agree to Lennox ChinaMall&apos;s Verified Sourcing &amp; USDT Escrow Terms.</span>
       </div>
     </div>
   );

@@ -39,10 +39,20 @@ export type PaymentStatus =
 
 export type UserRole =
   | "customer"
-  | "super_admin"
-  | "catalogue_manager"
+  | "support_agent"
   | "order_manager"
-  | "support_agent";
+  | "product_manager"
+  | "catalogue_manager"
+  | "finance_manager"
+  | "admin"
+  | "super_admin";
+
+export type AccountStatus =
+  | "active"
+  | "suspended"
+  | "blocked"
+  | "pending_verification"
+  | "deleted";
 
 export type CouponType =
   | "percentage"
@@ -61,7 +71,6 @@ export interface TierRule {
   discount_type?: "percentage" | "fixed";
 }
 
-
 export type TicketPriority = "low" | "medium" | "high" | "urgent";
 export type TicketStatus = "open" | "in_progress" | "resolved" | "closed";
 
@@ -79,6 +88,63 @@ export type MenuLocation = "header" | "footer" | "mobile";
 
 export type RedirectType = "301" | "302";
 
+export interface UserSession {
+  id: string;
+  user_id: string;
+  session_token_hash: string;
+  device_name: string;
+  device_type: "desktop" | "mobile" | "tablet";
+  browser: string;
+  os: string;
+  ip_address: string;
+  location?: string | null;
+  is_current?: boolean;
+  last_active_at: string;
+  created_at: string;
+  revoked_at?: string | null;
+}
+
+export interface AuthLoginHistory {
+  id: string;
+  user_id?: string | null;
+  email: string;
+  ip_address: string;
+  user_agent?: string | null;
+  device_type?: string | null;
+  browser?: string | null;
+  os?: string | null;
+  location?: string | null;
+  status: "success" | "failed_credentials" | "failed_locked" | "failed_2fa" | "blocked";
+  failure_reason?: string | null;
+  is_suspicious: boolean;
+  created_at: string;
+}
+
+export interface SecurityAuditLog {
+  id: string;
+  actor_id?: string | null;
+  actor_email?: string | null;
+  actor_role?: UserRole | null;
+  action: string;
+  target_type: string;
+  target_id?: string | null;
+  details?: Record<string, any>;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  severity: "info" | "warning" | "critical";
+  created_at: string;
+}
+
+export interface AuthRateLimit {
+  id: string;
+  identifier: string;
+  attempts: number;
+  first_attempt_at: string;
+  last_attempt_at: string;
+  locked_until?: string | null;
+  created_at: string;
+}
+
 // ─── Core Entity Types ──────────────────────────────────────────────────────
 
 export interface Profile {
@@ -88,6 +154,14 @@ export interface Profile {
   phone: string | null;
   email: string;
   role: UserRole;
+  account_status?: AccountStatus;
+  two_factor_enabled?: boolean;
+  two_factor_secret?: string | null;
+  last_login_at?: string | null;
+  last_login_ip?: string | null;
+  failed_login_attempts?: number;
+  locked_until?: string | null;
+  security_version?: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;

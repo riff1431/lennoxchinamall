@@ -214,13 +214,18 @@ export default function AdminStaffPage() {
 
   // Helper: Role Badges
   const renderRoleBadge = (r: UserRole) => {
-    const config = {
+    const configMap: Record<UserRole, { label: string; color: string }> = {
       super_admin: { label: "Super Admin", color: "bg-[#EEF4FF] dark:bg-blue-950/60 text-[#2F65F6] border-blue-200 dark:border-blue-900/40" },
+      admin: { label: "Administrator", color: "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/40" },
+      finance_manager: { label: "Finance Manager", color: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/40" },
+      product_manager: { label: "Product Manager", color: "bg-[#F0FDF4] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 border-[#BBF7D0] dark:border-emerald-900/40" },
       catalogue_manager: { label: "Catalogue Manager", color: "bg-[#F0FDF4] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-400 border-[#BBF7D0] dark:border-emerald-900/40" },
       order_manager: { label: "Order Manager", color: "bg-[#F3E8FF] dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900/40" },
       support_agent: { label: "Support Agent", color: "bg-[#FFF8EE] dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-[#FED7AA] dark:border-amber-900/40" },
       customer: { label: "Customer", color: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700" },
-    }[r];
+    };
+
+    const config = configMap[r] || configMap.customer;
 
     return (
       <span className={cn("text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1 font-mono", config.color)}>

@@ -1,98 +1,25 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { UserRole } from "@/types/database";
+import { UserRole, AccountStatus } from "@/types/database";
+import { ADMIN_ROLES, ROLE_PERMISSIONS, AdminSection } from "@/lib/auth/roles";
+import { getSafeRedirectUrl } from "@/utils/security";
 
 /**
  * Lennox ChinaMall — Edge Middleware
  *
- * Handles session refresh, route protection, and granular module role gating.
- * Role is checked from app_metadata (server-set, not user-editable).
+ * Enforces server-side session refresh, route protection, role & module gating,
+ * account status validation, and open-redirect neutralization.
  */
 
-const ADMIN_ROLES: UserRole[] = [
-  "super_admin",
-  "catalogue_manager",
-  "order_manager",
-  "support_agent",
+const EXEMPT_AUTH_PATHS = [
+  "/auth/verify-email",
+  "/auth/reset-password",
+  "/auth/forbidden",
+  "/auth/unauthorized",
+  "/auth/locked",
+  "/auth/suspended",
+  "/auth/expired-link",
 ];
-
-// Module-level permission map for edge checking
-const ROLE_ALLOWED_MODULES: Record<UserRole, string[]> = {
-  super_admin: [
-    "dashboard",
-    "products",
-    "categories",
-    "brands",
-    "attributes",
-    "inventory",
-    "media",
-    "suppliers",
-    "sourcing",
-    "orders",
-    "payments",
-    "shipping",
-    "returns",
-    "customers",
-    "reviews",
-    "support",
-    "coupons",
-    "flash-deals",
-    "promotions",
-    "homepage-sections",
-    "pages",
-    "menus",
-    "seo",
-    "notifications",
-    "analytics",
-    "staff",
-    "audit-logs",
-    "integrations",
-    "settings",
-    "security",
-  ],
-  catalogue_manager: [
-    "dashboard",
-    "products",
-    "categories",
-    "brands",
-    "attributes",
-    "inventory",
-    "media",
-    "suppliers",
-    "flash-deals",
-    "coupons",
-    "promotions",
-    "homepage-sections",
-    "pages",
-    "menus",
-    "seo",
-    "reviews",
-  ],
-  order_manager: [
-    "dashboard",
-    "orders",
-    "payments",
-    "shipping",
-    "sourcing",
-    "returns",
-    "inventory",
-    "suppliers",
-    "customers",
-    "support",
-    "analytics",
-  ],
-  support_agent: [
-    "dashboard",
-    "orders",
-    "shipping",
-    "returns",
-    "customers",
-    "reviews",
-    "support",
-    "notifications",
-  ],
-  customer: [],
-};
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -129,19 +56,44 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+  const role = (user?.app_metadata?.role as UserRole) || null;
+  const accountStatus = (user?.app_metadata?.account_status as AccountStatus) || "active";
 
-  // ─── Admin Routes (/admin/*) ─────────────────────────────────────────────
+  // ─── 1. Account Status Enforcement (Suspended/Blocked) ─────────────────────
+  if (user && (accountStatus === "suspended" || accountStatus === "blocked")) {
+    if (!pathname.startsWith("/auth/suspended") && !pathname.startsWith("/api/")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/suspended";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // ─── 2. Dedicated Admin Login Route (/admin/login) ─────────────────────────
+  if (pathname === "/admin/login") {
+    // If already authenticated with an admin role, send to dashboard
+    if (user && role && ADMIN_ROLES.includes(role)) {
+      const rawRedirect = request.nextUrl.searchParams.get("redirect");
+      const safeRedirect = getSafeRedirectUrl(rawRedirect, "/admin/dashboard");
+      const url = request.nextUrl.clone();
+      url.pathname = safeRedirect;
+      url.searchParams.delete("redirect");
+      return NextResponse.redirect(url);
+    }
+    // Otherwise allow viewing admin login
+    return supabaseResponse;
+  }
+
+  // ─── 3. Protected Admin Routes (/admin/*) ──────────────────────────────────
   if (pathname.startsWith("/admin")) {
-    // 1. Not authenticated → redirect to admin login
+    // A. Unauthenticated -> redirect to /admin/login
     if (!user) {
       const url = request.nextUrl.clone();
-      url.pathname = "/auth/admin-login";
+      url.pathname = "/admin/login";
       url.searchParams.set("redirect", pathname);
       return NextResponse.redirect(url);
     }
 
-    // 2. Authenticated but not an admin role → redirect to home (silent, no admin leakage)
-    const role = (user.app_metadata?.role as UserRole) || null;
+    // B. Authenticated as regular customer -> block and redirect to home (silent, no admin leakage)
     if (!role || !ADMIN_ROLES.includes(role)) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
@@ -149,11 +101,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // 3. Granular module permission check
+    // C. Granular module permission check for staff roles
     const segments = pathname.replace(/^\/admin\/?/, "").split("/");
-    const moduleName = segments[0] || "dashboard";
+    const moduleName = (segments[0] || "dashboard") as AdminSection;
 
-    const allowedModules = ROLE_ALLOWED_MODULES[role] || [];
+    const allowedModules = ROLE_PERMISSIONS[role] || [];
     if (!allowedModules.includes(moduleName)) {
       // Role does not have access to this module -> redirect to allowed default dashboard
       const url = request.nextUrl.clone();
@@ -162,7 +114,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ─── Account Routes (/account/*) ─────────────────────────────────────────
+  // ─── 4. Protected Customer Account Routes (/account/*) ─────────────────────
   if (pathname.startsWith("/account")) {
     if (!user) {
       const url = request.nextUrl.clone();
@@ -172,17 +124,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ─── Auth Routes (/auth/*) ───────────────────────────────────────────────
-  // Redirect logged-in users away from auth pages (except verify-email and reset-password)
+  // ─── 5. Customer & Legacy Auth Routes (/auth/*) ────────────────────────────
+  // Redirect logged-in users away from login/registration pages
   if (pathname.startsWith("/auth/")) {
-    const isExempt =
-      pathname.includes("verify-email") ||
-      pathname.includes("reset-password");
+    const isExempt = EXEMPT_AUTH_PATHS.some((path) => pathname.startsWith(path));
 
     if (user && !isExempt) {
-      // If visiting admin-login while already an admin, go to admin dashboard
+      // If visiting /auth/admin-login while logged in as admin
       if (pathname.includes("admin-login")) {
-        const role = user.app_metadata?.role as UserRole;
         if (role && ADMIN_ROLES.includes(role)) {
           const url = request.nextUrl.clone();
           url.pathname = "/admin/dashboard";
@@ -190,10 +139,13 @@ export async function middleware(request: NextRequest) {
         }
       }
 
-      const redirect =
-        request.nextUrl.searchParams.get("redirect") || "/account";
+      // If user is staff/admin, default redirect is /admin/dashboard, otherwise /account
+      const defaultDest = role && ADMIN_ROLES.includes(role) ? "/admin/dashboard" : "/account/profile";
+      const rawRedirect = request.nextUrl.searchParams.get("redirect");
+      const safeRedirect = getSafeRedirectUrl(rawRedirect, defaultDest);
+
       const url = request.nextUrl.clone();
-      url.pathname = redirect;
+      url.pathname = safeRedirect;
       url.searchParams.delete("redirect");
       return NextResponse.redirect(url);
     }
@@ -205,11 +157,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except for:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder assets
+     * - public assets (.svg, .png, .jpg, .webp, etc.)
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
