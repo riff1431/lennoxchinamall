@@ -211,6 +211,61 @@
   background: #4b5563;
 }
 
+/* Smooth Vibes, Hover Elevation & Micro-Interactions */
+.hover-lift {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) {
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px -8px rgba(0, 20, 61, 0.1), 0 4px 12px -2px rgba(0, 20, 61, 0.04);
+  }
+}
+
+.hover-glow-red {
+  transition: box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+@media (hover: hover) {
+  .hover-glow-red:hover {
+    border-color: #ff1028;
+    box-shadow: 0 0 24px -4px rgba(255, 16, 40, 0.25);
+  }
+}
+
+.hover-glow-navy {
+  transition: box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) {
+  .hover-glow-navy:hover {
+    box-shadow: 0 0 28px -6px rgba(0, 20, 61, 0.35);
+  }
+}
+
+.btn-smooth {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-smooth:active {
+  transform: scale(0.96);
+}
+
+.image-zoom-smooth {
+  overflow: hidden;
+}
+
+.image-zoom-smooth img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) {
+  .image-zoom-smooth:hover img {
+    transform: scale(1.06);
+  }
+}
+
 /* Accessibility: Respect Reduced Motion Preferences */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -163,10 +163,10 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   return (
     <>
       <div
-        className={`group relative bg-white rounded-2xl border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden ${
+        className={`group relative bg-white rounded-2xl border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden hover-lift ${
           isOutOfStock
             ? "border-slate-200 opacity-75"
-            : "border-slate-200/90 hover:border-[#00143D]/40 hover:shadow-xl shadow-xs"
+            : "border-slate-200/90 hover:border-[#FF1028]/40 hover:shadow-xl shadow-2xs"
         }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}

@@ -35,6 +35,7 @@ import { Badge } from "@/components/ui/Badge";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { HomepageSection } from "@/types/homepage";
+import { SectionReveal } from "@/components/common/SectionReveal";
 
 const HERO_SLIDES = [
   {
@@ -182,54 +183,55 @@ export function HomePageClient({ sections }: HomePageClientProps) {
   return (
     <div className="space-y-12 pb-16">
       {/* ── 1. Multi-Zone Hero Section ── */}
-      <section className="space-y-4">
-        {/* Top Trust Micro-Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs">
-            <div className="w-8 h-8 rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4" />
+      <SectionReveal effect="fade-in">
+        <section className="space-y-4">
+          {/* Top Trust Micro-Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-8 h-8 rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center shrink-0">
+                <Zap className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-black text-[#00143D] block truncate font-heading">Direct Factory Gate</span>
+                <span className="text-[10px] text-slate-500 block truncate">Shenzhen &amp; Ningbo Hubs</span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <span className="text-xs font-black text-[#00143D] block truncate font-heading">Direct Factory Gate</span>
-              <span className="text-[10px] text-slate-500 block truncate">Shenzhen &amp; Ningbo Hubs</span>
+
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Video className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-black text-[#00143D] block truncate font-heading">Dual-Video QC Lab</span>
+                <span className="text-[10px] text-slate-500 block truncate">1080p Pre-Departure Test</span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <Coins className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-black text-[#00143D] block truncate font-heading">Binance Pay USDT</span>
+                <span className="text-[10px] text-slate-500 block truncate">0% Fees • Escrow Safe</span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs hover-lift cursor-default">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <Plane className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-black text-[#00143D] block truncate font-heading">5–8 Days Air Cargo</span>
+                <span className="text-[10px] text-slate-500 block truncate">YunExpress &amp; SF Flight</span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <Video className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-black text-[#00143D] block truncate font-heading">Dual-Video QC Lab</span>
-              <span className="text-[10px] text-slate-500 block truncate">1080p Pre-Departure Test</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <Coins className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-black text-[#00143D] block truncate font-heading">Binance Pay USDT</span>
-              <span className="text-[10px] text-slate-500 block truncate">0% Fees • Escrow Safe</span>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-3 flex items-center gap-2.5 shadow-2xs">
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <Plane className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-black text-[#00143D] block truncate font-heading">5–8 Days Air Cargo</span>
-              <span className="text-[10px] text-slate-500 block truncate">YunExpress &amp; SF Flight</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Hero Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
-          {/* Main Column: High-Impact Carousel Banner (8 Cols on Desktop) */}
-          <div className="lg:col-span-8 relative bg-slate-950 rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[500px] group border border-slate-800">
+          {/* Hero Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+            {/* Main Column: High-Impact Carousel Banner (8 Cols on Desktop) */}
+            <div className="lg:col-span-8 relative bg-slate-950 rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[500px] group border border-slate-800">
             <Image
               src={activeSlide.image}
               alt={activeSlide.title}
@@ -435,270 +437,283 @@ export function HomePageClient({ sections }: HomePageClientProps) {
           </div>
         </div>
       </section>
+    </SectionReveal>
 
       {/* ── 2. Direct Sourcing Departments Grid ── */}
-      <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-                CHINA MANUFACTURING CLUSTERS
-              </span>
-            </div>
-            <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading mt-1">
-              Direct Sourcing Departments
-            </h3>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Explore specialized manufacturing lines and verified factory clusters across China
-            </p>
-          </div>
-
-          <Link
-            href="/categories"
-            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group"
-          >
-            <span>All Departments</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          {CATEGORY_SHORTCUTS.map((cat) => (
-            <Link
-              key={cat.name}
-              href={`/categories/${cat.slug}`}
-              className="group bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/80 hover:border-[#FF1028]/40 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-md card-hover-effect"
-            >
-              <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-200 mb-2.5">
-                <Image
-                  src={cat.image}
-                  alt={`${cat.name} Department - China Sourcing Hub`}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                  className="object-cover object-center transition-transform duration-500 group-hover:scale-108"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                {/* Hub Badge */}
-                <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded shadow-2xs">
-                  {cat.tag}
+      <SectionReveal effect="fade-up" delay={80}>
+        <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                  CHINA MANUFACTURING CLUSTERS
                 </span>
               </div>
+              <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading mt-1">
+                Direct Sourcing Departments
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Explore specialized manufacturing lines and verified factory clusters across China
+              </p>
+            </div>
 
-              <div className="space-y-1">
-                <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#FF1028] transition-colors line-clamp-1 leading-snug">
-                  {cat.name}
-                </h4>
-                <div className="flex items-center justify-between text-[10px] text-slate-500">
-                  <span className="font-semibold text-emerald-600 font-mono">{cat.count} Items</span>
-                  <span className="text-[9px] text-slate-400 font-mono hidden sm:inline">{cat.hub}</span>
-                </div>
-              </div>
+            <Link
+              href="/categories"
+              className="self-start sm:self-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group btn-smooth"
+            >
+              <span>All Departments</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {CATEGORY_SHORTCUTS.map((cat) => (
+              <Link
+                key={cat.name}
+                href={`/categories/${cat.slug}`}
+                className="group bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/80 hover:border-[#FF1028]/40 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-md hover-lift"
+              >
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-200 mb-2.5 image-zoom-smooth">
+                  <Image
+                    src={cat.image}
+                    alt={`${cat.name} Department - China Sourcing Hub`}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                    className="object-cover object-center"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                  {/* Hub Badge */}
+                  <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded shadow-2xs">
+                    {cat.tag}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#FF1028] transition-colors line-clamp-1 leading-snug font-heading">
+                    {cat.name}
+                  </h4>
+                  <div className="flex items-center justify-between text-[10px] text-slate-500">
+                    <span className="font-semibold text-emerald-600 font-mono">{cat.count} Items</span>
+                    <span className="text-[9px] text-slate-400 font-mono hidden sm:inline">{cat.hub}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </SectionReveal>
 
       {/* ── 3. Flash Deals Section ── */}
-      <section className="bg-white rounded-3xl border-2 border-[#FF1028]/20 overflow-hidden shadow-md">
-        <div className="bg-[#FF1028] text-white p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2">
-              <Zap className="w-6 h-6 fill-white text-white animate-bounce" />
-              <h2 className="text-lg sm:text-xl font-black tracking-tight">
-                FLASH DEALS
-              </h2>
-            </div>
-            <span className="hidden sm:inline text-red-200">|</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-red-100 uppercase">Ends In:</span>
-              <FlashDealCountdown />
-            </div>
-          </div>
-
-          <Link
-            href="/categories/flash-deals"
-            className="text-xs font-black text-white hover:text-amber-200 flex items-center gap-1 bg-black/20 hover:bg-black/30 px-3.5 py-1.5 rounded-xl transition-colors"
-          >
-            <span>View All Flash Deals</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="p-5 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
-          {flashDeals.slice(0, 4).map((product, idx) => (
-            <div key={product.id} className="flex flex-col">
-              <ProductCard product={product} priority={idx < 2} />
-              <div className="mt-2 px-1">
-                <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-1">
-                  <span className="text-[#FF1028]">🔥 {75 + idx * 6}% Claimed</span>
-                  <span>{12 - idx * 2} left</span>
-                </div>
-                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-amber-400 to-[#FF1028] h-full rounded-full"
-                    style={{ width: `${75 + idx * 6}%` }}
-                  />
-                </div>
+      <SectionReveal effect="fade-up" delay={100}>
+        <section className="bg-white rounded-3xl border-2 border-[#FF1028]/20 overflow-hidden shadow-md">
+          <div className="bg-[#FF1028] text-white p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2">
+                <Zap className="w-6 h-6 fill-white text-white animate-bounce" />
+                <h2 className="text-lg sm:text-xl font-black tracking-tight font-heading">
+                  FLASH DEALS
+                </h2>
+              </div>
+              <span className="hidden sm:inline text-red-200">|</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-red-100 uppercase">Ends In:</span>
+                <FlashDealCountdown />
               </div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* ── 4. Trending & Top Ranking Products ── */}
-      <section className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-[#FF1028] text-xs font-black uppercase tracking-wider mb-1">
-              <TrendingUp className="w-4 h-4" />
-              <span>MOST POPULAR CHINA HARDWARE</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#00143D]">
-              Top Trending Factory Products
-            </h2>
+            <Link
+              href="/categories/flash-deals"
+              className="text-xs font-black text-white hover:text-amber-200 flex items-center gap-1 bg-black/20 hover:bg-black/30 px-3.5 py-1.5 rounded-xl transition-colors btn-smooth"
+            >
+              <span>View All Flash Deals</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-            <button
-              onClick={() => setActiveCategoryFilter("all")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
-                activeCategoryFilter === "all"
-                  ? "bg-[#00143D] text-white shadow-xs"
-                  : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              All Popular
-            </button>
-            {MOCK_CATEGORIES.map((cat) => (
+          <div className="p-5 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+            {flashDeals.slice(0, 4).map((product, idx) => (
+              <div key={product.id} className="flex flex-col hover-lift">
+                <ProductCard product={product} priority={idx < 2} />
+                <div className="mt-2 px-1">
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mb-1">
+                    <span className="text-[#FF1028]">🔥 {75 + idx * 6}% Claimed</span>
+                    <span>{12 - idx * 2} left</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-amber-400 to-[#FF1028] h-full rounded-full"
+                      style={{ width: `${75 + idx * 6}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </SectionReveal>
+
+      {/* ── 4. Trending & Top Ranking Products ── */}
+      <SectionReveal effect="fade-up" delay={100}>
+        <section className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-[#FF1028] text-xs font-black uppercase tracking-wider mb-1">
+                <TrendingUp className="w-4 h-4" />
+                <span>MOST POPULAR CHINA HARDWARE</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-[#00143D] font-heading">
+                Top Trending Factory Products
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
               <button
-                key={cat.id}
-                onClick={() => setActiveCategoryFilter(cat.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
-                  activeCategoryFilter === cat.id
-                    ? "bg-[#FF1028] text-white shadow-xs"
+                onClick={() => setActiveCategoryFilter("all")}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap btn-smooth ${
+                  activeCategoryFilter === "all"
+                    ? "bg-[#00143D] text-white shadow-xs"
                     : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
-                {cat.name}
+                All Popular
               </button>
+              {MOCK_CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategoryFilter(cat.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap btn-smooth ${
+                    activeCategoryFilter === cat.id
+                      ? "bg-[#FF1028] text-white shadow-xs"
+                      : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {filteredProducts.map((product, idx) => (
+              <div key={product.id} className="hover-lift">
+                <ProductCard product={product} priority={idx < 4} />
+              </div>
             ))}
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {filteredProducts.map((product, idx) => (
-            <ProductCard key={product.id} product={product} priority={idx < 4} />
-          ))}
-        </div>
-      </section>
+        </section>
+      </SectionReveal>
 
       {/* ── 5. Direct China Sourcing Hubs Overview ── */}
-      <section className="bg-gradient-to-br from-[#00143D] via-[#001E5B] to-[#000B24] text-white rounded-3xl p-6 sm:p-10 shadow-xl border border-blue-900/60">
-        <div className="max-w-3xl mb-8 space-y-2">
-          <span className="bg-emerald-500/20 text-[#10B981] border border-emerald-500/30 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider">
-            TRANSPARENT SOURCING PIPELINE
-          </span>
-          <h2 className="text-xl sm:text-3xl font-black text-white">
-            Direct China Manufacturing Clusters
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            Lennox ChinaMall bypasses intermediaries. When you place an order with USDT, we purchase directly from certified industrial clusters and ship via expedited international air cargo.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 transition-colors">
-            <span className="text-2xl mb-2 block">🚁</span>
-            <h4 className="text-sm font-black text-white mb-1">Shenzhen High-Tech</h4>
-            <p className="text-xs text-slate-400 mb-3">4K Camera Drones, Gimbal Stabilizers, Smart Microelectronics</p>
-            <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1">
-              <span>✓ 7-10 Days Air Express</span>
-            </div>
+      <SectionReveal effect="scale-up" delay={120}>
+        <section className="bg-gradient-to-br from-[#00143D] via-[#001E5B] to-[#000B24] text-white rounded-3xl p-6 sm:p-10 shadow-xl border border-blue-900/60 hover-glow-navy">
+          <div className="max-w-3xl mb-8 space-y-2">
+            <span className="bg-emerald-500/20 text-[#10B981] border border-emerald-500/30 text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider font-mono">
+              TRANSPARENT SOURCING PIPELINE
+            </span>
+            <h2 className="text-xl sm:text-3xl font-black text-white font-heading">
+              Direct China Manufacturing Clusters
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Lennox ChinaMall bypasses intermediaries. When you place an order with USDT, we purchase directly from certified industrial clusters and ship via expedited international air cargo.
+            </p>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 transition-colors">
-            <span className="text-2xl mb-2 block">🖨️</span>
-            <h4 className="text-sm font-black text-white mb-1">Ningbo Machinery</h4>
-            <p className="text-xs text-slate-400 mb-3">CoreXY 3D Printers, Laser Engravers, Heavy Power Hardware</p>
-            <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1">
-              <span>✓ Inspected at Gate</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 hover-lift transition-all">
+              <span className="text-2xl mb-2 block">🚁</span>
+              <h4 className="text-sm font-black text-white mb-1 font-heading">Shenzhen High-Tech</h4>
+              <p className="text-xs text-slate-400 mb-3">4K Camera Drones, Gimbal Stabilizers, Smart Microelectronics</p>
+              <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1 font-mono">
+                <span>✓ 7-10 Days Air Express</span>
+              </div>
             </div>
-          </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 transition-colors">
-            <span className="text-2xl mb-2 block">🔊</span>
-            <h4 className="text-sm font-black text-white mb-1">Dongguan Audio</h4>
-            <p className="text-xs text-slate-400 mb-3">120W Bluetooth Boomboxes, TWS Earbuds, Studio Soundcards</p>
-            <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1">
-              <span>✓ Factory Batch Verified</span>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 hover-lift transition-all">
+              <span className="text-2xl mb-2 block">🖨️</span>
+              <h4 className="text-sm font-black text-white mb-1 font-heading">Ningbo Machinery</h4>
+              <p className="text-xs text-slate-400 mb-3">CoreXY 3D Printers, Laser Engravers, Heavy Power Hardware</p>
+              <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1 font-mono">
+                <span>✓ Inspected at Gate</span>
+              </div>
             </div>
-          </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 transition-colors">
-            <span className="text-2xl mb-2 block">🚗</span>
-            <h4 className="text-sm font-black text-white mb-1">Guangzhou Automotive</h4>
-            <p className="text-xs text-slate-400 mb-3">OBD2 Diagnostic Tablets, Jump Starters, Car Electronics</p>
-            <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1">
-              <span>✓ Direct Manufacturer PO</span>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 hover-lift transition-all">
+              <span className="text-2xl mb-2 block">🔊</span>
+              <h4 className="text-sm font-black text-white mb-1 font-heading">Dongguan Audio</h4>
+              <p className="text-xs text-slate-400 mb-3">120W Bluetooth Boomboxes, TWS Earbuds, Studio Soundcards</p>
+              <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1 font-mono">
+                <span>✓ Factory Batch Verified</span>
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-amber-400/50 hover-lift transition-all">
+              <span className="text-2xl mb-2 block">🚗</span>
+              <h4 className="text-sm font-black text-white mb-1 font-heading">Guangzhou Automotive</h4>
+              <p className="text-xs text-slate-400 mb-3">OBD2 Diagnostic Tablets, Jump Starters, Car Electronics</p>
+              <div className="text-[11px] text-amber-300 font-bold flex items-center gap-1 font-mono">
+                <span>✓ Direct Manufacturer PO</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </SectionReveal>
 
       {/* ── 6. Lennox Sourcing Assurance Strip ── */}
-      <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs">
-        <div className="text-center max-w-2xl mx-auto mb-8 space-y-1.5">
-          <span className="text-xs font-black text-[#FF1028] uppercase tracking-wider">
-            WHY SHOP AT LENNOX CHINAMALL
-          </span>
-          <h3 className="text-lg sm:text-2xl font-black text-[#00143D]">
-            The Single-Vendor Sourcing Guarantee
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#FF1028] flex items-center justify-center mx-auto mb-3">
-              <Zap className="w-6 h-6" />
-            </div>
-            <h4 className="text-sm font-bold text-[#00143D] mb-1">Real Factory Cost</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              No middleman markup. Transparent pricing sourced directly from China factory floors.
-            </p>
+      <SectionReveal effect="fade-up" delay={100}>
+        <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+          <div className="text-center max-w-2xl mx-auto mb-8 space-y-1.5">
+            <span className="text-xs font-black text-[#FF1028] uppercase tracking-wider font-mono">
+              WHY SHOP AT LENNOX CHINAMALL
+            </span>
+            <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading">
+              The Single-Vendor Sourcing Guarantee
+            </h3>
           </div>
 
-          <div className="text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-              <Coins className="w-6 h-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center p-4 hover-lift rounded-2xl transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#FF1028] flex items-center justify-center mx-auto mb-3">
+                <Zap className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-[#00143D] mb-1 font-heading">Real Factory Cost</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                No middleman markup. Transparent pricing sourced directly from China factory floors.
+              </p>
             </div>
-            <h4 className="text-sm font-bold text-[#00143D] mb-1">USDT (Binance Pay)</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Instant cryptographic settlement with zero chargebacks and automated receipt dispatch.
-            </p>
-          </div>
 
-          <div className="text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#10B981] flex items-center justify-center mx-auto mb-3">
-              <Truck className="w-6 h-6" />
+            <div className="text-center p-4 hover-lift rounded-2xl transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+                <Coins className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-[#00143D] mb-1 font-heading">USDT (Binance Pay)</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Instant cryptographic settlement with zero chargebacks and automated receipt dispatch.
+              </p>
             </div>
-            <h4 className="text-sm font-bold text-[#00143D] mb-1">Door-to-Door Air Cargo</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Worldwide air transit with complete step-by-step tracking in your customer portal.
-            </p>
-          </div>
 
-          <div className="text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="text-center p-4 hover-lift rounded-2xl transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#10B981] flex items-center justify-center mx-auto mb-3">
+                <Truck className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-[#00143D] mb-1 font-heading">Door-to-Door Air Cargo</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Worldwide air transit with complete step-by-step tracking in your customer portal.
+              </p>
             </div>
-            <h4 className="text-sm font-bold text-[#00143D] mb-1">30-Day Return Protection</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Factory warranty coverage and direct USDT refund if items fail quality standards.
-            </p>
+
+            <div className="text-center p-4 hover-lift rounded-2xl transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-[#00143D] mb-1 font-heading">30-Day Return Protection</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Factory warranty coverage and direct USDT refund if items fail quality standards.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </SectionReveal>
 
       {/* ── Interactive Video Demo Player Modal ── */}
       {activeVideoModal && (

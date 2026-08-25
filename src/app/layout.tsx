@@ -48,6 +48,7 @@ export const metadata: Metadata = {
 
 import React, { Suspense } from "react";
 import { RouteProgressBar } from "@/components/common/RouteProgressBar";
+import { SitePreloader } from "@/components/common/SitePreloader";
 
 export default function RootLayout({
   children,
@@ -60,6 +61,7 @@ export default function RootLayout({
       className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
     >
       <body className="font-sans text-slate-800 bg-[#F8FAFC] min-h-full antialiased selection:bg-[#FF1028] selection:text-white">
+        <SitePreloader />
         <Suspense fallback={null}>
           <RouteProgressBar />
         </Suspense>
