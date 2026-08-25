@@ -219,67 +219,66 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* ── Left Column: Media Gallery (Sticky on Desktop) ── */}
-          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-20 self-start">
-            <div className="flex flex-col-reverse sm:flex-row gap-3.5">
-              {/* Thumbnail Strip */}
-              <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto sm:max-h-[460px] scrollbar-none shrink-0">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-slate-100 border-2 transition-all shrink-0 cursor-pointer ${
-                      selectedImageIndex === idx
-                        ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20 scale-102"
-                        : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
-                  </button>
-                ))}
-              </div>
+          <div className="lg:col-span-5 space-y-3.5 lg:sticky lg:top-20 self-start">
+            {/* Main Featured Image Container */}
+            <div className="relative w-full aspect-square rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-md group">
+              <Image
+                src={images[selectedImageIndex] || fallbackUrl}
+                alt={product.title}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 42vw"
+                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+              />
 
-              {/* Main Featured Image Container */}
-              <div className="relative flex-1 aspect-square rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-md group">
-                <Image
-                  src={images[selectedImageIndex] || fallbackUrl}
-                  alt={product.title}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 42vw"
-                  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                />
-
-                {/* Top Badges */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                  {discount > 0 && (
-                    <span className="bg-[#FF1028] text-white text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider font-heading shadow-md">
-                      -{discount}% OFF
-                    </span>
-                  )}
-                  {product.is_flash_deal && (
-                    <span className="bg-[#00143D] text-amber-300 text-[10px] font-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-amber-300/30 uppercase tracking-wide shadow-md">
-                      <Flame className="w-3.5 h-3.5 fill-amber-300" /> FLASH DROP
-                    </span>
-                  )}
-                </div>
-
-                {/* Image Count & Zoom Hint */}
-                <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
-                  <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/15 shadow-sm">
-                    {selectedImageIndex + 1} / {images.length} Photos
+              {/* Top Badges */}
+              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                {discount > 0 && (
+                  <span className="bg-[#FF1028] text-white text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider font-heading shadow-md">
+                    -{discount}% OFF
                   </span>
-                </div>
-
-                {/* Lightbox Trigger */}
-                <button
-                  onClick={() => setIsZoomModalOpen(true)}
-                  className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/95 backdrop-blur-md text-slate-700 hover:text-[#00143D] flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer border border-slate-200"
-                  title="Expand Fullscreen"
-                  aria-label="Expand image"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </button>
+                )}
+                {product.is_flash_deal && (
+                  <span className="bg-[#00143D] text-amber-300 text-[10px] font-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-amber-300/30 uppercase tracking-wide shadow-md">
+                    <Flame className="w-3.5 h-3.5 fill-amber-300" /> FLASH DROP
+                  </span>
+                )}
               </div>
+
+              {/* Image Count & Zoom Hint */}
+              <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
+                <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/15 shadow-sm">
+                  {selectedImageIndex + 1} / {images.length} Photos
+                </span>
+              </div>
+
+              {/* Lightbox Trigger */}
+              <button
+                onClick={() => setIsZoomModalOpen(true)}
+                className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/95 backdrop-blur-md text-slate-700 hover:text-[#00143D] flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer border border-slate-200"
+                title="Expand Fullscreen"
+                aria-label="Expand image"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Thumbnail Strip (Placed Below Main Image Box) */}
+            <div className="grid grid-cols-5 sm:grid-cols-5 gap-2.5">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`relative aspect-square rounded-2xl overflow-hidden bg-white border-2 transition-all cursor-pointer hover-lift ${
+                    selectedImageIndex === idx
+                      ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20 scale-102"
+                      : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100"
+                  }`}
+                  aria-label={`View product photo ${idx + 1}`}
+                >
+                  <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
+                </button>
+              ))}
             </div>
           </div>
 
