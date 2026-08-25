@@ -1,6 +1,6 @@
-FROM node:20-alpine AS base
+FROM node:20.18-alpine AS base
 
-# Install libc6-compat for sharp and dependencies
+# Install libc6-compat for sharp and native dependencies
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
