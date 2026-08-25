@@ -74,6 +74,22 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [reviewFilter, setReviewFilter] = useState<number | "all">("all");
 
+  // Swipe gesture for gallery
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.changedTouches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent, total: number) => {
+    touchEndX.current = e.changedTouches[0].clientX;
+    const diff = (touchStartX.current || 0) - (touchEndX.current || 0);
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) setSelectedImageIndex((prev) => (prev + 1) % total);
+      else setSelectedImageIndex((prev) => (prev - 1 + total) % total);
+    }
+  };
+
   // Flash deal countdown timer
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({
     hours: 8,
@@ -182,27 +198,41 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900">
       {/* ── 1. Top Breadcrumbs & Factory Trust Micro-Strip ── */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 py-3 shadow-2xs transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-          <Breadcrumbs
-            items={[
-              { label: "Home", href: "/" },
-              {
-                label: category?.name || "Departments",
-                href: category ? `/categories/${category.slug}` : "/categories",
-              },
-              { label: product.title },
-            ]}
-          />
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 py-2.5 sm:py-3 shadow-2xs transition-all">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-1.5 md:gap-2.5">
+            <Breadcrumbs
+              items={[
+                { label: "Home", href: "/" },
+                {
+                  label: category?.name || "Departments",
+                  href: category ? `/categories/${category.slug}` : "/categories",
+                },
+                { label: product.title },
+              ]}
+            />
 
-          <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono">
-            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Shenzhen Sourcing Hub Active
-            </span>
-            <span className="text-slate-500 font-medium">
-              100% Pre-Departure QC Tested
-            </span>
+            <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono">
+              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Shenzhen Sourcing Hub Active
+              </span>
+              <span className="text-slate-500 font-medium">
+                100% Pre-Departure QC Tested
+              </span>
+            </div>
+
+            {/* Mobile-only trust strip */}
+            <div className="flex sm:hidden items-center gap-3 text-[10px] font-mono text-slate-500">
+              <span className="flex items-center gap-1 text-emerald-700 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                QC Verified
+              </span>
+              <span>•</span>
+              <span>5–8 Day Air Cargo</span>
+              <span>•</span>
+              <span>USDT Pay</span>
+            </div>
           </div>
         </div>
       </div>
@@ -216,12 +246,16 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
       )}
 
       {/* ── 2. Main Product Hero (Gallery + Buy Box + Right-Hand Dual Video Column) ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* ── Left Column: Media Gallery (Sticky on Desktop) ── */}
-          <div className="lg:col-span-5 space-y-3.5 lg:sticky lg:top-20 self-start">
+          <div className="lg:col-span-5 space-y-3.5 lg:sticky lg:top-20 self-start order-1">
             {/* Main Featured Image Container */}
-            <div className="relative w-full aspect-square rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-md group">
+            <div
+              className="relative w-full aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-md group"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={(e) => handleTouchEnd(e, images.length)}
+            >
               <Image
                 src={images[selectedImageIndex] || fallbackUrl}
                 alt={product.title}
@@ -232,46 +266,66 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               />
 
               {/* Top Badges */}
-              <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10">
                 {discount > 0 && (
-                  <span className="bg-[#FF1028] text-white text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-wider font-heading shadow-md">
+                  <span className="bg-[#FF1028] text-white text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg uppercase tracking-wider font-heading shadow-md">
                     -{discount}% OFF
                   </span>
                 )}
                 {product.is_flash_deal && (
-                  <span className="bg-[#00143D] text-amber-300 text-[10px] font-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 border border-amber-300/30 uppercase tracking-wide shadow-md">
-                    <Flame className="w-3.5 h-3.5 fill-amber-300" /> FLASH DROP
+                  <span className="bg-[#00143D] text-amber-300 text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg flex items-center gap-1 sm:gap-1.5 border border-amber-300/30 uppercase tracking-wide shadow-md">
+                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-300" /> FLASH
                   </span>
                 )}
               </div>
 
+              {/* Swipe hint arrows (mobile only) */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center z-10 sm:hidden"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedImageIndex((prev) => (prev + 1) % images.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center z-10 sm:hidden"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
               {/* Image Count & Zoom Hint */}
-              <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
-                <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg border border-white/15 shadow-sm">
-                  {selectedImageIndex + 1} / {images.length} Photos
+              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10 flex items-center gap-2">
+                <span className="bg-black/60 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-mono font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-white/15 shadow-sm">
+                  {selectedImageIndex + 1} / {images.length}
                 </span>
               </div>
 
               {/* Lightbox Trigger */}
               <button
                 onClick={() => setIsZoomModalOpen(true)}
-                className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/95 backdrop-blur-md text-slate-700 hover:text-[#00143D] flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer border border-slate-200"
+                className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/95 backdrop-blur-md text-slate-700 hover:text-[#00143D] flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer border border-slate-200"
                 title="Expand Fullscreen"
                 aria-label="Expand image"
               >
-                <Maximize2 className="w-4 h-4" />
+                <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
 
-            {/* Thumbnail Strip (Placed Below Main Image Box) */}
-            <div className="grid grid-cols-5 sm:grid-cols-5 gap-2.5">
+            {/* Thumbnail Strip — horizontal scroll on mobile, grid on tablet+ */}
+            <div className="flex gap-2 overflow-x-auto pb-0.5 sm:grid sm:grid-cols-5 sm:overflow-x-visible no-scrollbar">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative aspect-square rounded-2xl overflow-hidden bg-white border-2 transition-all cursor-pointer hover-lift ${
+                  className={`relative shrink-0 w-14 h-14 sm:w-auto sm:h-auto sm:aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-white border-2 transition-all cursor-pointer touch-manipulation ${
                     selectedImageIndex === idx
-                      ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20 scale-102"
+                      ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20"
                       : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100"
                   }`}
                   aria-label={`View product photo ${idx + 1}`}
@@ -283,11 +337,11 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
           </div>
 
           {/* ── Middle Column: Purchase Configurator & Buy Box (4 Cols on Desktop) ── */}
-          <div className="lg:col-span-4 space-y-4 sm:space-y-5">
+          <div className="lg:col-span-4 space-y-3.5 sm:space-y-5 order-3 lg:order-2">
             {/* Header / Title / Brand / SKU */}
             <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-600 font-mono bg-blue-50/80 px-2 py-0.5 rounded-md border border-blue-200/60">
+                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-blue-600 font-mono bg-blue-50/80 px-2 py-0.5 rounded-md border border-blue-200/60 truncate max-w-[160px] sm:max-w-none">
                   {product.brand?.name || "Direct Factory Hardware"}
                 </span>
                 <button
@@ -298,15 +352,16 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                       setTimeout(() => setCopiedLink(false), 2000);
                     }
                   }}
-                  className="text-[10px] sm:text-[11px] font-mono text-slate-500 hover:text-[#00143D] flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                  className="text-[10px] font-mono text-slate-500 hover:text-[#00143D] flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded cursor-pointer transition-colors shrink-0"
                   title="Click to copy SKU"
                 >
                   <Copy className="w-3 h-3" />
-                  <span>SKU: {currentVariant?.sku || product.sku}</span>
+                  <span className="hidden sm:inline">SKU: {currentVariant?.sku || product.sku}</span>
+                  <span className="sm:hidden">{(currentVariant?.sku || product.sku).slice(0, 10)}</span>
                 </button>
               </div>
 
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-black font-heading text-[#00143D] leading-snug tracking-tight">
+              <h1 className="text-base sm:text-xl lg:text-2xl font-black font-heading text-[#00143D] leading-snug tracking-tight">
                 {product.title}
               </h1>
 
@@ -341,18 +396,18 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
             </div>
 
             {/* ── Price Block & Flash Sale Countdown (Minimalist Dark Glassmorphism) ── */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-[#000B24] text-white space-y-3.5 border border-slate-800 shadow-sm">
-              <div className="flex items-baseline justify-between">
+            <div className="p-3.5 sm:p-5 rounded-2xl bg-[#000B24] text-white space-y-3 border border-slate-800 shadow-sm">
+              <div className="flex items-baseline justify-between gap-2">
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-mono">
                     Direct Wholesale Price
                   </span>
-                  <div className="flex items-baseline gap-2.5">
+                  <div className="flex items-baseline gap-2">
                     <span className="text-2xl sm:text-3xl font-black text-white font-mono leading-none">
                       {formatCurrency(activePrice)}
                     </span>
                     {activeComparePrice && activeComparePrice > activePrice && (
-                      <span className="text-xs sm:text-sm text-slate-400 line-through font-mono">
+                      <span className="text-xs text-slate-400 line-through font-mono">
                         ${activeComparePrice.toFixed(2)}
                       </span>
                     )}
@@ -360,17 +415,19 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 </div>
 
                 {savings > 0 && (
-                  <span className="bg-[#FF1028] text-white text-[11px] font-black px-2 py-0.5 rounded-lg uppercase font-heading shadow-xs">
-                    Save ${savings.toFixed(2)} USDT
+                  <span className="bg-[#FF1028] text-white text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-lg uppercase font-heading shadow-xs shrink-0">
+                    -{discount}% OFF
                   </span>
                 )}
               </div>
 
               {/* Flash Drop Micro Timer */}
               {product.is_flash_deal && (
-                <div className="p-2.5 rounded-xl bg-[#00143D] border border-amber-300/30 flex items-center justify-between text-xs font-mono text-amber-300">
-                  <span className="flex items-center gap-1.5 font-bold text-white text-[11px]">
-                    <Clock className="w-3.5 h-3.5 text-amber-300 animate-pulse" /> Sourcing Deal Ends:
+                <div className="p-2 sm:p-2.5 rounded-xl bg-[#00143D] border border-amber-300/30 flex items-center justify-between text-xs font-mono text-amber-300">
+                  <span className="flex items-center gap-1.5 font-bold text-white text-[10px] sm:text-[11px]">
+                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-300 animate-pulse" />
+                    <span className="hidden xs:inline">Sourcing Deal Ends:</span>
+                    <span className="xs:hidden">Ends:</span>
                   </span>
                   <span className="font-black text-xs text-amber-300">
                     {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:
@@ -392,10 +449,10 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 title="Click to copy coupon code"
               >
                 <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-amber-300" />
-                  <span className="text-[11px] font-medium">Extra 10% Off:</span>
+                  <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-medium">Extra 10% Off:</span>
                 </div>
-                <span className="bg-[#FF1028] hover:bg-[#E00B20] text-white font-black px-2 py-0.5 rounded font-mono text-[10px] flex items-center gap-1">
+                <span className="bg-[#FF1028] text-white font-black px-2 py-0.5 rounded font-mono text-[10px] flex items-center gap-1 shrink-0">
                   <span>LENNOX10</span>
                   <Copy className="w-2.5 h-2.5" />
                 </span>
@@ -474,20 +531,23 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               <button
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
-                className="w-full py-3.5 sm:py-4 rounded-2xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-2xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
               >
-                <Zap className="w-4 h-4 fill-white" />
-                <span>Buy Now with Binance Pay (${(activePrice * quantity).toFixed(2)} USDT)</span>
+                <Zap className="w-4 h-4 fill-white shrink-0" />
+                {/* Short text on mobile, full text on sm+ */}
+                <span className="sm:hidden">Buy Now — ${(activePrice * quantity).toFixed(2)} USDT</span>
+                <span className="hidden sm:inline">Buy Now with Binance Pay (${(activePrice * quantity).toFixed(2)} USDT)</span>
               </button>
 
-              <div className="grid grid-cols-4 gap-2">
+              <div className="flex gap-2">
                 <button
                   onClick={() => handleAddToCart(true)}
                   disabled={isOutOfStock}
-                  className="col-span-2 py-3 rounded-2xl bg-[#00143D] hover:bg-[#002366] text-white font-black font-heading text-xs uppercase tracking-wider transition-all shadow-xs active:scale-98 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40"
+                  className="flex-1 py-3 min-h-[44px] rounded-2xl bg-[#00143D] hover:bg-[#002366] text-white font-black font-heading text-xs uppercase tracking-wider transition-all shadow-xs active:scale-98 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40"
                 >
-                  <ShoppingCart className="w-3.5 h-3.5" />
-                  <span>Add to Cart</span>
+                  <ShoppingCart className="w-4 h-4 shrink-0" />
+                  <span className="sm:hidden">Cart</span>
+                  <span className="hidden sm:inline">Add to Cart</span>
                 </button>
 
                 <button
@@ -504,12 +564,13 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                       reviewCount: product.review_count || 12,
                     })
                   }
-                  className={`py-3 rounded-2xl border transition-all flex items-center justify-center cursor-pointer ${
+                  className={`min-w-[44px] min-h-[44px] px-3 rounded-2xl border-2 transition-all flex items-center justify-center cursor-pointer ${
                     isInWishlist
-                      ? "bg-red-50 border-red-200 text-[#FF1028]"
+                      ? "bg-red-50 border-[#FF1028] text-[#FF1028]"
                       : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
                   }`}
                   title="Wishlist"
+                  aria-label="Add to wishlist"
                 >
                   <Heart className={`w-4 h-4 ${isInWishlist ? "fill-[#FF1028]" : ""}`} />
                 </button>
@@ -527,12 +588,13 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                       brand: product.brand?.name || "Direct Factory",
                     })
                   }
-                  className={`py-3 rounded-2xl border transition-all flex items-center justify-center cursor-pointer ${
+                  className={`min-w-[44px] min-h-[44px] px-3 rounded-2xl border-2 transition-all flex items-center justify-center cursor-pointer ${
                     isInCompare
                       ? "bg-blue-50 border-blue-200 text-blue-600"
                       : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
                   }`}
                   title="Compare"
+                  aria-label="Add to compare"
                 >
                   <Scale className="w-4 h-4" />
                 </button>
@@ -540,7 +602,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
             </div>
 
             {/* ── Logistics SLA & Payment Security Guarantee (Minimal 2-Box) ── */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5 text-xs">
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5 text-xs">
               <div className="flex items-start gap-2.5">
                 <Plane className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                 <div>
@@ -567,8 +629,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
             </div>
           </div>
 
-          {/* ── Right Column: 2 Factory QC Videos (Responsive 2-Col on Mobile/Tablet, Sticky Column on Desktop) ── */}
-          <div className="lg:col-span-3 space-y-3.5 lg:sticky lg:top-20 self-start w-full">
+          {/* ── Right Column: 2 Factory QC Videos — on mobile appears between gallery and buy box ── */}
+          <div className="lg:col-span-3 space-y-3 lg:space-y-3.5 lg:sticky lg:top-20 self-start w-full order-2 lg:order-3">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#FF1028]" />
@@ -581,7 +643,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-3.5">
+            {/* On mobile: side-by-side 2-col. On desktop: stacked 1-col */}
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-3.5">
               {/* Video 1 Card */}
               <div
                 onClick={() =>
@@ -591,7 +654,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     tag: "QC LAB BENCHMARK",
                   })
                 }
-                className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
+                className="group relative aspect-video sm:aspect-[4/3] lg:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 sm:p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
               >
                 <Image
                   src={images[1] || images[0]}
@@ -639,7 +702,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     tag: "FACTORY STRESS DEMO",
                   })
                 }
-                className="group relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
+                className="group relative aspect-video sm:aspect-[4/3] lg:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 sm:p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
               >
                 <Image
                   src={images[2] || images[0]}
@@ -682,53 +745,57 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
         </div>
 
         {/* ── 3. Expandable Deep Information Tabs ── */}
-        <div id="product-tabs-section" className="mt-16 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div id="product-tabs-section" className="mt-8 sm:mt-16 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           {/* Tab Navigation */}
-          <div className="flex items-center border-b border-slate-200 bg-slate-50 overflow-x-auto">
+          <div className="flex items-center border-b border-slate-200 bg-slate-50 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveTab("specs")}
-              className={`px-6 py-4 text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
                 activeTab === "specs"
                   ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Technical Specifications
+              <span className="sm:hidden">Specs</span>
+              <span className="hidden sm:inline">Technical Specifications</span>
             </button>
             <button
               onClick={() => setActiveTab("qc_report")}
-              className={`px-6 py-4 text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
                 activeTab === "qc_report"
                   ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Shenzhen QC &amp; Factory Report
+              <span className="sm:hidden">QC Report</span>
+              <span className="hidden sm:inline">Shenzhen QC &amp; Factory Report</span>
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
-              className={`px-6 py-4 text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
                 activeTab === "reviews"
                   ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Customer Reviews ({product.review_count || 32})
+              <span className="sm:hidden">Reviews</span>
+              <span className="hidden sm:inline">Customer Reviews ({product.review_count || 32})</span>
             </button>
             <button
               onClick={() => setActiveTab("shipping")}
-              className={`px-6 py-4 text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
                 activeTab === "shipping"
                   ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Airfreight &amp; Warranty
+              <span className="sm:hidden">Shipping</span>
+              <span className="hidden sm:inline">Airfreight &amp; Warranty</span>
             </button>
           </div>
 
           {/* Tab Content */}
-          <div className="p-6 sm:p-8 text-xs text-slate-700">
+          <div className="p-4 sm:p-6 md:p-8 text-xs text-slate-700">
             {/* Specs Tab */}
             {activeTab === "specs" && (
               <div className="space-y-6">
@@ -741,28 +808,28 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                   </p>
                 </div>
 
-                <div className="border border-slate-200 rounded-2xl overflow-hidden">
-                  <table className="w-full text-left text-xs divide-y divide-slate-200">
+                <div className="border border-slate-200 rounded-xl sm:rounded-2xl overflow-hidden">
+                  <table className="w-full text-left text-[11px] sm:text-xs divide-y divide-slate-200">
                     <tbody className="divide-y divide-slate-200">
                       <tr className="bg-slate-50">
-                        <td className="py-3 px-4 font-bold text-slate-500 w-1/3">Manufacturing Origin</td>
-                        <td className="py-3 px-4 font-bold text-slate-900">Shenzhen / Ningbo Tech Cluster, China</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 w-2/5 sm:w-1/3 align-top">Manufacturing Origin</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-900 break-words">Shenzhen / Ningbo, China</td>
                       </tr>
                       <tr>
-                        <td className="py-3 px-4 font-bold text-slate-500">Quality Inspection Grade</td>
-                        <td className="py-3 px-4 font-bold text-emerald-600">Grade A+ Dual Laser Inspected</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">QC Grade</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-emerald-600">Grade A+ Dual Laser Inspected</td>
                       </tr>
                       <tr className="bg-slate-50">
-                        <td className="py-3 px-4 font-bold text-slate-500">HS Customs Code</td>
-                        <td className="py-3 px-4 font-mono font-bold text-slate-900">85176200 (Direct Air Transit)</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">HS Customs Code</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-mono font-bold text-slate-900 break-all">85176200</td>
                       </tr>
                       <tr>
-                        <td className="py-3 px-4 font-bold text-slate-500">Gross Shipping Weight</td>
-                        <td className="py-3 px-4 font-mono font-bold text-slate-900">1.25 kg (Reinforced Anti-Static Box)</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">Shipping Weight</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-mono font-bold text-slate-900">1.25 kg</td>
                       </tr>
                       <tr className="bg-slate-50">
-                        <td className="py-3 px-4 font-bold text-slate-500">Warranty Coverage</td>
-                        <td className="py-3 px-4 font-bold text-slate-900">30-Day Money-Back Guarantee + 1-Year Factory Support</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">Warranty</td>
+                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-900">30-Day Money-Back + 1-Year Factory Support</td>
                       </tr>
                     </tbody>
                   </table>
@@ -868,29 +935,42 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
         )}
       </div>
 
-      {/* ── 5. Sticky Bottom Action Bar on Mobile ── */}
+      {/* ── 5. Sticky Bottom Action Bar on Mobile (sits above MobileNav tab bar) ── */}
       {showStickyBar && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 p-3 shadow-2xl animate-in slide-in-from-bottom duration-300 sm:hidden">
+        <div
+          className="fixed left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-2xl animate-in slide-in-from-bottom duration-300 sm:hidden"
+          style={{ bottom: 'calc(58px + env(safe-area-inset-bottom, 0px))' }}
+        >
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 relative shrink-0 border border-slate-200">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-9 h-9 rounded-lg overflow-hidden bg-slate-100 relative shrink-0 border border-slate-200">
                 <Image src={images[0]} alt={product.title} fill className="object-cover" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs font-bold text-slate-900 block truncate">{product.title}</span>
+                <span className="text-[11px] font-bold text-slate-900 block truncate">{product.title}</span>
                 <span className="text-sm font-black font-mono text-[#FF1028]">
-                  ${(activePrice * quantity).toFixed(2)} USDT
+                  {formatCurrency(activePrice * quantity)}
                 </span>
               </div>
             </div>
 
-            <button
-              onClick={handleBuyNow}
-              disabled={isOutOfStock}
-              className="bg-[#FF1028] text-white px-5 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider shadow-md shrink-0 cursor-pointer disabled:opacity-50"
-            >
-              Buy Now
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => handleAddToCart(true)}
+                disabled={isOutOfStock}
+                className="bg-[#00143D] text-white p-2.5 rounded-xl font-black cursor-pointer disabled:opacity-50"
+                aria-label="Add to cart"
+              >
+                <ShoppingCart className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleBuyNow}
+                disabled={isOutOfStock}
+                className="bg-[#FF1028] text-white px-4 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider shadow-md shrink-0 cursor-pointer disabled:opacity-50"
+              >
+                Buy Now
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -914,23 +994,23 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
 
       {/* ── 7. QC Video Modal ── */}
       {activeVideoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
-          <div className="bg-[#00143D] border border-slate-800 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden text-white">
-            <div className="flex items-center justify-between p-4 border-b border-white/10 bg-slate-900/80">
-              <div>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
+          <div className="bg-[#00143D] border border-slate-800 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl shadow-2xl overflow-hidden text-white">
+            <div className="flex items-center justify-between p-3.5 sm:p-4 border-b border-white/10 bg-slate-900/80">
+              <div className="min-w-0 flex-1">
                 <span className="text-[10px] font-black text-[#FF1028] uppercase font-mono block">
                   {activeVideoModal.tag}
                 </span>
-                <h4 className="text-sm font-bold text-white mt-0.5">{activeVideoModal.title}</h4>
+                <h4 className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">{activeVideoModal.title}</h4>
               </div>
               <button
                 onClick={() => setActiveVideoModal(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 ml-2"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="relative aspect-video bg-black flex items-center justify-center">
+            <div className="relative aspect-video min-h-[180px] bg-black flex items-center justify-center">
               <Image src={activeVideoModal.url} alt="Video Preview" fill className="object-cover opacity-60" />
               <div className="relative z-10 flex flex-col items-center gap-2 text-center p-4">
                 <div className="w-14 h-14 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-xl animate-pulse">

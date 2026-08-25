@@ -1,8 +1,5 @@
 @import "tailwindcss";
 
-/* ── Custom Breakpoints ── */
-@custom-media --xs (min-width: 360px);
-
 @theme {
   --breakpoint-xs: 360px;
 }
