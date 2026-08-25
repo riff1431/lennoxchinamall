@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import { Laptop, Smartphone, Tablet, Globe, Shield, Trash2, LogOut, CheckCircle2, AlertCircle } from "lucide-react";
 import { UserSession, AuthLoginHistory } from "@/types/database";
-import { revokeUserSession } from "@/lib/auth/session-manager";
-import { signout } from "@/app/actions/auth";
+import { signout, revokeSessionAction } from "@/app/actions/auth";
 
 interface ActiveSessionsListProps {
   userId: string;
@@ -25,10 +24,12 @@ export function ActiveSessionsList({
     setLoadingId(sessionId);
     setFeedback(null);
     try {
-      const ok = await revokeUserSession(sessionId, userId);
-      if (ok) {
+      const res = await revokeSessionAction(sessionId);
+      if (res.success) {
         setSessions((prev) => prev.filter((s) => s.id !== sessionId));
         setFeedback("Session revoked successfully.");
+      } else {
+        setFeedback(res.error || "Failed to revoke session.");
       }
     } catch {
       setFeedback("Failed to revoke session.");

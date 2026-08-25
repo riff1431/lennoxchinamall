@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { ADMIN_ROLES } from "@/lib/auth/roles";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/auth/rate-limiter";
-import { recordLoginHistory, logSecurityAudit } from "@/lib/auth/session-manager";
+import { recordLoginHistory, logSecurityAudit, revokeUserSession } from "@/lib/auth/session-manager";
 import { getSafeRedirectUrl } from "@/utils/security";
 import type { UserRole, AccountStatus } from "@/types/database";
 
@@ -531,4 +531,19 @@ export async function changePassword(formData: FormData) {
   });
 
   return { success: true, error: null };
+}
+
+// ─── 9. Revoke Session Server Action ────────────────────────────────────────
+
+export async function revokeSessionAction(sessionId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Authentication required." };
+  }
+
+  const ok = await revokeUserSession(sessionId, user.id);
+  revalidatePath("/account/security");
+  return { success: ok };
 }

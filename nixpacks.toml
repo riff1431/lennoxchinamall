@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_22"]
 
 [phases.install]
 cmds = ["npm ci --legacy-peer-deps || npm install --legacy-peer-deps"]
@@ -11,6 +11,6 @@ cmds = ["npm run build"]
 cmd = "npm run start"
 
 [variables]
-NIXPACKS_NODE_VERSION = "20"
-NODE_VERSION = "20"
+NIXPACKS_NODE_VERSION = "22"
+NODE_VERSION = "22"
 NODE_ENV = "production"
