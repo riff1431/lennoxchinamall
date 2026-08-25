@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
 
-import { validatePasswordStrength } from "../app/actions/auth";
+import { validatePasswordStrength } from "../lib/auth/password";
 import { getSafeRedirectUrl } from "../utils/security";
 import {
   checkRateLimit,

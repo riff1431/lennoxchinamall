@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { User, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from "lucide-react";
-import { signup, validatePasswordStrength } from "@/app/actions/auth";
+import { signup } from "@/app/actions/auth";
+import { validatePasswordStrength } from "@/lib/auth/password";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 
 export default function RegisterPage() {

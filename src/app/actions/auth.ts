@@ -10,27 +10,7 @@ import { recordLoginHistory, logSecurityAudit } from "@/lib/auth/session-manager
 import { getSafeRedirectUrl } from "@/utils/security";
 import type { UserRole, AccountStatus } from "@/types/database";
 
-/**
- * Validates password complexity: min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char.
- */
-export function validatePasswordStrength(password: string): { valid: boolean; error?: string } {
-  if (!password || password.length < 8) {
-    return { valid: false, error: "Password must be at least 8 characters long." };
-  }
-  if (!/[A-Z]/.test(password)) {
-    return { valid: false, error: "Password must contain at least one uppercase letter (A-Z)." };
-  }
-  if (!/[a-z]/.test(password)) {
-    return { valid: false, error: "Password must contain at least one lowercase letter (a-z)." };
-  }
-  if (!/[0-9]/.test(password)) {
-    return { valid: false, error: "Password must contain at least one number (0-9)." };
-  }
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    return { valid: false, error: "Password must contain at least one special symbol (e.g. !@#$%^&*)." };
-  }
-  return { valid: true };
-}
+import { validatePasswordStrength } from "@/lib/auth/password";
 
 async function getClientIp(): Promise<string> {
   const headerList = await headers();
