@@ -47,8 +47,8 @@ export function MobileNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 md:hidden py-1 px-2 shadow-lg">
-      <div className="flex items-center justify-around">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200/90 md:hidden pt-1 pb-safe px-2 shadow-2xl">
+      <div className="flex items-center justify-around h-14">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -56,21 +56,24 @@ export function MobileNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center py-1 px-2.5 rounded-lg transition-colors relative min-w-[54px]",
+                "flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all relative min-w-[56px] btn-smooth",
                 item.isActive
                   ? "text-[#FF1028] font-bold"
                   : "text-slate-500 hover:text-[#00143D] font-medium"
               )}
             >
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                <Icon className={cn("w-5 h-5 transition-transform", item.isActive ? "scale-110" : "")} />
                 {item.badge !== null && item.badge !== undefined && (
-                  <span className="absolute -top-1 -right-2 bg-[#FF1028] text-white text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-2 bg-[#FF1028] text-white text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-xs">
                     {item.badge}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] tracking-tight mt-0.5">{item.label}</span>
+              <span className="text-[10px] tracking-tight mt-0.5 font-heading">{item.label}</span>
+              {item.isActive && (
+                <span className="w-1 h-1 rounded-full bg-[#FF1028] mt-0.5" />
+              )}
             </Link>
           );
         })}
@@ -78,17 +81,17 @@ export function MobileNav() {
         {/* Floating Cart Icon on Mobile Nav */}
         <button
           onClick={openCart}
-          className="flex flex-col items-center justify-center py-1 px-2 text-slate-500 relative min-w-[54px] cursor-pointer"
+          className="flex flex-col items-center justify-center py-1 px-2 text-slate-500 relative min-w-[56px] cursor-pointer btn-smooth"
         >
           <div className="relative">
             <ShoppingCart className="w-5 h-5 text-slate-700" />
             {cartTotal > 0 && (
-              <span className="absolute -top-1 -right-2 bg-[#FF1028] text-white text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 bg-[#FF1028] text-white text-[9px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-xs">
                 {cartTotal}
               </span>
             )}
           </div>
-          <span className="text-[10px] text-slate-700 font-medium mt-0.5">Cart</span>
+          <span className="text-[10px] text-slate-700 font-medium mt-0.5 font-heading">Cart</span>
         </button>
       </div>
     </div>

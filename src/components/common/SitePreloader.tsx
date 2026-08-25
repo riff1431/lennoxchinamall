@@ -75,38 +75,38 @@ export function SitePreloader() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(0,35,102,0.35),transparent_60%)] pointer-events-none" />
 
       {/* Center Preloader Brand Capsule */}
-      <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-6 space-y-7 text-center">
+      <div className="relative z-10 flex flex-col items-center max-w-[320px] sm:max-w-sm w-full px-4 sm:px-6 space-y-5 sm:space-y-7 text-center">
         {/* Animated Brand Logo with Radar Ring */}
         <div className="relative flex items-center justify-center">
           {/* Pulsating outer sonar ring */}
-          <div className="absolute w-28 h-28 rounded-full border border-[#FF1028]/30 animate-ping opacity-35" />
-          <div className="absolute w-24 h-24 rounded-full border border-blue-500/20 animate-pulse" />
+          <div className="absolute w-22 h-22 sm:w-28 sm:h-28 rounded-full border border-[#FF1028]/30 animate-ping opacity-35" />
+          <div className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-blue-500/20 animate-pulse" />
 
           {/* Logo container */}
-          <div className="relative w-20 h-20 rounded-3xl bg-white p-2.5 shadow-2xl flex items-center justify-center border-2 border-white/20 transform hover:scale-105 transition-transform">
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-white p-2 shadow-2xl flex items-center justify-center border-2 border-white/20 transform hover:scale-105 transition-transform">
             <Image
               src="/logo-lennoxchinamall.jpeg"
               alt="Lennox China Mall"
               fill
-              className="object-contain p-1.5"
+              className="object-contain p-1"
               priority
             />
           </div>
         </div>
 
         {/* Brand Title & Tagline */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-center gap-1.5 font-heading font-black text-xl sm:text-2xl tracking-wider">
+        <div className="space-y-1">
+          <div className="flex items-center justify-center gap-1.5 font-heading font-black text-lg sm:text-2xl tracking-wider">
             <span className="text-white">CHINA</span>
             <span className="text-[#FF1028]">MALL</span>
           </div>
-          <p className="text-[11px] font-mono uppercase tracking-widest text-slate-400">
+          <p className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-slate-400">
             DIRECT CHINA SOURCING • WHOLESALE
           </p>
         </div>
 
         {/* Animated Progress Bar */}
-        <div className="w-full space-y-2.5">
+        <div className="w-full space-y-2">
           <div className="w-full bg-slate-900/90 h-2 rounded-full overflow-hidden border border-slate-800 p-0.5 shadow-inner">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[#002366] via-[#FF1028] to-[#10B981] transition-all duration-150 ease-out shadow-lg"
@@ -114,19 +114,19 @@ export function SitePreloader() {
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <CurrentIcon className="w-3.5 h-3.5 text-[#FF1028] animate-bounce" />
-              <span className="truncate max-w-[220px]">
+          <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-slate-400 px-0.5">
+            <span className="flex items-center gap-1.5 text-slate-300 min-w-0">
+              <CurrentIcon className="w-3.5 h-3.5 text-[#FF1028] animate-bounce shrink-0" />
+              <span className="truncate max-w-[180px] sm:max-w-[220px]">
                 {statusMessages[statusIndex]?.text}
               </span>
             </span>
-            <span className="font-bold text-white tabular-nums">{progress}%</span>
+            <span className="font-bold text-white tabular-nums ml-2">{progress}%</span>
           </div>
         </div>
 
         {/* Factory Trust Chips */}
-        <div className="flex items-center justify-center gap-3 pt-2 text-[10px] font-mono text-slate-400">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1 text-[9px] sm:text-[10px] font-mono text-slate-400">
           <span className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded border border-white/10">
             <Zap className="w-3 h-3 text-amber-400" /> Shenzhen Hub
           </span>

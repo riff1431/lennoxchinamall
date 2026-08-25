@@ -116,12 +116,12 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[#00143D] text-slate-300 border-t border-[#000B24] mt-20 font-sans relative z-10">
+    <footer className="bg-[#00143D] text-slate-300 border-t border-[#000B24] mt-20 font-sans relative z-10 pb-16 md:pb-0">
       {/* ── 1. Top Value-Prop Trust Strip ── */}
       <div className="border-b border-[#002366] py-8 bg-[#000B24]/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
           {/* Trust Item 1 */}
-          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors">
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors hover-lift">
             <div className="w-11 h-11 rounded-xl bg-[#FF1028]/15 border border-[#FF1028]/30 text-[#FF1028] flex items-center justify-center shrink-0">
               <Coins className="w-5 h-5" />
             </div>
@@ -136,7 +136,7 @@ export function Footer() {
           </div>
 
           {/* Trust Item 2 */}
-          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors">
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors hover-lift">
             <div className="w-11 h-11 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
@@ -151,7 +151,7 @@ export function Footer() {
           </div>
 
           {/* Trust Item 3 */}
-          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors">
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors hover-lift">
             <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-[#10B981] flex items-center justify-center shrink-0">
               <Truck className="w-5 h-5" />
             </div>
@@ -166,7 +166,7 @@ export function Footer() {
           </div>
 
           {/* Trust Item 4 */}
-          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors">
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-[#FF1028]/40 transition-colors hover-lift">
             <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
               <Headphones className="w-5 h-5" />
             </div>
@@ -184,7 +184,7 @@ export function Footer() {
 
       {/* ── 2. Newsletter Subscription Banner ── */}
       <div className="border-b border-[#002366] py-10 bg-gradient-to-r from-[#00143D] via-[#001d54] to-[#00143D]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8">
           <div className="space-y-1.5 text-center lg:text-left max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FF1028]/20 text-[#FF1028] border border-[#FF1028]/30 text-[10px] font-black uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
@@ -200,7 +200,7 @@ export function Footer() {
 
           {/* Newsletter Form */}
           <div className="w-full lg:w-auto flex-1 max-w-md space-y-2">
-            <form onSubmit={handleNewsletterSubmit} className="flex items-center gap-2">
+            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <div className="relative flex-1">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -217,7 +217,7 @@ export function Footer() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-3 rounded-xl text-xs font-black font-heading uppercase tracking-wider transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0 cursor-pointer shadow-md"
+                className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-3 rounded-xl text-xs font-black font-heading uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md btn-smooth"
               >
                 {isSubmitting ? (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
