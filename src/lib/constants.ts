@@ -4,7 +4,7 @@
 
 // ─── Site ───────────────────────────────────────────────────────────────────
 
-export const SITE_NAME = "Lennox ChinaMall";
+export const SITE_NAME = "Lennox China Mall";
 export const SITE_DESCRIPTION =
   "Your gateway to quality China-sourced products. Browse, pay with USDT, and get worldwide delivery.";
 export const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";

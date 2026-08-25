@@ -89,7 +89,20 @@ const FOOTER_SECTIONS: FooterLinkSection[] = [
   },
 ];
 
-export function Footer() {
+import { SITE_NAME } from "@/lib/constants";
+
+export interface FooterProps {
+  storeName?: string;
+  logoUrl?: string;
+}
+
+export function Footer({
+  storeName = SITE_NAME,
+  logoUrl = "/logo-lennoxchinamall.jpeg",
+}: FooterProps = {}) {
+  const brandWords = (storeName || SITE_NAME || "Lennox China Mall").trim().split(/\s+/);
+  const primaryText = brandWords.slice(0, -1).join(" ") || brandWords[0];
+  const accentText = brandWords.length > 1 ? brandWords[brandWords.length - 1] : "";
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newsletterFeedback, setNewsletterFeedback] = useState<NewsletterResult | null>(null);
@@ -259,20 +272,22 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-xs border border-white/20 bg-white group-hover:scale-105 transition-transform shrink-0">
                 <Image
-                  src="/logo-lennoxchinamall.jpeg"
-                  alt="China Mall Logo"
+                  src={logoUrl}
+                  alt={`${storeName} Logo`}
                   fill
                   className="object-cover"
                 />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <span className="text-xl font-black tracking-tight text-white leading-none">
-                    CHINA
+                  <span className="text-lg sm:text-xl font-black tracking-tight text-white leading-none uppercase font-heading">
+                    {primaryText}
                   </span>
-                  <span className="text-xl font-black text-[#FF1028] leading-none">
-                    MALL
-                  </span>
+                  {accentText && (
+                    <span className="text-lg sm:text-xl font-black text-[#FF1028] leading-none uppercase font-heading">
+                      {accentText}
+                    </span>
+                  )}
                 </div>
                 <span className="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">
                   Direct China Sourcing Gateway

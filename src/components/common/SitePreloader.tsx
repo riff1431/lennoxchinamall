@@ -3,8 +3,16 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Zap, ShieldCheck, Plane, Coins, Sparkles, CheckCircle2 } from "lucide-react";
+import { SITE_NAME } from "@/lib/constants";
 
-export function SitePreloader() {
+export interface SitePreloaderProps {
+  storeName?: string;
+}
+
+export function SitePreloader({ storeName = SITE_NAME }: SitePreloaderProps = {}) {
+  const brandWords = (storeName || SITE_NAME || "Lennox China Mall").trim().split(/\s+/);
+  const primaryText = brandWords.slice(0, -1).join(" ") || brandWords[0];
+  const accentText = brandWords.length > 1 ? brandWords[brandWords.length - 1] : "";
   const [progress, setProgress] = useState(0);
   const [statusIndex, setStatusIndex] = useState(0);
   const [isDone, setIsDone] = useState(false);
@@ -96,9 +104,9 @@ export function SitePreloader() {
 
         {/* Brand Title & Tagline */}
         <div className="space-y-1">
-          <div className="flex items-center justify-center gap-1.5 font-heading font-black text-lg sm:text-2xl tracking-wider">
-            <span className="text-white">CHINA</span>
-            <span className="text-[#FF1028]">MALL</span>
+          <div className="flex items-center justify-center gap-1.5 font-heading font-black text-lg sm:text-2xl tracking-wider uppercase">
+            <span className="text-white">{primaryText}</span>
+            {accentText && <span className="text-[#FF1028]">{accentText}</span>}
           </div>
           <p className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-slate-400">
             DIRECT CHINA SOURCING • WHOLESALE

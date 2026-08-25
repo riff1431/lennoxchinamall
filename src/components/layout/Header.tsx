@@ -46,6 +46,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { isAdminRole, ROLE_LABELS } from "@/lib/auth/roles";
 import { signout } from "@/app/actions/auth";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { SITE_NAME } from "@/lib/constants";
 
 const HOT_SEARCH_TAGS = [
   "4K Drones",
@@ -81,9 +82,24 @@ const NAV_LINKS = [
   { label: "Factory Hubs", href: "/admin/sourcing", icon: Factory },
 ];
 
-export function Header() {
+export interface HeaderProps {
+  storeName?: string;
+  tagline?: string;
+  logoUrl?: string;
+}
+
+export function Header({
+  storeName = SITE_NAME,
+  tagline = "Direct China Sourcing",
+  logoUrl = "/logo-lennoxchinamall.jpeg",
+}: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+
+  // Dynamic brand name parsing (e.g. "Lennox China Mall" -> primary: "LENNOX CHINA", accent: "MALL")
+  const brandWords = (storeName || SITE_NAME || "Lennox China Mall").trim().split(/\s+/);
+  const primaryText = brandWords.slice(0, -1).join(" ") || brandWords[0];
+  const accentText = brandWords.length > 1 ? brandWords[brandWords.length - 1] : "";
 
   // Scroll state for sticky glassmorphism
   const [isScrolled, setIsScrolled] = useState(false);
@@ -389,24 +405,26 @@ export function Header() {
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 group">
               <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-xs border border-slate-200 bg-white group-hover:scale-105 transition-transform shrink-0">
                 <Image
-                  src="/logo-lennoxchinamall.jpeg"
-                  alt="China Mall Logo"
+                  src={logoUrl}
+                  alt={`${storeName} Logo`}
                   fill
                   className="object-cover"
                   priority
                 />
               </div>
               <div className="flex flex-col">
-                <div className="flex items-center gap-0.5 sm:gap-1">
-                  <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tight text-[#00143D] leading-none">
-                    CHINA
+                <div className="flex items-center gap-1">
+                  <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-black tracking-tight text-[#00143D] leading-none uppercase font-heading">
+                    {primaryText}
                   </span>
-                  <span className="text-lg sm:text-xl md:text-2xl font-black text-[#FF1028] leading-none">
-                    MALL
-                  </span>
+                  {accentText && (
+                    <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-black text-[#FF1028] leading-none uppercase font-heading">
+                      {accentText}
+                    </span>
+                  )}
                 </div>
                 <span className="hidden xs:flex text-[7px] sm:text-[8px] font-extrabold tracking-widest text-slate-500 uppercase items-center gap-1 mt-0.5">
-                  <span>Direct China Sourcing</span>
+                  <span>{tagline}</span>
                   <span className="w-1 h-1 rounded-full bg-[#10B981]" />
                   <span className="text-[#10B981]">Wholesale</span>
                 </span>
@@ -961,11 +979,11 @@ export function Header() {
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                 <div className="flex items-center gap-2">
-                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-200">
-                    <Image src="/logo-lennoxchinamall.jpeg" alt="Logo" fill className="object-cover" />
+                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                    <Image src={logoUrl} alt={`${storeName} Logo`} fill className="object-cover" />
                   </div>
-                  <span className="text-base font-black text-[#00143D]">
-                    CHINA <span className="text-[#FF1028]">MALL</span>
+                  <span className="text-sm sm:text-base font-black text-[#00143D] uppercase font-heading">
+                    {primaryText} {accentText && <span className="text-[#FF1028]">{accentText}</span>}
                   </span>
                 </div>
                 <button

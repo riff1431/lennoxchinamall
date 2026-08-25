@@ -2,7 +2,7 @@ import { AllStoreSettings } from "@/types/settings";
 
 export const DEFAULT_STORE_SETTINGS: AllStoreSettings = {
   store_info: {
-    store_name: "Lennox ChinaMall",
+    store_name: "Lennox China Mall",
     legal_entity: "Lennox Global Trading Ltd.",
     tagline: "Direct China Factory Sourcing & Wholesale Hardware Portal",
     support_email: "support@lennoxchinamall.com",

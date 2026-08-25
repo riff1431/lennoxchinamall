@@ -1,12 +1,17 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { SITE_NAME } from "@/lib/constants";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const brandWords = (SITE_NAME || "Lennox China Mall").trim().split(/\s+/);
+  const primaryText = brandWords.slice(0, -1).join(" ") || brandWords[0];
+  const accentText = brandWords.length > 1 ? brandWords[brandWords.length - 1] : "";
+
   return (
     <div className="min-h-screen bg-[#000B24] flex flex-col justify-between p-4 sm:p-6 text-slate-100 font-montserrat">
       <div className="max-w-md w-full mx-auto pt-8">
@@ -23,13 +28,15 @@ export default function AuthLayout({
               />
             </div>
             <div className="flex flex-col text-left">
-              <div className="flex items-center gap-1">
-                <span className="text-xl font-black text-white tracking-tight">
-                  LENNOX
+              <div className="flex items-center gap-1 font-heading">
+                <span className="text-xl font-black text-white tracking-tight uppercase">
+                  {primaryText}
                 </span>
-                <span className="text-xl font-black text-[#FF1028] tracking-tight">
-                  CHINAMALL
-                </span>
+                {accentText && (
+                  <span className="text-xl font-black text-[#FF1028] tracking-tight uppercase">
+                    {accentText}
+                  </span>
+                )}
               </div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Direct China Wholesale Portal
@@ -45,7 +52,7 @@ export default function AuthLayout({
       </div>
 
       <div className="text-center text-xs text-slate-500 py-4">
-        © {new Date().getFullYear()} Lennox ChinaMall. Secured with 256-bit SSL encryption.
+        © {new Date().getFullYear()} {SITE_NAME}. Secured with 256-bit SSL encryption.
       </div>
     </div>
   );
