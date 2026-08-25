@@ -6,7 +6,7 @@ import { cookies } from 'next/headers'
  * function when using it.
  */
 export async function createClient() {
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,22 +14,27 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
+              cookieStore.set(name, value, {
+                ...options,
+                httpOnly: options?.httpOnly ?? true,
+                sameSite: options?.sameSite ?? "lax",
+                secure: options?.secure ?? process.env.NODE_ENV === "production",
+                path: options?.path ?? "/",
+              })
+            );
           } catch {
             // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // This is safely handled by middleware refreshing user sessions.
           }
         },
       },
     }
-  )
+  );
 }
 
 /**

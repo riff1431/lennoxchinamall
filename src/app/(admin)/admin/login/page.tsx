@@ -138,6 +138,19 @@ export default function DedicatedAdminLoginPage() {
               </div>
             </div>
 
+            <div className="flex items-center gap-2 py-0.5">
+              <input
+                type="checkbox"
+                id="rememberStation"
+                name="rememberStation"
+                defaultChecked
+                className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-[#FF1028] focus:ring-0 focus:ring-offset-0 cursor-pointer accent-[#FF1028]"
+              />
+              <label htmlFor="rememberStation" className="text-[11px] text-slate-400 select-none cursor-pointer">
+                Remember this authorized operations terminal
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading || isLocked}

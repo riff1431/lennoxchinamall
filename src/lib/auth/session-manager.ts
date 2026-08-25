@@ -103,10 +103,48 @@ export async function recordLoginHistory(params: {
           locked_until: null,
         })
         .eq("id", params.userId);
+
+      // Register device in active user_sessions table
+      await registerActiveSession({
+        userId: params.userId,
+        ipAddress: params.ipAddress,
+        userAgent: params.userAgent,
+      });
     }
   } catch (err) {
     // Non-blocking for auth flow
     console.error("Failed to record login history:", err);
+  }
+}
+
+/**
+ * Registers a new active session device in the database.
+ */
+export async function registerActiveSession(params: {
+  userId: string;
+  ipAddress: string;
+  userAgent?: string | null;
+}): Promise<void> {
+  try {
+    const supabase = await createClient();
+    const { browser, os, deviceType, deviceName } = parseUserAgent(params.userAgent);
+    const sessionTokenHash = Buffer.from(
+      `${params.userId}:${params.ipAddress}:${Date.now()}`
+    ).toString("base64");
+
+    await supabase.from("user_sessions").insert({
+      user_id: params.userId,
+      session_token_hash: sessionTokenHash,
+      device_name: deviceName,
+      device_type: deviceType,
+      browser,
+      os,
+      ip_address: params.ipAddress,
+      is_current: true,
+      last_active_at: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("Failed to register active session:", err);
   }
 }
 
