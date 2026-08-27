@@ -17,34 +17,20 @@ export default function AuthLayout({
       <div className="max-w-md w-full mx-auto pt-8">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-3 group">
-            <div className="relative w-12 h-12 rounded-xl overflow-hidden shadow-lg border border-white/20 bg-white">
+          <Link href="/" className="inline-block group">
+            <div className="relative h-16 w-[200px] sm:h-20 sm:w-[250px] mx-auto group-hover:scale-[1.03] transition-transform">
               <Image
-                src="/logo-lennoxchinamall.jpeg"
+                src="/logo-lennoxchinamall.png"
                 alt="Lennox China Mall Logo"
                 fill
-                className="object-cover"
+                sizes="250px"
+                className="object-contain brightness-0 invert"
                 priority
               />
             </div>
-            <div className="flex flex-col text-left">
-              <div className="flex items-center gap-1 font-heading">
-                <span className="text-xl font-black text-white tracking-tight uppercase">
-                  {primaryText}
-                </span>
-                {accentText && (
-                  <span className="text-xl font-black text-[#FF1028] tracking-tight uppercase">
-                    {accentText}
-                  </span>
-                )}
-              </div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Direct China Wholesale Portal
-              </span>
-            </div>
           </Link>
-          <p className="text-xs text-slate-400 mt-2">
-            Direct China Sourcing & USDT Crypto Portal
+          <p className="text-xs text-slate-400 mt-3">
+            De Las Fábricas A Tus Manos
           </p>
         </div>
 

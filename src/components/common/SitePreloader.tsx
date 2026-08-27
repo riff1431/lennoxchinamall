@@ -87,29 +87,26 @@ export function SitePreloader({ storeName = SITE_NAME }: SitePreloaderProps = {}
         {/* Animated Brand Logo with Radar Ring */}
         <div className="relative flex items-center justify-center">
           {/* Pulsating outer sonar ring */}
-          <div className="absolute w-22 h-22 sm:w-28 sm:h-28 rounded-full border border-[#FF1028]/30 animate-ping opacity-35" />
-          <div className="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-blue-500/20 animate-pulse" />
+          <div className="absolute w-56 h-28 sm:w-64 sm:h-32 rounded-full border border-[#FF1028]/30 animate-ping opacity-30" />
+          <div className="absolute w-48 h-24 sm:w-56 sm:h-28 rounded-full border border-blue-500/25 animate-pulse" />
 
           {/* Logo container */}
-          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-white p-2 shadow-2xl flex items-center justify-center border-2 border-white/20 transform hover:scale-105 transition-transform">
+          <div className="relative w-52 h-20 sm:w-64 sm:h-24 rounded-3xl bg-white p-3 shadow-2xl flex items-center justify-center border-2 border-white/30 transform hover:scale-105 transition-transform">
             <Image
-              src="/logo-lennoxchinamall.jpeg"
+              src="/logo-lennoxchinamall.png"
               alt="Lennox China Mall"
               fill
-              className="object-contain p-1"
+              sizes="260px"
+              className="object-contain p-2"
               priority
             />
           </div>
         </div>
 
-        {/* Brand Title & Tagline */}
+        {/* Tagline */}
         <div className="space-y-1">
-          <div className="flex items-center justify-center gap-1.5 font-heading font-black text-lg sm:text-2xl tracking-wider uppercase">
-            <span className="text-white">{primaryText}</span>
-            {accentText && <span className="text-[#FF1028]">{accentText}</span>}
-          </div>
           <p className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-slate-400">
-            DIRECT CHINA SOURCING • WHOLESALE
+            DE LAS FÁBRICAS A TUS MANOS
           </p>
         </div>
 

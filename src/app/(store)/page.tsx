@@ -22,9 +22,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/logo-lennoxchinamall.jpeg",
-        width: 800,
-        height: 800,
+        url: "/logo-lennoxchinamall.png",
+        width: 1024,
+        height: 384,
         alt: "Lennox ChinaMall Direct Sourcing Portal",
       },
     ],

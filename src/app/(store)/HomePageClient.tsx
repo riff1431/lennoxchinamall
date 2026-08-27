@@ -230,9 +230,9 @@ export function HomePageClient({ sections }: HomePageClientProps) {
           </div>
 
           {/* Hero Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 md:gap-5 items-stretch">
             {/* Main Column: High-Impact Carousel Banner (8 Cols on Desktop) */}
-            <div className="lg:col-span-8 relative bg-slate-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[280px] sm:min-h-[380px] md:min-h-[460px] lg:min-h-[500px] group border border-slate-800">
+            <div className="lg:col-span-8 relative bg-slate-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[300px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-0 lg:h-full group border border-slate-800">
             <Image
               src={activeSlide.image}
               alt={activeSlide.title}
@@ -322,7 +322,7 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </div>
           </div>
 
-          {/* Right Column: Factory Product Video Highlights */}
+          {/* Right Column: Factory Product Video Highlights (Square Proportions) */}
           <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
             {/* Video Card 1: 4K Laser Drone QC Flight Test */}
             <div
@@ -336,45 +336,46 @@ export function HomePageClient({ sections }: HomePageClientProps) {
                   tag: "QC FLIGHT DEMO",
                 })
               }
-              className="group relative bg-slate-900 rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-4 sm:p-5 cursor-pointer hover:border-[#FF1028] transition-all min-h-[220px] lg:min-h-[240px]"
+              className="group relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-3.5 sm:p-4 md:p-5 cursor-pointer hover:border-[#FF1028] transition-all aspect-square w-full"
             >
               <Image
                 src="https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80"
                 alt="4K Drone Flight Test"
                 fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover object-center opacity-45 group-hover:scale-105 group-hover:opacity-55 transition-all duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
 
               {/* Top Badge & Status */}
-              <div className="relative z-10 flex items-center justify-between">
-                <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1.5 shadow-sm font-heading">
+              <div className="relative z-10 flex items-center justify-between gap-1">
+                <span className="bg-[#FF1028] text-white text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-sm font-heading shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                   QC VIDEO
                 </span>
-                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
+                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[8px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded-md border border-amber-300/30 shrink-0">
                   QC PASSED
                 </span>
               </div>
 
               {/* Center Play Button */}
-              <div className="relative z-10 my-auto flex justify-center py-2">
-                <div className="w-12 h-12 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
-                  <Play className="w-5 h-5 ml-0.5 fill-current" />
+              <div className="relative z-10 my-auto flex justify-center py-1 sm:py-2">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5 fill-current" />
                 </div>
               </div>
 
               {/* Card Content */}
-              <div className="relative z-10 space-y-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
+              <div className="relative z-10 space-y-0.5 sm:space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-xs sm:text-sm md:text-base font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors line-clamp-1">
                     4K Drone Flight Benchmark
                   </h4>
-                  <span className="text-xs font-black text-[#10B981] font-mono">
+                  <span className="text-xs sm:text-sm font-black text-[#10B981] font-mono shrink-0">
                     $189.00
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-300 line-clamp-1">
+                <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1">
                   5km Range &amp; Laser Gimbal Stability Test
                 </p>
               </div>
@@ -392,45 +393,46 @@ export function HomePageClient({ sections }: HomePageClientProps) {
                   tag: "FACTORY SPEED TEST",
                 })
               }
-              className="group relative bg-slate-900 rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-4 sm:p-5 cursor-pointer hover:border-[#FF1028] transition-all min-h-[220px] lg:min-h-[240px]"
+              className="group relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-3.5 sm:p-4 md:p-5 cursor-pointer hover:border-[#FF1028] transition-all aspect-square w-full"
             >
               <Image
                 src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80"
                 alt="600mm/s 3D Printer Speed Test"
                 fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover object-center opacity-45 group-hover:scale-105 group-hover:opacity-55 transition-all duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
 
               {/* Top Badge & Status */}
-              <div className="relative z-10 flex items-center justify-between">
-                <span className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1.5 shadow-sm font-heading">
+              <div className="relative z-10 flex items-center justify-between gap-1">
+                <span className="bg-blue-600 text-white text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-sm font-heading shrink-0">
                   <Film className="w-3 h-3" />
                   QC VIDEO
                 </span>
-                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
+                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[8px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded-md border border-amber-300/30 shrink-0">
                   600 MM/S
                 </span>
               </div>
 
               {/* Center Play Button */}
-              <div className="relative z-10 my-auto flex justify-center py-2">
-                <div className="w-12 h-12 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
-                  <Play className="w-5 h-5 ml-0.5 fill-current" />
+              <div className="relative z-10 my-auto flex justify-center py-1 sm:py-2">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5 fill-current" />
                 </div>
               </div>
 
               {/* Card Content */}
-              <div className="relative z-10 space-y-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
+              <div className="relative z-10 space-y-0.5 sm:space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-xs sm:text-sm md:text-base font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors line-clamp-1">
                     CoreXY 600mm/s Speed Test
                   </h4>
-                  <span className="text-xs font-black text-[#10B981] font-mono">
+                  <span className="text-xs sm:text-sm font-black text-[#10B981] font-mono shrink-0">
                     $219.00
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-300 line-clamp-1">
+                <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1">
                   Dual Extruder &amp; AI Lidar Auto-Bed Leveling
                 </p>
               </div>

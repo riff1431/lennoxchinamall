@@ -174,7 +174,7 @@ export function WebsiteJsonLd() {
     "@type": "Organization",
     name: "Lennox ChinaMall",
     url: APP_URL,
-    logo: `${APP_URL}/logo-lennoxchinamall.jpeg`,
+    logo: `${APP_URL}/logo-lennoxchinamall.png`,
     description: "Direct-to-consumer single-vendor commerce gateway connecting global buyers with certified China industrial manufacturing clusters via USDT Binance Pay.",
     sameAs: [],
     contactPoint: {

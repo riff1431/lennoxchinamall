@@ -98,7 +98,7 @@ export interface FooterProps {
 
 export function Footer({
   storeName = SITE_NAME,
-  logoUrl = "/logo-lennoxchinamall.jpeg",
+  logoUrl = "/logo-lennoxchinamall.png",
 }: FooterProps = {}) {
   const brandWords = (storeName || SITE_NAME || "Lennox China Mall").trim().split(/\s+/);
   const primaryText = brandWords.slice(0, -1).join(" ") || brandWords[0];
@@ -269,29 +269,15 @@ export function Footer({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10">
           {/* Brand Info & Contact Card (2 Cols on Desktop) */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-xs border border-white/20 bg-white group-hover:scale-105 transition-transform shrink-0">
+            <Link href="/" className="inline-block group">
+              <div className="relative h-14 w-[180px] sm:h-16 sm:w-[200px] group-hover:scale-[1.03] transition-transform">
                 <Image
                   src={logoUrl}
                   alt={`${storeName} Logo`}
                   fill
-                  className="object-cover"
+                  sizes="200px"
+                  className="object-contain object-left brightness-0 invert"
                 />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <span className="text-lg sm:text-xl font-black tracking-tight text-white leading-none uppercase font-heading">
-                    {primaryText}
-                  </span>
-                  {accentText && (
-                    <span className="text-lg sm:text-xl font-black text-[#FF1028] leading-none uppercase font-heading">
-                      {accentText}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[9px] font-extrabold tracking-widest text-slate-400 uppercase mt-0.5">
-                  Direct China Sourcing Gateway
-                </span>
               </div>
             </Link>
 

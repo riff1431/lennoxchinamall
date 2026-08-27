@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   description:
     "Leading China direct-to-consumer e-commerce portal. Buy electronics, 4K drones, 3D printers, tools and hardware at factory prices with Binance Pay USDT settlement.",
   icons: {
-    icon: "/logo-lennoxchinamall.jpeg",
+    icon: "/logo-lennoxchinamall.png",
   },
 };
 

@@ -45,7 +45,7 @@ export async function generateMetadata({
     : category?.description ||
       "Direct-to-consumer wholesale sourcing from Shenzhen and Ningbo industrial hubs.";
 
-  const image = category?.image_url || "/logo-lennoxchinamall.jpeg";
+  const image = category?.image_url || "/logo-lennoxchinamall.png";
 
   return {
     metadataBase: new URL(APP_URL),

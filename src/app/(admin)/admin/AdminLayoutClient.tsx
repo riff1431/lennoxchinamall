@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -842,18 +843,19 @@ export function AdminLayoutClient({
               )}
               title="Lennox ChinaMall Operations"
             >
-              {/* Connected Minimal Modern Logo Mark */}
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] flex items-center justify-center text-white shadow-xs shadow-blue-500/25 shrink-0 transition-transform duration-150 group-hover:scale-105">
-                <svg
-                  className="w-4.5 h-4.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="2.4" />
-                  <circle cx="16" cy="16" r="3.5" stroke="currentColor" strokeWidth="2.4" />
-                  <path d="M10.5 10.5L13.5 13.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-                </svg>
+              {/* Lennox China Mall Official Brand Emblem */}
+              <div className={cn(
+                "relative rounded-xl overflow-hidden bg-white border border-slate-200 dark:border-slate-800 shadow-xs shrink-0 transition-transform duration-150 group-hover:scale-105",
+                isSidebarCollapsed ? "w-9 h-9" : "w-9 h-9"
+              )}>
+                <Image
+                  src="/logo-lennoxchinamall.png"
+                  alt="Lennox China Mall"
+                  fill
+                  sizes="36px"
+                  className="object-contain p-0.5"
+                  priority
+                />
               </div>
 
               {!isSidebarCollapsed && (

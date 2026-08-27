@@ -91,7 +91,7 @@ export interface HeaderProps {
 export function Header({
   storeName = SITE_NAME,
   tagline = "Direct China Sourcing",
-  logoUrl = "/logo-lennoxchinamall.jpeg",
+  logoUrl = "/logo-lennoxchinamall.png",
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -402,32 +402,16 @@ export function Header({
             </button>
 
             {/* ── Brand Logo Area ── */}
-            <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 group">
-              <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-xs border border-slate-200 bg-white group-hover:scale-105 transition-transform shrink-0">
+            <Link href="/" className="shrink-0 group">
+              <div className="relative h-10 w-[120px] sm:h-12 sm:w-[150px] md:h-14 md:w-[180px] group-hover:scale-[1.03] transition-transform">
                 <Image
                   src={logoUrl}
                   alt={`${storeName} Logo`}
                   fill
-                  className="object-cover"
+                  sizes="(max-width: 640px) 120px, (max-width: 768px) 150px, 180px"
+                  className="object-contain object-left"
                   priority
                 />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-black tracking-tight text-[#00143D] leading-none uppercase font-heading">
-                    {primaryText}
-                  </span>
-                  {accentText && (
-                    <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-black text-[#FF1028] leading-none uppercase font-heading">
-                      {accentText}
-                    </span>
-                  )}
-                </div>
-                <span className="hidden xs:flex text-[7px] sm:text-[8px] font-extrabold tracking-widest text-slate-500 uppercase items-center gap-1 mt-0.5">
-                  <span>{tagline}</span>
-                  <span className="w-1 h-1 rounded-full bg-[#10B981]" />
-                  <span className="text-[#10B981]">Wholesale</span>
-                </span>
               </div>
             </Link>
 
@@ -978,14 +962,11 @@ export function Header({
             <div className="space-y-5">
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-200 shrink-0">
-                    <Image src={logoUrl} alt={`${storeName} Logo`} fill className="object-cover" />
+                <Link href="/" className="shrink-0">
+                  <div className="relative h-10 w-[130px]">
+                    <Image src={logoUrl} alt={`${storeName} Logo`} fill sizes="130px" className="object-contain object-left" />
                   </div>
-                  <span className="text-sm sm:text-base font-black text-[#00143D] uppercase font-heading">
-                    {primaryText} {accentText && <span className="text-[#FF1028]">{accentText}</span>}
-                  </span>
-                </div>
+                </Link>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100"

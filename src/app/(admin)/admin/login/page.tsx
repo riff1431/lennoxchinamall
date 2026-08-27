@@ -44,27 +44,23 @@ export default function DedicatedAdminLoginPage() {
 
       <div className="max-w-md w-full mx-auto space-y-6 relative z-10">
         {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-3 group">
-            <div className="relative w-12 h-12 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-white group-hover:scale-105 transition-transform">
+        <div className="text-center space-y-3">
+          <Link href="/" className="inline-block group">
+            <div className="relative h-16 w-[200px] sm:h-20 sm:w-[250px] mx-auto group-hover:scale-[1.03] transition-transform">
               <Image
-                src="/logo-lennoxchinamall.jpeg"
+                src="/logo-lennoxchinamall.png"
                 alt="Lennox China Mall Logo"
                 fill
-                className="object-cover"
+                sizes="250px"
+                className="object-contain brightness-0 invert"
                 priority
               />
             </div>
-            <div className="flex flex-col text-left font-heading">
-              <span className="text-lg sm:text-xl font-black text-white tracking-tight uppercase">
-                LENNOX CHINA <span className="text-[#FF1028]">MALL</span>
-              </span>
-              <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-amber-400" />
-                Operations Portal
-              </span>
-            </div>
           </Link>
+          <div className="flex items-center justify-center gap-1.5 text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest">
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            Operations Portal
+          </div>
         </div>
 
         {/* Card Box */}
