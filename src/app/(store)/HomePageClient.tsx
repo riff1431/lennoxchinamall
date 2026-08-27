@@ -230,14 +230,14 @@ export function HomePageClient({ sections }: HomePageClientProps) {
           </div>
 
           {/* Hero Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 md:gap-5 items-stretch">
-            {/* Main Column: High-Impact Carousel Banner (8 Cols on Desktop) */}
-            <div className="lg:col-span-8 relative bg-slate-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[300px] sm:min-h-[380px] md:min-h-[440px] lg:min-h-0 lg:h-full group border border-slate-800">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
+            {/* Main Column: High-Impact Carousel Banner (9 Cols on Desktop) */}
+            <div className="lg:col-span-9 relative bg-slate-950 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md flex flex-col justify-end min-h-[260px] sm:min-h-[340px] md:min-h-[400px] lg:min-h-0 lg:h-full group border border-slate-800">
             <Image
               src={activeSlide.image}
               alt={activeSlide.title}
               fill
-              sizes="(max-width: 1024px) 100vw, 66vw"
+              sizes="(max-width: 1024px) 100vw, 75vw"
               className="object-cover object-center opacity-65 group-hover:scale-104 transition-transform duration-700"
               priority
             />
@@ -250,7 +250,7 @@ export function HomePageClient({ sections }: HomePageClientProps) {
                   (prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length
                 )
               }
-              className="absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-[#FF1028] text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 z-20 cursor-pointer shadow-lg border border-white/10"
+              className="absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-[#FF1028] text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 z-20 cursor-pointer shadow-lg border border-white/10"
               aria-label="Previous slide"
             >
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -259,61 +259,61 @@ export function HomePageClient({ sections }: HomePageClientProps) {
               onClick={() =>
                 setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
               }
-              className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-[#FF1028] text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 z-20 cursor-pointer shadow-lg border border-white/10"
+              className="absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-[#FF1028] text-white backdrop-blur-md flex items-center justify-center transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 z-20 cursor-pointer shadow-lg border border-white/10"
               aria-label="Next slide"
             >
               <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Slide Content */}
-            <div className="relative z-10 p-3.5 sm:p-7 md:p-9 space-y-2 sm:space-y-4">
+            <div className="relative z-10 p-3.5 sm:p-6 md:p-7 space-y-2 sm:space-y-3">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="bg-[#FF1028] text-white text-[8px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg uppercase tracking-wider shadow-xs font-heading">
+                <span className="bg-[#FF1028] text-white text-[8px] sm:text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-xs font-heading">
                   {activeSlide.badge}
                 </span>
-                <span className="bg-white/15 backdrop-blur-md text-amber-300 text-[8px] sm:text-[10px] font-mono font-bold px-2 py-0.5 sm:py-1 rounded-lg border border-amber-300/30">
+                <span className="bg-white/15 backdrop-blur-md text-amber-300 text-[8px] sm:text-[9px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
                   {activeSlide.hub}
                 </span>
               </div>
 
-              <h2 className="text-base sm:text-2xl md:text-4xl font-black text-white leading-snug sm:leading-tight font-heading max-w-xl">
+              <h2 className="text-base sm:text-2xl md:text-3xl font-black text-white leading-snug font-heading max-w-xl">
                 {activeSlide.title}
               </h2>
 
-              <p className="text-[11px] sm:text-sm text-slate-200 line-clamp-2 max-w-lg leading-relaxed hidden sm:block">
+              <p className="text-[11px] sm:text-xs text-slate-200 line-clamp-1 max-w-lg leading-relaxed hidden sm:block">
                 {activeSlide.subtitle}
               </p>
 
-              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1 sm:pt-2">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xl sm:text-3xl md:text-4xl font-black text-white font-mono leading-none">
+                  <span className="text-xl sm:text-2xl md:text-3xl font-black text-white font-mono leading-none">
                     {formatCurrency(activeSlide.price)}
                   </span>
-                  <span className="text-[11px] sm:text-sm text-slate-400 line-through font-mono">
+                  <span className="text-[11px] sm:text-xs text-slate-400 line-through font-mono">
                     ${activeSlide.originalPrice.toFixed(2)}
                   </span>
-                  <span className="text-[9px] sm:text-xs font-black text-[#FF1028] bg-white px-1.5 py-0.5 rounded font-heading">
+                  <span className="text-[9px] sm:text-[10px] font-black text-[#FF1028] bg-white px-1.5 py-0.5 rounded font-heading">
                     {activeSlide.tag}
                   </span>
                 </div>
 
                 <Link
                   href={activeSlide.link}
-                  className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black font-heading text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 transition-all shadow-md hover:shadow-lg active:scale-95 shrink-0 cursor-pointer btn-smooth"
+                  className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl font-black font-heading text-xs sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md hover:shadow-lg active:scale-95 shrink-0 cursor-pointer btn-smooth"
                 >
                   <span>SOURCING DEAL</span>
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
               {/* Carousel Dots & Progress */}
-              <div className="flex items-center gap-1.5 sm:gap-2 pt-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 pt-0.5">
                 {HERO_SLIDES.map((slide, idx) => (
                   <button
                     key={slide.id}
                     onClick={() => setCurrentSlide(idx)}
                     className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                      currentSlide === idx ? "w-6 sm:w-8 bg-[#FF1028]" : "w-2 sm:w-2.5 bg-white/40 hover:bg-white/70"
+                      currentSlide === idx ? "w-5 sm:w-6 bg-[#FF1028]" : "w-1.5 sm:w-2 bg-white/40 hover:bg-white/70"
                     }`}
                     aria-label={`Go to slide ${idx + 1}`}
                   />
@@ -322,8 +322,8 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </div>
           </div>
 
-          {/* Right Column: Factory Product Video Highlights (Square Proportions) */}
-          <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
+          {/* Right Column: Factory Product Video Highlights (Compact Square Proportions) */}
+          <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-3">
             {/* Video Card 1: 4K Laser Drone QC Flight Test */}
             <div
               onClick={() =>
@@ -336,46 +336,46 @@ export function HomePageClient({ sections }: HomePageClientProps) {
                   tag: "QC FLIGHT DEMO",
                 })
               }
-              className="group relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-3.5 sm:p-4 md:p-5 cursor-pointer hover:border-[#FF1028] transition-all aspect-square w-full"
+              className="group relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-3 sm:p-3.5 cursor-pointer hover:border-[#FF1028] transition-all aspect-square w-full"
             >
               <Image
                 src="https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80"
                 alt="4K Drone Flight Test"
                 fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover object-center opacity-45 group-hover:scale-105 group-hover:opacity-55 transition-all duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
 
               {/* Top Badge & Status */}
               <div className="relative z-10 flex items-center justify-between gap-1">
-                <span className="bg-[#FF1028] text-white text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-sm font-heading shrink-0">
+                <span className="bg-[#FF1028] text-white text-[7.5px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 shadow-sm font-heading shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                   QC VIDEO
                 </span>
-                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[8px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded-md border border-amber-300/30 shrink-0">
+                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[7.5px] sm:text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-amber-300/30 shrink-0">
                   QC PASSED
                 </span>
               </div>
 
               {/* Center Play Button */}
-              <div className="relative z-10 my-auto flex justify-center py-1 sm:py-2">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
-                  <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5 fill-current" />
+              <div className="relative z-10 my-auto flex justify-center py-1">
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-[#FF1028] transition-all">
+                  <Play className="w-4 h-4 ml-0.5 fill-current" />
                 </div>
               </div>
 
               {/* Card Content */}
-              <div className="relative z-10 space-y-0.5 sm:space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="text-xs sm:text-sm md:text-base font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors line-clamp-1">
+              <div className="relative z-10 space-y-0.5">
+                <div className="flex items-center justify-between gap-1.5">
+                  <h4 className="text-[11px] sm:text-xs md:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors line-clamp-1">
                     4K Drone Flight Benchmark
                   </h4>
-                  <span className="text-xs sm:text-sm font-black text-[#10B981] font-mono shrink-0">
+                  <span className="text-[11px] sm:text-xs font-black text-[#10B981] font-mono shrink-0">
                     $189.00
                   </span>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1">
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 line-clamp-1">
                   5km Range &amp; Laser Gimbal Stability Test
                 </p>
               </div>
@@ -393,46 +393,46 @@ export function HomePageClient({ sections }: HomePageClientProps) {
                   tag: "FACTORY SPEED TEST",
                 })
               }
-              className="group relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-3.5 sm:p-4 md:p-5 cursor-pointer hover:border-[#FF1028] transition-all aspect-square w-full"
+              className="group relative bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-md border border-slate-800 flex flex-col justify-between p-3 sm:p-3.5 cursor-pointer hover:border-[#FF1028] transition-all aspect-square w-full"
             >
               <Image
                 src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80"
                 alt="600mm/s 3D Printer Speed Test"
                 fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                 className="object-cover object-center opacity-45 group-hover:scale-105 group-hover:opacity-55 transition-all duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
 
               {/* Top Badge & Status */}
               <div className="relative z-10 flex items-center justify-between gap-1">
-                <span className="bg-blue-600 text-white text-[8px] sm:text-[9px] font-black px-1.5 sm:px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-sm font-heading shrink-0">
+                <span className="bg-blue-600 text-white text-[7.5px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 shadow-sm font-heading shrink-0">
                   <Film className="w-3 h-3" />
                   QC VIDEO
                 </span>
-                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[8px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded-md border border-amber-300/30 shrink-0">
+                <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[7.5px] sm:text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border border-amber-300/30 shrink-0">
                   600 MM/S
                 </span>
               </div>
 
               {/* Center Play Button */}
-              <div className="relative z-10 my-auto flex justify-center py-1 sm:py-2">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
-                  <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5 fill-current" />
+              <div className="relative z-10 my-auto flex justify-center py-1">
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-[#FF1028] transition-all">
+                  <Play className="w-4 h-4 ml-0.5 fill-current" />
                 </div>
               </div>
 
               {/* Card Content */}
-              <div className="relative z-10 space-y-0.5 sm:space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="text-xs sm:text-sm md:text-base font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors line-clamp-1">
+              <div className="relative z-10 space-y-0.5">
+                <div className="flex items-center justify-between gap-1.5">
+                  <h4 className="text-[11px] sm:text-xs md:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors line-clamp-1">
                     CoreXY 600mm/s Speed Test
                   </h4>
-                  <span className="text-xs sm:text-sm font-black text-[#10B981] font-mono shrink-0">
+                  <span className="text-[11px] sm:text-xs font-black text-[#10B981] font-mono shrink-0">
                     $219.00
                   </span>
                 </div>
-                <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1">
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 line-clamp-1">
                   Dual Extruder &amp; AI Lidar Auto-Bed Leveling
                 </p>
               </div>
