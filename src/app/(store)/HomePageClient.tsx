@@ -191,11 +191,6 @@ export function HomePageClient({ sections }: HomePageClientProps) {
         <HeroLennoxSection onOpenVideoModal={setActiveVideoModal} />
       </SectionReveal>
 
-      {/* ── 2. Best Sellings, Top Rated & Dual Promotional Banners ── */}
-      <SectionReveal effect="fade-up" delay={80}>
-        <DualPromotionalShowcaseSection />
-      </SectionReveal>
-
       {/* ── 2. Direct Sourcing Departments Grid ── */}
       <SectionReveal effect="fade-up" delay={80}>
         <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
@@ -269,6 +264,11 @@ export function HomePageClient({ sections }: HomePageClientProps) {
       {/* ── 4. Flash Deals Section ── */}
       <SectionReveal effect="fade-up" delay={100}>
         <FlashDealsSection flashDeals={flashDeals} />
+      </SectionReveal>
+
+      {/* ── 5. Middle Section: Best Sellings, Top Rated & Dual Promotional Banners ── */}
+      <SectionReveal effect="fade-up" delay={100}>
+        <DualPromotionalShowcaseSection />
       </SectionReveal>
 
       {/* ── 5. Trending & Top Ranking Products ── */}
