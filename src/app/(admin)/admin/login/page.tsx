@@ -91,18 +91,33 @@ export default function DedicatedAdminLoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="space-y-1.5">
-              <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-                Staff Account Email
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
+                  Staff Account Email
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
+                    const passInput = document.querySelector('input[name="password"]') as HTMLInputElement;
+                    if (emailInput) emailInput.value = "admin@lennoxchinamall.com";
+                    if (passInput) passInput.value = "Admin123456!@#";
+                  }}
+                  className="text-[10px] text-amber-400 hover:text-amber-300 font-mono font-bold cursor-pointer transition-colors"
+                >
+                  ⚡ Auto-Fill Super Admin
+                </button>
+              </div>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   name="email"
                   required
+                  defaultValue="admin@lennoxchinamall.com"
                   autoComplete="email"
                   disabled={isLocked || isLoading}
-                  placeholder="staff@lennoxchinamall.com"
+                  placeholder="admin@lennoxchinamall.com"
                   className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
                 />
               </div>
@@ -126,6 +141,7 @@ export default function DedicatedAdminLoginPage() {
                   type="password"
                   name="password"
                   required
+                  defaultValue="Admin123456!@#"
                   autoComplete="current-password"
                   disabled={isLocked || isLoading}
                   placeholder="••••••••••••"

@@ -113,6 +113,7 @@ export function DirectSourcingDepartmentsSection({
   autoPlayInterval = 3000,
 }: DirectSourcingDepartmentsSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [withTransition, setWithTransition] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [itemsPerView, setItemsPerView] = useState(6);
   const [isDragging, setIsDragging] = useState(false);
@@ -134,7 +135,7 @@ export function DirectSourcingDepartmentsSection({
       } else if (width >= 500) {
         setItemsPerView(2); // Small Tablet: 2 columns
       } else {
-        setItemsPerView(1.25); // Mobile: 1.25 columns with sneak-peek
+        setItemsPerView(1.3); // Mobile: 1.3 columns with peek
       }
     };
 
@@ -144,29 +145,52 @@ export function DirectSourcingDepartmentsSection({
   }, []);
 
   const totalItems = departments.length;
-  const maxIndex = Math.max(0, Math.ceil(totalItems - itemsPerView));
+  // Extended array for seamless infinite looping
+  const extendedDepartments = [...departments, ...departments];
 
-  // Navigation handlers
+  // Navigation handlers with seamless infinite wrapping
   const nextSlide = useCallback(() => {
     if (totalItems === 0) return;
-    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  }, [maxIndex, totalItems]);
+    setWithTransition(true);
+    setCurrentIndex((prev) => prev + 1);
+  }, [totalItems]);
 
   const prevSlide = useCallback(() => {
     if (totalItems === 0) return;
-    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
-  }, [maxIndex, totalItems]);
+    if (currentIndex === 0) {
+      // Jump silently to equivalent duplicated end, then animate to prev
+      setWithTransition(false);
+      setCurrentIndex(totalItems);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setWithTransition(true);
+          setCurrentIndex(totalItems - 1);
+        });
+      });
+    } else {
+      setWithTransition(true);
+      setCurrentIndex((prev) => prev - 1);
+    }
+  }, [currentIndex, totalItems]);
 
-  // Auto-play interval timer: 3 seconds auto carousel
+  // Seamless loop reset when sliding past original length
+  const handleTransitionEnd = () => {
+    if (currentIndex >= totalItems) {
+      setWithTransition(false);
+      setCurrentIndex(currentIndex % totalItems);
+    }
+  };
+
+  // Auto-play interval timer: 3 seconds auto carousel loop
   useEffect(() => {
-    if (isPaused || totalItems <= itemsPerView) return;
+    if (isPaused || totalItems === 0) return;
 
     const timer = setInterval(() => {
       nextSlide();
     }, autoPlayInterval);
 
     return () => clearInterval(timer);
-  }, [isPaused, nextSlide, autoPlayInterval, totalItems, itemsPerView]);
+  }, [isPaused, nextSlide, autoPlayInterval, totalItems]);
 
   // Touch Swipe Support
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -187,6 +211,8 @@ export function DirectSourcingDepartmentsSection({
     }
   };
 
+  const activeDotIndex = currentIndex % totalItems;
+
   return (
     <section
       className="relative bg-white rounded-xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6 overflow-hidden"
@@ -203,16 +229,6 @@ export function DirectSourcingDepartmentsSection({
           <div className="flex items-center gap-2">
             <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
               CHINA MANUFACTURING CLUSTERS
-            </span>
-
-            {/* Auto-play live badge */}
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200/80 text-[9px] font-mono text-slate-600">
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isPaused ? "bg-amber-500" : "bg-emerald-500 animate-ping"
-                }`}
-              />
-              <span>{isPaused ? "Paused" : "Auto-Loop (3s)"}</span>
             </span>
           </div>
 
@@ -262,12 +278,17 @@ export function DirectSourcingDepartmentsSection({
         onTouchEnd={handleTouchEnd}
       >
         <div
-          className="flex transition-transform duration-500 ease-out"
+          className={`flex ${
+            withTransition
+              ? "transition-transform duration-500 ease-out"
+              : "transition-none"
+          }`}
           style={{
             transform: `translateX(-${(currentIndex * 100) / itemsPerView}%)`,
           }}
+          onTransitionEnd={handleTransitionEnd}
         >
-          {departments.map((cat, idx) => (
+          {extendedDepartments.map((cat, idx) => (
             <div
               key={`${cat.name}-${idx}`}
               className="px-1.5 sm:px-2 shrink-0"
@@ -313,16 +334,19 @@ export function DirectSourcingDepartmentsSection({
         </div>
       </div>
 
-      {/* ── Carousel Dot Indicators (For Quick Navigation) ── */}
-      {maxIndex > 0 && (
+      {/* ── Carousel Dot Indicators ── */}
+      {totalItems > 0 && (
         <div className="flex items-center justify-center gap-1.5 pt-1">
-          {Array.from({ length: maxIndex + 1 }).map((_, dotIdx) => (
+          {departments.map((_, dotIdx) => (
             <button
               key={dotIdx}
-              onClick={() => setCurrentIndex(dotIdx)}
+              onClick={() => {
+                setWithTransition(true);
+                setCurrentIndex(dotIdx);
+              }}
               aria-label={`Go to slide ${dotIdx + 1}`}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                currentIndex === dotIdx
+                activeDotIndex === dotIdx
                   ? "w-6 bg-[#00143D]"
                   : "w-1.5 bg-slate-300 hover:bg-slate-400"
               }`}

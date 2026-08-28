@@ -128,9 +128,9 @@ export function HomePageClient({ sections }: HomePageClientProps) {
         <HeroLennoxSection onOpenVideoModal={setActiveVideoModal} />
       </MotionSection>
 
-      {/* ── 2. Top Selling Products Carousel (5 Columns, Auto-Loop 2.8s) ── */}
+      {/* ── 2. Top Selling Products Carousel (5 Columns, Auto-Loop 3s) ── */}
       <MotionSection effect="fade-up" delay={80}>
-        <TopSellingProductsSection products={bestSellers} autoPlayInterval={2800} />
+        <TopSellingProductsSection products={bestSellers} autoPlayInterval={3000} />
       </MotionSection>
 
       {/* ── 3. Flash Deals Section ── */}

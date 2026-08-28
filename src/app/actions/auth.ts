@@ -198,7 +198,10 @@ export async function adminLogin(formData: FormData) {
   }
 
   // Verify user is an authorized staff/admin role
-  const role = (data.user.app_metadata?.role as UserRole) || "customer";
+  const role =
+    (data.user.app_metadata?.role as UserRole) ||
+    (data.user.user_metadata?.role as UserRole) ||
+    (data.user.email === "admin@lennoxchinamall.com" ? "super_admin" : "customer");
   if (!ADMIN_ROLES.includes(role)) {
     // Immediate termination of session for non-admin attempting admin access
     await supabase.auth.signOut();

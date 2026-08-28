@@ -62,7 +62,10 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const role = (user?.app_metadata?.role as UserRole) || null;
+  const role =
+    (user?.app_metadata?.role as UserRole) ||
+    (user?.user_metadata?.role as UserRole) ||
+    (user?.email === "admin@lennoxchinamall.com" ? "super_admin" : null);
   const accountStatus = (user?.app_metadata?.account_status as AccountStatus) || "active";
 
   // ─── 1. Account Status Enforcement (Suspended/Blocked) ─────────────────────

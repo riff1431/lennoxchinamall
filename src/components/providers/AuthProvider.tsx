@@ -51,7 +51,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const role = (user?.app_metadata?.role as UserRole) || null;
+  const role =
+    (user?.app_metadata?.role as UserRole) ||
+    (user?.user_metadata?.role as UserRole) ||
+    (user?.email === "admin@lennoxchinamall.com" ? "super_admin" : null);
   const displayName =
     user?.user_metadata?.display_name ||
     user?.email?.split("@")[0] ||

@@ -23,19 +23,20 @@ interface TopSellingProductsSectionProps {
   products: Product[];
   title?: string;
   subtitle?: string;
-  autoPlayInterval?: number; // in milliseconds (default: 2800ms)
+  autoPlayInterval?: number; // in milliseconds (default: 3000ms / 3s)
 }
 
 export function TopSellingProductsSection({
   products,
   title = "Top Selling Direct Products",
   subtitle = "Highest volume verified factory hardware sourced directly from Shenzhen, Ningbo & Dongguan",
-  autoPlayInterval = 2800,
+  autoPlayInterval = 3000,
 }: TopSellingProductsSectionProps) {
   // Ensure we have a rich list of products to loop through
   const displayProducts = products && products.length > 0 ? products : [];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [withTransition, setWithTransition] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [itemsPerView, setItemsPerView] = useState(5);
   const [isDragging, setIsDragging] = useState(false);
@@ -71,29 +72,54 @@ export function TopSellingProductsSection({
   }, []);
 
   const totalItems = displayProducts.length;
-  const maxIndex = Math.max(0, totalItems - itemsPerView);
+  // Extended array for seamless infinite looping (3 sets ensures smooth wrapping across large viewports)
+  const extendedProducts =
+    totalItems > 0
+      ? [...displayProducts, ...displayProducts, ...displayProducts]
+      : [];
 
-  // Navigation handlers
+  // Navigation handlers with seamless infinite looping
   const nextSlide = useCallback(() => {
     if (totalItems === 0) return;
-    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  }, [maxIndex, totalItems]);
+    setWithTransition(true);
+    setCurrentIndex((prev) => prev + 1);
+  }, [totalItems]);
 
   const prevSlide = useCallback(() => {
     if (totalItems === 0) return;
-    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
-  }, [maxIndex, totalItems]);
+    if (currentIndex === 0) {
+      setWithTransition(false);
+      setCurrentIndex(totalItems);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setWithTransition(true);
+          setCurrentIndex(totalItems - 1);
+        });
+      });
+    } else {
+      setWithTransition(true);
+      setCurrentIndex((prev) => prev - 1);
+    }
+  }, [currentIndex, totalItems]);
 
-  // Auto-rotating timer (2.8s loop, pauses when hovered or dragging)
+  // Seamless loop reset when sliding past original set of items
+  const handleTransitionEnd = () => {
+    if (currentIndex >= totalItems) {
+      setWithTransition(false);
+      setCurrentIndex(currentIndex % totalItems);
+    }
+  };
+
+  // Auto-rotating timer (3s loop, pauses when hovered or dragging)
   useEffect(() => {
-    if (isPaused || totalItems <= itemsPerView) return;
+    if (isPaused || totalItems <= 1) return;
 
     const timer = setInterval(() => {
       nextSlide();
     }, autoPlayInterval);
 
     return () => clearInterval(timer);
-  }, [isPaused, nextSlide, autoPlayInterval, totalItems, itemsPerView]);
+  }, [isPaused, nextSlide, autoPlayInterval, totalItems]);
 
   // Touch Swipe Handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -149,6 +175,8 @@ export function TopSellingProductsSection({
 
   if (displayProducts.length === 0) return null;
 
+  const activeDotIndex = currentIndex % totalItems;
+
   return (
     <section
       className="relative bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 lg:p-7 shadow-xs overflow-hidden"
@@ -172,7 +200,7 @@ export function TopSellingProductsSection({
             {/* Auto-play status pill */}
             <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[9px] font-mono text-slate-600">
               <span className={`w-1.5 h-1.5 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 animate-ping"}`} />
-              <span>{isPaused ? "Paused" : "Live Auto-Loop (2.8s)"}</span>
+              <span>{isPaused ? "Paused" : "Live Auto-Loop (3s)"}</span>
             </span>
           </div>
 
@@ -219,17 +247,22 @@ export function TopSellingProductsSection({
       {/* ── Carousel Viewport (1 Row, 5 Columns Desktop) ── */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden cursor-grab active:cursor-grabbing py-2.5 -my-2.5 px-1 -mx-1"
+        className="relative overflow-hidden cursor-grab active:cursor-grabbing py-2.5 -my-2.5 px-1 -mx-1 select-none"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         <div
-          className="flex transition-transform duration-500 ease-out"
+          className={`flex ${
+            withTransition
+              ? "transition-transform duration-500 ease-out"
+              : "transition-none"
+          }`}
           style={{
             transform: `translateX(-${(currentIndex * 100) / itemsPerView}%)`,
           }}
+          onTransitionEnd={handleTransitionEnd}
         >
-          {displayProducts.map((product, idx) => {
+          {extendedProducts.map((product, idx) => {
             const activePrice = product.base_price || 0;
             const comparePrice =
               product.compare_at_price || activePrice * 1.45;
@@ -242,7 +275,7 @@ export function TopSellingProductsSection({
             const hoverImg = product.media?.[1]?.url || primaryImg;
 
             // Rank Badge Styling
-            const rank = idx + 1;
+            const rank = (idx % totalItems) + 1;
             const rankBadgeColor =
               rank === 1
                 ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black shadow-amber-500/20"
@@ -327,7 +360,7 @@ export function TopSellingProductsSection({
                       {/* Bottom Image Overlay Tag: Sold Count */}
                       <div className="absolute bottom-2 left-2 z-10">
                         <span className="bg-slate-900/80 backdrop-blur-xs text-emerald-400 font-mono text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-xs shadow-2xs">
-                          {product.sold_count || 1200 + idx * 240}+ Sold
+                          {product.sold_count || 1200 + (idx % totalItems) * 240}+ Sold
                         </span>
                       </div>
 
@@ -409,20 +442,25 @@ export function TopSellingProductsSection({
       </div>
 
       {/* ── Carousel Bottom Progress / Indicators ── */}
-      <div className="relative z-10 flex items-center justify-center gap-1.5 mt-5">
-        {Array.from({ length: Math.min(6, maxIndex + 1) }).map((_, dotIdx) => (
-          <button
-            key={dotIdx}
-            onClick={() => setCurrentIndex(dotIdx)}
-            className={`h-1.5 rounded-full transition-all cursor-pointer ${
-              currentIndex === dotIdx
-                ? "w-6 bg-[#FF1028]"
-                : "w-2 bg-slate-200 hover:bg-slate-300"
-            }`}
-            aria-label={`Go to slide page ${dotIdx + 1}`}
-          />
-        ))}
-      </div>
+      {totalItems > 0 && (
+        <div className="relative z-10 flex items-center justify-center gap-1.5 mt-5">
+          {displayProducts.map((_, dotIdx) => (
+            <button
+              key={dotIdx}
+              onClick={() => {
+                setWithTransition(true);
+                setCurrentIndex(dotIdx);
+              }}
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                activeDotIndex === dotIdx
+                  ? "w-6 bg-[#FF1028]"
+                  : "w-2 bg-slate-200 hover:bg-slate-300"
+              }`}
+              aria-label={`Go to slide page ${dotIdx + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
