@@ -48,6 +48,7 @@ import { ProductReviewsAndQA } from "@/components/product/ProductReviewsAndQA";
 import { Rating } from "@/components/ui/Rating";
 import { Modal } from "@/components/ui/Modal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoModal";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCompareStore } from "@/store/useCompareStore";
@@ -69,7 +70,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
   const [addedToast, setAddedToast] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
-  const [activeVideoModal, setActiveVideoModal] = useState<{ title: string; url: string; tag: string } | null>(null);
+  const [activeVideoModal, setActiveVideoModal] = useState<ReelsVideoData | null>(null);
   const [activeTab, setActiveTab] = useState<"specs" | "qc_report" | "reviews" | "shipping">("specs");
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [reviewFilter, setReviewFilter] = useState<number | "all">("all");
@@ -650,8 +651,13 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 onClick={() =>
                   setActiveVideoModal({
                     title: `${product.title} — QC Teardown & Circuit Inspection`,
-                    url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&auto=format&fit=crop&q=80",
+                    subtitle: "Shenzhen Inspection Lab Benchmark • 100% Signal & Load Testing",
                     tag: "QC LAB BENCHMARK",
+                    hub: product.shipping_origin || "Shenzhen SZX Hub",
+                    productPrice: product.base_price,
+                    productLink: `/products/${product.slug}`,
+                    poster: images[1] || images[0],
+                    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
                   })
                 }
                 className="group relative aspect-video sm:aspect-[4/3] lg:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 sm:p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
@@ -698,8 +704,13 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 onClick={() =>
                   setActiveVideoModal({
                     title: `${product.title} — 100% Full Load Stress & Performance Test`,
-                    url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80",
+                    subtitle: "Live Sourcing QC • Direct Verification",
                     tag: "FACTORY STRESS DEMO",
+                    hub: product.shipping_origin || "Shenzhen SZX Hub",
+                    productPrice: product.base_price,
+                    productLink: `/products/${product.slug}`,
+                    poster: images[2] || images[0],
+                    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
                   })
                 }
                 className="group relative aspect-video sm:aspect-[4/3] lg:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 sm:p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
@@ -992,43 +1003,12 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
         </div>
       </Modal>
 
-      {/* ── 7. QC Video Modal (Compact Square Frame) ── */}
-      {activeVideoModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in"
-          onClick={() => setActiveVideoModal(null)}
-        >
-          <div
-            className="bg-[#00143D] border border-slate-700/80 rounded-3xl w-full max-w-md sm:max-w-lg shadow-2xl overflow-hidden text-white animate-in zoom-in-95"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-3.5 sm:p-4 border-b border-white/10 bg-slate-900/80">
-              <div className="min-w-0 flex-1 mr-2">
-                <span className="text-[9px] font-black text-[#FF1028] uppercase font-mono block">
-                  {activeVideoModal.tag}
-                </span>
-                <h4 className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">{activeVideoModal.title}</h4>
-              </div>
-              <button
-                onClick={() => setActiveVideoModal(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 cursor-pointer"
-                aria-label="Close modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="relative aspect-square sm:aspect-[4/3] bg-black flex items-center justify-center overflow-hidden">
-              <Image src={activeVideoModal.url} alt="Video Preview" fill className="object-cover opacity-60" />
-              <div className="relative z-10 flex flex-col items-center gap-2 text-center p-4">
-                <div className="w-14 h-14 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-xl animate-pulse">
-                  <Play className="w-6 h-6 ml-0.5 fill-current" />
-                </div>
-                <span className="text-xs font-bold text-slate-200">1080p 60FPS Laboratory Testing Stream</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── 7. QC Reels Video Modal ── */}
+      <ReelsVideoModal
+        isOpen={!!activeVideoModal}
+        onClose={() => setActiveVideoModal(null)}
+        videoData={activeVideoModal}
+      />
     </div>
   );
 }

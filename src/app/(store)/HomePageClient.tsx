@@ -21,12 +21,6 @@ import {
   Factory,
   Radio,
   Clock,
-  Award,
-  Video,
-  Play,
-  Film,
-  X,
-  Plane,
 } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
@@ -34,6 +28,7 @@ import { FlashDealsSection } from "@/components/sections/FlashDealsSection";
 import { TopSellingProductsSection } from "@/components/sections/TopSellingProductsSection";
 import { HeroLennoxSection } from "@/components/sections/HeroLennoxSection";
 import { DualPromotionalShowcaseSection } from "@/components/sections/DualPromotionalShowcaseSection";
+import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoModal";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
@@ -157,14 +152,7 @@ export function HomePageClient({ sections }: HomePageClientProps) {
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("all");
-  const [activeVideoModal, setActiveVideoModal] = useState<{
-    title: string;
-    subtitle: string;
-    productLink: string;
-    productPrice: number;
-    hub: string;
-    tag: string;
-  } | null>(null);
+  const [activeVideoModal, setActiveVideoModal] = useState<ReelsVideoData | null>(null);
 
   const flashDeals = MOCK_PRODUCTS.filter((p) => p.is_flash_deal);
   const bestSellers = MOCK_PRODUCTS.filter((p) => p.is_best_seller);
@@ -433,118 +421,12 @@ export function HomePageClient({ sections }: HomePageClientProps) {
         </section>
       </SectionReveal>
 
-      {/* ── Interactive Video Demo Player Modal (Compact Proportioned Modal) ── */}
-      {activeVideoModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in"
-          onClick={() => setActiveVideoModal(null)}
-        >
-          <div
-            className="bg-[#00143D] border border-slate-700/80 rounded-3xl max-w-md sm:max-w-lg w-full shadow-2xl overflow-hidden animate-in zoom-in-95 text-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 sm:p-4.5 border-b border-white/10 bg-slate-900/70">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                <div className="w-8 h-8 rounded-xl bg-[#FF1028] text-white flex items-center justify-center shrink-0">
-                  <Film className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="bg-[#FF1028] text-white text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded uppercase font-heading">
-                      {activeVideoModal.tag}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] text-amber-300 font-mono font-bold truncate">
-                      {activeVideoModal.hub}
-                    </span>
-                  </div>
-                  <h3 className="text-xs sm:text-sm font-black text-white font-heading mt-0.5 truncate">
-                    {activeVideoModal.title}
-                  </h3>
-                </div>
-              </div>
-              <button
-                onClick={() => setActiveVideoModal(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                aria-label="Close modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Video Player Frame (Square / Compact Aspect Ratio) */}
-            <div className="relative aspect-square sm:aspect-[4/3] bg-black flex items-center justify-center overflow-hidden group">
-              <Image
-                src="https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=1200&auto=format&fit=crop&q=80"
-                alt="Video Stream Preview"
-                fill
-                className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-radial from-transparent to-black/75" />
-
-              {/* Simulated Live Stream / Video Overlays */}
-              <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between gap-2">
-                <span className="bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1.5 shadow-md">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                  LIVE FACTORY FEED
-                </span>
-                <span className="bg-black/60 backdrop-blur-md text-slate-200 text-[9px] font-mono px-2 py-0.5 rounded border border-white/20">
-                  1080p 60FPS • SZX HUB 04
-                </span>
-              </div>
-
-              {/* Central Play Badge */}
-              <div className="relative z-10 flex flex-col items-center gap-2 text-center p-4 sm:p-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-2xl animate-pulse cursor-pointer hover:scale-110 transition-transform">
-                  <Play className="w-6 h-6 sm:w-7 sm:h-7 ml-1 fill-current" />
-                </div>
-                <span className="text-xs font-bold text-slate-200 drop-shadow-md max-w-xs">
-                  Inspected &amp; verified at Shenzhen assembly testing bench
-                </span>
-              </div>
-
-              {/* Video Timeline Bar */}
-              <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center gap-2.5 text-[10px] font-mono text-slate-300">
-                <span className="text-amber-300 font-bold">01:45</span>
-                <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                  <div className="w-2/3 h-full bg-[#FF1028] rounded-full" />
-                </div>
-                <span>02:30</span>
-              </div>
-            </div>
-
-            {/* Modal Footer & Direct Purchase Bar */}
-            <div className="p-3.5 sm:p-4.5 bg-slate-900/90 border-t border-white/10 space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="text-[10px] text-slate-400 block truncate">{activeVideoModal.subtitle}</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg sm:text-xl font-black text-[#10B981] font-mono">
-                      ${activeVideoModal.productPrice.toFixed(2)} USDT
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">Direct Sourcing</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveVideoModal(null)}
-                  className="flex-1 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-                <Link
-                  href={activeVideoModal.productLink}
-                  className="flex-2 px-4 py-2 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black text-xs font-heading transition-colors flex items-center justify-center gap-1.5 shadow-lg cursor-pointer"
-                >
-                  <span>View Full Factory Specs →</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── 8. Interactive QC Reels Video Modal ── */}
+      <ReelsVideoModal
+        isOpen={!!activeVideoModal}
+        onClose={() => setActiveVideoModal(null)}
+        videoData={activeVideoModal}
+      />
     </div>
   );
 }

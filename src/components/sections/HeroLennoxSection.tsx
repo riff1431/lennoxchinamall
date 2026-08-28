@@ -24,18 +24,13 @@ import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { formatCurrency } from "@/utils/helpers";
 
+import { ReelsVideoData } from "@/components/common/ReelsVideoModal";
+
 interface HeroLennoxSectionProps {
-  onOpenVideoModal: (videoData: {
-    title: string;
-    subtitle: string;
-    productLink: string;
-    productPrice: number;
-    hub: string;
-    tag: string;
-  }) => void;
+  onOpenVideoModal: (videoData: ReelsVideoData) => void;
 }
 
-const FIVE_DEAL_ITEMS = [
+const FOUR_DEAL_ITEMS = [
   {
     id: "hero-deal-1",
     title: "CMF Buds Pro 2 Wireless Earbuds",
@@ -92,20 +87,6 @@ const FIVE_DEAL_ITEMS = [
     freeShipping: "Free shipping ⚡ FULL",
     image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&auto=format&fit=crop&q=80",
   },
-  {
-    id: "hero-deal-5",
-    title: "iPhone 14 Pro Max 512GB Space Black",
-    slug: "eachine-ex5-4k-gps-fpv-drone",
-    discountBadge: "-$50.00",
-    comparePrice: 1199.0,
-    price: 1149.0,
-    rating: 5.0,
-    reviews: 320,
-    discountNote: "Verified Shenzhen QC",
-    installments: "12x $96.00 Interest free",
-    freeShipping: "Free shipping ⚡ FULL",
-    image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&auto=format&fit=crop&q=80",
-  },
 ];
 
 export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) {
@@ -130,7 +111,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
     return () => clearInterval(timer);
   }, []);
 
-  const handleQuickAdd = (e: React.MouseEvent, item: typeof FIVE_DEAL_ITEMS[0]) => {
+  const handleQuickAdd = (e: React.MouseEvent, item: typeof FOUR_DEAL_ITEMS[0]) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -248,7 +229,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
         </div>
 
         {/* ═══════════════════════════════════════════════════════════
-            2. CENTER COLUMN: SHOWCASE PROMO BANNER + 5 PRODUCT CARDS
+            2. CENTER COLUMN: SHOWCASE PROMO BANNER + 4 PRODUCT CARDS
             • Desktop: 6 Cols
             • Mobile: Smooth swipeable row or 2-col responsive touch cards
         ══════════════════════════════════════════════════════════════ */}
@@ -295,9 +276,9 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
             </div>
           </Link>
 
-          {/* Bottom Row of 5 Product Cards (Swipeable on Mobile, 5 Cols on Desktop) */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
-            {FIVE_DEAL_ITEMS.map((item) => {
+          {/* Bottom Row of 4 Product Cards (Swipeable on Mobile, 4 Cols on Desktop) */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+            {FOUR_DEAL_ITEMS.map((item) => {
               const isAdded = !!addedItemIds[item.id];
               const inWish = isInWishlist(item.id);
 
@@ -436,6 +417,8 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 productPrice: 189.0,
                 hub: "Guangzhou Canton Hub",
                 tag: "LIVE EXPORT FAIR",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                poster: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
               })
             }
             className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
@@ -479,6 +462,8 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                       productPrice: 189.0,
                       hub: "Guangzhou Canton Hub",
                       tag: "LIVE EXPORT FAIR",
+                      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                      poster: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
                     });
                   }}
                   className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"
@@ -520,6 +505,8 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 productPrice: 219.0,
                 hub: "Shenzhen SZX Hub",
                 tag: "LAB BENCHMARK",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
               })
             }
             className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
@@ -563,6 +550,8 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                       productPrice: 219.0,
                       hub: "Shenzhen SZX Hub",
                       tag: "LAB BENCHMARK",
+                      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                      poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
                     });
                   }}
                   className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"

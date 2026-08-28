@@ -30,7 +30,6 @@ import {
   Truck,
   Plane,
   Scale,
-  Award,
   Tag,
   Check,
   Layers,
@@ -76,7 +75,6 @@ const NAV_LINKS = [
   { label: "Home", href: "/", icon: null },
   { label: "Flash Deals", href: "/categories/flash-deals", badge: "HOT", badgeColor: "bg-[#FF1028] text-white", icon: Flame },
   { label: "New Arrivals", href: "/categories/new-arrivals", icon: Sparkles },
-  { label: "Best Sellers", href: "/categories/consumer-electronics", icon: Award },
   { label: "Brands", href: "/admin/brands", icon: Tag },
   { label: "Track Order", href: "/account/orders", icon: Plane },
   { label: "Factory Hubs", href: "/admin/sourcing", icon: Factory },
@@ -839,7 +837,7 @@ export function Header({
       {/* ── 3. Lower Navigation & Mega Menu Bar (Desktop / Tablet) ── */}
       <div className="bg-white border-b border-slate-200 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-12">
+          <div className="flex items-center gap-6 sm:gap-8 h-12">
             {/* Mega Menu Toggle Button */}
             <div className="relative" ref={megaMenuRef}>
               <button
@@ -963,12 +961,6 @@ export function Header({
                 );
               })}
             </nav>
-
-            {/* Direct Factory Guarantee Badge */}
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>30-Day Money-Back Guarantee</span>
-            </div>
           </div>
         </div>
       </div>
