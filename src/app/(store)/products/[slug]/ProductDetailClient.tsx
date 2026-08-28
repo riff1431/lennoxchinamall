@@ -992,25 +992,32 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
         </div>
       </Modal>
 
-      {/* ── 7. QC Video Modal ── */}
+      {/* ── 7. QC Video Modal (Compact Square Frame) ── */}
       {activeVideoModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
-          <div className="bg-[#00143D] border border-slate-800 rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl shadow-2xl overflow-hidden text-white">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in"
+          onClick={() => setActiveVideoModal(null)}
+        >
+          <div
+            className="bg-[#00143D] border border-slate-700/80 rounded-3xl w-full max-w-md sm:max-w-lg shadow-2xl overflow-hidden text-white animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-3.5 sm:p-4 border-b border-white/10 bg-slate-900/80">
-              <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-black text-[#FF1028] uppercase font-mono block">
+              <div className="min-w-0 flex-1 mr-2">
+                <span className="text-[9px] font-black text-[#FF1028] uppercase font-mono block">
                   {activeVideoModal.tag}
                 </span>
                 <h4 className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">{activeVideoModal.title}</h4>
               </div>
               <button
                 onClick={() => setActiveVideoModal(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 ml-2"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 cursor-pointer"
+                aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="relative aspect-video min-h-[180px] bg-black flex items-center justify-center">
+            <div className="relative aspect-square sm:aspect-[4/3] bg-black flex items-center justify-center overflow-hidden">
               <Image src={activeVideoModal.url} alt="Video Preview" fill className="object-cover opacity-60" />
               <div className="relative z-10 flex flex-col items-center gap-2 text-center p-4">
                 <div className="w-14 h-14 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-xl animate-pulse">
