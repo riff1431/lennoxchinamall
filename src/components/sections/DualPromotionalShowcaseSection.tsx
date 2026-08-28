@@ -201,11 +201,11 @@ export function DualPromotionalShowcaseSection({
         {/* Banner 1: Lennox China Mall - Direct Factory Sourcing */}
         <Link
           href="/categories/consumer-electronics"
-          className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(0,20,61,0.25)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
+          className="group relative w-full aspect-[16/9] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(255,16,40,0.22)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
         >
           <Image
             src="/images/banners/lennox_china_mall_promo_1.jpg"
-            alt="Lennox China Mall - Direct Factory Sourcing • Shop Everything in One Place"
+            alt="Lennox China Mall - Direct Factory Sourcing • De las Fábricas a tus Manos"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center group-hover:scale-103 transition-transform duration-700"
@@ -213,14 +213,14 @@ export function DualPromotionalShowcaseSection({
           />
         </Link>
 
-        {/* Banner 2: Lennox China Mall - The Ultimate Direct Sourcing Destination */}
+        {/* Banner 2: Lennox China Mall - Verified Direct Hubs */}
         <Link
           href="/categories/all"
-          className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(0,20,61,0.25)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
+          className="group relative w-full aspect-[16/9] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(0,20,61,0.25)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
         >
           <Image
             src="/images/banners/lennox_china_mall_promo_2.jpg"
-            alt="Lennox China Mall - The Ultimate Direct Sourcing Destination"
+            alt="Lennox China Mall - Verified Direct Hubs"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center group-hover:scale-103 transition-transform duration-700"
