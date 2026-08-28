@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      {
+        protocol: "https",
+        hostname: "lennoxonemall.com",
+        pathname: "/**",
+      },
     ],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 Days image caching

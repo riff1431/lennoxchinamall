@@ -33,6 +33,7 @@ import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
 import { FlashDealsSection } from "@/components/sections/FlashDealsSection";
 import { TopSellingProductsSection } from "@/components/sections/TopSellingProductsSection";
 import { HeroLennoxSection } from "@/components/sections/HeroLennoxSection";
+import { DualPromotionalShowcaseSection } from "@/components/sections/DualPromotionalShowcaseSection";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
@@ -185,9 +186,14 @@ export function HomePageClient({ sections }: HomePageClientProps) {
 
   return (
     <div className="space-y-12 pb-16">
-      {/* ── 1. 3-Column Hero Section (Deal of the Day, Showcase Banner + 5 Mini Cards, 2 Live Videos) ── */}
+      {/* ── 1. 3-Column Hero Section ── */}
       <SectionReveal effect="fade-in">
         <HeroLennoxSection onOpenVideoModal={setActiveVideoModal} />
+      </SectionReveal>
+
+      {/* ── 2. Best Sellings, Top Rated & Dual Promotional Banners ── */}
+      <SectionReveal effect="fade-up" delay={80}>
+        <DualPromotionalShowcaseSection />
       </SectionReveal>
 
       {/* ── 2. Direct Sourcing Departments Grid ── */}
