@@ -402,13 +402,19 @@ export function Header({
             </button>
 
             {/* ── Brand Logo Area ── */}
-            <Link href="/" className="shrink-0 group">
-              <div className="relative h-10 w-[120px] sm:h-12 sm:w-[150px] md:h-14 md:w-[180px] group-hover:scale-[1.03] transition-transform">
+            <Link href="/" className="shrink-0 group py-1">
+              <div
+                className={`relative transition-all duration-300 ${
+                  isScrolled
+                    ? "h-11 w-[150px] sm:h-13 sm:w-[190px] md:h-16 md:w-[240px]"
+                    : "h-14 w-[175px] sm:h-18 sm:w-[230px] md:h-22 md:w-[280px] lg:h-24 lg:w-[320px]"
+                } group-hover:scale-[1.03]`}
+              >
                 <Image
                   src={logoUrl}
                   alt={`${storeName} Logo`}
                   fill
-                  sizes="(max-width: 640px) 120px, (max-width: 768px) 150px, 180px"
+                  sizes="(max-width: 640px) 175px, (max-width: 1024px) 280px, 320px"
                   className="object-contain object-left"
                   priority
                 />
@@ -963,8 +969,8 @@ export function Header({
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                 <Link href="/" className="shrink-0">
-                  <div className="relative h-10 w-[130px]">
-                    <Image src={logoUrl} alt={`${storeName} Logo`} fill sizes="130px" className="object-contain object-left" />
+                  <div className="relative h-12 w-[165px]">
+                    <Image src={logoUrl} alt={`${storeName} Logo`} fill sizes="165px" className="object-contain object-left" />
                   </div>
                 </Link>
                 <button
