@@ -30,6 +30,7 @@ import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCompareStore } from "@/store/useCompareStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
 import { Modal } from "@/components/ui/Modal";
+import { motion } from "framer-motion";
 
 interface ProductCardProps {
   product: Product;
@@ -162,8 +163,10 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
   return (
     <>
-      <div
-        className={`group relative bg-white rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden hover-lift ${
+      <motion.div
+        whileHover={{ y: -4 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className={`group relative bg-white rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden ${
           isOutOfStock
             ? "border-slate-200 opacity-75"
             : "border-slate-200/90 hover:border-[#FF1028]/40 hover:shadow-lg shadow-2xs"
@@ -178,33 +181,33 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               src={isHovered ? hoverImage : primaryImage}
               alt={product.title}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-              className={`object-cover object-center transition-transform duration-700 ${
-                isHovered ? "scale-108" : "scale-100"
-              }`}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               priority={priority}
               onError={() => setImgError(true)}
+              className="object-contain p-2.5 transition-transform duration-500 group-hover:scale-108"
             />
 
-            {/* Subtle Gradient Shadow on Hover */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            {/* ── Top Badges (Discount, Flash Deal, Best Seller, New, Out of Stock) ── */}
+            {/* ── Dynamic Category Badges ── */}
             <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-              {isOutOfStock ? (
-                <span className="bg-slate-900/90 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider shadow-xs font-heading backdrop-blur-xs">
-                  OUT OF STOCK
-                </span>
+              {product.is_flash_deal ? (
+                <>
+                  <span className="bg-[#FF1028] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide font-mono">
+                    -{discount > 0 ? `${discount}%` : "45%"}
+                  </span>
+                  <span className="bg-amber-400 text-slate-950 text-[7.5px] sm:text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-0.5 shadow-2xs font-mono">
+                    <Flame className="w-2.5 h-2.5 fill-slate-950" /> FLASH DROP
+                  </span>
+                </>
               ) : (
                 <>
                   {discount > 0 && (
-                    <span className="bg-[#FF1028] text-white text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wider font-heading">
+                    <span className="bg-[#FF1028] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide font-mono">
                       -{discount}%
                     </span>
                   )}
-                  {product.is_flash_deal && (
-                    <span className="bg-[#00143D] text-amber-300 text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs flex items-center gap-1 border border-amber-300/30 uppercase tracking-wide">
-                      <Flame className="w-2.5 h-2.5 fill-amber-300 text-amber-300" /> FLASH DROP
+                  {product.is_new_arrival && (
+                    <span className="bg-emerald-600 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
+                      <Sparkles className="w-2.5 h-2.5" /> NEW
                     </span>
                   )}
                   {product.is_best_seller && !product.is_flash_deal && (
@@ -212,114 +215,91 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                       <Award className="w-2.5 h-2.5" /> BEST SELLER
                     </span>
                   )}
-                  {isLowStock && (
-                    <span className="bg-orange-600 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide shadow-2xs flex items-center gap-1 font-mono">
-                      <AlertTriangle className="w-2.5 h-2.5" /> ONLY {totalStock} LEFT
-                    </span>
-                  )}
                 </>
               )}
             </div>
 
-            {/* ── Video QC Demo Badge ── */}
-            {videoCount > 0 && (
-              <div className="absolute bottom-2 left-2 bg-[#00143D]/90 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 z-10 border border-white/20 shadow-2xs">
-                <Video className="w-2.5 h-2.5 text-[#FF1028]" />
-                <span>{videoCount} Video{videoCount > 1 ? "s" : ""}</span>
-              </div>
-            )}
-
             {/* ── Floating Action Bar (Right Side Hover) ── */}
-            <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
+            <div className="absolute top-2 right-2 flex flex-col gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               {/* Wishlist Button */}
               <button
                 onClick={handleWishlistToggle}
-                className="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-[#FF1028] hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100"
+                className={`w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
+                  isInWishlist ? "text-[#FF1028]" : "text-slate-400 hover:text-[#FF1028]"
+                }`}
                 title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                 aria-label="Toggle Wishlist"
               >
-                <Heart
-                  className={`w-3.5 h-3.5 transition-colors ${
-                    isInWishlist ? "fill-[#FF1028] text-[#FF1028] scale-110" : ""
-                  }`}
-                />
+                <Heart className={`w-3.5 h-3.5 ${isInWishlist ? "fill-[#FF1028]" : ""}`} />
               </button>
 
               {/* Compare Button */}
               <button
                 onClick={handleCompareToggle}
-                className={`w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 ${
-                  isInCompare
-                    ? "text-blue-600 border-blue-200"
-                    : "text-slate-400 hover:text-blue-600 hover:scale-115"
+                className={`w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
+                  isInCompare ? "text-blue-600 font-bold" : "text-slate-400 hover:text-blue-600"
                 }`}
-                title={isInCompare ? "In comparison list" : "Add to comparison"}
-                aria-label="Toggle Compare"
+                title={isInCompare ? "Remove from comparison" : "Add to compare"}
+                aria-label="Compare Product"
               >
                 <Scale className="w-3.5 h-3.5" />
               </button>
 
-              {/* Quick View Button (Visible on Hover on Desktop) */}
+              {/* Quick View Button */}
               <button
                 onClick={handleOpenQuickView}
-                className="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-[#00143D] hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100 opacity-0 group-hover:opacity-100 hidden sm:flex"
-                title="Quick View Product"
+                className="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-slate-800 hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100"
+                title="Quick View Details"
                 aria-label="Quick View"
               >
                 <Eye className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* ── Flash Sale Countdown Bar Overlay (Bottom of Image) ── */}
+            {/* Flash Deal Live Ticking Strip on Image Bottom */}
             {product.is_flash_deal && (
-              <div className="absolute bottom-0 left-0 right-0 bg-[#00143D]/95 backdrop-blur-md text-amber-300 py-0.5 px-2 flex items-center justify-between text-[9px] font-mono border-t border-amber-300/30 z-10">
-                <span className="flex items-center gap-1 font-bold text-white">
-                  <Clock className="w-2.5 h-2.5 text-amber-300" /> Ends:
+              <div className="absolute bottom-0 inset-x-0 bg-[#00143D]/95 backdrop-blur-md text-amber-300 text-[8.5px] sm:text-[9.5px] font-black py-0.5 px-2 flex items-center justify-between z-10 border-t border-amber-400/20 font-mono">
+                <span className="flex items-center gap-1 text-slate-300">
+                  <Clock className="w-2.5 h-2.5 text-amber-400" /> Ends:
                 </span>
-                <span className="font-black text-amber-300 tracking-wider">
-                  {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:
-                  {String(timeLeft.seconds).padStart(2, "0")}
+                <span className="tracking-widest font-black">
+                  {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:{String(timeLeft.seconds).padStart(2, "0")}
                 </span>
               </div>
             )}
           </div>
 
-          {/* ── 2. Product Details & Typography ── */}
-          <div className="p-2.5 sm:p-3 flex flex-col justify-between flex-1 gap-1.5">
-            <div>
-              {/* Category / Brand Micro Tag */}
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block truncate">
-                Direct China Factory • QC
-              </span>
-
-              {/* Product Title */}
-              <h3 className="font-heading text-xs sm:text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-[#FF1028] transition-colors mt-0.5 min-h-[32px]">
-                {product.title}
-              </h3>
+          {/* ── 2. Compact Product Details ── */}
+          <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-1.5">
+            {/* Origin & QC Tag */}
+            <div className="flex items-center justify-between text-[9px] text-slate-400 uppercase tracking-wider font-mono">
+              <span className="truncate">{product.shipping_origin ? "Direct China Factory" : "Direct Factory"}</span>
+              <span className="text-emerald-700 font-bold shrink-0">QC</span>
             </div>
 
-            {/* Rating & Sold Count Row */}
-            <div className="flex items-center justify-between text-[11px] pt-0.5">
-              <div className="flex items-center gap-1 text-slate-600 font-semibold text-[10px] sm:text-[11px]">
-                <div className="flex items-center text-amber-500">
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  <span className="ml-1 text-slate-800 font-black tabular-nums">
-                    {(product.avg_rating || 4.9).toFixed(1)}
-                  </span>
-                </div>
-                <span className="text-slate-500">({product.review_count || 18})</span>
+            {/* Title */}
+            <h3 className="font-sans font-bold text-xs sm:text-[13px] text-slate-800 line-clamp-2 leading-tight group-hover:text-[#FF1028] transition-colors">
+              {product.title}
+            </h3>
+
+            {/* Rating & Social Proof */}
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500">
+              <div className="flex items-center gap-0.5 text-amber-500">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                <span className="font-bold font-mono text-slate-800 text-[10px]">
+                  {product.avg_rating ? product.avg_rating.toFixed(1) : "4.9"}
+                </span>
               </div>
-
-              <span className="text-[9.5px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded tabular-nums">
-                {product.sold_count >= 1000
-                  ? `${(product.sold_count / 1000).toFixed(1)}k+ sold`
-                  : `${product.sold_count || 48} sold`}
+              <span className="text-slate-400 text-[9px]">({product.review_count || 120})</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-[9px] font-mono text-slate-500 truncate">
+                {product.sold_count ? `${(product.sold_count / 1000).toFixed(1)}k+ sold` : "500+ sold"}
               </span>
             </div>
 
-            {/* Variant Selector Pills (If variants exist) */}
+            {/* Variant Pills (if available) */}
             {product.variants && product.variants.length > 1 && (
-              <div className="flex items-center gap-1 overflow-x-auto py-0.5 scrollbar-none">
+              <div className="flex items-center gap-1 overflow-hidden py-0.5">
                 {product.variants.slice(0, 3).map((v) => (
                   <button
                     key={v.id}
@@ -328,47 +308,38 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                       e.stopPropagation();
                       setSelectedVariantId(v.id);
                     }}
-                    className={`px-1.5 py-0.5 rounded text-[8px] font-bold font-mono transition-all shrink-0 cursor-pointer ${
+                    className={`text-[8.5px] font-mono px-1.5 py-0.5 rounded border transition-all cursor-pointer truncate max-w-[80px] ${
                       selectedVariantId === v.id
-                        ? "bg-[#00143D] text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        ? "bg-[#00143D] text-white border-[#00143D] font-bold"
+                        : "bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-400"
                     }`}
                   >
-                    {v.title || v.sku}
+                    {v.title}
                   </button>
                 ))}
               </div>
             )}
 
-            {/* Price Block: Sale Price, Compare Price, Savings */}
-            <div className="pt-1.5 border-t border-slate-100">
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-sm sm:text-base font-black text-[#00143D] font-mono leading-none">
-                  {formatCurrency(activePrice)}
+            {/* Price Block */}
+            <div className="pt-1 border-t border-slate-100 flex items-baseline gap-1.5">
+              <span className="text-sm font-black text-[#00143D] font-mono">
+                {formatCurrency(activePrice)}
+              </span>
+              {comparePrice && comparePrice > activePrice && (
+                <span className="text-[10px] text-slate-400 line-through font-mono">
+                  ${comparePrice.toFixed(2)}
                 </span>
-                {comparePrice && comparePrice > activePrice && (
-                  <span className="text-[10px] sm:text-xs text-slate-400 line-through tabular-nums font-mono">
-                    ${comparePrice.toFixed(2)}
-                  </span>
-                )}
-              </div>
-
-              {savingsAmount > 0 && (
-                <div className="text-[9px] sm:text-[9.5px] font-black text-[#FF1028] mt-0.5 font-heading tracking-wide flex items-center gap-1">
-                  <span>Save ${savingsAmount.toFixed(2)} USDT</span>
-                  <span className="text-[8.5px] text-slate-500 font-normal">• Zero Fee</span>
-                </div>
               )}
             </div>
 
             {/* Logistics & QC Micro Badges */}
-            <div className="space-y-0.5 pt-1 border-t border-slate-100 text-[9px] sm:text-[9.5px] text-slate-500 font-medium">
+            <div className="space-y-0.5 text-[9px] sm:text-[9.5px] text-slate-500 font-medium">
               <div className="flex items-center gap-1 text-slate-600 truncate">
                 <Plane className="w-2.5 h-2.5 text-blue-600 shrink-0" />
                 <span className="truncate">5-8 Days Direct Air Cargo</span>
               </div>
               <div className="flex items-center gap-1 text-[#10B981] font-semibold truncate">
-                <ShieldCheck className="w-2.5 h-2.5 shrink-0" />
+                <ShieldCheck className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
                 <span className="truncate">100% Factory Gate QC Pass</span>
               </div>
             </div>
@@ -377,17 +348,17 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
         {/* ── 3. Quick-Add Action Bar ── */}
         <div className="px-2.5 pb-2.5 sm:px-3 sm:pb-3 pt-0.5">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.96 }}
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
-            className={`w-full py-2 px-2.5 rounded-xl text-xs font-black font-heading flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer ${
+            className={`w-full py-2 px-2.5 rounded-xl text-xs font-black font-heading flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer ${
               isOutOfStock
                 ? "bg-slate-200 text-slate-400 cursor-not-allowed"
                 : justAdded
                 ? "bg-[#10B981] text-white"
                 : "bg-[#00143D] hover:bg-[#FF1028] text-white"
             }`}
-            aria-label={isOutOfStock ? "Out of Stock" : "Quick Add to Cart"}
           >
             {isOutOfStock ? (
               <span>Out of Stock</span>
@@ -402,9 +373,9 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 <span>Quick Add</span>
               </>
             )}
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── 4. Interactive Quick View Modal ── */}
       <Modal

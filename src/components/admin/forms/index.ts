@@ -7,3 +7,4 @@ export * from "./AdminDatePicker";
 export * from "./AdminUploader";
 export * from "./AdminTextarea";
 export * from "./AdminFormSection";
+export * from "./AdminIconPicker";

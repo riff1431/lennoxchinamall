@@ -35,6 +35,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { formatCurrency } from "@/utils/helpers";
 import { getFilteredProducts, FilteredProductsResult } from "@/app/actions/store-products";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 
 interface CategoryPageClientProps {
   slug: string;
@@ -245,10 +246,21 @@ export function CategoryPageClient({ slug, category }: CategoryPageClientProps) 
                   {resultData.totalCount} Products Found
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black font-heading text-[#00143D] tracking-tight mt-1">
-                {pageTitle}
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-500 max-w-2xl mt-1 leading-relaxed">
+              <div className="flex items-center gap-3 mt-1.5">
+                {(category?.icon || category?.iconName) && (
+                  <div className="w-9 h-9 rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center p-1.5 border border-red-100 shrink-0 shadow-2xs overflow-hidden">
+                    <CategoryIcon
+                      icon={category.icon || category.iconName}
+                      name={category.name}
+                      className="w-5 h-5 text-[#FF1028]"
+                    />
+                  </div>
+                )}
+                <h1 className="text-2xl sm:text-3xl font-black font-heading text-[#00143D] tracking-tight">
+                  {pageTitle}
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-2xl mt-1.5 leading-relaxed">
                 {pageSubtitle}
               </p>
             </div>

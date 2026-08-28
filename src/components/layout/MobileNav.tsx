@@ -28,6 +28,8 @@ import {
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useCategoryStore } from "@/store/useCategoryStore";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { signout } from "@/app/actions/auth";
@@ -52,6 +54,9 @@ export function MobileNav() {
   const cartSubtotal = useCartStore((state) => state.getSubtotal());
   const openCart = useCartStore((state) => state.openCart);
   const wishlistTotal = useWishlistStore((state) => state.getTotalItems());
+
+  const { getRootCategories } = useCategoryStore();
+  const rootCategories = getRootCategories();
 
   const [activeSheet, setActiveSheet] = useState<Sheet>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -318,15 +323,15 @@ export function MobileNav() {
               <div className="px-4">
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 font-mono">Browse Departments</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {MOCK_CATEGORIES.slice(0, 9).map((cat) => (
+                  {rootCategories.slice(0, 9).map((cat) => (
                     <Link
                       key={cat.id}
                       href={`/categories/${cat.slug}`}
                       onClick={closeSheet}
                       className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all text-center"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-[#00143D]/10 flex items-center justify-center">
-                        <Package className="w-4 h-4 text-[#00143D]" />
+                      <div className="w-8 h-8 rounded-lg bg-[#00143D]/10 flex items-center justify-center p-1.5 overflow-hidden">
+                        <CategoryIcon icon={cat.icon || cat.iconName} name={cat.name} className="w-4 h-4 text-[#00143D]" />
                       </div>
                       <span className="text-[10px] font-bold text-slate-700 leading-tight line-clamp-2">{cat.name}</span>
                     </Link>
@@ -387,7 +392,7 @@ export function MobileNav() {
 
           {/* Full category list */}
           <div className="overflow-y-auto flex-1 px-4 pb-4 space-y-1">
-            {MOCK_CATEGORIES.map((cat) => (
+            {rootCategories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/categories/${cat.slug}`}
@@ -395,8 +400,8 @@ export function MobileNav() {
                 className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#00143D]/8 flex items-center justify-center shrink-0">
-                    <Package className="w-4 h-4 text-[#00143D]" />
+                  <div className="w-9 h-9 rounded-xl bg-[#00143D]/8 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
+                    <CategoryIcon icon={cat.icon || cat.iconName} name={cat.name} className="w-4 h-4 text-[#00143D]" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-800">{cat.name}</p>

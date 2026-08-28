@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lennoxchinamall.com";
 
@@ -58,10 +59,19 @@ export default function CategoriesDirectoryPage() {
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-              <div className="absolute bottom-3 left-4 right-4">
-                <h2 className="text-lg font-black text-white">{cat.name}</h2>
-                <span className="text-xs text-orange-400 font-bold">
-                  {cat.product_count}+ Verified Items
+              <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-black/40 backdrop-blur-xs border border-white/20 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                    <CategoryIcon
+                      icon={cat.icon || cat.iconName}
+                      name={cat.name}
+                      className="w-4 h-4 text-amber-400"
+                    />
+                  </div>
+                  <h2 className="text-lg font-black text-white">{cat.name}</h2>
+                </div>
+                <span className="text-xs text-orange-400 font-bold bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-md border border-white/10 font-mono">
+                  {cat.product_count}+ Items
                 </span>
               </div>
             </div>

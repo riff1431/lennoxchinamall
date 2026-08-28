@@ -6,19 +6,10 @@ import {
   FolderTree,
   Plus,
   Trash2,
-  Smartphone,
-  Plane,
-  Wrench,
-  Home,
-  Car,
-  Compass,
-  Package,
   Layers,
   Tag,
-  Zap,
-  Cpu,
-  Boxes,
   Eye,
+  RotateCcw,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
@@ -31,55 +22,26 @@ import {
   AdminUploader,
   AdminTextarea,
   AdminFormSection,
+  AdminIconPicker,
 } from "@/components/admin/forms";
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { slugify } from "@/utils/helpers";
-import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { Category } from "@/types/database";
-
-type CategoryItem = Category & {
-  iconName?: string;
-  subcategories?: string[];
-  product_count?: number;
-};
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  Smartphone,
-  Plane,
-  Wrench,
-  Home,
-  Car,
-  Compass,
-  Package,
-  Layers,
-  Tag,
-  Zap,
-  Cpu,
-  Boxes,
-  FolderTree,
-};
-
-const AVAILABLE_ICONS = [
-  "Smartphone",
-  "Plane",
-  "Wrench",
-  "Home",
-  "Car",
-  "Compass",
-  "Package",
-  "Layers",
-  "Tag",
-  "Zap",
-  "Cpu",
-  "Boxes",
-  "FolderTree",
-];
+import { useCategoryStore } from "@/store/useCategoryStore";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 
 export default function AdminCategoriesPage() {
   const toast = useAdminToast();
-  const [categories, setCategories] = useState<CategoryItem[]>(MOCK_CATEGORIES);
+  const {
+    categories,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    resetToDefaults,
+  } = useCategoryStore();
+
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   // Form State
   const [formName, setFormName] = useState("");
@@ -89,6 +51,8 @@ export default function AdminCategoriesPage() {
   const [formIcon, setFormIcon] = useState("FolderTree");
   const [formPosition, setFormPosition] = useState(1);
   const [formImages, setFormImages] = useState<string[]>([]);
+  const [formThumbnailImages, setFormThumbnailImages] = useState<string[]>([]);
+  const [formBgColor, setFormBgColor] = useState("#EBF4FB");
   const [formSeoTitle, setFormSeoTitle] = useState("");
   const [formSeoDesc, setFormSeoDesc] = useState("");
   const [formSubcategories, setFormSubcategories] = useState("");
@@ -103,6 +67,8 @@ export default function AdminCategoriesPage() {
     setFormIcon("FolderTree");
     setFormPosition(categories.length + 1);
     setFormImages([]);
+    setFormThumbnailImages([]);
+    setFormBgColor("#EBF4FB");
     setFormSeoTitle("");
     setFormSeoDesc("");
     setFormSubcategories("");
@@ -110,15 +76,17 @@ export default function AdminCategoriesPage() {
     setIsSlideOverOpen(true);
   };
 
-  const handleOpenEdit = (cat: CategoryItem) => {
+  const handleOpenEdit = (cat: Category) => {
     setEditingCategory(cat);
     setFormName(cat.name);
     setFormSlug(cat.slug);
     setFormParentId(cat.parent_id || "root");
     setFormDescription(cat.description || "");
-    setFormIcon(cat.iconName || cat.icon || "FolderTree");
+    setFormIcon(cat.icon || cat.iconName || "FolderTree");
     setFormPosition(cat.position || 1);
     setFormImages(cat.image_url ? [cat.image_url] : []);
+    setFormThumbnailImages(cat.thumbnail_url ? [cat.thumbnail_url] : cat.image_url ? [cat.image_url] : []);
+    setFormBgColor(cat.bg_color || "#EBF4FB");
     setFormSeoTitle(cat.seo_title || "");
     setFormSeoDesc(cat.seo_description || "");
     setFormSubcategories(cat.subcategories?.join(", ") || "");
@@ -146,33 +114,28 @@ export default function AdminCategoriesPage() {
       .filter(Boolean);
 
     const imageUrl = formImages[0] || null;
+    const thumbnailUrl = formThumbnailImages[0] || imageUrl || null;
 
     if (editingCategory) {
-      setCategories((prev) =>
-        prev.map((c) =>
-          c.id === editingCategory.id
-            ? {
-                ...c,
-                name: formName.trim(),
-                slug: formSlug.trim() || slugify(formName),
-                parent_id: formParentId === "root" ? null : formParentId,
-                description: formDescription.trim() || null,
-                icon: formIcon,
-                iconName: formIcon,
-                position: Number(formPosition) || 1,
-                image_url: imageUrl,
-                seo_title: formSeoTitle.trim() || null,
-                seo_description: formSeoDesc.trim() || null,
-                subcategories: subcats,
-                is_active: formIsActive,
-                updated_at: new Date().toISOString(),
-              }
-            : c
-        )
-      );
+      updateCategory(editingCategory.id, {
+        name: formName.trim(),
+        slug: formSlug.trim() || slugify(formName),
+        parent_id: formParentId === "root" ? null : formParentId,
+        description: formDescription.trim() || null,
+        icon: formIcon,
+        iconName: formIcon,
+        position: Number(formPosition) || 1,
+        image_url: imageUrl,
+        thumbnail_url: thumbnailUrl,
+        bg_color: formBgColor,
+        seo_title: formSeoTitle.trim() || null,
+        seo_description: formSeoDesc.trim() || null,
+        subcategories: subcats,
+        is_active: formIsActive,
+      });
       toast.success(`Category "${formName}" updated successfully.`);
     } else {
-      const newCat: CategoryItem = {
+      const newCat: Category = {
         id: `cat-${Date.now()}`,
         name: formName.trim(),
         slug: formSlug.trim() || slugify(formName),
@@ -182,6 +145,8 @@ export default function AdminCategoriesPage() {
         iconName: formIcon,
         position: Number(formPosition) || categories.length + 1,
         image_url: imageUrl,
+        thumbnail_url: thumbnailUrl,
+        bg_color: formBgColor,
         seo_title: formSeoTitle.trim() || `${formName} - Lennox ChinaMall`,
         seo_description: formSeoDesc.trim() || formDescription.trim() || null,
         subcategories: subcats,
@@ -190,16 +155,23 @@ export default function AdminCategoriesPage() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
-      setCategories((prev) => [newCat, ...prev]);
+      addCategory(newCat);
       toast.success(`Category "${formName}" created successfully.`);
     }
 
     setIsSlideOverOpen(false);
   };
 
-  const handleDeleteCategory = (cat: CategoryItem) => {
-    setCategories((prev) => prev.filter((c) => c.id !== cat.id));
+  const handleDeleteCategory = (cat: Category) => {
+    deleteCategory(cat.id);
     toast.success(`Category "${cat.name}" deleted.`);
+  };
+
+  const handleResetDefaults = () => {
+    if (confirm("Reset all categories to default Lennox ChinaMall taxonomy?")) {
+      resetToDefaults();
+      toast.success("Categories restored to defaults.");
+    }
   };
 
   // Metrics
@@ -208,26 +180,38 @@ export default function AdminCategoriesPage() {
   const rootCategories = categories.filter((c) => !c.parent_id).length;
 
   // Table Columns
-  const columns: Column<CategoryItem>[] = [
+  const columns: Column<Category>[] = [
     {
-      header: "Category Name",
+      header: "Category & Circle Avatar",
       accessorKey: "name",
       sortable: true,
       cell: (row) => {
-        const IconComponent = ICON_MAP[row.iconName || row.icon || "FolderTree"] || FolderTree;
+        const bg = row.bg_color || "#EBF4FB";
+        const thumb = row.thumbnail_url || row.image_url;
+
         return (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative">
-              {row.image_url ? (
-                <Image
-                  src={row.image_url}
-                  alt={row.name}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+            {/* Storefront Circular Avatar Thumbnail */}
+            <div
+              style={{ backgroundColor: bg }}
+              className="w-11 h-11 rounded-full border border-black/5 flex items-center justify-center shrink-0 p-1.5 shadow-2xs relative overflow-hidden"
+            >
+              {thumb ? (
+                <div className="relative w-full h-full">
+                  <Image
+                    src={thumb}
+                    alt={row.name}
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
               ) : (
-                <IconComponent className="w-5 h-5 text-[#FF1028]" />
+                <CategoryIcon
+                  icon={row.icon || row.iconName || "FolderTree"}
+                  name={row.name}
+                  className="w-5 h-5 text-[#FF1028]"
+                />
               )}
             </div>
             <div>
@@ -243,7 +227,7 @@ export default function AdminCategoriesPage() {
               </div>
               {row.subcategories && row.subcategories.length > 0 && (
                 <div className="text-[10px] text-slate-400 truncate max-w-xs mt-0.5">
-                  {row.subcategories.length} sub-branches: {row.subcategories.slice(0, 2).join(", ")}
+                  {row.subcategories.length} branches: {row.subcategories.slice(0, 2).join(", ")}
                   {row.subcategories.length > 2 && "..."}
                 </div>
               )}
@@ -251,6 +235,27 @@ export default function AdminCategoriesPage() {
           </div>
         );
       },
+    },
+    {
+      header: "Cover Banner",
+      accessorKey: "image_url",
+      cell: (row) => (
+        <div className="flex items-center gap-2">
+          {row.image_url ? (
+            <div className="w-12 h-7 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 relative bg-slate-100">
+              <Image
+                src={row.image_url}
+                alt={row.name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <span className="text-[10px] text-slate-400 italic">No banner</span>
+          )}
+        </div>
+      ),
     },
     {
       header: "Slug / Path",
@@ -267,7 +272,7 @@ export default function AdminCategoriesPage() {
       accessorKey: "parent_id",
       cell: (row) => {
         if (!row.parent_id) {
-          return <span className="text-[11px] text-slate-400 italic">— (Top Level)</span>;
+          return <span className="text-[11px] text-slate-400 italic">— (Top Department)</span>;
         }
         const parent = categories.find((c) => c.id === row.parent_id);
         return (
@@ -277,16 +282,6 @@ export default function AdminCategoriesPage() {
           </span>
         );
       },
-    },
-    {
-      header: "Products",
-      accessorKey: "product_count",
-      sortable: true,
-      cell: (row) => (
-        <span className="font-mono font-bold text-xs text-slate-700 dark:text-slate-300">
-          {row.product_count || 12} items
-        </span>
-      ),
     },
     {
       header: "Order Priority",
@@ -343,7 +338,7 @@ export default function AdminCategoriesPage() {
     },
   ];
 
-  const bulkActions: BulkAction<CategoryItem>[] = [
+  const bulkActions: BulkAction<Category>[] = [
     {
       label: "Bulk Delete",
       icon: Trash2,
@@ -352,8 +347,7 @@ export default function AdminCategoriesPage() {
       confirmTitle: "Bulk Delete Categories",
       confirmMessage: "Are you sure you want to delete the selected categories?",
       onClick: (selected) => {
-        const ids = new Set(selected.map((s) => s.id));
-        setCategories((prev) => prev.filter((c) => !ids.has(c.id)));
+        selected.forEach((s) => deleteCategory(s.id));
         toast.success(`Deleted ${selected.length} categories.`);
       },
     },
@@ -363,14 +357,20 @@ export default function AdminCategoriesPage() {
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12 font-montserrat">
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
-        title="Department Taxonomy"
-        subtitle="Manage product categories, hierarchy trees, navigational icons, and SEO descriptions."
+        title="Department Taxonomy & Icons"
+        subtitle="Manage storefront department categories, dynamic navigational icons (SVG / preset), parent trees, and banners."
         badge={{ text: `${totalCategories} Categories`, variant: "blue" }}
         breadcrumbs={[
           { label: "Catalogue & Inventory", href: "/admin/products" },
           { label: "Categories" },
         ]}
         actions={[
+          {
+            label: "Reset Defaults",
+            icon: RotateCcw,
+            variant: "outline",
+            onClick: handleResetDefaults,
+          },
           {
             label: "Create Category",
             icon: Plus,
@@ -384,7 +384,7 @@ export default function AdminCategoriesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-[#EEF4FF] dark:bg-[#172033] border border-[#BFDBFE]/50 dark:border-blue-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Total Nodes</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Total Department Nodes</span>
             <span className="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5 block">
               {totalCategories}
             </span>
@@ -408,7 +408,7 @@ export default function AdminCategoriesPage() {
 
         <div className="bg-[#FFF8EE] dark:bg-[#2A2117] border border-[#FED7AA]/50 dark:border-amber-900/30 rounded-2xl p-4.5 flex items-center justify-between shadow-xs">
           <div>
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Root Departments</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Header All Departments</span>
             <span className="text-xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5 block">
               {rootCategories}
             </span>
@@ -420,7 +420,7 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* ── 3. Reusable AdminDataTable ── */}
-      <AdminDataTable<CategoryItem>
+      <AdminDataTable<Category>
         data={categories}
         columns={columns}
         keyExtractor={(item) => item.id}
@@ -442,8 +442,8 @@ export default function AdminCategoriesPage() {
       <SlideOver
         isOpen={isSlideOverOpen}
         onClose={() => setIsSlideOverOpen(false)}
-        title={editingCategory ? "Edit Category Node" : "Create New Category Node"}
-        description="Configure taxonomy node names, parent relationships, icons, and SEO metadata."
+        title={editingCategory ? `Edit: ${editingCategory.name}` : "Create New Category Node"}
+        description="Configure taxonomy names, parent relationships, storefront navigational icons, and SEO metadata."
         size="lg"
         footer={
           <div className="flex items-center justify-end gap-3 w-full">
@@ -488,7 +488,7 @@ export default function AdminCategoriesPage() {
                 value={formParentId}
                 onChange={(e) => setFormParentId(e.target.value)}
                 options={[
-                  { value: "root", label: "Root Level (Top Department)" },
+                  { value: "root", label: "Root Level (Primary Department)" },
                   ...categories
                     .filter((c) => !editingCategory || c.id !== editingCategory.id)
                     .map((c) => ({ value: c.id, label: `└─ ${c.name}` })),
@@ -496,39 +496,134 @@ export default function AdminCategoriesPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <AdminSelect
-                label="Navigational Icon"
-                value={formIcon}
-                onChange={(e) => setFormIcon(e.target.value)}
-                options={AVAILABLE_ICONS.map((ico) => ({ value: ico, label: ico }))}
-              />
-
-              <AdminInput
-                label="Sort Order Index"
-                type="number"
-                min={1}
-                value={formPosition}
-                onChange={(e) => setFormPosition(Number(e.target.value))}
-              />
-            </div>
+            <AdminInput
+              label="Sort Order Priority"
+              type="number"
+              min={1}
+              value={formPosition}
+              onChange={(e) => setFormPosition(Number(e.target.value))}
+              helperText="Determines position in Header 'All Departments' dropdown (1 = Top)."
+            />
 
             <AdminInput
               label="Subcategories / Tags (Comma-separated)"
               placeholder="FPV Drones, Quadcopters, 4K Cameras, Drone Batteries"
               value={formSubcategories}
               onChange={(e) => setFormSubcategories(e.target.value)}
-              helperText="Creates searchable branch tags for storefront navigation pills."
+              helperText="Creates searchable branch tags for storefront navigation pills and mega menu."
             />
           </AdminFormSection>
 
-          <AdminFormSection title="Cover Banner Image">
+          {/* ── 1. Homepage Category Circular Thumbnail & Background Color ── */}
+          <AdminFormSection title="Homepage Category Circular Avatar & Pastel Tint">
+            <div className="space-y-4">
+              <AdminUploader
+                label="Category Circle Thumbnail Image"
+                values={formThumbnailImages}
+                onChange={setFormThumbnailImages}
+                maxFiles={1}
+                helperText="Product cutout or icon image displayed inside the homepage circular category avatar (e.g. 300x300 PNG/WebP)."
+              />
+
+              {/* Pastel Tint Selector */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                  Circular Badge Background Pastel Tint
+                </label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { hex: "#EBF4FB", label: "Ice Blue" },
+                    { hex: "#FDF0EB", label: "Peach" },
+                    { hex: "#FBEBF4", label: "Soft Pink" },
+                    { hex: "#EBFBF2", label: "Mint Green" },
+                    { hex: "#EBF9FB", label: "Cyan" },
+                    { hex: "#F4FBEB", label: "Lime" },
+                    { hex: "#FBEBEB", label: "Soft Rose" },
+                    { hex: "#EEF2FF", label: "Lavender" },
+                    { hex: "#FEF3C7", label: "Amber" },
+                    { hex: "#E0F2FE", label: "Sky Blue" },
+                  ].map((color) => (
+                    <button
+                      key={color.hex}
+                      type="button"
+                      onClick={() => setFormBgColor(color.hex)}
+                      className={`w-7 h-7 rounded-full border-2 transition-all cursor-pointer shadow-2xs ${
+                        formBgColor === color.hex
+                          ? "border-[#FF1028] scale-110 shadow-xs"
+                          : "border-slate-300 hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color.hex }}
+                      title={color.label}
+                    />
+                  ))}
+                  <input
+                    type="color"
+                    value={formBgColor}
+                    onChange={(e) => setFormBgColor(e.target.value)}
+                    className="w-7 h-7 rounded-full border border-slate-300 cursor-pointer overflow-hidden p-0"
+                    title="Custom color"
+                  />
+                  <span className="font-mono text-xs text-slate-500 font-bold ml-1">
+                    {formBgColor}
+                  </span>
+                </div>
+              </div>
+
+              {/* Live Preview Card */}
+              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center space-y-2">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                  Storefront Homepage Live Preview
+                </span>
+                <div className="flex flex-col items-center">
+                  <div
+                    style={{ backgroundColor: formBgColor }}
+                    className="w-20 h-20 rounded-full flex items-center justify-center relative overflow-hidden shadow-2xs border border-black/[0.04] transition-all"
+                  >
+                    {formThumbnailImages[0] ? (
+                      <div className="relative w-full h-full p-2">
+                        <Image
+                          src={formThumbnailImages[0]}
+                          alt={formName || "Preview"}
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <CategoryIcon
+                        icon={formIcon}
+                        name={formName}
+                        className="w-8 h-8 text-slate-700"
+                      />
+                    )}
+                  </div>
+                  <span className="mt-2 text-xs font-bold text-slate-800 dark:text-slate-200 text-center max-w-[100px] line-clamp-1 font-heading">
+                    {formName || "Category Name"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </AdminFormSection>
+
+          {/* ── Category Navigational Icon (Dedicated for Header & Dropdowns) ── */}
+          <AdminFormSection title="Category Navigational Icon">
+            <AdminIconPicker
+              label="Category Navigational Icon"
+              helperText="This icon is displayed next to the category in the Header 'All Departments' dropdown, MegaMenu, and search tags. Choose a preset vector or upload custom SVG/PNG."
+              value={formIcon}
+              onChange={setFormIcon}
+              required
+            />
+          </AdminFormSection>
+
+          {/* ── Category Cover Banner Image (Dedicated for Landing Pages) ── */}
+          <AdminFormSection title="Category Landing Banner">
             <AdminUploader
-              label="Category Header Banner"
+              label="Category Cover Banner Image (Optional)"
               values={formImages}
               onChange={setFormImages}
               maxFiles={1}
-              helperText="High-resolution banner (1200x400) for department landing headers."
+              helperText="High-resolution banner (1200x400) displayed on the Category landing page."
             />
           </AdminFormSection>
 

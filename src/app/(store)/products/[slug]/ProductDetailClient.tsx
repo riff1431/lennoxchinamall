@@ -52,6 +52,7 @@ import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoM
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCompareStore } from "@/store/useCompareStore";
+import { useHistoryStore } from "@/store/useHistoryStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
 
 interface ProductDetailClientProps {
@@ -118,6 +119,14 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   const isInCompare = useCompareStore((state) => state.isInCompare(product.id));
   const toggleCompare = useCompareStore((state) => state.toggleItem);
+  const addProductToHistory = useHistoryStore((state) => state.addProduct);
+
+  // Track product in browsing history
+  useEffect(() => {
+    if (product) {
+      addProductToHistory(product);
+    }
+  }, [product, addProductToHistory]);
 
   // Scroll listener for sticky action bar
   useEffect(() => {

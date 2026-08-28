@@ -39,6 +39,8 @@ import {
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCompareStore } from "@/store/useCompareStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -102,13 +104,17 @@ export function Header({
   // Scroll state for sticky glassmorphism
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Dynamic Categories Store
+  const { categories, getRootCategories } = useCategoryStore();
+
   // Search & Filters State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isDepartmentMenuOpen, setIsDepartmentMenuOpen] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<{
     products: { id: string; title: string; slug: string; price: number; image?: string; sku?: string }[];
-    categories: { id: string; name: string; slug: string; productCount?: number }[];
+    categories: { id: string; name: string; slug: string; productCount?: number; icon?: string | null }[];
     suggestions: string[];
   }>({ products: [], categories: [], suggestions: [] });
 
@@ -141,8 +147,19 @@ export function Header({
     setIsMounted(true);
   }, []);
 
+  const rootCategories = isMounted ? getRootCategories() : (MOCK_CATEGORIES as any);
+  const currentSelectedCategory = rootCategories.find((c: any) => c.slug === selectedCategory);
+
+  // Update hovered category default once loaded
+  useEffect(() => {
+    if (rootCategories.length > 0 && !rootCategories.some((c: any) => c.id === hoveredCategory)) {
+      setHoveredCategory(rootCategories[0]?.id || "");
+    }
+  }, [rootCategories, hoveredCategory]);
+
   // Refs for click outside
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const departmentMenuRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
@@ -182,7 +199,8 @@ export function Header({
           (p) => p.title.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
         ).slice(0, 5);
 
-        const matchedCats = MOCK_CATEGORIES.filter((c) =>
+        const currentCats = isMounted ? categories : MOCK_CATEGORIES;
+        const matchedCats = currentCats.filter((c) =>
           c.name.toLowerCase().includes(q)
         ).slice(0, 3);
 
@@ -200,6 +218,7 @@ export function Header({
             name: c.name,
             slug: c.slug,
             productCount: c.product_count,
+            icon: c.icon || c.iconName,
           })),
           suggestions: HOT_SEARCH_TAGS.filter((t) => t.toLowerCase().includes(q)),
         });
@@ -207,13 +226,16 @@ export function Header({
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, categories, isMounted]);
 
   // Click outside to close menus
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
         setIsSearchFocused(false);
+      }
+      if (departmentMenuRef.current && !departmentMenuRef.current.contains(e.target as Node)) {
+        setIsDepartmentMenuOpen(false);
       }
       if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
         setIsAccountMenuOpen(false);
@@ -229,6 +251,7 @@ export function Header({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setIsSearchFocused(false);
+        setIsDepartmentMenuOpen(false);
         setIsMegaMenuOpen(false);
         setIsAccountMenuOpen(false);
         setIsLangMenuOpen(false);
@@ -431,21 +454,90 @@ export function Header({
                 onSubmit={handleSearch}
                 className="flex w-full items-center rounded-2xl border-2 border-[#00143D] bg-white overflow-hidden shadow-xs focus-within:border-[#FF1028] focus-within:ring-2 focus-within:ring-[#FF1028]/15 transition-all"
               >
-                {/* Category Dropdown Picker */}
-                <div className="hidden lg:flex items-center bg-slate-50 border-r border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 shrink-0">
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-1"
-                    aria-label="Search Category"
+                {/* Dynamic Department Dropdown Picker */}
+                <div className="hidden lg:block relative shrink-0" ref={departmentMenuRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsDepartmentMenuOpen(!isDepartmentMenuOpen)}
+                    className="h-full flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border-r border-slate-200 px-3.5 py-2.5 text-xs font-bold text-slate-800 shrink-0 cursor-pointer transition-colors select-none"
+                    aria-expanded={isDepartmentMenuOpen}
+                    aria-label="Filter search by department"
                   >
-                    <option value="all">All Departments</option>
-                    {MOCK_CATEGORIES.map((cat) => (
-                      <option key={cat.id} value={cat.slug}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
+                    <div className="w-5 h-5 rounded-md bg-white border border-slate-200/80 flex items-center justify-center p-0.5 shrink-0 overflow-hidden shadow-2xs">
+                      <CategoryIcon
+                        icon={currentSelectedCategory ? (currentSelectedCategory.icon || currentSelectedCategory.iconName) : "Layers"}
+                        name={currentSelectedCategory?.name || "All Departments"}
+                        className="w-3.5 h-3.5 text-[#FF1028]"
+                      />
+                    </div>
+                    <span className="max-w-[125px] truncate font-bold text-slate-800">
+                      {currentSelectedCategory?.name || "All Departments"}
+                    </span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        isDepartmentMenuOpen ? "rotate-180 text-[#FF1028]" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Floating Dropdown List */}
+                  {isDepartmentMenuOpen && (
+                    <div className="absolute left-0 top-[calc(100%+8px)] w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 p-1.5 max-h-80 overflow-y-auto font-sans">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory("all");
+                          setIsDepartmentMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                          selectedCategory === "all"
+                            ? "bg-[#FF1028]/10 text-[#FF1028] font-black"
+                            : "text-slate-700 hover:bg-slate-50 font-bold"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-6 h-6 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                            <Layers className="w-3.5 h-3.5 text-[#FF1028]" />
+                          </div>
+                          <span>All Departments</span>
+                        </div>
+                        {selectedCategory === "all" && <Check className="w-3.5 h-3.5 text-[#FF1028]" />}
+                      </button>
+
+                      <div className="h-px bg-slate-100 my-1" />
+
+                      {rootCategories.map((cat: any) => {
+                        const isSelected = selectedCategory === cat.slug;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory(cat.slug);
+                              setIsDepartmentMenuOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                              isSelected
+                                ? "bg-[#FF1028]/10 text-[#FF1028] font-bold"
+                                : "text-slate-700 hover:bg-slate-50 font-medium"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 flex items-center justify-center p-1 shrink-0 overflow-hidden">
+                                <CategoryIcon
+                                  icon={cat.icon || cat.iconName}
+                                  name={cat.name}
+                                  className="w-4 h-4 text-[#FF1028]"
+                                />
+                              </div>
+                              <span className="truncate">{cat.name}</span>
+                            </div>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-[#FF1028] shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Main Search Input */}
@@ -512,8 +604,13 @@ export function Header({
                           <button
                             key={cat.id}
                             onClick={() => handleSelectSuggestion(`/categories/${cat.slug}`)}
-                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-[#FF1028] hover:text-[#FF1028] text-slate-700 font-bold transition-all text-xs flex items-center gap-1"
+                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-[#FF1028] hover:text-[#FF1028] text-slate-700 font-bold transition-all text-xs flex items-center gap-1.5"
                           >
+                            <CategoryIcon
+                              icon={cat.icon}
+                              name={cat.name}
+                              className="w-3.5 h-3.5 text-[#FF1028]"
+                            />
                             <span>{cat.name}</span>
                             {cat.productCount && (
                               <span className="text-[10px] text-slate-400 font-normal">
@@ -859,7 +956,7 @@ export function Header({
                 >
                   {/* Left Column: Category Tabs */}
                   <div className="col-span-5 bg-slate-50 p-3 border-r border-slate-200 space-y-1">
-                    {MOCK_CATEGORIES.map((cat) => (
+                    {rootCategories.map((cat: any) => (
                       <button
                         key={cat.id}
                         onMouseEnter={() => setHoveredCategory(cat.id)}
@@ -873,11 +970,17 @@ export function Header({
                             : "text-slate-700 hover:text-[#00143D]"
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4 text-slate-400" />
-                          <span>{cat.name}</span>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-5 h-5 rounded-md bg-white border border-slate-200/80 flex items-center justify-center p-0.5 shrink-0 shadow-2xs">
+                            <CategoryIcon
+                              icon={cat.icon || cat.iconName}
+                              name={cat.name}
+                              className="w-3.5 h-3.5 text-[#FF1028]"
+                            />
+                          </div>
+                          <span className="truncate">{cat.name}</span>
                         </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -887,10 +990,10 @@ export function Header({
                     <div>
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
                         <h4 className="font-heading font-black text-sm text-[#00143D]">
-                          {MOCK_CATEGORIES.find((c) => c.id === hoveredCategory)?.name || "Subcategories"}
+                          {rootCategories.find((c: any) => c.id === hoveredCategory)?.name || "Subcategories"}
                         </h4>
                         <Link
-                          href={`/categories/${MOCK_CATEGORIES.find((c) => c.id === hoveredCategory)?.slug || "consumer-electronics"}`}
+                          href={`/categories/${rootCategories.find((c: any) => c.id === hoveredCategory)?.slug || "consumer-electronics"}`}
                           onClick={() => setIsMegaMenuOpen(false)}
                           className="text-xs font-bold text-[#FF1028] hover:underline flex items-center gap-0.5"
                         >
@@ -900,10 +1003,10 @@ export function Header({
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        {MOCK_CATEGORIES.find((c) => c.id === hoveredCategory)?.subcategories?.map((sub, i) => (
+                        {rootCategories.find((c: any) => c.id === hoveredCategory)?.subcategories?.map((sub: string, i: number) => (
                           <Link
                             key={i}
-                            href={`/categories/${MOCK_CATEGORIES.find((c) => c.id === hoveredCategory)?.slug || "all"}`}
+                            href={`/categories/${rootCategories.find((c: any) => c.id === hoveredCategory)?.slug || "all"}`}
                             onClick={() => setIsMegaMenuOpen(false)}
                             className="p-2 rounded-lg hover:bg-slate-50 text-slate-600 hover:text-[#00143D] font-medium transition-colors block"
                           >
@@ -1048,7 +1151,7 @@ export function Header({
                 <span className="text-[10px] font-black uppercase text-slate-400 font-mono tracking-wider">
                   Departments
                 </span>
-                {MOCK_CATEGORIES.map((cat) => (
+                {rootCategories.map((cat: any) => (
                   <div key={cat.id} className="border-b border-slate-100 pb-1">
                     <button
                       onClick={() =>
@@ -1056,7 +1159,16 @@ export function Header({
                       }
                       className="w-full flex items-center justify-between py-2 text-xs font-bold text-slate-800"
                     >
-                      <span>{cat.name}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+                          <CategoryIcon
+                            icon={cat.icon || cat.iconName}
+                            name={cat.name}
+                            className="w-3.5 h-3.5 text-[#FF1028]"
+                          />
+                        </div>
+                        <span>{cat.name}</span>
+                      </div>
                       <ChevronDown
                         className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
                           mobileExpandedCat === cat.id ? "rotate-180" : ""
@@ -1064,8 +1176,8 @@ export function Header({
                       />
                     </button>
                     {mobileExpandedCat === cat.id && cat.subcategories && (
-                      <div className="pl-3 py-1 space-y-1">
-                        {cat.subcategories.map((sub, i) => (
+                      <div className="pl-7 py-1 space-y-1">
+                        {cat.subcategories.map((sub: string, i: number) => (
                           <Link
                             key={i}
                             href={`/categories/${cat.slug}`}

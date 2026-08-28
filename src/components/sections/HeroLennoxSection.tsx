@@ -285,7 +285,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               return (
                 <div
                   key={item.id}
-                  className="group relative bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between hover:border-blue-400 hover:shadow-md transition-all duration-200"
+                  className="group relative bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between hover:border-[#FF1028] hover:shadow-md transition-all duration-200"
                 >
                   <div>
                     {/* Top Discount Badge & Wishlist Button */}
@@ -336,7 +336,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
 
                     {/* Title */}
                     <Link href={`/products/${item.slug}`} className="block">
-                      <h4 className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight min-h-[28px]">
+                      <h4 className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-800 group-hover:text-[#FF1028] transition-colors line-clamp-2 leading-tight min-h-[28px]">
                         {item.title}
                       </h4>
                     </Link>
@@ -379,7 +379,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     className={`w-full mt-2 py-1.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
                       isAdded
                         ? "bg-emerald-600 text-white shadow-xs"
-                        : "bg-[#2563EB] hover:bg-blue-700 text-white shadow-2xs"
+                        : "bg-[#FF1028] hover:bg-[#e00d22] text-white shadow-2xs"
                     }`}
                     aria-label={`Add ${item.title} to cart`}
                   >

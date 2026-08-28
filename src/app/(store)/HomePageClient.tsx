@@ -31,10 +31,12 @@ import { DualPromotionalShowcaseSection } from "@/components/sections/DualPromot
 import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoModal";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { useCategoryStore } from "@/store/useCategoryStore";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { HomepageSection } from "@/types/homepage";
-import { SectionReveal } from "@/components/common/SectionReveal";
+import { MotionSection } from "@/components/animation/MotionSection";
+import { StaggerGrid, StaggerItem } from "@/components/animation/StaggerGrid";
 
 const HERO_SLIDES = [
   {
@@ -150,6 +152,13 @@ export function HomePageClient({ sections }: HomePageClientProps) {
       }))
     : HERO_SLIDES;
 
+  const { getRootCategories } = useCategoryStore();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  const rootCategories = isMounted ? getRootCategories() : MOCK_CATEGORIES;
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("all");
   const [activeVideoModal, setActiveVideoModal] = useState<ReelsVideoData | null>(null);
@@ -175,12 +184,12 @@ export function HomePageClient({ sections }: HomePageClientProps) {
   return (
     <div className="space-y-12 pb-16">
       {/* ── 1. 3-Column Hero Section ── */}
-      <SectionReveal effect="fade-in">
+      <MotionSection effect="fade-in">
         <HeroLennoxSection onOpenVideoModal={setActiveVideoModal} />
-      </SectionReveal>
+      </MotionSection>
 
       {/* ── 2. Direct Sourcing Departments Grid ── */}
-      <SectionReveal effect="fade-up" delay={80}>
+      <MotionSection effect="fade-up" delay={80}>
         <section className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -206,67 +215,69 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4" staggerDelay={0.05}>
             {CATEGORY_SHORTCUTS.map((cat) => (
-              <Link
-                key={cat.name}
-                href={`/categories/${cat.slug}`}
-                className="group bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/80 hover:border-[#FF1028]/40 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-md hover-lift"
-              >
-                <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-200 mb-2.5 image-zoom-smooth">
-                  <Image
-                    src={cat.image}
-                    alt={`${cat.name} Department - China Sourcing Hub`}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                    className="object-cover object-center"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <StaggerItem key={cat.name}>
+                <Link
+                  href={`/categories/${cat.slug}`}
+                  className="group bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/80 hover:border-[#FF1028]/40 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-md hover-lift h-full"
+                >
+                  <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-200 mb-2.5 image-zoom-smooth">
+                    <Image
+                      src={cat.image}
+                      alt={`${cat.name} Department - China Sourcing Hub`}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                      className="object-cover object-center group-hover:scale-108 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                  {/* Hub Badge */}
-                  <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded shadow-2xs">
-                    {cat.tag}
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#FF1028] transition-colors line-clamp-1 leading-snug font-heading">
-                    {cat.name}
-                  </h4>
-                  <div className="flex items-center justify-between text-[10px] text-slate-500">
-                    <span className="font-semibold text-emerald-600 font-mono">{cat.count} Items</span>
-                    <span className="text-[9px] text-slate-400 font-mono hidden sm:inline">{cat.hub}</span>
+                    {/* Hub Badge */}
+                    <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded shadow-2xs">
+                      {cat.tag}
+                    </span>
                   </div>
-                </div>
-              </Link>
+
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#FF1028] transition-colors line-clamp-1 leading-snug font-heading">
+                      {cat.name}
+                    </h4>
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span className="font-semibold text-emerald-600 font-mono">{cat.count} Items</span>
+                      <span className="text-[9px] text-slate-400 font-mono hidden sm:inline">{cat.hub}</span>
+                    </div>
+                  </div>
+                </Link>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGrid>
         </section>
-      </SectionReveal>
+      </MotionSection>
 
       {/* ── 3. Top Selling Products Carousel (5 Columns, Auto-Loop 2.8s) ── */}
-      <SectionReveal effect="fade-up" delay={90}>
+      <MotionSection effect="fade-up" delay={90}>
         <TopSellingProductsSection products={bestSellers} autoPlayInterval={2800} />
-      </SectionReveal>
+      </MotionSection>
 
       {/* ── 4. Flash Deals Section ── */}
-      <SectionReveal effect="fade-up" delay={100}>
+      <MotionSection effect="fade-up" delay={100}>
         <FlashDealsSection flashDeals={flashDeals} />
-      </SectionReveal>
+      </MotionSection>
 
       {/* ── 5. Middle Section: Best Sellings, Top Rated & Dual Promotional Banners ── */}
-      <SectionReveal effect="fade-up" delay={100}>
+      <MotionSection effect="fade-up" delay={100}>
         <DualPromotionalShowcaseSection />
-      </SectionReveal>
+      </MotionSection>
 
-      {/* ── 5. Trending & Top Ranking Products ── */}
-      <SectionReveal effect="fade-up" delay={100}>
-        <section className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      {/* ── 6. Trending Products Grid with Category Tabs ── */}
+      <MotionSection effect="fade-up" delay={110}>
+        <section className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-[#FF1028] text-xs font-black uppercase tracking-wider mb-1">
-                <TrendingUp className="w-4 h-4" />
-                <span>MOST POPULAR CHINA HARDWARE</span>
+              <div className="flex items-center gap-2">
+                <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                  CURATED SELECTION
+                </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-[#00143D] font-heading">
                 Top Trending Factory Products
@@ -284,7 +295,7 @@ export function HomePageClient({ sections }: HomePageClientProps) {
               >
                 All Popular
               </button>
-              {MOCK_CATEGORIES.map((cat) => (
+              {rootCategories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategoryFilter(cat.id)}
@@ -300,18 +311,18 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-3.5">
+          <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-3.5" staggerDelay={0.04}>
             {filteredProducts.map((product, idx) => (
-              <div key={product.id} className="hover-lift">
+              <StaggerItem key={product.id}>
                 <ProductCard product={product} priority={idx < 5} />
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGrid>
         </section>
-      </SectionReveal>
+      </MotionSection>
 
       {/* ── 5. Direct China Sourcing Hubs Overview ── */}
-      <SectionReveal effect="scale-up" delay={120}>
+      <MotionSection effect="scale-up" delay={120}>
         <section className="bg-gradient-to-br from-[#00143D] via-[#001E5B] to-[#000B24] text-white rounded-3xl p-5 sm:p-8 lg:p-10 shadow-xl border border-blue-900/60 hover-glow-navy">
           <div className="max-w-3xl mb-6 sm:mb-8 space-y-2">
             <span className="bg-emerald-500/20 text-[#10B981] border border-emerald-500/30 text-[9px] sm:text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider font-mono">
@@ -363,10 +374,10 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </div>
           </div>
         </section>
-      </SectionReveal>
+      </MotionSection>
 
       {/* ── 6. Lennox Sourcing Assurance Strip ── */}
-      <SectionReveal effect="fade-up" delay={100}>
+      <MotionSection effect="fade-up" delay={100}>
         <section className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-8 shadow-xs">
           <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8 space-y-1.5">
             <span className="text-[11px] sm:text-xs font-black text-[#FF1028] uppercase tracking-wider font-mono">
@@ -419,7 +430,7 @@ export function HomePageClient({ sections }: HomePageClientProps) {
             </div>
           </div>
         </section>
-      </SectionReveal>
+      </MotionSection>
 
       {/* ── 8. Interactive QC Reels Video Modal ── */}
       <ReelsVideoModal

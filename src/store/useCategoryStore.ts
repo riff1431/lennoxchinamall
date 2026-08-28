@@ -1,0 +1,96 @@
+"use client";
+
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { Category } from "@/types/database";
+import { MOCK_CATEGORIES } from "@/lib/mockData";
+
+interface CategoryState {
+  categories: Category[];
+  isLoaded: boolean;
+  addCategory: (category: Category) => void;
+  updateCategory: (id: string, updates: Partial<Category>) => void;
+  deleteCategory: (id: string) => void;
+  reorderCategories: (orderedIds: string[]) => void;
+  resetToDefaults: () => void;
+  getRootCategories: () => Category[];
+  getCategoryBySlug: (slug: string) => Category | undefined;
+  getCategoryById: (id: string) => Category | undefined;
+}
+
+export const useCategoryStore = create<CategoryState>()(
+  persist(
+    (set, get) => ({
+      categories: MOCK_CATEGORIES as Category[],
+      isLoaded: true,
+
+      addCategory: (newCategory: Category) => {
+        set((state) => ({
+          categories: [newCategory, ...state.categories],
+        }));
+      },
+
+      updateCategory: (id: string, updates: Partial<Category>) => {
+        set((state) => ({
+          categories: state.categories.map((cat) =>
+            cat.id === id
+              ? {
+                  ...cat,
+                  ...updates,
+                  updated_at: new Date().toISOString(),
+                }
+              : cat
+          ),
+        }));
+      },
+
+      deleteCategory: (id: string) => {
+        set((state) => ({
+          categories: state.categories.filter((cat) => cat.id !== id),
+        }));
+      },
+
+      reorderCategories: (orderedIds: string[]) => {
+        set((state) => {
+          const map = new Map(state.categories.map((c) => [c.id, c]));
+          const reordered: Category[] = [];
+          orderedIds.forEach((id, idx) => {
+            const cat = map.get(id);
+            if (cat) {
+              reordered.push({ ...cat, position: idx + 1 });
+              map.delete(id);
+            }
+          });
+          // Add any remaining
+          map.forEach((cat) => reordered.push(cat));
+          return { categories: reordered };
+        });
+      },
+
+      resetToDefaults: () => {
+        set({ categories: MOCK_CATEGORIES as Category[] });
+      },
+
+      getRootCategories: () => {
+        const { categories } = get();
+        return categories
+          .filter((c) => !c.parent_id && c.is_active)
+          .sort((a, b) => (a.position || 0) - (b.position || 0));
+      },
+
+      getCategoryBySlug: (slug: string) => {
+        const { categories } = get();
+        return categories.find((c) => c.slug === slug);
+      },
+
+      getCategoryById: (id: string) => {
+        const { categories } = get();
+        return categories.find((c) => c.id === id);
+      },
+    }),
+    {
+      name: "lennox_chinamall_categories_v1",
+      partialize: (state) => ({ categories: state.categories }),
+    }
+  )
+);

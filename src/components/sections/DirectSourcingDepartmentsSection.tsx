@@ -1,0 +1,335 @@
+"use client";
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+  Layers,
+  Sparkles,
+} from "lucide-react";
+
+export interface DepartmentCluster {
+  name: string;
+  slug: string;
+  count: string;
+  hub: string;
+  image: string;
+  tag: string;
+}
+
+export const DIRECT_SOURCING_DEPARTMENTS: DepartmentCluster[] = [
+  {
+    name: "4K Aerial Drones & FPV",
+    slug: "consumer-electronics",
+    count: "1,240+",
+    hub: "Shenzhen Hub",
+    image: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=600&auto=format&fit=crop&q=80",
+    tag: "AERIAL",
+  },
+  {
+    name: "3D Printers & CNC",
+    slug: "consumer-electronics",
+    count: "890+",
+    hub: "Ningbo Cluster",
+    image: "https://images.unsplash.com/photo-1615655406736-b37c4fabf923?w=600&auto=format&fit=crop&q=80",
+    tag: "INDUSTRIAL",
+  },
+  {
+    name: "High-Fidelity Audio",
+    slug: "consumer-electronics",
+    count: "3,400+",
+    hub: "Dongguan Lab",
+    image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop&q=80",
+    tag: "ACOUSTICS",
+  },
+  {
+    name: "Car OBD2 & Diagnostic",
+    slug: "consumer-electronics",
+    count: "650+",
+    hub: "Guangzhou Line",
+    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&auto=format&fit=crop&q=80",
+    tag: "DIAGNOSTICS",
+  },
+  {
+    name: "Tactical & Outdoor Gear",
+    slug: "consumer-electronics",
+    count: "480+",
+    hub: "Yiwu Cluster",
+    image: "https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=600&auto=format&fit=crop&q=80",
+    tag: "TACTICAL",
+  },
+  {
+    name: "Smart Robotics & IoT",
+    slug: "consumer-electronics",
+    count: "720+",
+    hub: "Shenzhen Hub",
+    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&auto=format&fit=crop&q=80",
+    tag: "ROBOTICS",
+  },
+  {
+    name: "Thermal & Laser Optics",
+    slug: "consumer-electronics",
+    count: "530+",
+    hub: "Wuhan Optics",
+    image: "https://images.unsplash.com/photo-1516116211227-bbc13c631a0b?w=600&auto=format&fit=crop&q=80",
+    tag: "OPTICS",
+  },
+  {
+    name: "Smart Wearables & AR",
+    slug: "consumer-electronics",
+    count: "980+",
+    hub: "Shenzhen Lab",
+    image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&auto=format&fit=crop&q=80",
+    tag: "WEARABLES",
+  },
+  {
+    name: "Portable Power & Solar",
+    slug: "consumer-electronics",
+    count: "610+",
+    hub: "Changzhou Hub",
+    image: "https://images.unsplash.com/photo-1509391365360-2e959784a276?w=600&auto=format&fit=crop&q=80",
+    tag: "ENERGY",
+  },
+  {
+    name: "Pro Camera & Rigging",
+    slug: "consumer-electronics",
+    count: "1,150+",
+    hub: "Guangdong Hub",
+    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&auto=format&fit=crop&q=80",
+    tag: "STUDIO",
+  },
+];
+
+interface DirectSourcingDepartmentsSectionProps {
+  departments?: DepartmentCluster[];
+  autoPlayInterval?: number; // default 3000ms (3 seconds)
+}
+
+export function DirectSourcingDepartmentsSection({
+  departments = DIRECT_SOURCING_DEPARTMENTS,
+  autoPlayInterval = 3000,
+}: DirectSourcingDepartmentsSectionProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [itemsPerView, setItemsPerView] = useState(6);
+  const [isDragging, setIsDragging] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
+
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Dynamically calculate visible items per view based on container / screen width
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width >= 1280) {
+        setItemsPerView(6); // Large desktop: 6 columns
+      } else if (width >= 1024) {
+        setItemsPerView(4); // Laptop: 4 columns
+      } else if (width >= 768) {
+        setItemsPerView(3); // Tablet: 3 columns
+      } else if (width >= 500) {
+        setItemsPerView(2); // Small Tablet: 2 columns
+      } else {
+        setItemsPerView(1.25); // Mobile: 1.25 columns with sneak-peek
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const totalItems = departments.length;
+  const maxIndex = Math.max(0, Math.ceil(totalItems - itemsPerView));
+
+  // Navigation handlers
+  const nextSlide = useCallback(() => {
+    if (totalItems === 0) return;
+    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
+  }, [maxIndex, totalItems]);
+
+  const prevSlide = useCallback(() => {
+    if (totalItems === 0) return;
+    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
+  }, [maxIndex, totalItems]);
+
+  // Auto-play interval timer: 3 seconds auto carousel
+  useEffect(() => {
+    if (isPaused || totalItems <= itemsPerView) return;
+
+    const timer = setInterval(() => {
+      nextSlide();
+    }, autoPlayInterval);
+
+    return () => clearInterval(timer);
+  }, [isPaused, nextSlide, autoPlayInterval, totalItems, itemsPerView]);
+
+  // Touch Swipe Support
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+
+    if (diff > 40) {
+      nextSlide();
+    } else if (diff < -40) {
+      prevSlide();
+    }
+  };
+
+  return (
+    <section
+      className="relative bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6 overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Background Accent Gradient */}
+      <div className="absolute top-0 right-0 w-72 h-72 bg-red-500/3 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-500/3 rounded-full blur-3xl pointer-events-none" />
+
+      {/* ── Section Header ── */}
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+              CHINA MANUFACTURING CLUSTERS
+            </span>
+
+            {/* Auto-play live badge */}
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200/80 text-[9px] font-mono text-slate-600">
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isPaused ? "bg-amber-500" : "bg-emerald-500 animate-ping"
+                }`}
+              />
+              <span>{isPaused ? "Paused" : "Auto-Loop (3s)"}</span>
+            </span>
+          </div>
+
+          <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading mt-1">
+            Direct Sourcing Departments
+          </h3>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Explore specialized manufacturing lines and verified factory clusters across China
+          </p>
+        </div>
+
+        {/* Carousel Arrows & View All */}
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+          {/* Carousel Arrow Controls */}
+          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-2xl border border-slate-200 shadow-2xs">
+            <button
+              onClick={prevSlide}
+              className="w-8 h-8 rounded-xl bg-white hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
+              aria-label="Previous Departments"
+            >
+              <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="w-8 h-8 rounded-xl bg-white hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
+              aria-label="Next Departments"
+            >
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+
+          <Link
+            href="/categories"
+            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group btn-smooth"
+          >
+            <span>All Departments</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Carousel Track ── */}
+      <div
+        ref={containerRef}
+        className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div
+          className="flex transition-transform duration-500 ease-out"
+          style={{
+            transform: `translateX(-${(currentIndex * 100) / itemsPerView}%)`,
+          }}
+        >
+          {departments.map((cat, idx) => (
+            <div
+              key={`${cat.name}-${idx}`}
+              className="px-1.5 sm:px-2 shrink-0"
+              style={{ width: `${100 / itemsPerView}%` }}
+            >
+              <Link
+                href={`/categories/${cat.slug}`}
+                className="group bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/80 hover:border-[#FF1028]/40 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-md hover-lift h-full block"
+              >
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-200 mb-2.5 image-zoom-smooth">
+                  <Image
+                    src={
+                      imgErrors[idx]
+                        ? "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=600&auto=format&fit=crop&q=80"
+                        : cat.image
+                    }
+                    alt={`${cat.name} Department - China Sourcing Hub`}
+                    fill
+                    sizes="(max-width: 640px) 75vw, (max-width: 1024px) 33vw, 16vw"
+                    className="object-cover object-center group-hover:scale-108 transition-transform duration-500"
+                    onError={() => setImgErrors((prev) => ({ ...prev, [idx]: true }))}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                  {/* Hub Badge */}
+                  <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded shadow-2xs">
+                    {cat.tag}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#FF1028] transition-colors line-clamp-1 leading-snug font-heading">
+                    {cat.name}
+                  </h4>
+                  <div className="flex items-center justify-between text-[10px] text-slate-500">
+                    <span className="font-semibold text-emerald-600 font-mono">{cat.count} Items</span>
+                    <span className="text-[9px] text-slate-400 font-mono hidden sm:inline">{cat.hub}</span>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Carousel Dot Indicators (For Quick Navigation) ── */}
+      {maxIndex > 0 && (
+        <div className="flex items-center justify-center gap-1.5 pt-1">
+          {Array.from({ length: maxIndex + 1 }).map((_, dotIdx) => (
+            <button
+              key={dotIdx}
+              onClick={() => setCurrentIndex(dotIdx)}
+              aria-label={`Go to slide ${dotIdx + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                currentIndex === dotIdx
+                  ? "w-6 bg-[#00143D]"
+                  : "w-1.5 bg-slate-300 hover:bg-slate-400"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}

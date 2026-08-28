@@ -200,6 +200,12 @@ export interface Category {
   seo_description: string | null;
   created_at: string;
   updated_at: string;
+  // Extended fields
+  icon_type?: "preset" | "custom" | "url";
+  iconName?: string;
+  thumbnail_url?: string | null;
+  bg_color?: string | null;
+  subcategories?: string[];
   // Relations
   children?: Category[];
   parent?: Category | null;

@@ -49,6 +49,7 @@ export const metadata: Metadata = {
 import React, { Suspense } from "react";
 import { RouteProgressBar } from "@/components/common/RouteProgressBar";
 import { SitePreloader } from "@/components/common/SitePreloader";
+import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 
 export default function RootLayout({
   children,
@@ -65,7 +66,9 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <RouteProgressBar />
         </Suspense>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </AuthProvider>
       </body>
     </html>
   );
