@@ -13,9 +13,9 @@ export default async function AdminLayout({
 }) {
   const session = await getSession();
 
-  // Route security gate
+  // If not authenticated as an admin (e.g. on /admin/login), render children cleanly
   if (!session || !isAdminRole(session.role)) {
-    redirect("/auth/admin-login?redirect=/admin/dashboard");
+    return <>{children}</>;
   }
 
   const userProfile = {

@@ -37,7 +37,10 @@ export async function getSession(): Promise<SessionUser | null> {
 
   if (error || !user) return null;
 
-  const role = (user.app_metadata?.role as UserRole) || "customer";
+  const role =
+    (user.app_metadata?.role as UserRole) ||
+    (user.user_metadata?.role as UserRole) ||
+    (user.email === "admin@lennoxchinamall.com" ? "super_admin" : "customer");
   const accountStatus = (user.app_metadata?.account_status as AccountStatus) || "active";
 
   return {
