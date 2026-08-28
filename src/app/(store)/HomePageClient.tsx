@@ -31,6 +31,7 @@ import {
 import { ProductCard } from "@/components/product/ProductCard";
 import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
 import { FlashDealsSection } from "@/components/sections/FlashDealsSection";
+import { TopSellingProductsSection } from "@/components/sections/TopSellingProductsSection";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
@@ -507,12 +508,17 @@ export function HomePageClient({ sections }: HomePageClientProps) {
         </section>
       </SectionReveal>
 
-      {/* ── 3. Flash Deals Section ── */}
+      {/* ── 3. Top Selling Products Carousel (5 Columns, Auto-Loop 2.8s) ── */}
+      <SectionReveal effect="fade-up" delay={90}>
+        <TopSellingProductsSection products={bestSellers} autoPlayInterval={2800} />
+      </SectionReveal>
+
+      {/* ── 4. Flash Deals Section ── */}
       <SectionReveal effect="fade-up" delay={100}>
         <FlashDealsSection flashDeals={flashDeals} />
       </SectionReveal>
 
-      {/* ── 4. Trending & Top Ranking Products ── */}
+      {/* ── 5. Trending & Top Ranking Products ── */}
       <SectionReveal effect="fade-up" delay={100}>
         <section className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
