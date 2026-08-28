@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, ChevronDown } from "lucide-react";
@@ -17,7 +17,41 @@ export function NavigationBar() {
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const { getRootCategories } = useCategoryStore();
 
-  const rootCategories = isMounted ? getRootCategories() : MOCK_CATEGORIES;
+  const storeCategories = isMounted ? getRootCategories() : [];
+  const rootCategories = storeCategories.length > 0 ? storeCategories : MOCK_CATEGORIES;
+
+  // Click outside to close
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        megaMenuRef.current &&
+        !megaMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsMegaMenuOpen(false);
+      }
+    }
+    if (isMegaMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isMegaMenuOpen]);
+
+  // Escape key to close
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && isMegaMenuOpen) {
+        setIsMegaMenuOpen(false);
+      }
+    }
+    if (isMegaMenuOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMegaMenuOpen]);
 
   return (
     <div className="bg-white border-b border-slate-200 hidden lg:block">
@@ -26,15 +60,20 @@ export function NavigationBar() {
           {/* Mega Menu Toggle Button */}
           <div className="relative h-full flex items-center" ref={megaMenuRef}>
             <button
-              onMouseEnter={() => setIsMegaMenuOpen(true)}
               onClick={() => setIsMegaMenuOpen(!isMegaMenuOpen)}
+              onMouseEnter={() => setIsMegaMenuOpen(true)}
               className="flex items-center gap-2.5 bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-5 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               aria-expanded={isMegaMenuOpen}
               aria-haspopup="true"
+              aria-label="Toggle All Departments and Categories Menu"
             >
               <LayoutGrid className="w-4 h-4" />
-              <span>All Categories</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMegaMenuOpen ? "rotate-180" : ""}`} />
+              <span>All Departments</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  isMegaMenuOpen ? "rotate-180" : ""
+                }`}
+              />
             </button>
 
             <MegaMenu
@@ -60,7 +99,11 @@ export function NavigationBar() {
                   {IconComponent && <IconComponent className="w-3.5 h-3.5" />}
                   <span>{link.label}</span>
                   {link.badge && (
-                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${link.badgeColor || "bg-amber-100 text-amber-700"}`}>
+                    <span
+                      className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${
+                        link.badgeColor || "bg-amber-100 text-amber-700"
+                      }`}
+                    >
                       {link.badge}
                     </span>
                   )}

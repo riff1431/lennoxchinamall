@@ -200,7 +200,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
   // Fallback video URL if none provided
   const videoUrl =
     videoData.videoUrl ||
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov";
 
   return (
     <div
@@ -214,7 +214,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
       <div
         ref={containerRef}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[390px] md:max-w-[420px] aspect-[9/16] max-h-[90vh] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-950 flex flex-col justify-between select-none animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[390px] md:max-w-[420px] aspect-[9/16] max-h-[90vh] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-slate-950 flex flex-col justify-between select-none animate-in zoom-in-95 duration-200"
       >
         {/* Background Video Element */}
         {!hasVideoError ? (

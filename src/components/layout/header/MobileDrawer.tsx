@@ -5,10 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronDown } from "lucide-react";
+import { X, ChevronDown, Bell } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { signout } from "@/app/actions/auth";
 import { useCategoryStore } from "@/store/useCategoryStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { NAV_LINKS } from "@/components/layout/header/headerConfig";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
@@ -38,6 +39,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
   const { getRootCategories } = useCategoryStore();
   
   const isMounted = useMounted();
+  const unreadNotificationsCount = useNotificationStore((state) => state.unreadCount);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -172,6 +174,29 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                       </Link>
                     );
                   })}
+
+                  {/* Notifications & Alerts */}
+                  <Link
+                    href="/account/notifications"
+                    onClick={onClose}
+                    className={`flex items-center justify-between p-3 rounded-xl transition-colors cursor-pointer ${
+                      pathname === "/account/notifications"
+                        ? "bg-red-50 text-[#FF1028]"
+                        : "hover:bg-slate-50 text-slate-700 hover:text-[#FF1028]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Bell className={`w-4 h-4 ${pathname === "/account/notifications" ? "text-[#FF1028]" : "text-slate-400"}`} />
+                      <span className={`text-sm ${pathname === "/account/notifications" ? "font-black" : "font-bold"}`}>
+                        Notifications
+                      </span>
+                    </div>
+                    {isMounted && unreadNotificationsCount > 0 && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#FF1028] text-white">
+                        {unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount}
+                      </span>
+                    )}
+                  </Link>
                 </nav>
               </div>
 

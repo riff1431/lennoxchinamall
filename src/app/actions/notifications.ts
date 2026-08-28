@@ -59,6 +59,12 @@ const SEED_FALLBACK_NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isValidUUID(id: string): boolean {
+  return typeof id === "string" && UUID_REGEX.test(id);
+}
+
 export interface FetchUserNotificationsParams {
   category?: string;
   status?: "all" | "unread" | "archived" | "read";
@@ -107,6 +113,10 @@ export async function getUserNotifications(params?: FetchUserNotificationsParams
       query = query.or(`title.ilike.%${s}%,body.ilike.%${s}%`);
     }
 
+    if (params?.limit && params.limit > 0) {
+      query = query.limit(params.limit);
+    }
+
     const { data, error } = await query;
 
     if (error || !data || data.length === 0) {
@@ -115,6 +125,7 @@ export async function getUserNotifications(params?: FetchUserNotificationsParams
       if (params?.status === "unread") fallback = fallback.filter((n) => !n.read_at && !n.archived_at);
       if (params?.status === "archived") fallback = fallback.filter((n) => !!n.archived_at);
       if (params?.category && params.category !== "all") fallback = fallback.filter((n) => n.category === params.category);
+      if (params?.limit && params.limit > 0) fallback = fallback.slice(0, params.limit);
       return { success: true, notifications: fallback, unreadCount: fallback.filter((n) => !n.read_at).length };
     }
 
@@ -147,10 +158,10 @@ export async function getUnreadNotificationsCount() {
     }
 
     const { count, error } = await query;
-    if (error) return 1;
-    return count ?? 1;
+    if (error) return 0;
+    return count ?? 0;
   } catch {
-    return 1;
+    return 0;
   }
 }
 
@@ -158,6 +169,11 @@ export async function getUnreadNotificationsCount() {
  * Mark a single notification as read
  */
 export async function markNotificationAsRead(id: string) {
+  if (!isValidUUID(id)) {
+    // Non-UUID IDs (e.g. seed/guest notifications) succeed gracefully in memory
+    return { success: true };
+  }
+
   try {
     const supabase = await createClient();
     const { error } = await supabase
@@ -171,6 +187,7 @@ export async function markNotificationAsRead(id: string) {
     if (error) return { success: false, error: error.message };
     revalidatePath("/account/notifications");
     revalidatePath("/account");
+    revalidatePath("/");
     return { success: true };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : "Failed to mark read" };
@@ -198,6 +215,7 @@ export async function markAllNotificationsAsRead() {
     if (error) return { success: false, error: error.message };
     revalidatePath("/account/notifications");
     revalidatePath("/account");
+    revalidatePath("/");
     return { success: true };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : "Failed to mark all read" };
@@ -208,6 +226,10 @@ export async function markAllNotificationsAsRead() {
  * Archive a notification
  */
 export async function archiveNotification(id: string) {
+  if (!isValidUUID(id)) {
+    return { success: true };
+  }
+
   try {
     const supabase = await createClient();
     const { error } = await supabase
@@ -230,6 +252,10 @@ export async function archiveNotification(id: string) {
  * Unarchive a notification
  */
 export async function unarchiveNotification(id: string) {
+  if (!isValidUUID(id)) {
+    return { success: true };
+  }
+
   try {
     const supabase = await createClient();
     const { error } = await supabase
@@ -252,6 +278,10 @@ export async function unarchiveNotification(id: string) {
  * Delete a notification (soft delete)
  */
 export async function deleteNotification(id: string) {
+  if (!isValidUUID(id)) {
+    return { success: true };
+  }
+
   try {
     const supabase = await createClient();
     const { error } = await supabase
@@ -278,7 +308,8 @@ export async function batchNotificationAction(
   ids: string[],
   action: "read" | "archive" | "delete"
 ) {
-  if (!ids.length) return { success: true, count: 0 };
+  const validIds = ids.filter(isValidUUID);
+  if (!validIds.length) return { success: true, count: ids.length };
 
   try {
     const supabase = await createClient();
@@ -295,12 +326,12 @@ export async function batchNotificationAction(
     const { error } = await supabase
       .from("notifications")
       .update(updatePayload)
-      .in("id", ids);
+      .in("id", validIds);
 
     if (error) return { success: false, error: error.message };
     revalidatePath("/account/notifications");
     revalidatePath("/account");
-    return { success: true, count: ids.length };
+    return { success: true, count: validIds.length };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : "Batch action failed" };
   }

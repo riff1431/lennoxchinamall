@@ -57,9 +57,7 @@ export function HeaderActions() {
       </Link>
 
       {/* Notification Bell */}
-      <div className="hidden sm:block">
-        <NotificationBell variant="storefront" />
-      </div>
+      <NotificationBell variant="storefront" />
 
       {/* Account Dropdown */}
       <AccountDropdown />

@@ -73,19 +73,22 @@ export const useCategoryStore = create<CategoryState>()(
 
       getRootCategories: () => {
         const { categories } = get();
-        return categories
-          .filter((c) => !c.parent_id && c.is_active)
+        const cats = categories && categories.length > 0 ? categories : (MOCK_CATEGORIES as Category[]);
+        return cats
+          .filter((c) => !c.parent_id && (c.is_active !== false))
           .sort((a, b) => (a.position || 0) - (b.position || 0));
       },
 
       getCategoryBySlug: (slug: string) => {
         const { categories } = get();
-        return categories.find((c) => c.slug === slug);
+        const cats = categories && categories.length > 0 ? categories : (MOCK_CATEGORIES as Category[]);
+        return cats.find((c) => c.slug === slug);
       },
 
       getCategoryById: (id: string) => {
         const { categories } = get();
-        return categories.find((c) => c.id === id);
+        const cats = categories && categories.length > 0 ? categories : (MOCK_CATEGORIES as Category[]);
+        return cats.find((c) => c.id === id);
       },
     }),
     {

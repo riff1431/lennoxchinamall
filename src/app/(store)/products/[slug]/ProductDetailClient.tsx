@@ -329,6 +329,65 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 </button>
               ))}
             </div>
+
+            {/* ── 4 Sourcing & Guarantee Highlight Cards (Matches Wireframe / Layout) ── */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 pt-1">
+              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-emerald-500 hover:shadow-xs transition-all flex flex-col justify-between group">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200/60 group-hover:scale-105 transition-transform">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
+                    100% QC Pass
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-medium leading-snug">
+                  Lab bench verified
+                </p>
+              </div>
+
+              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-500 hover:shadow-xs transition-all flex flex-col justify-between group">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 group-hover:scale-105 transition-transform">
+                    <Zap className="w-3.5 h-3.5 fill-blue-600" />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
+                    Direct Sourcing
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-medium leading-snug">
+                  0 Middleman markup
+                </p>
+              </div>
+
+              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-indigo-500 hover:shadow-xs transition-all flex flex-col justify-between group">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200/60 group-hover:scale-105 transition-transform">
+                    <Plane className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
+                    5–8d Air Cargo
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-medium leading-snug">
+                  Express air courier
+                </p>
+              </div>
+
+              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-500 hover:shadow-xs transition-all flex flex-col justify-between group">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200/60 group-hover:scale-105 transition-transform">
+                    <Coins className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
+                    USDT Escrow
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-medium leading-snug">
+                  30-day money back
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* ── Middle Column: Purchase Configurator & Buy Box (4 Cols on Desktop) ── */}
@@ -624,8 +683,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
             </div>
           </div>
 
-          {/* ── Right Column: 2 Factory QC Videos — on mobile appears between gallery and buy box ── */}
-          <div className="lg:col-span-3 space-y-3 lg:space-y-3.5 lg:sticky lg:top-20 self-start w-full order-2 lg:order-3">
+          {/* ── Right Column: 2 Factory QC Videos (Larger Size & Fully Responsive) ── */}
+          <div className="lg:col-span-3 space-y-3.5 lg:sticky lg:top-20 self-start w-full order-2 lg:order-3">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#FF1028]" />
@@ -638,9 +697,9 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               </span>
             </div>
 
-            {/* On mobile: side-by-side 2-col. On desktop: stacked 1-col */}
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-2.5 sm:gap-3.5">
-              {/* Video 1 Card */}
+            {/* Responsive grid: Stacked on mobile & desktop, 2-col on tablets */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5 sm:gap-4">
+              {/* Video 1 Card — Enlarged, Rich Visuals & Sizing */}
               <div
                 onClick={() =>
                   setActiveVideoModal({
@@ -651,49 +710,61 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     productPrice: product.base_price,
                     productLink: `/products/${product.slug}`,
                     poster: images[1] || images[0],
-                    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                    videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
                   })
                 }
-                className="group relative aspect-video sm:aspect-[4/3] lg:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 sm:p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
+                className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
               >
-                <Image
-                  src={images[1] || images[0]}
-                  alt="QC Video 1"
-                  fill
-                  className="object-cover opacity-45 group-hover:opacity-60 group-hover:scale-105 transition-all duration-500"
+                {/* Live Video Preview */}
+                <video
+                  src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov"
+                  poster={images[1] || images[0]}
+                  playsInline
+                  autoPlay
+                  muted
+                  loop
+                  className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/40 to-transparent pointer-events-none" />
 
                 {/* Top Badges */}
                 <div className="relative z-10 flex items-center justify-between">
-                  <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-xs font-heading flex items-center gap-1">
+                  <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm font-heading flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                     VIDEO 1
                   </span>
-                  <span className="bg-black/60 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-amber-300/30">
-                    02:15
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-black/70 backdrop-blur-xs text-emerald-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-emerald-400/30">
+                      1080P
+                    </span>
+                    <span className="bg-black/70 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
+                      LIVE QC
+                    </span>
+                  </div>
                 </div>
 
                 {/* Center Play Button Overlay */}
-                <div className="relative z-10 my-auto flex justify-center py-1">
-                  <div className="w-10 h-10 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-md group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
-                    <Play className="w-4 h-4 ml-0.5 fill-current" />
+                <div className="relative z-10 my-auto flex justify-center py-2 pointer-events-none">
+                  <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:bg-[#E00B20] ring-4 ring-white/20 transition-all">
+                    <Play className="w-5 h-5 ml-0.5 fill-current" />
                   </div>
                 </div>
 
                 {/* Card Footer Details */}
-                <div className="relative z-10 space-y-0.5">
-                  <h5 className="text-xs font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
-                    Hardware Teardown QC
-                  </h5>
-                  <p className="text-[10px] text-slate-300 line-clamp-1">
+                <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
+                      Hardware Teardown QC
+                    </h5>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400">PASSED</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 line-clamp-1">
                     Shenzhen Inspection Lab Benchmark
                   </p>
                 </div>
               </div>
 
-              {/* Video 2 Card */}
+              {/* Video 2 Card — Enlarged, Rich Visuals & Sizing */}
               <div
                 onClick={() =>
                   setActiveVideoModal({
@@ -704,47 +775,74 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     productPrice: product.base_price,
                     productLink: `/products/${product.slug}`,
                     poster: images[2] || images[0],
-                    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                    videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
                   })
                 }
-                className="group relative aspect-video sm:aspect-[4/3] lg:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 p-3 sm:p-3.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-sm transition-all duration-300"
+                className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
               >
-                <Image
-                  src={images[2] || images[0]}
-                  alt="QC Video 2"
-                  fill
-                  className="object-cover opacity-45 group-hover:opacity-60 group-hover:scale-105 transition-all duration-500"
+                {/* Live Video Preview */}
+                <video
+                  src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov"
+                  poster={images[2] || images[0]}
+                  playsInline
+                  autoPlay
+                  muted
+                  loop
+                  className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/40 to-transparent pointer-events-none" />
 
                 {/* Top Badges */}
                 <div className="relative z-10 flex items-center justify-between">
-                  <span className="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-xs font-heading flex items-center gap-1">
+                  <span className="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm font-heading flex items-center gap-1.5">
                     <Film className="w-3 h-3" />
                     VIDEO 2
                   </span>
-                  <span className="bg-black/60 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-amber-300/30">
-                    03:40
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-black/70 backdrop-blur-xs text-blue-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-blue-400/30">
+                      60 FPS
+                    </span>
+                    <span className="bg-black/70 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
+                      LIVE DEMO
+                    </span>
+                  </div>
                 </div>
 
                 {/* Center Play Button Overlay */}
-                <div className="relative z-10 my-auto flex justify-center py-1">
-                  <div className="w-10 h-10 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-md group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
-                    <Play className="w-4 h-4 ml-0.5 fill-current" />
+                <div className="relative z-10 my-auto flex justify-center py-2 pointer-events-none">
+                  <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:bg-blue-500 ring-4 ring-white/20 transition-all">
+                    <Play className="w-5 h-5 ml-0.5 fill-current" />
                   </div>
                 </div>
 
                 {/* Card Footer Details */}
-                <div className="relative z-10 space-y-0.5">
-                  <h5 className="text-xs font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
-                    Live Performance Test
-                  </h5>
-                  <p className="text-[10px] text-slate-300 line-clamp-1">
+                <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
+                      Live Performance Test
+                    </h5>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400">PASSED</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 line-clamp-1">
                     100% Full Load Stability &amp; Stress Pass
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* QC Guarantee Card filling bottom space cleanly */}
+            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-xs font-bold text-slate-900 font-heading">
+                  Shenzhen Inspection Guarantee
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Every unit is recorded, tested, and certified before international cargo dispatch.
+              </p>
             </div>
           </div>
         </div>

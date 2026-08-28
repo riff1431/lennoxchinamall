@@ -264,16 +264,17 @@ export function Footer({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
           
-          {/* Brand Info & Contacts (5 Columns on Desktop) */}
+          {/* Brand Info & Contacts (4 Columns on Desktop) */}
           <div className="lg:col-span-4 space-y-5">
             <Link href="/" className="inline-block group focus:outline-none">
-              <div className="relative h-11 w-[165px] group-hover:opacity-90 transition-opacity">
+              <div className="relative h-12 w-[180px] sm:h-14 sm:w-[220px] group-hover:scale-[1.02] transition-transform">
                 <Image
                   src={logoUrl}
                   alt={`${storeName} Logo`}
                   fill
-                  sizes="165px"
-                  className="object-contain object-left brightness-0 invert"
+                  sizes="(max-width: 640px) 180px, 220px"
+                  className="object-contain object-left"
+                  priority
                 />
               </div>
             </Link>
@@ -338,16 +339,110 @@ export function Footer({
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Premium Vector App Store Badges (No Emojis) */}
-            <div className="pt-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 font-mono">
-                Mobile Sourcing App
-              </span>
-              <div className="flex items-center gap-2.5">
+          {/* Dynamic Navigation Columns & App Section (8 Columns on Desktop) */}
+          <div className="lg:col-span-8 flex flex-col justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              {sections.map((section) => {
+                const isOpen = openAccordion === section.id;
+                return (
+                  <div key={section.id} className="space-y-3">
+                    
+                    {/* Desktop Header */}
+                    <h4 className="hidden md:block font-heading font-black text-xs text-white uppercase tracking-widest border-b border-slate-800/80 pb-2">
+                      {section.title}
+                    </h4>
+
+                    {/* Mobile Accordion Header */}
+                    <button
+                      onClick={() => setOpenAccordion(isOpen ? null : section.id)}
+                      className="md:hidden w-full flex items-center justify-between py-3 border-b border-slate-800 text-xs font-bold text-white uppercase tracking-wider cursor-pointer"
+                      aria-expanded={isOpen}
+                    >
+                      <span>{section.title}</span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                          isOpen ? "rotate-180 text-[#FF1028]" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {/* Desktop Links List */}
+                    <ul className="hidden md:space-y-2 md:block text-xs text-slate-400">
+                      {section.links.map((link, idx) => (
+                        <li key={idx}>
+                          <Link
+                            href={link.href}
+                            className="hover:text-white transition-all duration-150 flex items-center gap-1.5 group py-0.5"
+                          >
+                            <span className="group-hover:translate-x-1 transition-transform duration-150">
+                              {link.label}
+                            </span>
+                            {link.badge && (
+                              <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-[#FF1028] text-white uppercase">
+                                {link.badge}
+                              </span>
+                            )}
+                            {link.isExternal && (
+                              <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300" />
+                            )}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Mobile Animated Accordion Content */}
+                    <div className="md:hidden">
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.ul
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="overflow-hidden space-y-2 text-xs text-slate-400 pt-1 pb-3"
+                          >
+                            {section.links.map((link, idx) => (
+                              <li key={idx}>
+                                <Link
+                                  href={link.href}
+                                  className="hover:text-white transition-colors flex items-center gap-1.5 py-1"
+                                >
+                                  <span>{link.label}</span>
+                                  {link.badge && (
+                                    <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-[#FF1028] text-white uppercase">
+                                      {link.badge}
+                                    </span>
+                                  )}
+                                </Link>
+                              </li>
+                            ))}
+                          </motion.ul>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Premium Vector App Store Badges (Moved to Right Column) */}
+            <div className="mt-8 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block font-mono">
+                  Mobile Sourcing App
+                </span>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Direct factory sourcing on iOS and Android devices.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0">
                 <a
                   href="#app-store"
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-slate-600 text-white transition-all group"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-slate-600 text-white transition-all group shadow-xs"
                   aria-label="Download on App Store"
                 >
                   <AppleIcon className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
@@ -359,7 +454,7 @@ export function Footer({
 
                 <a
                   href="#google-play"
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-slate-600 text-white transition-all group"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-slate-600 text-white transition-all group shadow-xs"
                   aria-label="Get it on Google Play"
                 >
                   <GooglePlayIcon className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
@@ -370,93 +465,6 @@ export function Footer({
                 </a>
               </div>
             </div>
-
-          </div>
-
-          {/* Dynamic Navigation Columns (Desktop: 4 cols / Mobile: Smooth Animated Accordion) */}
-          <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {sections.map((section) => {
-              const isOpen = openAccordion === section.id;
-              return (
-                <div key={section.id} className="space-y-3">
-                  
-                  {/* Desktop Header */}
-                  <h4 className="hidden md:block font-heading font-black text-xs text-white uppercase tracking-widest border-b border-slate-800/80 pb-2">
-                    {section.title}
-                  </h4>
-
-                  {/* Mobile Accordion Header */}
-                  <button
-                    onClick={() => setOpenAccordion(isOpen ? null : section.id)}
-                    className="md:hidden w-full flex items-center justify-between py-3 border-b border-slate-800 text-xs font-bold text-white uppercase tracking-wider cursor-pointer"
-                    aria-expanded={isOpen}
-                  >
-                    <span>{section.title}</span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                        isOpen ? "rotate-180 text-[#FF1028]" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {/* Desktop Links List */}
-                  <ul className="hidden md:space-y-2 md:block text-xs text-slate-400">
-                    {section.links.map((link, idx) => (
-                      <li key={idx}>
-                        <Link
-                          href={link.href}
-                          className="hover:text-white transition-all duration-150 flex items-center gap-1.5 group py-0.5"
-                        >
-                          <span className="group-hover:translate-x-1 transition-transform duration-150">
-                            {link.label}
-                          </span>
-                          {link.badge && (
-                            <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-[#FF1028] text-white uppercase">
-                              {link.badge}
-                            </span>
-                          )}
-                          {link.isExternal && (
-                            <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300" />
-                          )}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Mobile Animated Accordion Content */}
-                  <div className="md:hidden">
-                    <AnimatePresence initial={false}>
-                      {isOpen && (
-                        <motion.ul
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2, ease: "easeInOut" }}
-                          className="overflow-hidden space-y-2 text-xs text-slate-400 pt-1 pb-3"
-                        >
-                          {section.links.map((link, idx) => (
-                            <li key={idx}>
-                              <Link
-                                href={link.href}
-                                className="hover:text-white transition-colors flex items-center gap-1.5 py-1"
-                              >
-                                <span>{link.label}</span>
-                                {link.badge && (
-                                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-[#FF1028] text-white uppercase">
-                                    {link.badge}
-                                  </span>
-                                )}
-                              </Link>
-                            </li>
-                          ))}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                </div>
-              );
-            })}
           </div>
 
         </div>

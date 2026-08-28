@@ -112,7 +112,13 @@ export function HeaderSearchBar({
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      if (selectedCategory && selectedCategory !== "all") {
+        setIsSearchFocused(false);
+        router.push(`/categories/${selectedCategory}`);
+      }
+      return;
+    }
     let url = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
     if (selectedCategory !== "all") {
       url += `&category=${selectedCategory}`;

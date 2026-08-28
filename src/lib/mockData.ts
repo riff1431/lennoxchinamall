@@ -301,8 +301,8 @@ The Eachine EX5 combines commercial-grade GPS dual satellite positioning with a 
       {
         id: "v-1",
         product_id: "prod-1",
-        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        type: "embed",
+        url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+        type: "uploaded",
         position: 1,
         title: "Video 1: Drone Flight Test & Range Demo",
         created_at: new Date().toISOString()
@@ -310,8 +310,8 @@ The Eachine EX5 combines commercial-grade GPS dual satellite positioning with a 
       {
         id: "v-2",
         product_id: "prod-1",
-        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        type: "embed",
+        url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
+        type: "uploaded",
         position: 2,
         title: "Video 2: Unboxing & Dual Battery Setup",
         created_at: new Date().toISOString()
@@ -411,8 +411,8 @@ The Eachine EX5 combines commercial-grade GPS dual satellite positioning with a 
       { id: "m-2-2", product_id: "prod-2", url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80", alt: "Audio Engineering and Bass Drivers", type: "image", position: 2, created_at: new Date().toISOString() }
     ],
     videos: [
-      { id: "v-2-1", product_id: "prod-2", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 1, title: "Video 1: Bass Test & Decibel Measurement", created_at: new Date().toISOString() },
-      { id: "v-2-2", product_id: "prod-2", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 2, title: "Video 2: IPX5 Water Splash Demonstration", created_at: new Date().toISOString() }
+      { id: "v-2-1", product_id: "prod-2", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov", type: "uploaded", position: 1, title: "Video 1: Bass Test & Decibel Measurement", created_at: new Date().toISOString() },
+      { id: "v-2-2", product_id: "prod-2", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov", type: "uploaded", position: 2, title: "Video 2: IPX5 Water Splash Demonstration", created_at: new Date().toISOString() }
     ],
     variants: [
       {
@@ -490,8 +490,8 @@ Assemble and print in under 20 minutes with automatic bed leveling and strain se
       { id: "m-3-2", product_id: "prod-3", url: "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=800&auto=format&fit=crop&q=80", alt: "Sprite Direct Drive Extruder", type: "image", position: 2, created_at: new Date().toISOString() }
     ],
     videos: [
-      { id: "v-3-1", product_id: "prod-3", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 1, title: "Video 1: 20-Minute Quick Setup & Bed Leveling", created_at: new Date().toISOString() },
-      { id: "v-3-2", product_id: "prod-3", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 2, title: "Video 2: High Speed 250mm/s Benchy Speedrun", created_at: new Date().toISOString() }
+      { id: "v-3-1", product_id: "prod-3", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov", type: "uploaded", position: 1, title: "Video 1: 20-Minute Quick Setup & Bed Leveling", created_at: new Date().toISOString() },
+      { id: "v-3-2", product_id: "prod-3", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov", type: "uploaded", position: 2, title: "Video 2: High Speed 250mm/s Benchy Speedrun", created_at: new Date().toISOString() }
     ],
     variants: [
       {
@@ -569,8 +569,8 @@ Equipped with the massive SFH55 LED core, producing raw lighting power comparabl
       { id: "m-4-2", product_id: "prod-4", url: "https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?w=800&auto=format&fit=crop&q=80", alt: "Aluminum Head & Cooling Fins", type: "image", position: 2, created_at: new Date().toISOString() }
     ],
     videos: [
-      { id: "v-4-1", product_id: "prod-4", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 1, title: "Video 1: 900-Meter Night Beam Distance Test", created_at: new Date().toISOString() },
-      { id: "v-4-2", product_id: "prod-4", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 2, title: "Video 2: Anduril 2 UI Ramping & Strobe Guide", created_at: new Date().toISOString() }
+      { id: "v-4-1", product_id: "prod-4", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov", type: "uploaded", position: 1, title: "Video 1: 900-Meter Night Beam Distance Test", created_at: new Date().toISOString() },
+      { id: "v-4-2", product_id: "prod-4", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov", type: "uploaded", position: 2, title: "Video 2: Anduril 2 UI Ramping & Strobe Guide", created_at: new Date().toISOString() }
     ],
     variants: [
       {
@@ -647,8 +647,8 @@ Built for automotive repair, DIY fabrication, and construction. High efficiency 
       { id: "m-5-1", product_id: "prod-5", url: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800&auto=format&fit=crop&q=80", alt: "Topshak Impact Wrench Tool in Workshop", type: "image", position: 1, created_at: new Date().toISOString() }
     ],
     videos: [
-      { id: "v-5-1", product_id: "prod-5", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 1, title: "Video 1: Lug Nut Removal & Torque Stress Test", created_at: new Date().toISOString() },
-      { id: "v-5-2", product_id: "prod-5", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 2, title: "Video 2: Accessory Kit Overview & Socket Set", created_at: new Date().toISOString() }
+      { id: "v-5-1", product_id: "prod-5", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov", type: "uploaded", position: 1, title: "Video 1: Lug Nut Removal & Torque Stress Test", created_at: new Date().toISOString() },
+      { id: "v-5-2", product_id: "prod-5", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov", type: "uploaded", position: 2, title: "Video 2: Accessory Kit Overview & Socket Set", created_at: new Date().toISOString() }
     ],
     variants: [
       {
@@ -707,8 +707,8 @@ Diagnose Check Engine Light (MIL), read and clear freeze frame data, live sensor
       { id: "m-6-1", product_id: "prod-6", url: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=800&auto=format&fit=crop&q=80", alt: "Automotive Diagnostic Scanner Connected to Car", type: "image", position: 1, created_at: new Date().toISOString() }
     ],
     videos: [
-      { id: "v-6-1", product_id: "prod-6", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 1, title: "Video 1: Check Engine Code Reading & Reset Demo", created_at: new Date().toISOString() },
-      { id: "v-6-2", product_id: "prod-6", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "embed", position: 2, title: "Video 2: Live Sensor O2 & Battery Graphing", created_at: new Date().toISOString() }
+      { id: "v-6-1", product_id: "prod-6", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov", type: "uploaded", position: 1, title: "Video 1: Check Engine Code Reading & Reset Demo", created_at: new Date().toISOString() },
+      { id: "v-6-2", product_id: "prod-6", url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov", type: "uploaded", position: 2, title: "Video 2: Live Sensor O2 & Battery Graphing", created_at: new Date().toISOString() }
     ],
     variants: [
       {

@@ -422,21 +422,23 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 productPrice: 189.0,
                 hub: "Guangzhou Canton Hub",
                 tag: "LIVE EXPORT FAIR",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
                 poster: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
               })
             }
             className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_rgba(255,16,40,0.25)] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
-            {/* Host Video Stream Image */}
-            <Image
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"
-              alt="Canton Fair Sourcing Live Stream"
-              fill
-              sizes="(max-width: 1024px) 50vw, 25vw"
-              className="object-cover object-top opacity-85 group-hover:scale-106 transition-transform duration-500"
+            {/* Host Video Stream */}
+            <video
+              src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov"
+              poster="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"
+              playsInline
+              autoPlay
+              muted={isMutedTop}
+              loop
+              className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40 pointer-events-none" />
 
             {/* Top Bar: AD Badge & Controls */}
             <div className="relative z-10 flex items-center justify-between">
@@ -467,7 +469,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                       productPrice: 189.0,
                       hub: "Guangzhou Canton Hub",
                       tag: "LIVE EXPORT FAIR",
-                      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                      videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
                       poster: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
                     });
                   }}
@@ -480,7 +482,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
             </div>
 
             {/* Center Pulsing Play Icon */}
-            <div className="relative z-10 my-auto flex justify-center py-1">
+            <div className="relative z-10 my-auto flex justify-center py-1 pointer-events-none">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
                 <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5 fill-current" />
               </div>
@@ -510,21 +512,23 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 productPrice: 219.0,
                 hub: "Shenzhen SZX Hub",
                 tag: "LAB BENCHMARK",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
                 poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
               })
             }
             className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_rgba(255,16,40,0.25)] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
-            {/* Host Video Stream Image */}
-            <Image
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80"
-              alt="Shenzhen Factory Lab Inspection Live Stream"
-              fill
-              sizes="(max-width: 1024px) 50vw, 25vw"
-              className="object-cover object-top opacity-85 group-hover:scale-106 transition-transform duration-500"
+            {/* Host Video Stream */}
+            <video
+              src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov"
+              poster="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80"
+              playsInline
+              autoPlay
+              muted={isMutedBottom}
+              loop
+              className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40 pointer-events-none" />
 
             {/* Top Bar: AD Badge & Controls */}
             <div className="relative z-10 flex items-center justify-between">
@@ -555,7 +559,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                       productPrice: 219.0,
                       hub: "Shenzhen SZX Hub",
                       tag: "LAB BENCHMARK",
-                      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                      videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
                       poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
                     });
                   }}
@@ -568,7 +572,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
             </div>
 
             {/* Center Pulsing Play Icon */}
-            <div className="relative z-10 my-auto flex justify-center py-1">
+            <div className="relative z-10 my-auto flex justify-center py-1 pointer-events-none">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
                 <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5 fill-current" />
               </div>

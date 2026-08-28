@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import {
   getUserNotifications,
   markNotificationAsRead,
@@ -56,6 +57,7 @@ type TabKey = "all" | "unread" | "orders" | "shipping" | "payments" | "promotion
 
 export default function CustomerNotificationCenterPage() {
   const { user } = useAuth();
+  const refreshHeaderStore = useNotificationStore((state) => state.fetchNotifications);
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -168,24 +170,28 @@ export default function CustomerNotificationCenterPage() {
     );
     setUnreadCount((c) => Math.max(0, c - 1));
     await markNotificationAsRead(id);
+    refreshHeaderStore();
     showToast("Notification marked as read");
   };
 
   const handleArchive = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     await archiveNotification(id);
+    refreshHeaderStore();
     showToast("Notification archived");
   };
 
   const handleUnarchive = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     await unarchiveNotification(id);
+    refreshHeaderStore();
     showToast("Notification restored to inbox");
   };
 
   const handleDelete = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     await deleteNotification(id);
+    refreshHeaderStore();
     showToast("Notification removed");
   };
 
@@ -196,6 +202,7 @@ export default function CustomerNotificationCenterPage() {
     await batchNotificationAction(selectedIds, action);
     setSelectedIds([]);
     loadData();
+    refreshHeaderStore();
     showToast(`Updated ${count} notification(s)`);
   };
 
@@ -205,6 +212,7 @@ export default function CustomerNotificationCenterPage() {
     );
     setUnreadCount(0);
     await markAllNotificationsAsRead();
+    refreshHeaderStore();
     showToast("All notifications marked as read");
   };
 
