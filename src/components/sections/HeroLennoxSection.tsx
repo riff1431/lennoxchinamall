@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,11 +12,16 @@ import {
   Check,
   Zap,
   ArrowRight,
+  Flame,
+  Clock,
   ShieldCheck,
   Sparkles,
+  Eye,
+  Heart,
+  Star,
 } from "lucide-react";
-import { Product } from "@/types/database";
 import { useCartStore } from "@/store/useCartStore";
+import { useWishlistStore } from "@/store/useWishlistStore";
 import { formatCurrency } from "@/utils/helpers";
 
 interface HeroLennoxSectionProps {
@@ -38,20 +43,24 @@ const FIVE_DEAL_ITEMS = [
     discountBadge: "-$10.00",
     comparePrice: 373.0,
     price: 363.0,
+    rating: 4.9,
+    reviews: 142,
     discountNote: "$10.00 Discount off",
-    installments: "Installments in 12x $30.00 Interest free",
+    installments: "12x $30.00 Interest free",
     freeShipping: "Free shipping ⚡ FULL",
     image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80",
   },
   {
     id: "hero-deal-2",
-    title: "iPhone 17 Pro Max 256GB Titanium",
+    title: "iPhone 17 Pro Max Titanium Sourcing",
     slug: "eachine-ex5-4k-gps-fpv-drone",
     discountBadge: "-$10.00",
     comparePrice: 950.0,
     price: 940.0,
+    rating: 5.0,
+    reviews: 89,
     discountNote: "$10.00 Discount off",
-    installments: "Installments in 12x $78.00 Interest free",
+    installments: "12x $78.00 Interest free",
     freeShipping: "Free shipping ⚡ FULL",
     image: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=500&auto=format&fit=crop&q=80",
   },
@@ -62,8 +71,10 @@ const FIVE_DEAL_ITEMS = [
     discountBadge: "-$10.00",
     comparePrice: 100.0,
     price: 90.0,
+    rating: 4.8,
+    reviews: 210,
     discountNote: "$10.00 Discount off",
-    installments: "Installments in 12x $8.00 Interest free",
+    installments: "12x $8.00 Interest free",
     freeShipping: "Free shipping ⚡ FULL",
     image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=80",
   },
@@ -71,11 +82,13 @@ const FIVE_DEAL_ITEMS = [
     id: "hero-deal-4",
     title: "Copper Alloy Inlaid Zircon Round Ring",
     slug: "konnwei-kw850-obd2-car-diagnostic-scanner",
-    discountBadge: null,
-    comparePrice: null,
+    discountBadge: "-50%",
+    comparePrice: 18.0,
     price: 9.0,
-    discountNote: null,
-    installments: "Installments in 12x $1.00 Interest free",
+    rating: 4.9,
+    reviews: 56,
+    discountNote: "Direct Factory Price",
+    installments: "12x $1.00 Interest free",
     freeShipping: "Free shipping ⚡ FULL",
     image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&auto=format&fit=crop&q=80",
   },
@@ -83,11 +96,13 @@ const FIVE_DEAL_ITEMS = [
     id: "hero-deal-5",
     title: "iPhone 14 Pro Max 512GB Space Black",
     slug: "eachine-ex5-4k-gps-fpv-drone",
-    discountBadge: null,
-    comparePrice: null,
+    discountBadge: "-$50.00",
+    comparePrice: 1199.0,
     price: 1149.0,
-    discountNote: null,
-    installments: "Installments in 12x $96.00 Interest free",
+    rating: 5.0,
+    reviews: 320,
+    discountNote: "Verified Shenzhen QC",
+    installments: "12x $96.00 Interest free",
     freeShipping: "Free shipping ⚡ FULL",
     image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&auto=format&fit=crop&q=80",
   },
@@ -95,9 +110,25 @@ const FIVE_DEAL_ITEMS = [
 
 export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const { toggleItem, isInWishlist } = useWishlistStore();
   const [addedItemIds, setAddedItemIds] = useState<Record<string, boolean>>({});
   const [isMutedTop, setIsMutedTop] = useState(true);
   const [isMutedBottom, setIsMutedBottom] = useState(true);
+
+  // Dynamic countdown timer for Deal of the Day
+  const [timeLeft, setTimeLeft] = useState({ hours: 7, minutes: 42, seconds: 18 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, minutes: 59, seconds: 59 };
+        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { hours: 12, minutes: 0, seconds: 0 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleQuickAdd = (e: React.MouseEvent, item: typeof FIVE_DEAL_ITEMS[0]) => {
     e.preventDefault();
@@ -118,45 +149,88 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
     setAddedItemIds((prev) => ({ ...prev, [item.id]: true }));
     setTimeout(() => {
       setAddedItemIds((prev) => ({ ...prev, [item.id]: false }));
-    }, 1500);
+    }, 1600);
   };
 
   return (
     <section className="w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4 items-stretch">
         {/* ═══════════════════════════════════════════════════════════
-            1. LEFT COLUMN: DEAL OF THE DAY (3 Cols on Desktop)
+            1. LEFT COLUMN: DEAL OF THE DAY
+            • Desktop: 3 Cols / Full Height Card
+            • Mobile/Tablet: Sleek Compact Interactive Card
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-3 xl:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between p-4 sm:p-5 hover-lift transition-all">
+        <div className="lg:col-span-3 xl:col-span-3 bg-gradient-to-b from-white to-slate-50/80 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between p-4 sm:p-5 hover:border-slate-300 transition-all group">
           <div>
-            {/* Header */}
-            <h2 className="text-center font-black text-base sm:text-lg text-[#00143D] tracking-wider uppercase font-heading pb-3 border-b border-slate-100">
-              DEAL OF THE DAY
-            </h2>
+            {/* Header & Live Scarcity Badge */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-[#FF1028] animate-bounce" />
+                <h2 className="font-black text-sm sm:text-base text-[#00143D] tracking-wider uppercase font-heading">
+                  DEAL OF THE DAY
+                </h2>
+              </div>
+              <span className="text-[10px] font-mono font-bold text-[#FF1028] bg-red-50 px-2 py-0.5 rounded-full border border-red-100 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>
+                  {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:{String(timeLeft.seconds).padStart(2, "0")}
+                </span>
+              </span>
+            </div>
 
-            {/* Product Feature Box */}
+            {/* Featured Product Box */}
             <Link
               href="/products/blitzwolf-bw-wa3-pro-120w-bluetooth-speaker"
-              className="block group mt-5 space-y-4"
+              className="block group mt-4 sm:mt-5 space-y-3.5"
             >
-              <div className="relative w-full aspect-square max-w-[220px] mx-auto rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center p-3">
+              {/* Product Image Stage */}
+              <div className="relative w-full aspect-square max-w-[210px] sm:max-w-[230px] mx-auto rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-2xs flex items-center justify-center p-3 group-hover:shadow-md transition-shadow">
+                {/* Discount Tag */}
+                <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF1028] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md font-heading shadow-xs">
+                  -45% OFF
+                </span>
+
                 <Image
                   src="https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop&q=80"
                   alt="Acoustic Audio by Goldwood"
                   fill
-                  sizes="220px"
-                  className="object-contain p-2 group-hover:scale-106 transition-transform duration-500"
+                  sizes="(max-width: 640px) 180px, 230px"
+                  className="object-contain p-2 group-hover:scale-108 transition-transform duration-500"
                   priority
                 />
               </div>
 
-              {/* Title & Price */}
-              <div className="text-center space-y-1.5 px-2">
+              {/* Title & Price Information */}
+              <div className="text-center space-y-1 px-1">
+                <div className="flex items-center justify-center gap-1 text-amber-400 text-xs">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3 h-3 fill-current" />
+                  ))}
+                  <span className="text-[10px] font-bold text-slate-500 ml-1 font-mono">(4.9 • 380+ Sold)</span>
+                </div>
+
                 <h3 className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-[#FF1028] transition-colors leading-snug line-clamp-2">
-                  Acoustic Audio by Goldwood
+                  Acoustic Audio by Goldwood 120W
                 </h3>
-                <div className="text-base sm:text-lg font-black text-slate-900 font-mono">
-                  $100.00
+
+                <div className="flex items-baseline justify-center gap-2 pt-0.5">
+                  <span className="text-base sm:text-xl font-black text-[#00143D] font-mono">
+                    $100.00 <span className="text-xs text-slate-500 font-sans font-normal">USDT</span>
+                  </span>
+                  <span className="text-xs text-slate-400 line-through font-mono">
+                    $180.00
+                  </span>
+                </div>
+
+                {/* Stock Progress Bar */}
+                <div className="pt-2 max-w-[200px] mx-auto">
+                  <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 mb-1">
+                    <span className="text-[#FF1028] font-mono">Only 8 Units Left</span>
+                    <span className="font-mono">82% Claimed</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="w-[82%] h-full bg-gradient-to-r from-amber-500 to-[#FF1028] rounded-full" />
+                  </div>
                 </div>
               </div>
             </Link>
@@ -166,21 +240,23 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
           <div className="pt-4 mt-auto">
             <Link
               href="/products/blitzwolf-bw-wa3-pro-120w-bluetooth-speaker"
-              className="w-full block bg-[#00143D] hover:bg-[#FF1028] text-white text-center py-2.5 sm:py-3 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-md hover:shadow-lg active:scale-98 font-heading"
+              className="w-full block bg-[#00143D] hover:bg-[#FF1028] text-white text-center py-2.5 sm:py-3 px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-md hover:shadow-lg active:scale-98 font-heading"
             >
-              Grab This Deal
+              Grab This Deal →
             </Link>
           </div>
         </div>
 
         {/* ═══════════════════════════════════════════════════════════
-            2. CENTER COLUMN: MAIN SHOWCASE BANNER + 5 MINI CARDS (6 Cols)
+            2. CENTER COLUMN: SHOWCASE PROMO BANNER + 5 PRODUCT CARDS
+            • Desktop: 6 Cols
+            • Mobile: Smooth swipeable row or 2-col responsive touch cards
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-between gap-3">
+        <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-between gap-3 sm:gap-3.5">
           {/* Top Showcase Promo Banner */}
           <Link
             href="/categories/consumer-electronics"
-            className="group relative w-full h-[220px] sm:h-[260px] md:h-[280px] lg:h-[290px] rounded-2xl overflow-hidden bg-gradient-to-r from-[#003B95] via-[#0055D4] to-[#0091FF] border border-blue-400/20 shadow-xs flex items-center justify-center block"
+            className="group relative w-full h-[180px] sm:h-[230px] md:h-[260px] lg:h-[285px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-[#002661] via-[#0048B3] to-[#007AFF] border border-blue-400/20 shadow-xs flex items-center justify-center block"
           >
             {/* High-Impact Hero Showcase Graphic */}
             <Image
@@ -188,72 +264,111 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               alt="Lennox Mall Direct Factory Deals Banner"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover object-center group-hover:scale-103 transition-transform duration-700 opacity-90"
+              className="object-cover object-center group-hover:scale-104 transition-transform duration-700 opacity-90"
               priority
             />
 
-            {/* Subtle Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
+            {/* Ambient Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#00143D]/60 via-transparent to-transparent" />
 
             {/* Banner Text Overlays */}
-            <div className="absolute bottom-4 left-5 right-5 z-10 flex items-center justify-between">
-              <div>
-                <span className="bg-[#FF1028] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded font-heading shadow-xs">
-                  DIRECT CHINA SOURCING
-                </span>
-                <h3 className="text-white text-base sm:text-xl font-black font-heading mt-1 drop-shadow-md">
-                  Factory Gate Hardware &amp; Electronics
+            <div className="absolute bottom-3.5 sm:bottom-4 left-3.5 sm:left-5 right-3.5 sm:right-5 z-10 flex items-end justify-between gap-2">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="bg-[#FF1028] text-white text-[8px] sm:text-[9px] font-black uppercase px-2 py-0.5 rounded-md font-heading shadow-xs">
+                    DIRECT CHINA FACTORY
+                  </span>
+                  <span className="bg-white/20 backdrop-blur-xs text-amber-300 text-[8px] sm:text-[9px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/20 hidden xs:inline-block">
+                    0% Middleman
+                  </span>
+                </div>
+                <h3 className="text-white text-sm sm:text-lg md:text-xl font-black font-heading leading-tight drop-shadow-md">
+                  Direct Factory Gate Hardware &amp; Electronics
                 </h3>
               </div>
-              <span className="hidden sm:inline-flex items-center gap-1 bg-white/90 hover:bg-white text-[#00143D] text-xs font-black px-3 py-1.5 rounded-xl font-heading shadow-sm group-hover:translate-x-0.5 transition-transform">
-                <span>Shop All</span>
+
+              <span className="shrink-0 inline-flex items-center gap-1 bg-white/95 hover:bg-white text-[#00143D] text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl font-heading shadow-md group-hover:translate-x-1 transition-transform">
+                <span>Explore</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </Link>
 
-          {/* Bottom Row of 5 Product Cards */}
+          {/* Bottom Row of 5 Product Cards (Swipeable on Mobile, 5 Cols on Desktop) */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
             {FIVE_DEAL_ITEMS.map((item) => {
               const isAdded = !!addedItemIds[item.id];
+              const inWish = isInWishlist(item.id);
 
               return (
                 <div
                   key={item.id}
-                  className="group bg-white rounded-xl border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between hover:border-blue-400/80 hover:shadow-md transition-all duration-200"
+                  className="group relative bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between hover:border-blue-400 hover:shadow-md transition-all duration-200"
                 >
                   <div>
-                    {/* Top Discount Badge & Image */}
-                    <div className="relative w-full aspect-square rounded-lg bg-slate-50 overflow-hidden mb-2">
+                    {/* Top Discount Badge & Wishlist Button */}
+                    <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-slate-50 overflow-hidden mb-1.5">
                       {item.discountBadge && (
-                        <span className="absolute top-1 left-1 z-10 bg-[#10B981] text-white text-[8.5px] font-black px-1.5 py-0.2 rounded font-mono shadow-2xs">
+                        <span className="absolute top-1.5 left-1.5 z-10 bg-[#10B981] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded font-mono shadow-2xs">
                           {item.discountBadge}
                         </span>
                       )}
+
+                      {/* Wishlist toggle */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleItem({
+                            id: `w-${item.id}`,
+                            productId: item.id,
+                            title: item.title,
+                            slug: item.slug,
+                            image: item.image,
+                            price: item.price,
+                            compareAtPrice: item.comparePrice || undefined,
+                            rating: item.rating,
+                            reviewCount: item.reviews,
+                          });
+                        }}
+                        className={`absolute top-1.5 right-1.5 z-10 w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-xs transition-all cursor-pointer ${
+                          inWish
+                            ? "bg-[#FF1028] text-white"
+                            : "bg-white/80 text-slate-500 hover:text-[#FF1028] opacity-0 group-hover:opacity-100"
+                        }`}
+                        aria-label="Wishlist"
+                      >
+                        <Heart className={`w-3 h-3 ${inWish ? "fill-current" : ""}`} />
+                      </button>
 
                       <Link href={`/products/${item.slug}`} className="block relative w-full h-full">
                         <Image
                           src={item.image}
                           alt={item.title}
                           fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 12vw"
-                          className="object-cover p-1 group-hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 10vw"
+                          className="object-cover p-1 group-hover:scale-106 transition-transform duration-300"
                         />
                       </Link>
                     </div>
 
                     {/* Title */}
                     <Link href={`/products/${item.slug}`} className="block">
-                      <h4 className="text-[11px] font-semibold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight min-h-[28px]">
+                      <h4 className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight min-h-[28px]">
                         {item.title}
                       </h4>
                     </Link>
 
                     {/* Price Block */}
                     <div className="mt-1">
-                      {item.comparePrice && (
-                        <span className="text-[10px] text-slate-400 line-through font-mono block">
+                      {item.comparePrice ? (
+                        <span className="text-[9.5px] text-slate-400 line-through font-mono block">
                           ${item.comparePrice.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-[9.5px] text-transparent select-none font-mono block">
+                          -
                         </span>
                       )}
                       <span className="text-xs sm:text-sm font-black text-slate-900 font-mono block">
@@ -262,7 +377,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     </div>
 
                     {/* Perks / Installments Note */}
-                    <div className="mt-1 space-y-0.5 text-[8.5px] leading-tight font-medium text-[#10B981]">
+                    <div className="mt-1 space-y-0.5 text-[8px] sm:text-[8.5px] leading-tight font-medium text-[#10B981]">
                       {item.discountNote && (
                         <div className="truncate">{item.discountNote}</div>
                       )}
@@ -270,7 +385,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                         <div className="text-slate-500 truncate">{item.installments}</div>
                       )}
                       {item.freeShipping && (
-                        <div className="font-bold flex items-center gap-0.5">
+                        <div className="font-bold flex items-center gap-0.5 truncate">
                           <span>{item.freeShipping}</span>
                         </div>
                       )}
@@ -280,9 +395,9 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                   {/* Add to Cart Button */}
                   <button
                     onClick={(e) => handleQuickAdd(e, item)}
-                    className={`w-full mt-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
+                    className={`w-full mt-2 py-1.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
                       isAdded
-                        ? "bg-emerald-600 text-white"
+                        ? "bg-emerald-600 text-white shadow-xs"
                         : "bg-[#2563EB] hover:bg-blue-700 text-white shadow-2xs"
                     }`}
                     aria-label={`Add ${item.title} to cart`}
@@ -293,7 +408,10 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                         <span>Added</span>
                       </>
                     ) : (
-                      <span>Add to cart</span>
+                      <>
+                        <ShoppingCart className="w-3 h-3 sm:hidden" />
+                        <span>Add to cart</span>
+                      </>
                     )}
                   </button>
                 </div>
@@ -303,9 +421,11 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
         </div>
 
         {/* ═══════════════════════════════════════════════════════════
-            3. RIGHT COLUMN: 2 STACKED LIVE VIDEO CARDS (3 Cols)
+            3. RIGHT COLUMN: 2 STACKED LIVE QC VIDEO CARDS
+            • Desktop: 3 Cols (2 stacked square cards)
+            • Mobile/Tablet: 2 side-by-side video cards
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-3 xl:col-span-3 flex flex-col justify-between gap-3">
+        <div className="lg:col-span-3 xl:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-3.5">
           {/* Top Video Card (Canton Export Fair) */}
           <div
             onClick={() =>
@@ -318,21 +438,21 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 tag: "LIVE EXPORT FAIR",
               })
             }
-            className="group relative flex-1 min-h-[190px] rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 shadow-xs cursor-pointer hover:border-blue-500 transition-all duration-300 flex flex-col justify-between p-3"
+            className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
             {/* Host Video Stream Image */}
             <Image
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"
               alt="Canton Fair Sourcing Live Stream"
               fill
-              sizes="(max-width: 1024px) 100vw, 25vw"
-              className="object-cover object-top opacity-90 group-hover:scale-104 transition-transform duration-500"
+              sizes="(max-width: 1024px) 50vw, 25vw"
+              className="object-cover object-top opacity-85 group-hover:scale-106 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40" />
 
             {/* Top Bar: AD Badge & Controls */}
             <div className="relative z-10 flex items-center justify-between">
-              <span className="bg-black/70 backdrop-blur-xs text-white text-[9px] font-black px-2 py-0.5 rounded border border-white/20 uppercase font-mono">
+              <span className="bg-black/70 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-md border border-white/20 uppercase font-mono">
                 AD
               </span>
 
@@ -343,10 +463,10 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     e.stopPropagation();
                     setIsMutedTop(!isMutedTop);
                   }}
-                  className="w-6 h-6 rounded-md bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors"
+                  className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"
                   aria-label="Toggle sound"
                 >
-                  {isMutedTop ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  {isMutedTop ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                 </button>
                 <button
                   type="button"
@@ -361,25 +481,32 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                       tag: "LIVE EXPORT FAIR",
                     });
                   }}
-                  className="w-6 h-6 rounded-md bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors"
+                  className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"
                   aria-label="Expand video"
                 >
-                  <Maximize2 className="w-3.5 h-3.5" />
+                  <Maximize2 className="w-3 h-3" />
                 </button>
+              </div>
+            </div>
+
+            {/* Center Pulsing Play Icon */}
+            <div className="relative z-10 my-auto flex justify-center py-1">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#FF1028]/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5 fill-current" />
               </div>
             </div>
 
             {/* Bottom Overlay Label */}
             <div className="relative z-10 flex items-center justify-between text-white">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                <span className="text-[11px] font-black drop-shadow-md font-heading">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" />
+                <span className="text-[10px] sm:text-[11px] font-black drop-shadow-md font-heading truncate">
                   Canton Fair Sourcing Booth
                 </span>
               </div>
-              <div className="w-7 h-7 rounded-full bg-white/25 backdrop-blur-xs flex items-center justify-center group-hover:bg-[#FF1028] transition-colors">
-                <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />
-              </div>
+              <span className="text-[9px] font-mono text-amber-300 font-bold hidden sm:inline-block shrink-0">
+                LIVE QC
+              </span>
             </div>
           </div>
 
@@ -395,21 +522,21 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 tag: "LAB BENCHMARK",
               })
             }
-            className="group relative flex-1 min-h-[190px] rounded-2xl overflow-hidden border border-slate-200 bg-slate-950 shadow-xs cursor-pointer hover:border-blue-500 transition-all duration-300 flex flex-col justify-between p-3"
+            className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
             {/* Host Video Stream Image */}
             <Image
               src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80"
               alt="Shenzhen Factory Lab Inspection Live Stream"
               fill
-              sizes="(max-width: 1024px) 100vw, 25vw"
-              className="object-cover object-top opacity-90 group-hover:scale-104 transition-transform duration-500"
+              sizes="(max-width: 1024px) 50vw, 25vw"
+              className="object-cover object-top opacity-85 group-hover:scale-106 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40" />
 
             {/* Top Bar: AD Badge & Controls */}
             <div className="relative z-10 flex items-center justify-between">
-              <span className="bg-black/70 backdrop-blur-xs text-white text-[9px] font-black px-2 py-0.5 rounded border border-white/20 uppercase font-mono">
+              <span className="bg-black/70 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-md border border-white/20 uppercase font-mono">
                 AD
               </span>
 
@@ -420,10 +547,10 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     e.stopPropagation();
                     setIsMutedBottom(!isMutedBottom);
                   }}
-                  className="w-6 h-6 rounded-md bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors"
+                  className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"
                   aria-label="Toggle sound"
                 >
-                  {isMutedBottom ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  {isMutedBottom ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                 </button>
                 <button
                   type="button"
@@ -438,25 +565,32 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                       tag: "LAB BENCHMARK",
                     });
                   }}
-                  className="w-6 h-6 rounded-md bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors"
+                  className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"
                   aria-label="Expand video"
                 >
-                  <Maximize2 className="w-3.5 h-3.5" />
+                  <Maximize2 className="w-3 h-3" />
                 </button>
+              </div>
+            </div>
+
+            {/* Center Pulsing Play Icon */}
+            <div className="relative z-10 my-auto flex justify-center py-1">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-115 group-hover:bg-[#FF1028] transition-all">
+                <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5 fill-current" />
               </div>
             </div>
 
             {/* Bottom Overlay Label */}
             <div className="relative z-10 flex items-center justify-between text-white">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                <span className="text-[11px] font-black drop-shadow-md font-heading">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" />
+                <span className="text-[10px] sm:text-[11px] font-black drop-shadow-md font-heading truncate">
                   Shenzhen Inspection Host
                 </span>
               </div>
-              <div className="w-7 h-7 rounded-full bg-white/25 backdrop-blur-xs flex items-center justify-center group-hover:bg-[#FF1028] transition-colors">
-                <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />
-              </div>
+              <span className="text-[9px] font-mono text-amber-300 font-bold hidden sm:inline-block shrink-0">
+                QC PASSED
+              </span>
             </div>
           </div>
         </div>
