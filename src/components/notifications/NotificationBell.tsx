@@ -204,23 +204,23 @@ export function NotificationBell({ variant = "storefront", className }: Notifica
 
   return (
     <div className={cn("relative", className)} ref={popoverRef}>
-      {/* ── Notification Bell Trigger Button ── */}
+      {/* ── Notification Bell Trigger Button (Premium Glass Pill) ── */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "relative p-2.5 rounded-xl transition-all flex items-center justify-center cursor-pointer group",
+          "relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl transition-all duration-200 flex items-center justify-center cursor-pointer group shadow-2xs hover:shadow-sm",
           variant === "admin"
-            ? "bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-[#2F65F6] shadow-xs"
-            : "text-slate-700 hover:text-[#FF1028] hover:bg-slate-100"
+            ? "bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-[#2F65F6] hover:border-blue-300"
+            : "bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-red-300 text-slate-700 hover:text-[#FF1028]"
         )}
         aria-label={`Notifications (${unreadCount} unread)`}
         aria-expanded={isOpen}
       >
-        <Bell className="w-5 h-5 transition-transform group-hover:scale-110" />
+        <Bell className={cn("w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform duration-300 group-hover:scale-110", unreadCount > 0 ? "text-slate-800 group-hover:text-[#FF1028]" : "text-slate-600")} />
 
         {/* Live Unread Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-[#FF1028] text-white rounded-full text-[10px] font-black flex items-center justify-center px-1 border-2 border-white dark:border-slate-900 shadow-xs animate-in zoom-in-50">
+          <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] bg-[#FF1028] text-white rounded-full text-[9px] font-black flex items-center justify-center px-1 border-2 border-white shadow-xs animate-in zoom-in-50">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}

@@ -579,39 +579,45 @@ export function Header({
               )}
             </div>
 
-            {/* ── Header Actions (Compare, Wishlist, Account, Cart) ── */}
-            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-              {/* Compare Action */}
+            {/* ── Header Actions (Compare, Wishlist, Notifications, Account, Cart) ── */}
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5">
+              {/* Compare Action Button */}
               <Link
                 href="/categories"
                 title="Product Comparison"
-                className="relative p-2.5 rounded-xl text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-colors hidden sm:flex items-center justify-center"
+                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-blue-300 transition-all duration-200 hidden sm:flex items-center justify-center cursor-pointer group shadow-2xs hover:shadow-sm text-slate-700 hover:text-blue-600"
                 aria-label="View Product Comparison"
               >
-                <Scale className="w-5 h-5 text-slate-700" />
-                {compareTotalItems > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-blue-600 text-white rounded-full text-[10px] font-black flex items-center justify-center px-1 shadow-sm">
+                <Scale className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 transition-transform" />
+                {isMounted && compareTotalItems > 0 && (
+                  <span
+                    suppressHydrationWarning
+                    className="absolute -top-1 -right-1 min-w-[17px] h-[17px] bg-blue-600 text-white rounded-full text-[9px] font-black flex items-center justify-center px-1 border-2 border-white shadow-xs animate-in zoom-in-50"
+                  >
                     {compareTotalItems}
                   </span>
                 )}
               </Link>
 
-              {/* Wishlist Action */}
+              {/* Wishlist Action Button */}
               <Link
                 href="/account/wishlist"
                 title="My Wishlist"
-                className="relative p-2 sm:p-2.5 rounded-xl text-slate-700 hover:text-[#FF1028] hover:bg-slate-100 transition-colors flex items-center justify-center"
+                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-red-300 transition-all duration-200 flex items-center justify-center cursor-pointer group shadow-2xs hover:shadow-sm text-slate-700 hover:text-[#FF1028]"
                 aria-label="View Wishlist"
               >
-                <Heart className="w-5 h-5 text-slate-700" />
-                {wishlistTotalItems > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-[#FF1028] text-white rounded-full text-[10px] font-black flex items-center justify-center px-1 shadow-sm">
+                <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 group-hover:fill-[#FF1028] transition-all" />
+                {isMounted && wishlistTotalItems > 0 && (
+                  <span
+                    suppressHydrationWarning
+                    className="absolute -top-1 -right-1 min-w-[17px] h-[17px] bg-[#FF1028] text-white rounded-full text-[9px] font-black flex items-center justify-center px-1 border-2 border-white shadow-xs animate-in zoom-in-50"
+                  >
                     {wishlistTotalItems}
                   </span>
                 )}
               </Link>
 
-              {/* Notification Bell — hidden on xs to save header space */}
+              {/* Notification Bell */}
               <div className="hidden sm:block">
                 <NotificationBell variant="storefront" />
               </div>
@@ -620,10 +626,10 @@ export function Header({
               <div className="relative" ref={accountMenuRef}>
                 <button
                   onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-                  className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-xl text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-2xl text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
                   aria-label="Account Menu"
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#00143D] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs shrink-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#00143D] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs shrink-0">
                     {user ? (displayName ? displayName[0].toUpperCase() : "U") : <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                   </div>
                   <div className="hidden xl:flex flex-col text-left">
@@ -739,31 +745,31 @@ export function Header({
                 )}
               </div>
 
-              {/* Shopping Cart Button */}
+              {/* ── Shopping Cart Premium Capsule Button ── */}
               <button
                 onClick={openCart}
-                className="flex items-center gap-1.5 sm:gap-2 bg-[#00143D] hover:bg-[#002366] text-white px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer group"
+                className="flex items-center gap-2 sm:gap-2.5 bg-gradient-to-r from-[#00143D] via-[#001F5C] to-[#000F2E] hover:from-[#001E5B] hover:to-[#00143D] border border-blue-900/60 hover:border-amber-400/40 text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group"
                 aria-label={`Shopping cart with ${isMounted ? cartTotalItems : 0} items`}
                 suppressHydrationWarning
               >
-                <div className="relative">
-                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                <div className="relative flex items-center justify-center">
+                  <ShoppingCart className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white group-hover:scale-110 transition-transform" />
                   {isMounted && cartTotalItems > 0 && (
                     <span
                       suppressHydrationWarning
-                      className="absolute -top-2 -right-2.5 min-w-[16px] sm:min-w-[18px] h-[16px] sm:h-[18px] bg-[#FF1028] text-white rounded-full text-[9px] sm:text-[10px] font-black flex items-center justify-center px-1 border-2 border-[#00143D]"
+                      className="absolute -top-2 -right-2.5 min-w-[17px] sm:min-w-[18px] h-[17px] sm:h-[18px] bg-[#FF1028] text-white rounded-full text-[9px] sm:text-[10px] font-black flex items-center justify-center px-1 border-2 border-[#00143D] shadow-xs"
                     >
                       {cartTotalItems}
                     </span>
                   )}
                 </div>
-                <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-[9px] text-slate-300 font-bold uppercase tracking-wider leading-none">
-                    My Cart
+                <div className="hidden sm:flex flex-col text-left leading-tight">
+                  <span className="text-[9px] text-amber-300 font-extrabold uppercase tracking-wider">
+                    MY CART
                   </span>
                   <span
                     suppressHydrationWarning
-                    className="text-xs font-black text-amber-300 font-mono leading-tight"
+                    className="text-xs font-black text-white font-mono tracking-tight"
                   >
                     {formatCurrency(isMounted ? cartSubtotal : 0)}
                   </span>
