@@ -137,6 +137,12 @@ export function Header({
   const wishlistTotalItems = useWishlistStore((state) => state.getTotalItems());
   const compareTotalItems = useCompareStore((state) => state.getTotalItems());
 
+  // Client hydration check
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Refs for click outside
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const megaMenuRef = useRef<HTMLDivElement>(null);
@@ -737,12 +743,16 @@ export function Header({
               <button
                 onClick={openCart}
                 className="flex items-center gap-1.5 sm:gap-2 bg-[#00143D] hover:bg-[#002366] text-white px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer group"
-                aria-label={`Shopping cart with ${cartTotalItems} items`}
+                aria-label={`Shopping cart with ${isMounted ? cartTotalItems : 0} items`}
+                suppressHydrationWarning
               >
                 <div className="relative">
                   <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
-                  {cartTotalItems > 0 && (
-                    <span className="absolute -top-2 -right-2.5 min-w-[16px] sm:min-w-[18px] h-[16px] sm:h-[18px] bg-[#FF1028] text-white rounded-full text-[9px] sm:text-[10px] font-black flex items-center justify-center px-1 border-2 border-[#00143D]">
+                  {isMounted && cartTotalItems > 0 && (
+                    <span
+                      suppressHydrationWarning
+                      className="absolute -top-2 -right-2.5 min-w-[16px] sm:min-w-[18px] h-[16px] sm:h-[18px] bg-[#FF1028] text-white rounded-full text-[9px] sm:text-[10px] font-black flex items-center justify-center px-1 border-2 border-[#00143D]"
+                    >
                       {cartTotalItems}
                     </span>
                   )}
@@ -751,8 +761,11 @@ export function Header({
                   <span className="text-[9px] text-slate-300 font-bold uppercase tracking-wider leading-none">
                     My Cart
                   </span>
-                  <span className="text-xs font-black text-amber-300 font-mono leading-tight">
-                    {formatCurrency(cartSubtotal)}
+                  <span
+                    suppressHydrationWarning
+                    className="text-xs font-black text-amber-300 font-mono leading-tight"
+                  >
+                    {formatCurrency(isMounted ? cartSubtotal : 0)}
                   </span>
                 </div>
               </button>

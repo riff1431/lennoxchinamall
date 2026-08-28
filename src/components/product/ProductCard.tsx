@@ -163,10 +163,10 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   return (
     <>
       <div
-        className={`group relative bg-white rounded-2xl border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden hover-lift ${
+        className={`group relative bg-white rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden hover-lift ${
           isOutOfStock
             ? "border-slate-200 opacity-75"
-            : "border-slate-200/90 hover:border-[#FF1028]/40 hover:shadow-xl shadow-2xs"
+            : "border-slate-200/90 hover:border-[#FF1028]/40 hover:shadow-lg shadow-2xs"
         }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -178,7 +178,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               src={isHovered ? hoverImage : primaryImage}
               alt={product.title}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 16vw"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
               className={`object-cover object-center transition-transform duration-700 ${
                 isHovered ? "scale-108" : "scale-100"
               }`}
@@ -190,30 +190,30 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* ── Top Badges (Discount, Flash Deal, Best Seller, New, Out of Stock) ── */}
-            <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+            <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
               {isOutOfStock ? (
-                <span className="bg-slate-900/90 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-xs font-heading backdrop-blur-xs">
+                <span className="bg-slate-900/90 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider shadow-xs font-heading backdrop-blur-xs">
                   OUT OF STOCK
                 </span>
               ) : (
                 <>
                   {discount > 0 && (
-                    <span className="bg-[#FF1028] text-white text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-md shadow-sm uppercase tracking-wider font-heading">
+                    <span className="bg-[#FF1028] text-white text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wider font-heading">
                       -{discount}%
                     </span>
                   )}
                   {product.is_flash_deal && (
-                    <span className="bg-[#00143D] text-amber-300 text-[9px] font-black px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 border border-amber-300/30 uppercase tracking-wide">
-                      <Flame className="w-3 h-3 fill-amber-300 text-amber-300" /> FLASH DROP
+                    <span className="bg-[#00143D] text-amber-300 text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs flex items-center gap-1 border border-amber-300/30 uppercase tracking-wide">
+                      <Flame className="w-2.5 h-2.5 fill-amber-300 text-amber-300" /> FLASH DROP
                     </span>
                   )}
                   {product.is_best_seller && !product.is_flash_deal && (
-                    <span className="bg-amber-500 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wide flex items-center gap-1 font-heading">
-                      <Award className="w-3 h-3" /> BEST SELLER
+                    <span className="bg-amber-500 text-slate-950 text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
+                      <Award className="w-2.5 h-2.5" /> BEST SELLER
                     </span>
                   )}
                   {isLowStock && (
-                    <span className="bg-orange-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wide shadow-xs flex items-center gap-1 font-mono">
+                    <span className="bg-orange-600 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide shadow-2xs flex items-center gap-1 font-mono">
                       <AlertTriangle className="w-2.5 h-2.5" /> ONLY {totalStock} LEFT
                     </span>
                   )}
@@ -223,23 +223,23 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
             {/* ── Video QC Demo Badge ── */}
             {videoCount > 0 && (
-              <div className="absolute bottom-2.5 left-2.5 bg-[#00143D]/90 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1.5 z-10 border border-white/20 shadow-xs">
-                <Video className="w-3 h-3 text-[#FF1028]" />
-                <span>{videoCount} Factory Video{videoCount > 1 ? "s" : ""}</span>
+              <div className="absolute bottom-2 left-2 bg-[#00143D]/90 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 z-10 border border-white/20 shadow-2xs">
+                <Video className="w-2.5 h-2.5 text-[#FF1028]" />
+                <span>{videoCount} Video{videoCount > 1 ? "s" : ""}</span>
               </div>
             )}
 
             {/* ── Floating Action Bar (Right Side Hover) ── */}
-            <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5 z-10">
+            <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
               {/* Wishlist Button */}
               <button
                 onClick={handleWishlistToggle}
-                className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-[#FF1028] hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100"
+                className="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-[#FF1028] hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100"
                 title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                 aria-label="Toggle Wishlist"
               >
                 <Heart
-                  className={`w-4 h-4 transition-colors ${
+                  className={`w-3.5 h-3.5 transition-colors ${
                     isInWishlist ? "fill-[#FF1028] text-[#FF1028] scale-110" : ""
                   }`}
                 />
@@ -248,7 +248,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               {/* Compare Button */}
               <button
                 onClick={handleCompareToggle}
-                className={`w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 ${
+                className={`w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 ${
                   isInCompare
                     ? "text-blue-600 border-blue-200"
                     : "text-slate-400 hover:text-blue-600 hover:scale-115"
@@ -256,25 +256,25 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 title={isInCompare ? "In comparison list" : "Add to comparison"}
                 aria-label="Toggle Compare"
               >
-                <Scale className="w-4 h-4" />
+                <Scale className="w-3.5 h-3.5" />
               </button>
 
               {/* Quick View Button (Visible on Hover on Desktop) */}
               <button
                 onClick={handleOpenQuickView}
-                className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-[#00143D] hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100 opacity-0 group-hover:opacity-100 hidden sm:flex"
+                className="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-[#00143D] hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100 opacity-0 group-hover:opacity-100 hidden sm:flex"
                 title="Quick View Product"
                 aria-label="Quick View"
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {/* ── Flash Sale Countdown Bar Overlay (Bottom of Image) ── */}
             {product.is_flash_deal && (
-              <div className="absolute bottom-0 left-0 right-0 bg-[#00143D]/95 backdrop-blur-md text-amber-300 py-1 px-2.5 flex items-center justify-between text-[10px] font-mono border-t border-amber-300/30 z-10">
+              <div className="absolute bottom-0 left-0 right-0 bg-[#00143D]/95 backdrop-blur-md text-amber-300 py-0.5 px-2 flex items-center justify-between text-[9px] font-mono border-t border-amber-300/30 z-10">
                 <span className="flex items-center gap-1 font-bold text-white">
-                  <Clock className="w-3 h-3 text-amber-300" /> Ends In:
+                  <Clock className="w-2.5 h-2.5 text-amber-300" /> Ends:
                 </span>
                 <span className="font-black text-amber-300 tracking-wider">
                   {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:
@@ -285,32 +285,32 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           </div>
 
           {/* ── 2. Product Details & Typography ── */}
-          <div className="p-3.5 sm:p-4 flex flex-col justify-between flex-1 gap-2">
+          <div className="p-2.5 sm:p-3 flex flex-col justify-between flex-1 gap-1.5">
             <div>
               {/* Category / Brand Micro Tag */}
-              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block truncate">
-                Direct China Factory • Verified QC
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block truncate">
+                Direct China Factory • QC
               </span>
 
               {/* Product Title */}
-              <h3 className="font-heading text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-[#FF1028] transition-colors mt-0.5">
+              <h3 className="font-heading text-xs sm:text-[13px] font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-[#FF1028] transition-colors mt-0.5 min-h-[32px]">
                 {product.title}
               </h3>
             </div>
 
             {/* Rating & Sold Count Row */}
-            <div className="flex items-center justify-between text-xs pt-1">
-              <div className="flex items-center gap-1 text-slate-600 font-semibold text-[11px]">
+            <div className="flex items-center justify-between text-[11px] pt-0.5">
+              <div className="flex items-center gap-1 text-slate-600 font-semibold text-[10px] sm:text-[11px]">
                 <div className="flex items-center text-amber-500">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   <span className="ml-1 text-slate-800 font-black tabular-nums">
                     {(product.avg_rating || 4.9).toFixed(1)}
                   </span>
                 </div>
-                <span className="text-slate-600">({product.review_count || 18})</span>
+                <span className="text-slate-500">({product.review_count || 18})</span>
               </div>
 
-              <span className="text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded-md tabular-nums">
+              <span className="text-[9.5px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded tabular-nums">
                 {product.sold_count >= 1000
                   ? `${(product.sold_count / 1000).toFixed(1)}k+ sold`
                   : `${product.sold_count || 48} sold`}
@@ -319,8 +319,8 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
             {/* Variant Selector Pills (If variants exist) */}
             {product.variants && product.variants.length > 1 && (
-              <div className="flex items-center gap-1 overflow-x-auto py-1 scrollbar-none">
-                {product.variants.slice(0, 4).map((v) => (
+              <div className="flex items-center gap-1 overflow-x-auto py-0.5 scrollbar-none">
+                {product.variants.slice(0, 3).map((v) => (
                   <button
                     key={v.id}
                     onClick={(e) => {
@@ -328,7 +328,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                       e.stopPropagation();
                       setSelectedVariantId(v.id);
                     }}
-                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-mono transition-all shrink-0 cursor-pointer ${
+                    className={`px-1.5 py-0.5 rounded text-[8px] font-bold font-mono transition-all shrink-0 cursor-pointer ${
                       selectedVariantId === v.id
                         ? "bg-[#00143D] text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -341,46 +341,46 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             )}
 
             {/* Price Block: Sale Price, Compare Price, Savings */}
-            <div className="pt-2 border-t border-slate-100">
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-base sm:text-lg font-black text-[#00143D] font-mono leading-none">
+            <div className="pt-1.5 border-t border-slate-100">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-sm sm:text-base font-black text-[#00143D] font-mono leading-none">
                   {formatCurrency(activePrice)}
                 </span>
                 {comparePrice && comparePrice > activePrice && (
-                  <span className="text-xs text-slate-400 line-through tabular-nums font-mono">
+                  <span className="text-[10px] sm:text-xs text-slate-400 line-through tabular-nums font-mono">
                     ${comparePrice.toFixed(2)}
                   </span>
                 )}
               </div>
 
               {savingsAmount > 0 && (
-                <div className="text-[10px] font-black text-[#FF1028] mt-0.5 font-heading tracking-wide flex items-center gap-1">
+                <div className="text-[9px] sm:text-[9.5px] font-black text-[#FF1028] mt-0.5 font-heading tracking-wide flex items-center gap-1">
                   <span>Save ${savingsAmount.toFixed(2)} USDT</span>
-                  <span className="text-[9px] text-slate-600 font-normal">• Zero Fee</span>
+                  <span className="text-[8.5px] text-slate-500 font-normal">• Zero Fee</span>
                 </div>
               )}
             </div>
 
             {/* Logistics & QC Micro Badges */}
-            <div className="space-y-1 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500 font-medium">
-              <div className="flex items-center gap-1.5 text-slate-600">
-                <Plane className="w-3 h-3 text-blue-600 shrink-0" />
+            <div className="space-y-0.5 pt-1 border-t border-slate-100 text-[9px] sm:text-[9.5px] text-slate-500 font-medium">
+              <div className="flex items-center gap-1 text-slate-600 truncate">
+                <Plane className="w-2.5 h-2.5 text-blue-600 shrink-0" />
                 <span className="truncate">5-8 Days Direct Air Cargo</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[#10B981] font-semibold">
-                <ShieldCheck className="w-3 h-3 shrink-0" />
-                <span>100% Factory Gate QC Pass</span>
+              <div className="flex items-center gap-1 text-[#10B981] font-semibold truncate">
+                <ShieldCheck className="w-2.5 h-2.5 shrink-0" />
+                <span className="truncate">100% Factory Gate QC Pass</span>
               </div>
             </div>
           </div>
         </Link>
 
         {/* ── 3. Quick-Add Action Bar ── */}
-        <div className="px-3.5 pb-3.5 sm:px-4 sm:pb-4 pt-1">
+        <div className="px-2.5 pb-2.5 sm:px-3 sm:pb-3 pt-0.5">
           <button
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
-            className={`w-full py-2.5 px-3 rounded-xl text-xs font-black font-heading flex items-center justify-center gap-2 transition-all shadow-xs active:scale-95 cursor-pointer ${
+            className={`w-full py-2 px-2.5 rounded-xl text-xs font-black font-heading flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer ${
               isOutOfStock
                 ? "bg-slate-200 text-slate-400 cursor-not-allowed"
                 : justAdded
@@ -393,12 +393,12 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               <span>Out of Stock</span>
             ) : justAdded ? (
               <>
-                <Check className="w-4 h-4" />
-                <span>Added to Cart!</span>
+                <Check className="w-3.5 h-3.5" />
+                <span>Added!</span>
               </>
             ) : (
               <>
-                <ShoppingCart className="w-4 h-4" />
+                <ShoppingCart className="w-3.5 h-3.5" />
                 <span>Quick Add</span>
               </>
             )}
