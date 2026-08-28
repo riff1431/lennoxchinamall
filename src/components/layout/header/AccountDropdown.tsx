@@ -72,7 +72,7 @@ export function AccountDropdown() {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
             role="menu"
-            className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl border border-slate-200 shadow-2xl p-2 z-50 text-xs"
+            className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-24px)] bg-white rounded-xl border border-slate-200 shadow-2xl p-2 z-50 text-xs"
           >
             {isAuthenticated ? (
               <div className="space-y-1">

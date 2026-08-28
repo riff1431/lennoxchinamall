@@ -268,7 +268,7 @@ export function NotificationBell({
       {/* ── Dropdown Notification Popover ── */}
       {isOpen && (
         <div
-          className="absolute right-0 top-full mt-2 w-[calc(100vw-24px)] max-w-[390px] sm:w-[390px] bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 font-sans"
+          className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-14 sm:top-full mt-2 max-w-[390px] sm:w-[390px] mx-auto sm:mx-0 bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 font-sans"
           role="dialog"
           aria-label="Notification Center Dropdown"
         >

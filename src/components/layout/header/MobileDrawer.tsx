@@ -260,16 +260,25 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
             </div>
 
             {/* Mobile Drawer Footer */}
-            <div className="p-5 border-t border-slate-200 bg-slate-50 space-y-3">
-              <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
-                <span>Settlement Currency</span>
+            <div className="p-5 border-t border-slate-200 bg-slate-50 space-y-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+              <div className="flex items-center justify-between text-slate-600 text-xs font-medium">
+                <span>Direct Sourcing</span>
                 <span className="font-bold text-[#00143D] flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  USDT (Zero Fee)
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  USDT (Binance Pay)
                 </span>
               </div>
+              <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
+                <Link href="/account/orders" onClick={onClose} className="hover:text-[#FF1028] font-bold">
+                  Track Order
+                </Link>
+                <span>•</span>
+                <Link href="/account/support" onClick={onClose} className="hover:text-[#FF1028] font-bold">
+                  24/7 Sourcing Support
+                </Link>
+              </div>
               <p className="text-[10px] text-slate-400 text-center font-medium">
-                © {new Date().getFullYear()} China Mall Inc. All Rights Reserved.
+                © {new Date().getFullYear()} Lennox ChinaMall Inc. All Rights Reserved.
               </p>
             </div>
           </motion.div>

@@ -63,8 +63,24 @@ export function AnnouncementBar({
   const Check = HEADER_ICONS.check;
 
   return (
-    <div className="bg-[#00143D] text-slate-200 text-xs border-b border-blue-950/60 hidden md:block">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between">
+    <div className="bg-[#00143D] text-slate-200 text-xs border-b border-blue-950/60">
+      {/* ── Mobile Compact Value Prop Bar ── */}
+      <div className="md:hidden flex items-center justify-between px-3 h-7 text-[10px] font-medium tracking-tight overflow-hidden">
+        <div className="flex items-center gap-1.5 truncate text-amber-300 font-bold uppercase">
+          <ValueIcon className="w-3 h-3 shrink-0" />
+          <span className="truncate">{ANNOUNCEMENT_CONFIG.valueProp}</span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 text-slate-300">
+          <span className="hidden xs:inline">{ANNOUNCEMENT_CONFIG.couponText}:</span>
+          <span className="inline xs:hidden">Use:</span>
+          <span className="text-white bg-[#FF1028] px-1.5 py-0.5 rounded font-black text-[9px] shadow-[0_0_6px_rgba(255,16,40,0.4)]">
+            {ANNOUNCEMENT_CONFIG.couponCode}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Desktop Full Utility & Announcement Bar ── */}
+      <div className="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-9 items-center justify-between">
         {/* Left Ticker / Value Prop */}
         <div className="flex items-center gap-4 text-[11px] font-medium tracking-wide">
           <span className="flex items-center gap-1.5 text-amber-300 font-bold uppercase tracking-wider">

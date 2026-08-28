@@ -18,11 +18,11 @@ export function CartButton() {
   return (
     <button
       onClick={openCart}
-      className={`flex items-center gap-2 sm:gap-2.5 bg-gradient-to-r from-[#00143D] via-[#001F5C] to-[#000F2E] hover:from-[#001E5B] hover:to-[#00143D] border ${
+      className={`w-9 h-9 sm:w-auto sm:h-auto flex items-center justify-center gap-2 sm:gap-2.5 bg-gradient-to-r from-[#00143D] via-[#001F5C] to-[#000F2E] hover:from-[#001E5B] hover:to-[#00143D] border ${
         hasItems
           ? "border-amber-400/50 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
           : "border-blue-900/60"
-      } hover:border-amber-400/60 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] text-white px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition-all duration-300 cursor-pointer group`}
+      } hover:border-amber-400/60 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] text-white p-2 sm:px-3.5 sm:py-2 rounded-xl shadow-sm transition-all duration-300 cursor-pointer group shrink-0`}
       aria-label={`Shopping cart with ${isMounted ? cartTotalItems : 0} items`}
       suppressHydrationWarning
     >

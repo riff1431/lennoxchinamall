@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -8,13 +8,19 @@ import {
   Menu,
   Search,
   X,
+  ArrowRight,
+  Package,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { isAdminRole } from "@/lib/auth/roles";
-import { MOCK_CATEGORIES } from "@/lib/mockData";
+import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { SITE_NAME } from "@/lib/constants";
 import { useMounted } from "@/hooks/useMounted";
+import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { formatCurrency } from "@/utils/helpers";
+import { HOT_SEARCH_TAGS } from "./headerConfig";
 
 import { AnnouncementBar } from "./AnnouncementBar";
 import { HeaderSearchBar } from "./HeaderSearchBar";
@@ -43,6 +49,14 @@ export function Header({
 
   // Mobile search state
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
+  const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
+  const [mobileSuggestions, setMobileSuggestions] = useState<{
+    products: { id: string; title: string; slug: string; price: number; image?: string; sku?: string }[];
+    categories: { id: string; name: string; slug: string; productCount?: number; icon?: string | null }[];
+    suggestions: string[];
+  }>({ products: [], categories: [], suggestions: [] });
+
+  const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
 
   // Dynamic Categories Store
   const { categories, getRootCategories } = useCategoryStore();
@@ -64,19 +78,92 @@ export function Header({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setIsMobileMenuOpen(false);
+        setIsMobileSearchFocused(false);
       }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Mobile search handler
-  const handleMobileSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Click outside to close mobile search suggestions
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        mobileSearchContainerRef.current &&
+        !mobileSearchContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsMobileSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Live debounced autocomplete for mobile search
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (!mobileSearchQuery.trim() || mobileSearchQuery.trim().length < 2) {
+        setMobileSuggestions({ products: [], categories: [], suggestions: [] });
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMobileSuggestions(data);
+        }
+      } catch {
+        const q = mobileSearchQuery.toLowerCase().trim();
+        const matchedProducts = MOCK_PRODUCTS.filter(
+          (p) => p.title.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+        ).slice(0, 4);
+
+        const currentCats = isMounted ? categories : [];
+        const matchedCats = currentCats.filter((c) =>
+          c.name.toLowerCase().includes(q)
+        ).slice(0, 3);
+
+        setMobileSuggestions({
+          products: matchedProducts.map((p) => ({
+            id: p.id,
+            title: p.title,
+            slug: p.slug,
+            price: p.base_price,
+            image: p.media?.[0]?.url,
+            sku: p.sku,
+          })),
+          categories: matchedCats.map((c) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            productCount: c.product_count,
+            icon: c.icon || c.iconName,
+          })),
+          suggestions: HOT_SEARCH_TAGS.filter((t) => t.toLowerCase().includes(q)),
+        });
+      }
+    }, 180);
+
+    return () => clearTimeout(timer);
+  }, [mobileSearchQuery, categories, isMounted]);
+
+  // Mobile search submit handler
+  const handleMobileSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!mobileSearchQuery.trim()) return;
+    setIsMobileSearchFocused(false);
     router.push(`/search?q=${encodeURIComponent(mobileSearchQuery.trim())}`);
-    setMobileSearchQuery("");
   };
+
+  const handleSelectMobileSuggestion = (path: string) => {
+    setIsMobileSearchFocused(false);
+    setMobileSearchQuery("");
+    router.push(path);
+  };
+
+  const hasMobileSuggestions =
+    isMobileSearchFocused && mobileSearchQuery.trim().length >= 2;
 
   return (
     <header className="w-full relative z-40 font-sans text-slate-900 bg-white">
@@ -90,34 +177,34 @@ export function Header({
       {/* ── 2. Main Header Bar (Sticky) ── */}
       <div
         className={`sticky top-0 z-40 bg-white/98 backdrop-blur-md transition-all duration-300 border-b ${
-          isScrolled ? "shadow-md border-slate-200 py-1.5 sm:py-2" : "border-slate-100 py-2 sm:py-3"
+          isScrolled ? "shadow-md border-slate-200 py-1 sm:py-2" : "border-slate-100 py-1.5 sm:py-2.5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3 sm:gap-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-2 sm:gap-4 md:gap-6">
             {/* Mobile Hamburger */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 text-slate-700 hover:text-[#FF1028] rounded-xl hover:bg-slate-100 transition-all duration-200 cursor-pointer active:scale-95"
+              className="lg:hidden p-1.5 sm:p-2 text-slate-700 hover:text-[#FF1028] rounded-xl hover:bg-slate-100 transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
               aria-label="Open Navigation Drawer"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
-            {/* Brand Logo */}
-            <Link href="/" className="shrink-0 group py-1">
+            {/* Brand Logo - Responsive scaling for all mobile screen sizes */}
+            <Link href="/" className="shrink-0 group py-0.5">
               <div
                 className={`relative transition-all duration-300 ${
                   isScrolled
-                    ? "h-11 w-[150px] sm:h-13 sm:w-[190px] md:h-16 md:w-[240px]"
-                    : "h-14 w-[175px] sm:h-18 sm:w-[230px] md:h-22 md:w-[280px] lg:h-24 lg:w-[320px]"
-                } group-hover:scale-[1.03]`}
+                    ? "h-8 w-[115px] xs:h-9 xs:w-[130px] sm:h-12 sm:w-[170px] md:h-14 md:w-[210px] lg:h-16 lg:w-[260px]"
+                    : "h-9 w-[125px] xs:h-10 xs:w-[145px] sm:h-14 sm:w-[190px] md:h-18 md:w-[240px] lg:h-20 lg:w-[280px]"
+                } group-hover:scale-[1.02]`}
               >
                 <Image
                   src={logoUrl}
                   alt={`${storeName} Logo`}
                   fill
-                  sizes="(max-width: 640px) 175px, (max-width: 1024px) 280px, 320px"
+                  sizes="(max-width: 640px) 145px, (max-width: 1024px) 240px, 280px"
                   className="object-contain object-left"
                   priority
                 />
@@ -131,40 +218,157 @@ export function Header({
               isMounted={isMounted}
             />
 
-            {/* Header Actions (Compare, Wishlist, Notifications, Account, Cart) */}
+            {/* Header Actions (Notifications, Cart, Account, Wishlist) */}
             <HeaderActions />
           </div>
 
-          {/* ── Mobile Full-Width Search Input ── */}
-          <div className="mt-2 md:hidden relative">
+          {/* ── Mobile Full-Width Search Input & Autocomplete ── */}
+          <div className="mt-1.5 md:hidden relative" ref={mobileSearchContainerRef}>
             <form onSubmit={handleMobileSearch} className="relative flex items-center">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search factory products..."
+                placeholder="Search 100,000+ factory products..."
                 value={mobileSearchQuery}
                 onChange={(e) => setMobileSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-[72px] min-h-[44px] rounded-xl bg-slate-100 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-[#FF1028] focus:ring-2 focus:ring-[#FF1028]/10 font-medium transition-all"
+                onFocus={() => setIsMobileSearchFocused(true)}
+                className="w-full pl-9 pr-16 min-h-[38px] rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#FF1028] focus:bg-white focus:ring-2 focus:ring-[#FF1028]/10 font-medium transition-all"
                 style={{ fontSize: "16px" }}
                 aria-label="Search products"
+                role="combobox"
+                aria-expanded={hasMobileSuggestions || (isMobileSearchFocused && !mobileSearchQuery)}
               />
               {mobileSearchQuery ? (
                 <button
                   type="button"
                   onClick={() => setMobileSearchQuery("")}
-                  className="absolute right-[56px] text-slate-400 p-1.5 min-h-[44px] flex items-center cursor-pointer"
+                  className="absolute right-12 text-slate-400 p-1 min-h-[38px] flex items-center cursor-pointer hover:text-slate-600"
                   aria-label="Clear search"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               ) : null}
               <button
                 type="submit"
-                className="absolute right-1.5 px-3.5 py-2 rounded-lg bg-gradient-to-r from-[#FF1028] to-[#E00B20] text-white text-xs font-black uppercase shadow-xs min-h-[36px] cursor-pointer hover:shadow-md active:scale-[0.97] transition-all"
+                className="absolute right-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#FF1028] to-[#E00B20] text-white text-[11px] font-black uppercase shadow-xs min-h-[30px] cursor-pointer hover:shadow-md active:scale-[0.97] transition-all"
               >
                 Go
               </button>
             </form>
+
+            {/* ── Mobile Search Dropdown Autocomplete Panel ── */}
+            <AnimatePresence>
+              {isMobileSearchFocused && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden z-50 text-xs max-h-[75vh] flex flex-col"
+                >
+                  {/* Hot Search Quick Chips if query is short */}
+                  {(!mobileSearchQuery || mobileSearchQuery.trim().length < 2) && (
+                    <div className="p-3 bg-slate-50">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2 font-mono">
+                        Popular Sourcing Searches
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {HOT_SEARCH_TAGS.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              setMobileSearchQuery(tag);
+                              setIsMobileSearchFocused(false);
+                              router.push(`/search?q=${encodeURIComponent(tag)}`);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-[#FF1028] hover:text-[#FF1028] text-slate-700 font-bold text-[11px] transition-all cursor-pointer shadow-2xs active:scale-95"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Category Matches */}
+                  {hasMobileSuggestions && mobileSuggestions.categories.length > 0 && (
+                    <div className="p-2.5 bg-slate-50/80 border-b border-slate-100">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1 font-mono">
+                        Categories
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {mobileSuggestions.categories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => handleSelectMobileSuggestion(`/categories/${cat.slug}`)}
+                            className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-[#FF1028] hover:text-[#FF1028] text-slate-700 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <CategoryIcon
+                              icon={cat.icon}
+                              name={cat.name}
+                              className="w-3.5 h-3.5 text-[#FF1028]"
+                            />
+                            <span>{cat.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Matching Products */}
+                  {hasMobileSuggestions && (
+                    <div className="p-2 space-y-1 overflow-y-auto max-h-64">
+                      {mobileSuggestions.products.length === 0 ? (
+                        <div className="p-4 text-center text-slate-500 text-xs">
+                          No direct matches for &quot;{mobileSearchQuery}&quot;. Tap Go to search all.
+                        </div>
+                      ) : (
+                        mobileSuggestions.products.map((prod) => (
+                          <button
+                            key={prod.id}
+                            type="button"
+                            onClick={() => handleSelectMobileSuggestion(`/products/${prod.slug}`)}
+                            className="w-full text-left p-2 rounded-xl hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer group active:bg-slate-100"
+                          >
+                            <div className="w-9 h-9 rounded-lg overflow-hidden bg-slate-100 shrink-0 relative border border-slate-200">
+                              {prod.image ? (
+                                <Image src={prod.image} alt={prod.title} fill className="object-cover" />
+                              ) : (
+                                <Package className="w-4 h-4 m-auto text-slate-400" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-bold text-slate-800 group-hover:text-[#FF1028] block truncate text-xs transition-colors">
+                                {prod.title}
+                              </span>
+                              <span className="font-mono font-black text-[11px] text-[#00143D]">
+                                {formatCurrency(prod.price)}
+                              </span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* View All Button */}
+                  {hasMobileSuggestions && (
+                    <div className="p-2 bg-slate-50 border-t border-slate-100 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleMobileSearch()}
+                        className="text-xs font-black text-[#FF1028] hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer py-0.5"
+                      >
+                        <span>View all results for &quot;{mobileSearchQuery}&quot;</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

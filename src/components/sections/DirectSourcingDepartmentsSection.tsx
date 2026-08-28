@@ -74,7 +74,7 @@ export const DIRECT_SOURCING_DEPARTMENTS: DepartmentCluster[] = [
     slug: "consumer-electronics",
     count: "530+",
     hub: "Wuhan Optics",
-    image: "https://images.unsplash.com/photo-1516116211227-bbc13c631a0b?w=600&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80",
     tag: "OPTICS",
   },
   {
@@ -90,7 +90,7 @@ export const DIRECT_SOURCING_DEPARTMENTS: DepartmentCluster[] = [
     slug: "consumer-electronics",
     count: "610+",
     hub: "Changzhou Hub",
-    image: "https://images.unsplash.com/photo-1509391365360-2e959784a276?w=600&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600&auto=format&fit=crop&q=80",
     tag: "ENERGY",
   },
   {
