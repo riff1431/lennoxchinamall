@@ -110,7 +110,7 @@ export function DepartmentPicker({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-full flex items-center gap-1.5 sm:gap-2 bg-slate-50/90 hover:bg-slate-100/90 border-r border-slate-200 px-3 sm:px-3.5 py-2.5 text-xs font-bold text-slate-800 shrink-0 cursor-pointer transition-colors select-none group"
+        className="h-full flex items-center gap-1.5 sm:gap-2 bg-slate-50/90 hover:bg-slate-100/90 border-r border-slate-200 px-3 sm:px-3.5 py-2.5 text-xs font-bold text-slate-800 shrink-0 cursor-pointer transition-colors select-none group rounded-l-[9px]"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label="Filter search by primary department"
@@ -150,7 +150,7 @@ export function DepartmentPicker({
             exit={{ opacity: 0, y: 6, scale: 0.98 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
             role="listbox"
-            className="absolute left-0 top-[calc(100%+8px)] w-72 sm:w-80 bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-50 p-2 font-sans text-slate-900 dark:text-slate-100"
+            className="absolute left-0 top-[calc(100%+8px)] w-72 sm:w-80 bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[70] p-2 font-sans text-slate-900 dark:text-slate-100"
           >
             {/* Header & Department Live Filter */}
             <div className="p-2 pb-2.5 border-b border-slate-100 dark:border-slate-800 space-y-2">

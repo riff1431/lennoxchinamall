@@ -139,7 +139,7 @@ export function HeaderSearchBar({
     <div ref={searchContainerRef} className="flex-1 max-w-2xl hidden md:block relative">
       <form
         onSubmit={handleSearch}
-        className="flex w-full items-center rounded-xl border-2 border-[#00143D] bg-white overflow-hidden shadow-xs focus-within:border-[#FF1028] focus-within:ring-2 focus-within:ring-[#FF1028]/15 transition-all duration-200"
+        className="flex w-full items-center rounded-xl border-2 border-[#00143D] bg-white shadow-xs focus-within:border-[#FF1028] focus-within:ring-2 focus-within:ring-[#FF1028]/15 transition-all duration-200 relative"
       >
         {/* Department Picker */}
         <DepartmentPicker
@@ -179,7 +179,7 @@ export function HeaderSearchBar({
         {/* Submit Search Button */}
         <button
           type="submit"
-          className="bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-5 py-2.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98]"
+          className="bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-5 py-2.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98] rounded-r-[9px]"
         >
           <Search className="w-4 h-4" />
           <span>Search</span>

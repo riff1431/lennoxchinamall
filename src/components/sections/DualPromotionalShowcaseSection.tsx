@@ -196,16 +196,16 @@ export function DualPromotionalShowcaseSection({
         </div>
       </div>
 
-      {/* ── 2. Bottom Section: 2 Promotional Banners with Exact Website Images ── */}
+      {/* ── 2. Bottom Section: 2 Promotional Banners with Lennox China Mall Brand Images ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
-        {/* Banner 1: Shop Everything in One Place */}
+        {/* Banner 1: Lennox China Mall - Direct Factory Sourcing */}
         <Link
           href="/categories/consumer-electronics"
           className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(0,20,61,0.25)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
         >
           <Image
-            src="https://lennoxonemall.com/storage/banner/2026-04-26-69ed9f39f1267.webp"
-            alt="Lennox OneMall - Shop Everything in One Place"
+            src="/images/banners/lennox_china_mall_promo_1.jpg"
+            alt="Lennox China Mall - Direct Factory Sourcing • Shop Everything in One Place"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center group-hover:scale-103 transition-transform duration-700"
@@ -213,14 +213,14 @@ export function DualPromotionalShowcaseSection({
           />
         </Link>
 
-        {/* Banner 2: The Ultimate Multi-Vendor Destination */}
+        {/* Banner 2: Lennox China Mall - The Ultimate Direct Sourcing Destination */}
         <Link
           href="/categories/all"
           className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(0,20,61,0.25)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
         >
           <Image
-            src="https://lennoxonemall.com/storage/banner/2026-04-26-69ed9de01320e.webp"
-            alt="Lennox OneMall - The Ultimate Multi-Vendor Destination"
+            src="/images/banners/lennox_china_mall_promo_2.jpg"
+            alt="Lennox China Mall - The Ultimate Direct Sourcing Destination"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center group-hover:scale-103 transition-transform duration-700"
