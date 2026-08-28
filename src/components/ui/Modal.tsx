@@ -61,7 +61,7 @@ export function Modal({
         {/* Modal Panel (Bottom sheet on mobile, centered card on desktop) */}
         <div
           className={cn(
-            "relative transform overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white dark:bg-[#111827] text-left shadow-2xl transition-all w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-200/80 dark:border-slate-800 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200",
+            "relative transform overflow-hidden rounded-t-2xl sm:rounded-xl bg-white dark:bg-[#111827] text-left shadow-2xl transition-all w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col border border-slate-200/80 dark:border-slate-800 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200",
             sizeClasses[size],
             maxWidth && `sm:${maxWidth}`,
             className
@@ -72,7 +72,7 @@ export function Modal({
               <div className="text-base font-bold text-slate-900 dark:text-white line-clamp-1 font-heading">{title}</div>
               <button
                 onClick={onClose}
-                className="w-9 h-9 -mr-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                className="w-8 h-8 -mr-2 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md flex items-center justify-center transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />

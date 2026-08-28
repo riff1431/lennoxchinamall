@@ -15,7 +15,7 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
   const deals = flashDeals.slice(0, 5);
 
   return (
-    <section className="relative rounded-3xl overflow-hidden shadow-xl">
+    <section className="relative rounded-xl overflow-hidden shadow-lg border border-amber-500/20 hover:border-amber-500/40 hover:shadow-[0_0_28px_rgba(245,158,11,0.2)] transition-all duration-300">
       {/* ── Dark Navy Gradient Background ── */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#00143D] via-[#000B24] to-[#00143D]" />
 
@@ -27,11 +27,11 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
         {/* Top-right circle */}
         <div className="absolute top-8 right-12 w-32 h-32 rounded-full border border-amber-400/8 animate-float-shape" />
         {/* Bottom-left hexagon shape */}
-        <div className="absolute bottom-16 left-8 w-24 h-24 rotate-45 rounded-xl border border-[#FF1028]/8 animate-float-shape-slow" />
+        <div className="absolute bottom-16 left-8 w-24 h-24 rotate-45 rounded-lg border border-[#FF1028]/8 animate-float-shape-slow" />
         {/* Mid-right small circle */}
         <div className="absolute top-1/2 right-1/4 w-16 h-16 rounded-full border border-white/5 animate-float-shape-mid" />
         {/* Top-left accent */}
-        <div className="absolute top-20 left-1/3 w-10 h-10 rotate-12 rounded-lg border border-amber-400/6 animate-float-shape-slow" />
+        <div className="absolute top-20 left-1/3 w-10 h-10 rotate-12 rounded-md border border-amber-400/6 animate-float-shape-slow" />
       </div>
 
       {/* ── Content Layer ── */}
@@ -59,7 +59,7 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
           {/* View All CTA */}
           <Link
             href="/categories/flash-deals"
-            className="flash-cta-glow text-xs font-black text-white flex items-center gap-1.5 bg-white/10 hover:bg-white/15 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-colors border border-white/15 backdrop-blur-xs"
+            className="flash-cta-glow text-xs font-black text-white flex items-center gap-1.5 bg-white/10 hover:bg-white/15 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-md transition-colors border border-white/15 backdrop-blur-xs"
           >
             <span>View All Flash Deals</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -71,11 +71,11 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
           {deals.map((product, idx) => (
             <div
               key={product.id}
-              className="flash-glass-card rounded-xl sm:rounded-2xl overflow-hidden animate-flash-card-enter flex flex-col justify-between"
+              className="flash-glass-card rounded-lg overflow-hidden animate-flash-card-enter flex flex-col justify-between"
               style={{ animationDelay: `${idx * 80}ms` }}
             >
               {/* Product Card Component */}
-              <div className="bg-white rounded-t-xl sm:rounded-t-2xl flex-1 flex flex-col">
+              <div className="bg-white rounded-t-lg flex-1 flex flex-col">
                 <ProductCard product={product} priority={idx < 2} />
               </div>
 

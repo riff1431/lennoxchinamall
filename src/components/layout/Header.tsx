@@ -698,7 +698,7 @@ export function Header({
               <Link
                 href="/account/wishlist"
                 title="My Wishlist"
-                className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-red-300 transition-all duration-200 flex items-center justify-center cursor-pointer group shadow-2xs hover:shadow-sm text-slate-700 hover:text-[#FF1028]"
+                className="relative w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-lg bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-red-500 hover:shadow-[0_0_16px_rgba(255,16,40,0.25)] transition-all duration-300 flex items-center justify-center cursor-pointer group text-slate-700 hover:text-[#FF1028]"
                 aria-label="View Wishlist"
               >
                 <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 group-hover:scale-110 group-hover:fill-[#FF1028] transition-all" />
@@ -721,10 +721,10 @@ export function Header({
               <div className="relative" ref={accountMenuRef}>
                 <button
                   onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-                  className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-2xl text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
+                  className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-lg text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
                   aria-label="Account Menu"
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#00143D] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs shrink-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-[#00143D] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs shrink-0">
                     {user ? (displayName ? displayName[0].toUpperCase() : "U") : <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                   </div>
                   <div className="hidden xl:flex flex-col text-left">
@@ -740,10 +740,10 @@ export function Header({
 
                 {/* Account Menu Dropdown */}
                 {isAccountMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 text-xs">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl border border-slate-200 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 text-xs">
                     {user ? (
                       <div className="space-y-1">
-                        <div className="p-3 bg-slate-50 rounded-xl mb-2">
+                        <div className="p-3 bg-slate-50 rounded-lg mb-2">
                           <span className="text-xs font-black text-[#00143D] block">{displayName || user.email}</span>
                           <span className="text-[10px] font-mono font-bold text-[#FF1028] uppercase">
                             Role: {role ? ROLE_LABELS[role] || role : "Customer"}
@@ -754,7 +754,7 @@ export function Header({
                           <Link
                             href="/admin/dashboard"
                             onClick={() => setIsAccountMenuOpen(false)}
-                            className="flex items-center gap-2.5 p-2 rounded-lg bg-[#FF1028]/10 text-[#FF1028] font-bold hover:bg-[#FF1028]/20 transition-colors"
+                            className="flex items-center gap-2.5 p-2 rounded-md bg-[#FF1028]/10 text-[#FF1028] font-bold hover:bg-[#FF1028]/20 transition-colors"
                           >
                             <ShieldCheck className="w-4 h-4" />
                             <span>Executive Admin Panel</span>
@@ -764,7 +764,7 @@ export function Header({
                         <Link
                           href="/account/profile"
                           onClick={() => setIsAccountMenuOpen(false)}
-                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
+                          className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                         >
                           <User className="w-4 h-4 text-slate-500" />
                           <span>My Profile</span>
@@ -773,7 +773,7 @@ export function Header({
                         <Link
                           href="/account/orders"
                           onClick={() => setIsAccountMenuOpen(false)}
-                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
+                          className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                         >
                           <Package className="w-4 h-4 text-slate-500" />
                           <span>My Orders &amp; Air Cargo</span>
@@ -782,16 +782,16 @@ export function Header({
                         <Link
                           href="/account/wishlist"
                           onClick={() => setIsAccountMenuOpen(false)}
-                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
+                          className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                         >
                           <Heart className="w-4 h-4 text-slate-500" />
-                          <span>Wishlist ({wishlistTotalItems})</span>
+                          <span>Wishlist ({isMounted ? wishlistTotalItems : 0})</span>
                         </Link>
 
                         <Link
                           href="/account/support"
                           onClick={() => setIsAccountMenuOpen(false)}
-                          className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
+                          className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                         >
                           <Headphones className="w-4 h-4 text-slate-500" />
                           <span>Support Tickets</span>
@@ -800,7 +800,7 @@ export function Header({
                         <div className="pt-2 border-t border-slate-100 mt-1">
                           <button
                             onClick={handleSignOut}
-                            className="w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-red-50 text-red-600 font-bold transition-colors cursor-pointer"
+                            className="w-full flex items-center gap-2.5 p-2 rounded-md hover:bg-red-50 text-red-600 font-bold transition-colors cursor-pointer"
                           >
                             <LogOut className="w-4 h-4" />
                             <span>Sign Out</span>
@@ -822,14 +822,14 @@ export function Header({
                           <Link
                             href="/auth/login"
                             onClick={() => setIsAccountMenuOpen(false)}
-                            className="w-full bg-[#00143D] hover:bg-[#002366] text-white text-center py-2 rounded-xl text-xs font-black transition-colors"
+                            className="w-full bg-[#00143D] hover:bg-[#002366] text-white text-center py-2 rounded-lg text-xs font-black transition-colors"
                           >
                             Sign In
                           </Link>
                           <Link
                             href="/auth/register"
                             onClick={() => setIsAccountMenuOpen(false)}
-                            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-center py-2 rounded-xl text-xs font-bold transition-colors"
+                            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-center py-2 rounded-lg text-xs font-bold transition-colors"
                           >
                             Join Free / Register
                           </Link>
@@ -843,7 +843,7 @@ export function Header({
               {/* ── Shopping Cart Premium Capsule Button ── */}
               <button
                 onClick={openCart}
-                className="flex items-center gap-2 sm:gap-2.5 bg-gradient-to-r from-[#00143D] via-[#001F5C] to-[#000F2E] hover:from-[#001E5B] hover:to-[#00143D] border border-blue-900/60 hover:border-amber-400/40 text-white px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                className="flex items-center gap-2 sm:gap-2.5 bg-gradient-to-r from-[#00143D] via-[#001F5C] to-[#000F2E] hover:from-[#001E5B] hover:to-[#00143D] border border-blue-900/60 hover:border-amber-400/60 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] text-white px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg shadow-sm transition-all duration-300 cursor-pointer group"
                 aria-label={`Shopping cart with ${isMounted ? cartTotalItems : 0} items`}
                 suppressHydrationWarning
               >

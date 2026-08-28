@@ -95,6 +95,11 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
   const [addedItemIds, setAddedItemIds] = useState<Record<string, boolean>>({});
   const [isMutedTop, setIsMutedTop] = useState(true);
   const [isMutedBottom, setIsMutedBottom] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Dynamic countdown timer for Deal of the Day
   const [timeLeft, setTimeLeft] = useState({ hours: 7, minutes: 42, seconds: 18 });
@@ -141,7 +146,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
             • Desktop: 3 Cols / Full Height Card
             • Mobile/Tablet: Sleek Compact Interactive Card
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-3 xl:col-span-3 bg-gradient-to-b from-white to-slate-50/80 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs flex flex-col justify-between p-4 sm:p-5 hover:border-slate-300 transition-all group">
+        <div className="lg:col-span-3 xl:col-span-3 bg-gradient-to-b from-white to-slate-50/80 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between p-4 sm:p-4.5 hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_-2px_rgba(255,16,40,0.22)] transition-all duration-300 group">
           <div>
             {/* Header & Live Scarcity Badge */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -151,7 +156,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                   DEAL OF THE DAY
                 </h2>
               </div>
-              <span className="text-[10px] font-mono font-bold text-[#FF1028] bg-red-50 px-2 py-0.5 rounded-full border border-red-100 flex items-center gap-1">
+              <span className="text-[10px] font-mono font-bold text-[#FF1028] bg-red-50 px-2 py-0.5 rounded-md border border-red-100 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 <span>
                   {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:{String(timeLeft.seconds).padStart(2, "0")}
@@ -165,9 +170,9 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               className="block group mt-4 sm:mt-5 space-y-3.5"
             >
               {/* Product Image Stage */}
-              <div className="relative w-full aspect-square max-w-[210px] sm:max-w-[230px] mx-auto rounded-2xl overflow-hidden bg-white border border-slate-100 shadow-2xs flex items-center justify-center p-3 group-hover:shadow-md transition-shadow">
+              <div className="relative w-full aspect-square max-w-[210px] sm:max-w-[230px] mx-auto rounded-lg overflow-hidden bg-white border border-slate-100 shadow-2xs flex items-center justify-center p-3 group-hover:shadow-md transition-shadow">
                 {/* Discount Tag */}
-                <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF1028] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md font-heading shadow-xs">
+                <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF1028] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-xs font-heading shadow-xs">
                   -45% OFF
                 </span>
 
@@ -221,7 +226,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
           <div className="pt-4 mt-auto">
             <Link
               href="/products/blitzwolf-bw-wa3-pro-120w-bluetooth-speaker"
-              className="w-full block bg-[#00143D] hover:bg-[#FF1028] text-white text-center py-2.5 sm:py-3 px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-md hover:shadow-lg active:scale-98 font-heading"
+              className="w-full block bg-[#00143D] hover:bg-[#FF1028] text-white text-center py-2.5 sm:py-3 px-4 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-sm hover:shadow-[0_0_18px_rgba(255,16,40,0.35)] active:scale-97 font-heading"
             >
               Grab This Deal →
             </Link>
@@ -237,7 +242,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
           {/* Top Showcase Promo Banner */}
           <Link
             href="/categories/consumer-electronics"
-            className="group relative w-full h-[180px] sm:h-[230px] md:h-[260px] lg:h-[285px] rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-r from-[#002661] via-[#0048B3] to-[#007AFF] border border-blue-400/20 shadow-xs flex items-center justify-center block"
+            className="group relative w-full h-[180px] sm:h-[230px] md:h-[260px] lg:h-[285px] rounded-xl overflow-hidden bg-gradient-to-r from-[#002661] via-[#0048B3] to-[#007AFF] border border-blue-400/20 shadow-xs flex items-center justify-center block hover:shadow-[0_0_24px_rgba(0,122,255,0.25)] transition-all duration-300"
           >
             {/* High-Impact Hero Showcase Graphic */}
             <Image
@@ -269,29 +274,29 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 </h3>
               </div>
 
-              <span className="shrink-0 inline-flex items-center gap-1 bg-white/95 hover:bg-white text-[#00143D] text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl font-heading shadow-md group-hover:translate-x-1 transition-transform">
+              <span className="shrink-0 inline-flex items-center gap-1 bg-white/95 hover:bg-white text-[#00143D] text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-md font-heading shadow-sm group-hover:translate-x-0.5 transition-transform">
                 <span>Explore</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </Link>
 
-          {/* Bottom Row of 4 Product Cards (Swipeable on Mobile, 4 Cols on Desktop) */}
+          {/* Bottom Row of 4 Product Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
             {FOUR_DEAL_ITEMS.map((item) => {
               const isAdded = !!addedItemIds[item.id];
-              const inWish = isInWishlist(item.id);
+              const inWish = isMounted && isInWishlist(item.id);
 
               return (
                 <div
                   key={item.id}
-                  className="group relative bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between hover:border-[#FF1028] hover:shadow-md transition-all duration-200"
+                  className="group relative bg-white rounded-lg border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between hover:border-[#FF1028]/60 hover:shadow-[0_0_16px_rgba(255,16,40,0.2)] transition-all duration-300"
                 >
                   <div>
                     {/* Top Discount Badge & Wishlist Button */}
-                    <div className="relative w-full aspect-square rounded-lg sm:rounded-xl bg-slate-50 overflow-hidden mb-1.5">
+                    <div className="relative w-full aspect-square rounded-md bg-slate-50 overflow-hidden mb-1.5">
                       {item.discountBadge && (
-                        <span className="absolute top-1.5 left-1.5 z-10 bg-[#10B981] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded font-mono shadow-2xs">
+                        <span className="absolute top-1.5 left-1.5 z-10 bg-[#10B981] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs font-mono shadow-2xs">
                           {item.discountBadge}
                         </span>
                       )}
@@ -421,7 +426,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 poster: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
               })
             }
-            className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
+            className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_rgba(255,16,40,0.25)] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
             {/* Host Video Stream Image */}
             <Image
@@ -509,7 +514,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
               })
             }
-            className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
+            className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_rgba(255,16,40,0.25)] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
             {/* Host Video Stream Image */}
             <Image

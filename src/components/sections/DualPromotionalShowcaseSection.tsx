@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Award } from "lucide-react";
 import { Product } from "@/types/database";
 import { formatCurrency } from "@/utils/helpers";
 
@@ -66,7 +66,7 @@ export function DualPromotionalShowcaseSection({
       {/* ── 1. Top Section: Best Sellers & Top Rated Dual Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
         {/* ── Best Sellers Card ── */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:border-[#FF1028]/40 hover:shadow-[0_0_20px_rgba(255,16,40,0.18)] transition-all duration-300 flex flex-col justify-between">
           <div>
             {/* Card Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-3.5">
@@ -91,12 +91,12 @@ export function DualPromotionalShowcaseSection({
                 <Link
                   key={item.id}
                   href={`/products/${item.slug}`}
-                  className="group bg-slate-50/70 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl p-2.5 flex items-center gap-3 transition-all"
+                  className="group bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-[#FF1028]/50 hover:shadow-[0_0_14px_rgba(255,16,40,0.15)] rounded-lg p-2.5 flex items-center gap-3 transition-all duration-300"
                 >
                   {/* Thumbnail with Discount Badge */}
-                  <div className="relative w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-white border border-slate-200/60 flex items-center justify-center">
+                  <div className="relative w-20 h-20 shrink-0 rounded-md overflow-hidden bg-white border border-slate-200/60 flex items-center justify-center">
                     {item.discountBadge && (
-                      <span className="absolute top-1 left-1 z-10 bg-[#00143D] text-white text-[8px] font-black px-1 py-0.2 rounded font-mono shadow-2xs">
+                      <span className="absolute top-1 left-1 z-10 bg-[#00143D] text-white text-[8px] font-black px-1 py-0.2 rounded-xs font-mono shadow-2xs">
                         {item.discountBadge}
                       </span>
                     )}
@@ -130,12 +130,14 @@ export function DualPromotionalShowcaseSection({
         </div>
 
         {/* ── Top Rated Card ── */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:border-amber-400/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all duration-300 flex flex-col justify-between">
           <div>
             {/* Card Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-3.5">
               <div className="flex items-center gap-2">
-                <span className="text-lg sm:text-xl">🎖️</span>
+                <div className="w-7 h-7 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
+                  <Award className="w-4 h-4" />
+                </div>
                 <h3 className="font-heading font-black text-base sm:text-lg text-[#00143D]">
                   Top rated
                 </h3>
@@ -155,12 +157,12 @@ export function DualPromotionalShowcaseSection({
                 <Link
                   key={item.id}
                   href={`/products/${item.slug}`}
-                  className="group bg-slate-50/70 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl p-2.5 flex items-center gap-3 transition-all"
+                  className="group bg-slate-50/70 hover:bg-white border border-slate-200/80 hover:border-amber-400/60 hover:shadow-[0_0_14px_rgba(245,158,11,0.2)] rounded-lg p-2.5 flex items-center gap-3 transition-all duration-300"
                 >
                   {/* Thumbnail with Discount Badge */}
-                  <div className="relative w-20 h-20 shrink-0 rounded-lg overflow-hidden bg-white border border-slate-200/60 flex items-center justify-center">
+                  <div className="relative w-20 h-20 shrink-0 rounded-md overflow-hidden bg-white border border-slate-200/60 flex items-center justify-center">
                     {item.discountBadge && (
-                      <span className="absolute top-1 left-1 z-10 bg-[#00143D] text-white text-[8px] font-black px-1 py-0.2 rounded font-mono shadow-2xs">
+                      <span className="absolute top-1 left-1 z-10 bg-[#00143D] text-white text-[8px] font-black px-1 py-0.2 rounded-xs font-mono shadow-2xs">
                         {item.discountBadge}
                       </span>
                     )}
@@ -199,7 +201,7 @@ export function DualPromotionalShowcaseSection({
         {/* Banner 1: Shop Everything in One Place */}
         <Link
           href="/categories/consumer-electronics"
-          className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all block border border-slate-200/80 bg-slate-900"
+          className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(0,20,61,0.25)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
         >
           <Image
             src="https://lennoxonemall.com/storage/banner/2026-04-26-69ed9f39f1267.webp"
@@ -214,7 +216,7 @@ export function DualPromotionalShowcaseSection({
         {/* Banner 2: The Ultimate Multi-Vendor Destination */}
         <Link
           href="/categories/all"
-          className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all block border border-slate-200/80 bg-slate-900"
+          className="group relative w-full aspect-[21/9] sm:aspect-[2.3/1] rounded-xl overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(0,20,61,0.25)] transition-all duration-300 block border border-slate-200/80 bg-slate-900"
         >
           <Image
             src="https://lennoxonemall.com/storage/banner/2026-04-26-69ed9de01320e.webp"

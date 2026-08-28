@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Bell,
   AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -41,6 +42,7 @@ export default function AccountLayout({
     { label: "Orders & Live Tracking", href: "/account/orders", icon: Package },
     { label: "Shipping Addresses", href: "/account/addresses", icon: MapPin },
     { label: "My Wishlist", href: "/account/wishlist", icon: Heart },
+    { label: "Historial de Navegación", href: "/account/history", icon: Clock },
     { label: "Verified Reviews", href: "/account/reviews", icon: Star },
     { label: "Support Tickets", href: "/account/support", icon: MessageCircle },
     { label: "Returns & Refunds", href: "/account/returns", icon: RotateCcw },

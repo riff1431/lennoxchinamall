@@ -12,40 +12,24 @@ import {
   Plane,
   Coins,
   Maximize2,
-  Check,
   Plus,
   Minus,
   CheckCircle2,
-  Factory,
   Scale,
   Star,
   Clock,
   Flame,
-  Award,
-  Video,
   Share2,
   Copy,
-  AlertTriangle,
-  RotateCcw,
-  Package,
-  Layers,
   ChevronRight,
   ChevronLeft,
-  X,
   Play,
   Film,
-  Truck,
-  HelpCircle,
-  ThumbsUp,
-  Filter,
-  ArrowRight,
   Sparkles,
 } from "lucide-react";
 import { Product, Category } from "@/types/database";
-import { MOCK_PRODUCTS } from "@/lib/mockData";
-import { ProductCard } from "@/components/product/ProductCard";
+import { RelatedProductsSection } from "@/components/product/RelatedProductsSection";
 import { ProductReviewsAndQA } from "@/components/product/ProductReviewsAndQA";
-import { Rating } from "@/components/ui/Rating";
 import { Modal } from "@/components/ui/Modal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoModal";
@@ -67,14 +51,12 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [destinationCountry, setDestinationCountry] = useState("United States");
   const [addedToast, setAddedToast] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [activeVideoModal, setActiveVideoModal] = useState<ReelsVideoData | null>(null);
   const [activeTab, setActiveTab] = useState<"specs" | "qc_report" | "reviews" | "shipping">("specs");
   const [showStickyBar, setShowStickyBar] = useState(false);
-  const [reviewFilter, setReviewFilter] = useState<number | "all">("all");
 
   // Swipe gesture for gallery
   const touchStartX = useRef<number | null>(null);
@@ -121,6 +103,15 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
   const toggleCompare = useCompareStore((state) => state.toggleItem);
   const addProductToHistory = useHistoryStore((state) => state.addProduct);
 
+  const isMounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const mountedIsInWishlist = isMounted && isInWishlist;
+  const mountedIsInCompare = isMounted && isInCompare;
+
   // Track product in browsing history
   useEffect(() => {
     if (product) {
@@ -159,11 +150,6 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
         "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=800&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=800&auto=format&fit=crop&q=80",
       ];
-
-  // Related products
-  const relatedProducts = MOCK_PRODUCTS.filter(
-    (p) => p.id !== product.id && (p.category_id === product.category_id || p.is_best_seller)
-  ).slice(0, 4);
 
   // Handlers
   const handleAddToCart = (openDrawer = true) => {
@@ -575,14 +561,14 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     })
                   }
                   className={`min-w-[44px] min-h-[44px] px-3 rounded-2xl border-2 transition-all flex items-center justify-center cursor-pointer ${
-                    isInWishlist
+                    mountedIsInWishlist
                       ? "bg-red-50 border-[#FF1028] text-[#FF1028]"
                       : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
                   }`}
                   title="Wishlist"
                   aria-label="Add to wishlist"
                 >
-                  <Heart className={`w-4 h-4 ${isInWishlist ? "fill-[#FF1028]" : ""}`} />
+                  <Heart className={`w-4 h-4 ${mountedIsInWishlist ? "fill-[#FF1028]" : ""}`} />
                 </button>
 
                 <button
@@ -599,7 +585,7 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                     })
                   }
                   className={`min-w-[44px] min-h-[44px] px-3 rounded-2xl border-2 transition-all flex items-center justify-center cursor-pointer ${
-                    isInCompare
+                    mountedIsInCompare
                       ? "bg-blue-50 border-blue-200 text-blue-600"
                       : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
                   }`}
@@ -925,34 +911,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
           </div>
         </div>
 
-        {/* ── 4. Related Direct Factory Products ── */}
-        {relatedProducts.length > 0 && (
-          <div className="mt-16 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#FF1028] font-mono">
-                  Sourced from Same Manufacturing Cluster
-                </span>
-                <h3 className="text-xl font-black font-heading text-[#00143D]">
-                  Related Factory Hardware
-                </h3>
-              </div>
-              <Link
-                href="/categories"
-                className="text-xs font-bold text-[#FF1028] hover:underline flex items-center gap-1"
-              >
-                <span>Explore All</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-              {relatedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* ── 4. Dynamic 5-in-a-Row Auto-Scrolling Related Products Section ── */}
+        <RelatedProductsSection currentProduct={product} category={category} />
       </div>
 
       {/* ── 5. Sticky Bottom Action Bar on Mobile (sits above MobileNav tab bar) ── */}

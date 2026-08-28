@@ -189,7 +189,7 @@ export function DirectSourcingDepartmentsSection({
 
   return (
     <section
-      className="relative bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6 overflow-hidden"
+      className="relative bg-white rounded-xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6 overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -206,7 +206,7 @@ export function DirectSourcingDepartmentsSection({
             </span>
 
             {/* Auto-play live badge */}
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200/80 text-[9px] font-mono text-slate-600">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200/80 text-[9px] font-mono text-slate-600">
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
                   isPaused ? "bg-amber-500" : "bg-emerald-500 animate-ping"
@@ -227,17 +227,17 @@ export function DirectSourcingDepartmentsSection({
         {/* Carousel Arrows & View All */}
         <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
           {/* Carousel Arrow Controls */}
-          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-2xs">
             <button
               onClick={prevSlide}
-              className="w-8 h-8 rounded-xl bg-white hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
+              className="w-8 h-8 rounded-md bg-white hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
               aria-label="Previous Departments"
             >
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={nextSlide}
-              className="w-8 h-8 rounded-xl bg-white hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
+              className="w-8 h-8 rounded-md bg-white hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
               aria-label="Next Departments"
             >
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -246,7 +246,7 @@ export function DirectSourcingDepartmentsSection({
 
           <Link
             href="/categories"
-            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group btn-smooth"
+            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-md bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group btn-smooth"
           >
             <span>All Departments</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -275,9 +275,9 @@ export function DirectSourcingDepartmentsSection({
             >
               <Link
                 href={`/categories/${cat.slug}`}
-                className="group bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/80 hover:border-[#FF1028]/40 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-md hover-lift h-full block"
+                className="group bg-[#F8FAFC] hover:bg-white rounded-lg border border-slate-200/80 hover:border-[#FF1028]/60 p-3 flex flex-col justify-between transition-all duration-300 shadow-2xs hover:shadow-[0_0_16px_rgba(255,16,40,0.18)] hover:-translate-y-1 h-full block"
               >
-                <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-slate-200 mb-2.5 image-zoom-smooth">
+                <div className="relative w-full aspect-square rounded-md overflow-hidden bg-slate-200 mb-2.5 image-zoom-smooth">
                   <Image
                     src={
                       imgErrors[idx]
@@ -293,7 +293,7 @@ export function DirectSourcingDepartmentsSection({
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                   {/* Hub Badge */}
-                  <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded shadow-2xs">
+                  <span className="absolute top-2 left-2 bg-[#00143D]/90 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-black font-mono px-1.5 py-0.5 rounded-xs shadow-2xs">
                     {cat.tag}
                   </span>
                 </div>

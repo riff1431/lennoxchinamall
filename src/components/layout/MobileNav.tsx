@@ -24,6 +24,7 @@ import {
   Bell,
   FileText,
   RefreshCcw,
+  Clock,
 } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
@@ -33,6 +34,7 @@ import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { signout } from "@/app/actions/auth";
+import type { Category } from "@/types/database";
 
 const HOT_TAGS = ["4K Drones", "3D Printers", "OBD2", "Speakers", "RC Cars", "Flashlights"];
 
@@ -55,8 +57,17 @@ export function MobileNav() {
   const openCart = useCartStore((state) => state.openCart);
   const wishlistTotal = useWishlistStore((state) => state.getTotalItems());
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const mountedWishlistTotal = isMounted ? wishlistTotal : 0;
+  const mountedCartTotal = isMounted ? cartTotal : 0;
+  const mountedCartSubtotal = isMounted ? cartSubtotal : 0;
+
   const { getRootCategories } = useCategoryStore();
-  const rootCategories = getRootCategories();
+  const rootCategories: Category[] = isMounted ? getRootCategories() : (MOCK_CATEGORIES as unknown as Category[]);
 
   const [activeSheet, setActiveSheet] = useState<Sheet>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -174,11 +185,11 @@ export function MobileNav() {
       href: "/account/wishlist",
       icon: Heart,
       isActive: pathname === "/account/wishlist",
-      badge: wishlistTotal > 0 ? wishlistTotal : null,
+      badge: mountedWishlistTotal > 0 ? mountedWishlistTotal : null,
     },
     {
       id: "account",
-      label: isAuthenticated ? "Me" : "Sign In",
+      label: isMounted && isAuthenticated ? "Me" : "Sign In",
       href: null,
       icon: User,
       isActive:
@@ -193,7 +204,7 @@ export function MobileNav() {
       href: null,
       icon: ShoppingCart,
       isActive: false,
-      badge: cartTotal > 0 ? cartTotal : null,
+      badge: mountedCartTotal > 0 ? mountedCartTotal : null,
       action: openCart,
     },
   ];
@@ -210,7 +221,7 @@ export function MobileNav() {
 
       {/* ── Search Sheet ── */}
       {activeSheet === "search" && (
-        <div className="fixed bottom-[65px] left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl border-t border-slate-200 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-[65px] left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom duration-300">
           {/* Sheet Handle */}
           <div className="flex justify-center pt-2.5 pb-1 shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-300" />
@@ -219,7 +230,7 @@ export function MobileNav() {
           {/* Search Input */}
           <div className="px-4 pb-3 shrink-0">
             <form onSubmit={handleSearch}>
-              <div className="flex items-center gap-2 bg-slate-100 rounded-2xl px-4 border-2 border-transparent focus-within:border-[#FF1028] focus-within:bg-white transition-all">
+              <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-4 border-2 border-transparent focus-within:border-[#FF1028] focus-within:bg-white transition-all">
                 <Search className="w-4 h-4 text-slate-400 shrink-0" />
                 <input
                   ref={searchInputRef}
@@ -245,7 +256,7 @@ export function MobileNav() {
                   <button
                     key={tag}
                     onClick={() => setSearchQuery(tag)}
-                    className="px-3 py-1.5 rounded-full bg-slate-100 text-xs font-bold text-slate-700 hover:bg-[#FF1028] hover:text-white transition-colors"
+                    className="px-3 py-1.5 rounded-md bg-slate-100 text-xs font-bold text-slate-700 hover:bg-[#FF1028] hover:text-white transition-colors"
                   >
                     {tag}
                   </button>
@@ -268,7 +279,7 @@ export function MobileNav() {
                           closeSheet();
                           router.push(`/search?q=${encodeURIComponent(s)}`);
                         }}
-                        className="px-3 py-1.5 rounded-full bg-[#FF1028]/10 text-xs font-bold text-[#FF1028] border border-[#FF1028]/20"
+                        className="px-3 py-1.5 rounded-md bg-[#FF1028]/10 text-xs font-bold text-[#FF1028] border border-[#FF1028]/20"
                       >
                         {s}
                       </button>
@@ -290,9 +301,9 @@ export function MobileNav() {
                           closeSheet();
                           router.push(`/products/${prod.slug}`);
                         }}
-                        className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
+                        className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors text-left"
                       >
-                        <div className="w-11 h-11 rounded-xl overflow-hidden bg-slate-100 shrink-0 relative border border-slate-200">
+                        <div className="w-11 h-11 rounded-md overflow-hidden bg-slate-100 shrink-0 relative border border-slate-200">
                           {prod.image ? (
                             <Image src={prod.image} alt={prod.title} fill className="object-cover" />
                           ) : (
@@ -308,7 +319,7 @@ export function MobileNav() {
                     ))}
                     <button
                       onClick={handleSearch}
-                      className="w-full mt-2 py-3 rounded-xl bg-[#00143D] text-white text-sm font-black flex items-center justify-center gap-2"
+                      className="w-full mt-2 py-3 rounded-md bg-[#00143D] text-white text-sm font-black flex items-center justify-center gap-2"
                     >
                       <span>See all results for &quot;{searchQuery}&quot;</span>
                       <ArrowRight className="w-4 h-4" />
@@ -328,9 +339,9 @@ export function MobileNav() {
                       key={cat.id}
                       href={`/categories/${cat.slug}`}
                       onClick={closeSheet}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all text-center"
+                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all text-center"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-[#00143D]/10 flex items-center justify-center p-1.5 overflow-hidden">
+                      <div className="w-8 h-8 rounded-md bg-[#00143D]/10 flex items-center justify-center p-1.5 overflow-hidden">
                         <CategoryIcon icon={cat.icon || cat.iconName} name={cat.name} className="w-4 h-4 text-[#00143D]" />
                       </div>
                       <span className="text-[10px] font-bold text-slate-700 leading-tight line-clamp-2">{cat.name}</span>
@@ -345,7 +356,7 @@ export function MobileNav() {
 
       {/* ── Categories Sheet ── */}
       {activeSheet === "categories" && (
-        <div className="fixed bottom-[65px] left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl border-t border-slate-200 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-[65px] left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom duration-300">
           <div className="flex justify-center pt-2.5 shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-300" />
           </div>
@@ -374,9 +385,9 @@ export function MobileNav() {
                     key={qc.name}
                     href={href}
                     onClick={closeSheet}
-                    className="flex flex-col items-center gap-1 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all text-center"
+                    className="flex flex-col items-center gap-1 p-2 rounded-lg bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all text-center"
                   >
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${qc.color}`}>
+                    <div className={`w-9 h-9 rounded-md flex items-center justify-center ${qc.color}`}>
                       <Icon className="w-4.5 h-4.5" />
                     </div>
                     <span className="text-[10px] font-bold text-slate-700 leading-tight">{qc.name}</span>
@@ -397,10 +408,10 @@ export function MobileNav() {
                 key={cat.id}
                 href={`/categories/${cat.slug}`}
                 onClick={closeSheet}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors group"
+                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#00143D]/8 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
+                  <div className="w-9 h-9 rounded-md bg-[#00143D]/8 flex items-center justify-center shrink-0 p-1.5 overflow-hidden">
                     <CategoryIcon icon={cat.icon || cat.iconName} name={cat.name} className="w-4 h-4 text-[#00143D]" />
                   </div>
                   <div>
@@ -417,7 +428,7 @@ export function MobileNav() {
 
       {/* ── Account Sheet ── */}
       {activeSheet === "account" && (
-        <div className="fixed bottom-[65px] left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl border-t border-slate-200 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-[65px] left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl border-t border-slate-200 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom duration-300">
           <div className="flex justify-center pt-2.5 shrink-0">
             <div className="w-10 h-1 rounded-full bg-slate-300" />
           </div>
@@ -427,19 +438,19 @@ export function MobileNav() {
               {/* Profile Card */}
               <div className="px-4 pt-3 pb-4 border-b border-slate-100 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#00143D] text-white flex items-center justify-center text-xl font-black shadow-lg shrink-0">
+                  <div className="w-14 h-14 rounded-xl bg-[#00143D] text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">
                     {displayName ? displayName[0].toUpperCase() : "U"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-base font-black text-[#00143D] truncate">{displayName || "My Account"}</p>
                     <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     <div className="mt-1 flex items-center gap-2">
-                      <span className="text-[10px] font-black text-[#FF1028] bg-red-50 px-2 py-0.5 rounded-full uppercase">
+                      <span className="text-[10px] font-black text-[#FF1028] bg-red-50 px-2 py-0.5 rounded-md uppercase">
                         Verified Customer
                       </span>
-                      {wishlistTotal > 0 && (
+                      {mountedWishlistTotal > 0 && (
                         <span className="text-[10px] font-bold text-slate-500">
-                          ♡ {wishlistTotal} saved
+                          ♡ {mountedWishlistTotal} saved
                         </span>
                       )}
                     </div>
@@ -451,7 +462,7 @@ export function MobileNav() {
                   <Link
                     href="/account/orders"
                     onClick={closeSheet}
-                    className="flex flex-col items-center p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 active:scale-95 transition-all"
+                    className="flex flex-col items-center p-2.5 rounded-lg bg-slate-50 hover:bg-blue-50 active:scale-95 transition-all"
                   >
                     <Package className="w-5 h-5 text-blue-600 mb-1" />
                     <span className="text-[10px] font-bold text-slate-600">My Orders</span>
@@ -459,12 +470,12 @@ export function MobileNav() {
                   <Link
                     href="/account/wishlist"
                     onClick={closeSheet}
-                    className="flex flex-col items-center p-2.5 rounded-xl bg-slate-50 hover:bg-red-50 active:scale-95 transition-all relative"
+                    className="flex flex-col items-center p-2.5 rounded-lg bg-slate-50 hover:bg-red-50 active:scale-95 transition-all relative"
                   >
                     <Heart className="w-5 h-5 text-[#FF1028] mb-1" />
-                    {wishlistTotal > 0 && (
+                    {mountedWishlistTotal > 0 && (
                       <span className="absolute -top-1 -right-1 bg-[#FF1028] text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-black">
-                        {wishlistTotal}
+                        {mountedWishlistTotal}
                       </span>
                     )}
                     <span className="text-[10px] font-bold text-slate-600">Wishlist</span>
@@ -472,7 +483,7 @@ export function MobileNav() {
                   <Link
                     href="/account/returns"
                     onClick={closeSheet}
-                    className="flex flex-col items-center p-2.5 rounded-xl bg-slate-50 hover:bg-amber-50 active:scale-95 transition-all"
+                    className="flex flex-col items-center p-2.5 rounded-lg bg-slate-50 hover:bg-amber-50 active:scale-95 transition-all"
                   >
                     <RefreshCcw className="w-5 h-5 text-amber-600 mb-1" />
                     <span className="text-[10px] font-bold text-slate-600">Returns</span>
@@ -485,6 +496,7 @@ export function MobileNav() {
                 {[
                   { href: "/account/profile", label: "My Profile", icon: User, color: "text-slate-600" },
                   { href: "/account/orders", label: "Orders & Air Cargo Tracking", icon: Package, color: "text-blue-600" },
+                  { href: "/account/history", label: "Historial de Navegación", icon: Clock, color: "text-indigo-600" },
                   { href: "/account/notifications", label: "Notifications", icon: Bell, color: "text-purple-600" },
                   { href: "/account/reviews", label: "My Reviews", icon: Star, color: "text-amber-600" },
                   { href: "/account/support", label: "Support Tickets", icon: FileText, color: "text-emerald-600" },
@@ -496,7 +508,7 @@ export function MobileNav() {
                       key={item.href}
                       href={item.href}
                       onClick={closeSheet}
-                      className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors group"
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors group"
                     >
                       <div className="flex items-center gap-3">
                         <Icon className={`w-5 h-5 ${item.color}`} />
@@ -508,18 +520,18 @@ export function MobileNav() {
                 })}
 
                 {/* Cart summary link */}
-                {cartTotal > 0 && (
+                {mountedCartTotal > 0 && (
                   <button
                     onClick={() => { closeSheet(); openCart(); }}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-[#00143D]/5 hover:bg-[#00143D]/10 active:scale-98 transition-all group"
+                    className="w-full flex items-center justify-between p-3 rounded-lg bg-[#00143D]/5 hover:bg-[#00143D]/10 active:scale-98 transition-all group"
                   >
                     <div className="flex items-center gap-3">
                       <ShoppingCart className="w-5 h-5 text-[#00143D]" />
                       <div className="text-left">
                         <p className="text-sm font-bold text-[#00143D]">
-                          My Cart ({cartTotal} {cartTotal === 1 ? "item" : "items"})
+                          My Cart ({mountedCartTotal} {mountedCartTotal === 1 ? "item" : "items"})
                         </p>
-                        <p className="text-xs font-black text-[#10B981] font-mono">{formatCurrency(cartSubtotal)} USDT</p>
+                        <p className="text-xs font-black text-[#10B981] font-mono">{formatCurrency(mountedCartSubtotal)} USDT</p>
                       </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#00143D] transition-colors" />
@@ -529,7 +541,7 @@ export function MobileNav() {
                 {/* Sign Out */}
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors mt-2"
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 active:bg-red-100 transition-colors mt-2"
                 >
                   <LogOut className="w-5 h-5 text-red-500" />
                   <span className="text-sm font-bold text-red-600">Sign Out</span>
@@ -540,7 +552,7 @@ export function MobileNav() {
             /* Guest account panel */
             <div className="px-4 pt-4 pb-6 flex flex-col gap-4">
               <div className="text-center py-2">
-                <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <div className="w-16 h-16 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
                   <User className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-black text-[#00143D] font-heading">Join China Mall</h3>
@@ -553,14 +565,14 @@ export function MobileNav() {
                 <Link
                   href="/auth/login"
                   onClick={closeSheet}
-                  className="w-full py-3.5 rounded-2xl bg-[#00143D] text-white text-sm font-black text-center"
+                  className="w-full py-3 rounded-md bg-[#00143D] text-white text-sm font-black text-center"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/auth/register"
                   onClick={closeSheet}
-                  className="w-full py-3.5 rounded-2xl bg-slate-100 text-slate-800 text-sm font-bold text-center"
+                  className="w-full py-3 rounded-md bg-slate-100 text-slate-800 text-sm font-bold text-center"
                 >
                   Create Free Account
                 </Link>
@@ -577,7 +589,7 @@ export function MobileNav() {
                       key={item.href}
                       href={item.href}
                       onClick={closeSheet}
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
                     >
                       <Icon className="w-4 h-4 text-slate-500" />
                       <span className="text-sm font-semibold text-slate-700">{item.label}</span>
@@ -616,7 +628,7 @@ export function MobileNav() {
                     className={`w-[22px] h-[22px] transition-colors duration-150 ${
                       item.isActive
                         ? "text-[#FF1028]"
-                        : item.id === "cart" && cartTotal > 0
+                        : item.id === "cart" && mountedCartTotal > 0
                         ? "text-[#00143D]"
                         : "text-slate-500"
                     }`}

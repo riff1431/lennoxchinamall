@@ -154,7 +154,7 @@ export function TopSellingProductsSection({
 
   return (
     <section
-      className="relative bg-white rounded-3xl border border-slate-200/90 p-4 sm:p-6 lg:p-7 shadow-xs overflow-hidden"
+      className="relative bg-white rounded-xl border border-slate-200/90 p-4 sm:p-6 lg:p-7 shadow-xs overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -167,13 +167,13 @@ export function TopSellingProductsSection({
         <div className="space-y-1">
           {/* Badge */}
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-red-600 to-[#FF1028] text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider font-heading shadow-xs">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-[#FF1028] text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider font-heading shadow-xs">
               <Flame className="w-3.5 h-3.5 fill-white text-white animate-pulse" />
               <span>TOP SELLING FACTORY HARDWARE</span>
             </span>
 
             {/* Auto-play status pill */}
-            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[9px] font-mono text-slate-600">
+            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[9px] font-mono text-slate-600">
               <span className={`w-1.5 h-1.5 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 animate-ping"}`} />
               <span>{isPaused ? "Paused" : "Live Auto-Loop (2.8s)"}</span>
             </span>
@@ -191,17 +191,17 @@ export function TopSellingProductsSection({
         {/* Header Action Controls */}
         <div className="flex items-center gap-2.5 self-end sm:self-auto shrink-0">
           {/* Carousel Arrows */}
-          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200 shadow-2xs">
             <button
               onClick={prevSlide}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
+              className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-md bg-white hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
               aria-label="Previous Products"
             >
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={nextSlide}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
+              className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-md bg-white hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
               aria-label="Next Products"
             >
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -211,7 +211,7 @@ export function TopSellingProductsSection({
           {/* View All CTA */}
           <Link
             href="/categories/consumer-electronics"
-            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#00143D] hover:bg-[#FF1028] text-white text-xs font-black font-heading transition-all shadow-xs group cursor-pointer btn-smooth"
+            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2 rounded-md bg-[#00143D] hover:bg-[#FF1028] text-white text-xs font-black font-heading transition-all shadow-xs group cursor-pointer btn-smooth"
           >
             <span>View All</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -261,13 +261,13 @@ export function TopSellingProductsSection({
                 className="shrink-0 px-1.5 sm:px-2 md:px-2.5"
                 style={{ width: `${100 / itemsPerView}%` }}
               >
-                <div className="group relative bg-[#F8FAFC] hover:bg-white rounded-2xl border border-slate-200/90 hover:border-[#FF1028]/60 p-3 flex flex-col justify-between h-full transition-all duration-300 shadow-2xs hover:shadow-xl hover:-translate-y-1">
+                <div className="group relative bg-[#F8FAFC] hover:bg-white rounded-lg border border-slate-200/90 hover:border-[#FF1028]/60 hover:shadow-[0_0_18px_rgba(255,16,40,0.22)] p-3 flex flex-col justify-between h-full transition-all duration-300 shadow-2xs hover:-translate-y-1">
                   {/* Top Badges & Actions Layer */}
                   <div className="relative">
                     {/* Rank Badge */}
                     <div className="absolute top-2 left-2 z-20 flex items-center gap-1">
                       <span
-                        className={`text-[9px] sm:text-[10px] uppercase font-mono px-2 py-0.5 rounded-lg shadow-xs flex items-center gap-1 ${rankBadgeColor}`}
+                        className={`text-[9px] sm:text-[10px] uppercase font-mono px-2 py-0.5 rounded-xs shadow-xs flex items-center gap-1 ${rankBadgeColor}`}
                       >
                         <Award className="w-3 h-3" />
                         <span>#{rank} TOP</span>
@@ -291,7 +291,7 @@ export function TopSellingProductsSection({
                           reviewCount: product.review_count || 120,
                         });
                       }}
-                      className={`absolute top-2 right-2 z-20 w-7 h-7 rounded-xl flex items-center justify-center shadow-xs transition-all cursor-pointer ${
+                      className={`absolute top-2 right-2 z-20 w-6.5 h-6.5 rounded-md flex items-center justify-center shadow-xs transition-all cursor-pointer ${
                         inWish
                           ? "bg-[#FF1028] text-white"
                           : "bg-white/90 backdrop-blur-xs text-slate-600 hover:text-[#FF1028] hover:bg-white"
@@ -306,7 +306,7 @@ export function TopSellingProductsSection({
                     {/* Image Area */}
                     <Link
                       href={`/products/${product.slug}`}
-                      className="block relative w-full aspect-square rounded-xl overflow-hidden bg-slate-100 mb-3"
+                      className="block relative w-full aspect-square rounded-md overflow-hidden bg-slate-100 mb-3"
                     >
                       <Image
                         src={primaryImg}
@@ -329,7 +329,7 @@ export function TopSellingProductsSection({
 
                       {/* Bottom Image Overlay Tag: Sold Count */}
                       <div className="absolute bottom-2 left-2 z-10">
-                        <span className="bg-slate-900/80 backdrop-blur-xs text-emerald-400 font-mono text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded shadow-2xs">
+                        <span className="bg-slate-900/80 backdrop-blur-xs text-emerald-400 font-mono text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-xs shadow-2xs">
                           {product.sold_count || 1200 + idx * 240}+ Sold
                         </span>
                       </div>
@@ -337,7 +337,7 @@ export function TopSellingProductsSection({
                       {/* Discount Tag */}
                       {discount > 0 && (
                         <div className="absolute bottom-2 right-2 z-10">
-                          <span className="bg-[#FF1028] text-white font-heading font-black text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-2xs">
+                          <span className="bg-[#FF1028] text-white font-heading font-black text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-xs shadow-2xs">
                             -{discount}%
                           </span>
                         </div>
@@ -388,10 +388,10 @@ export function TopSellingProductsSection({
                       {/* Quick Add Button */}
                       <button
                         onClick={(e) => handleQuickAdd(e, product)}
-                        className={`p-2 rounded-xl text-xs font-bold flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs ${
+                        className={`p-2 rounded-md text-xs font-bold flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs ${
                           isJustAdded
                             ? "bg-emerald-600 text-white"
-                            : "bg-[#00143D] hover:bg-[#FF1028] text-white"
+                            : "bg-[#00143D] hover:bg-[#FF1028] text-white hover:shadow-[0_0_14px_rgba(255,16,40,0.35)]"
                         }`}
                         aria-label={`Add ${product.title} to cart`}
                         title="Quick Add to Cart"

@@ -66,12 +66,21 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     return () => clearInterval(timer);
   }, [product.is_flash_deal]);
 
+  // Client hydration check
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Stores
   const addItem = useCartStore((state) => state.addItem);
   const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id));
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   const isInCompare = useCompareStore((state) => state.isInCompare(product.id));
   const toggleCompare = useCompareStore((state) => state.toggleItem);
+
+  const mountedIsInWishlist = isMounted && isInWishlist;
+  const mountedIsInCompare = isMounted && isInCompare;
 
   // Selected variant derivation
   const activeVariant = product.variants?.find((v) => v.id === selectedVariantId) || product.variants?.[0];
@@ -164,19 +173,19 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
   return (
     <>
       <motion.div
-        whileHover={{ y: -4 }}
+        whileHover={{ y: -3 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className={`group relative bg-white rounded-xl sm:rounded-2xl border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden ${
+        className={`group relative bg-white rounded-lg border transition-all duration-300 flex flex-col justify-between h-full overflow-hidden ${
           isOutOfStock
             ? "border-slate-200 opacity-75"
-            : "border-slate-200/90 hover:border-[#FF1028]/40 hover:shadow-lg shadow-2xs"
+            : "border-slate-200/90 hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_-2px_rgba(255,16,40,0.22),0_12px_24px_-6px_rgba(0,20,61,0.08)] shadow-2xs"
         }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <Link href={`/products/${product.slug}`} className="block relative flex-1 flex flex-col">
           {/* ── 1. Consistent Square 1:1 Image Ratio with Hover Transition ── */}
-          <div className="relative w-full aspect-square bg-[#F8FAFC] overflow-hidden">
+          <div className="relative w-full aspect-square bg-[#F8FAFC] overflow-hidden rounded-t-lg">
             <Image
               src={isHovered ? hoverImage : primaryImage}
               alt={product.title}
@@ -191,27 +200,27 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
               {product.is_flash_deal ? (
                 <>
-                  <span className="bg-[#FF1028] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide font-mono">
+                  <span className="bg-[#FF1028] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs shadow-2xs uppercase tracking-wide font-mono">
                     -{discount > 0 ? `${discount}%` : "45%"}
                   </span>
-                  <span className="bg-amber-400 text-slate-950 text-[7.5px] sm:text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-0.5 shadow-2xs font-mono">
+                  <span className="bg-amber-400 text-slate-950 text-[7.5px] sm:text-[8px] font-black px-1.5 py-0.5 rounded-xs uppercase tracking-wider flex items-center gap-0.5 shadow-2xs font-mono">
                     <Flame className="w-2.5 h-2.5 fill-slate-950" /> FLASH DROP
                   </span>
                 </>
               ) : (
                 <>
                   {discount > 0 && (
-                    <span className="bg-[#FF1028] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide font-mono">
+                    <span className="bg-[#FF1028] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs shadow-2xs uppercase tracking-wide font-mono">
                       -{discount}%
                     </span>
                   )}
                   {product.is_new_arrival && (
-                    <span className="bg-emerald-600 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
+                    <span className="bg-emerald-600 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
                       <Sparkles className="w-2.5 h-2.5" /> NEW
                     </span>
                   )}
                   {product.is_best_seller && !product.is_flash_deal && (
-                    <span className="bg-amber-500 text-slate-950 text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
+                    <span className="bg-amber-500 text-slate-950 text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
                       <Award className="w-2.5 h-2.5" /> BEST SELLER
                     </span>
                   )}
@@ -224,22 +233,22 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               {/* Wishlist Button */}
               <button
                 onClick={handleWishlistToggle}
-                className={`w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
-                  isInWishlist ? "text-[#FF1028]" : "text-slate-400 hover:text-[#FF1028]"
+                className={`w-6.5 h-6.5 rounded-md bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
+                  mountedIsInWishlist ? "text-[#FF1028]" : "text-slate-400 hover:text-[#FF1028]"
                 }`}
-                title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                title={mountedIsInWishlist ? "Remove from wishlist" : "Add to wishlist"}
                 aria-label="Toggle Wishlist"
               >
-                <Heart className={`w-3.5 h-3.5 ${isInWishlist ? "fill-[#FF1028]" : ""}`} />
+                <Heart className={`w-3.5 h-3.5 ${mountedIsInWishlist ? "fill-[#FF1028]" : ""}`} />
               </button>
 
               {/* Compare Button */}
               <button
                 onClick={handleCompareToggle}
-                className={`w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
-                  isInCompare ? "text-blue-600 font-bold" : "text-slate-400 hover:text-blue-600"
+                className={`w-6.5 h-6.5 rounded-md bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
+                  mountedIsInCompare ? "text-blue-600 font-bold" : "text-slate-400 hover:text-blue-600"
                 }`}
-                title={isInCompare ? "Remove from comparison" : "Add to compare"}
+                title={mountedIsInCompare ? "Remove from comparison" : "Add to compare"}
                 aria-label="Compare Product"
               >
                 <Scale className="w-3.5 h-3.5" />
@@ -248,7 +257,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               {/* Quick View Button */}
               <button
                 onClick={handleOpenQuickView}
-                className="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-slate-800 hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100"
+                className="w-6.5 h-6.5 rounded-md bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-slate-800 hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100"
                 title="Quick View Details"
                 aria-label="Quick View"
               >
@@ -308,7 +317,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                       e.stopPropagation();
                       setSelectedVariantId(v.id);
                     }}
-                    className={`text-[8.5px] font-mono px-1.5 py-0.5 rounded border transition-all cursor-pointer truncate max-w-[80px] ${
+                    className={`text-[8.5px] font-mono px-1.5 py-0.5 rounded-xs border transition-all cursor-pointer truncate max-w-[80px] ${
                       selectedVariantId === v.id
                         ? "bg-[#00143D] text-white border-[#00143D] font-bold"
                         : "bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-400"
@@ -352,12 +361,12 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             whileTap={{ scale: 0.96 }}
             onClick={handleQuickAdd}
             disabled={isOutOfStock}
-            className={`w-full py-2 px-2.5 rounded-xl text-xs font-black font-heading flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+            className={`w-full py-2 px-2.5 rounded-md text-xs font-black font-heading flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer ${
               isOutOfStock
                 ? "bg-slate-200 text-slate-400 cursor-not-allowed"
                 : justAdded
-                ? "bg-[#10B981] text-white"
-                : "bg-[#00143D] hover:bg-[#FF1028] text-white"
+                ? "bg-[#10B981] text-white shadow-[0_0_16px_rgba(16,185,129,0.35)]"
+                : "bg-[#00143D] hover:bg-[#FF1028] text-white hover:shadow-[0_0_16px_rgba(255,16,40,0.35)]"
             }`}
           >
             {isOutOfStock ? (
