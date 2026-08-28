@@ -11,11 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowRight,
-  ShieldCheck,
-  Zap,
   Award,
   Check,
-  TrendingUp,
 } from "lucide-react";
 import { Product } from "@/types/database";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
@@ -222,7 +219,7 @@ export function TopSellingProductsSection({
       {/* ── Carousel Viewport (1 Row, 5 Columns Desktop) ── */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden cursor-grab active:cursor-grabbing"
+        className="relative overflow-hidden cursor-grab active:cursor-grabbing py-2.5 -my-2.5 px-1 -mx-1"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >

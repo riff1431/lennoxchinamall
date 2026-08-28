@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Header } from "@/components/layout/Header";
+import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { CartDrawer } from "@/components/cart/CartDrawer";

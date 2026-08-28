@@ -257,7 +257,7 @@ export function DirectSourcingDepartmentsSection({
       {/* ── Carousel Track ── */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
+        className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none py-2.5 -my-2.5 px-1 -mx-1"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >

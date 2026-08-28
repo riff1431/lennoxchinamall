@@ -6,11 +6,11 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
-  Grid3X3,
+  LayoutGrid,
   Search,
   Heart,
-  User,
-  ShoppingCart,
+  UserCircle,
+  ShoppingBag,
   X,
   ArrowRight,
   Package,
@@ -165,7 +165,7 @@ export function MobileNav() {
       id: "categories",
       label: "Categories",
       href: null,
-      icon: Grid3X3,
+      icon: LayoutGrid,
       isActive: pathname.startsWith("/categories"),
       badge: null,
       sheet: "categories" as Sheet,
@@ -191,7 +191,7 @@ export function MobileNav() {
       id: "account",
       label: isMounted && isAuthenticated ? "Me" : "Sign In",
       href: null,
-      icon: User,
+      icon: UserCircle,
       isActive:
         activeSheet === "account" ||
         (pathname.startsWith("/account") && pathname !== "/account/wishlist"),
@@ -202,7 +202,7 @@ export function MobileNav() {
       id: "cart",
       label: "Cart",
       href: null,
-      icon: ShoppingCart,
+      icon: ShoppingBag,
       isActive: false,
       badge: mountedCartTotal > 0 ? mountedCartTotal : null,
       action: openCart,
@@ -494,7 +494,7 @@ export function MobileNav() {
               {/* Menu Links */}
               <div className="overflow-y-auto flex-1 px-4 py-3 space-y-1">
                 {[
-                  { href: "/account/profile", label: "My Profile", icon: User, color: "text-slate-600" },
+                  { href: "/account/profile", label: "My Profile", icon: UserCircle, color: "text-slate-600" },
                   { href: "/account/orders", label: "Orders & Air Cargo Tracking", icon: Package, color: "text-blue-600" },
                   { href: "/account/history", label: "Historial de Navegación", icon: Clock, color: "text-indigo-600" },
                   { href: "/account/notifications", label: "Notifications", icon: Bell, color: "text-purple-600" },
@@ -526,7 +526,7 @@ export function MobileNav() {
                     className="w-full flex items-center justify-between p-3 rounded-lg bg-[#00143D]/5 hover:bg-[#00143D]/10 active:scale-98 transition-all group"
                   >
                     <div className="flex items-center gap-3">
-                      <ShoppingCart className="w-5 h-5 text-[#00143D]" />
+                      <ShoppingBag className="w-5 h-5 text-[#00143D]" />
                       <div className="text-left">
                         <p className="text-sm font-bold text-[#00143D]">
                           My Cart ({mountedCartTotal} {mountedCartTotal === 1 ? "item" : "items"})
@@ -553,7 +553,7 @@ export function MobileNav() {
             <div className="px-4 pt-4 pb-6 flex flex-col gap-4">
               <div className="text-center py-2">
                 <div className="w-16 h-16 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-                  <User className="w-8 h-8" />
+                  <UserCircle className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-black text-[#00143D] font-heading">Join China Mall</h3>
                 <p className="text-sm text-slate-500 mt-1">
