@@ -25,10 +25,12 @@ import {
   Play,
   Film,
   Sparkles,
+  HelpCircle,
 } from "lucide-react";
 import { Product, Category } from "@/types/database";
 import { RelatedProductsSection } from "@/components/product/RelatedProductsSection";
 import { ProductReviewsAndQA } from "@/components/product/ProductReviewsAndQA";
+import { ProductQASection } from "@/components/product/ProductQASection";
 import { Modal } from "@/components/ui/Modal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoModal";
@@ -54,7 +56,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
   const [copiedLink, setCopiedLink] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [activeVideoModal, setActiveVideoModal] = useState<ReelsVideoData | null>(null);
-  const [activeTab, setActiveTab] = useState<"specs" | "qc_report" | "reviews" | "shipping">("specs");
+  const [activeTab, setActiveTab] = useState<"specs" | "qc_report" | "reviews" | "qa" | "shipping">("specs");
+  const [qaCount, setQaCount] = useState(3);
   const [showStickyBar, setShowStickyBar] = useState(false);
 
   // Swipe gesture for gallery
@@ -419,8 +422,8 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                 {product.title}
               </h1>
 
-              {/* Rating & Sold Row */}
-              <div className="flex items-center gap-3 sm:gap-4 text-xs pt-0.5">
+              {/* Rating & Sold & Q&A Row */}
+              <div className="flex items-center gap-2.5 sm:gap-3.5 text-xs pt-0.5 flex-wrap">
                 <button
                   onClick={() => {
                     setActiveTab("reviews");
@@ -432,6 +435,18 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   <span className="font-black text-slate-900">{(product.avg_rating || 4.9).toFixed(1)}</span>
                   <span className="text-slate-400">({product.review_count || 32} reviews)</span>
+                </button>
+                <span className="text-slate-300">•</span>
+                <button
+                  onClick={() => {
+                    setActiveTab("qa");
+                    const el = document.getElementById("product-tabs-section");
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center gap-1 hover:underline cursor-pointer text-slate-600 hover:text-[#00143D]"
+                >
+                  <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
+                  <span className="font-bold text-slate-700">{qaCount} Q&amp;As</span>
                 </button>
                 <span className="text-slate-300">•</span>
                 <span className="text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded font-mono text-[11px]">
@@ -885,6 +900,22 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               <span className="hidden sm:inline">Customer Reviews ({product.review_count || 32})</span>
             </button>
             <button
+              onClick={() => setActiveTab("qa")}
+              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+                activeTab === "qa"
+                  ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <span className="sm:hidden">Q&amp;A</span>
+              <span className="hidden sm:inline flex items-center gap-1.5">
+                <span>Customer Q&amp;A</span>
+                <span className="bg-slate-200 text-slate-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                  {qaCount}
+                </span>
+              </span>
+            </button>
+            <button
               onClick={() => setActiveTab("shipping")}
               className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
                 activeTab === "shipping"
@@ -973,17 +1004,29 @@ export function ProductDetailClient({ product, category }: ProductDetailClientPr
               </div>
             )}
 
-            {/* Reviews & Q&A Tab */}
+            {/* Reviews Tab */}
             {activeTab === "reviews" && (
               <ProductReviewsAndQA
                 productId={product.id}
                 productTitle={product.title}
                 productImage={images[0]}
+                categoryName={category?.name}
                 variants={product.variants?.map((v) => ({
                   id: v.id,
                   title: v.title || v.sku || "Standard Edition",
                   sku: v.sku,
                 }))}
+              />
+            )}
+
+            {/* Customer Q&A Tab */}
+            {activeTab === "qa" && (
+              <ProductQASection
+                productId={product.id}
+                productTitle={product.title}
+                productImage={images[0]}
+                categoryName={category?.name}
+                onQuestionCountChange={(count) => setQaCount(count)}
               />
             )}
 
