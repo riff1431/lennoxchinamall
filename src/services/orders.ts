@@ -6,6 +6,7 @@ import {
   generateOrderNumber,
   generateMerchantTradeNo,
 } from "@/utils/helpers";
+import { calculateFreightCost } from "@/utils/shipping";
 import { MOCK_ORDERS, MOCK_PRODUCTS, MOCK_COUPONS } from "@/lib/mockData";
 
 
@@ -71,8 +72,9 @@ export async function createOrder(
     0
   );
 
-  const standardShipping = subtotal >= 50 ? 0 : 4.99;
-  let shippingCost = shippingMethod === "express" ? 14.99 : standardShipping;
+  let shippingCost = calculateFreightCost(sanitizedItems, shippingMethod, {
+    orderSubtotal: subtotal,
+  });
   let discount = 0;
   let activeCouponId: string | null = null;
 

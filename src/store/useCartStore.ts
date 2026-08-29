@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { calculateFreightCost } from "@/utils/shipping";
 
 export interface CartItemType {
   id: string; // unique item key: variantId or productId + attributes
@@ -42,8 +43,8 @@ interface CartStore {
   removeCoupon: () => void;
   getTotalItems: () => number;
   getSubtotal: () => number;
-  getShippingCost: (method?: "standard" | "express") => number;
-  getFinalTotal: (shippingMethod?: "standard" | "express") => number;
+  getShippingCost: (method?: "air" | "sea" | "standard" | "express" | string) => number;
+  getFinalTotal: (shippingMethod?: "air" | "sea" | "standard" | "express" | string) => number;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -230,14 +231,17 @@ export const useCartStore = create<CartStore>()(
         );
       },
 
-      getShippingCost: (method = "standard") => {
-        if (get().freeShipping) return 0;
+      getShippingCost: (method = "air") => {
+        const items = get().items;
         const subtotal = get().getSubtotal();
-        if (method === "express") return 14.99;
-        return subtotal >= 50 || subtotal === 0 ? 0 : 4.99;
+        const isFree = get().freeShipping;
+        return calculateFreightCost(items, method, {
+          isFreeShippingPromo: isFree,
+          orderSubtotal: subtotal,
+        });
       },
 
-      getFinalTotal: (shippingMethod = "standard") => {
+      getFinalTotal: (shippingMethod = "air") => {
         const subtotal = get().getSubtotal();
         const shipping = get().getShippingCost(shippingMethod);
         const discount = get().discountAmount;

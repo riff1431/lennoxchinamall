@@ -28,6 +28,7 @@ import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { formatCurrency } from "@/utils/helpers";
+import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
 
 const PRESET_COUPONS = [
   { code: "LENNOX10", desc: "10% Off Sourcing Order" },
@@ -41,7 +42,6 @@ export default function CartPage() {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const clearCart = useCartStore((state) => state.clearCart);
   const subtotal = useCartStore((state) => state.getSubtotal());
-  const finalTotal = useCartStore((state) => state.getFinalTotal());
   const discountAmount = useCartStore((state) => state.discountAmount);
   const couponCode = useCartStore((state) => state.couponCode);
   const isFreeShipping = useCartStore((state) => state.freeShipping);
@@ -54,8 +54,14 @@ export default function CartPage() {
   const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  const shipping = isFreeShipping || subtotal > 75 || subtotal === 0 ? 0 : 4.99;
-  const freeShippingThreshold = 75;
+  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
+  const shipping = calculateFreightCost(items, "air", {
+    isFreeShippingPromo: isFreeShipping,
+    orderSubtotal: subtotal,
+  });
+  const totalDue = Math.max(0, subtotal - discountAmount + shipping);
+
+  const freeShippingThreshold = FREIGHT_CONFIGS.air.freeThreshold || 150;
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
@@ -319,7 +325,7 @@ export default function CartPage() {
                 )}
 
                 <div className="flex justify-between text-slate-600 font-semibold">
-                  <span>Tracked Air Cargo Express</span>
+                  <span>Tracked Air Cargo ({totalUnits} {totalUnits === 1 ? "unit" : "units"})</span>
                   <span className="font-bold text-slate-900 font-mono">
                     {shipping === 0 ? (
                       <span className="text-emerald-600 font-black uppercase">FREE</span>
@@ -332,7 +338,7 @@ export default function CartPage() {
                 <div className="flex justify-between text-base font-black text-[#00143D] pt-3 border-t border-slate-200">
                   <span>Total Due (USDT)</span>
                   <span className="text-xl text-[#FF1028] font-mono">
-                    {formatCurrency(finalTotal + shipping)}
+                    {formatCurrency(totalDue)}
                   </span>
                 </div>
               </div>

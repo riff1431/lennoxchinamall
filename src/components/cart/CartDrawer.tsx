@@ -20,6 +20,7 @@ import {
   Lock,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/helpers";
+import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
 
 const PRESET_COUPONS = [
   { code: "LENNOX10", desc: "10% OFF Storewide" },
@@ -33,9 +34,9 @@ export function CartDrawer() {
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const subtotal = useCartStore((state) => state.getSubtotal());
-  const finalTotal = useCartStore((state) => state.getFinalTotal());
   const discountAmount = useCartStore((state) => state.discountAmount);
   const couponCode = useCartStore((state) => state.couponCode);
+  const isFreeShipping = useCartStore((state) => state.freeShipping);
   const applyCoupon = useCartStore((state) => state.applyCoupon);
   const removeCoupon = useCartStore((state) => state.removeCoupon);
 
@@ -45,8 +46,14 @@ export function CartDrawer() {
     isError: boolean;
   } | null>(null);
 
-  const shipping = subtotal > 50 || subtotal === 0 ? 0 : 4.99;
-  const freeShippingThreshold = 50;
+  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
+  const shipping = calculateFreightCost(items, "air", {
+    isFreeShippingPromo: isFreeShipping,
+    orderSubtotal: subtotal,
+  });
+  const totalDue = Math.max(0, subtotal - discountAmount + shipping);
+
+  const freeShippingThreshold = FREIGHT_CONFIGS.air.freeThreshold || 150;
   const progressToFreeShipping = Math.min(
     100,
     (subtotal / freeShippingThreshold) * 100
@@ -103,8 +110,8 @@ export function CartDrawer() {
                 </div>
               )}
               <div className="flex justify-between text-slate-600 font-semibold">
-                <span>Estimated Air Express</span>
-                <span className="font-bold text-slate-900">
+                <span>Estimated Air Cargo ({totalUnits} {totalUnits === 1 ? "unit" : "units"})</span>
+                <span className="font-bold text-slate-900 font-mono">
                   {shipping === 0 ? (
                     <span className="text-[#10B981] font-black uppercase">FREE</span>
                   ) : (
@@ -114,8 +121,8 @@ export function CartDrawer() {
               </div>
               <div className="flex justify-between text-sm font-black text-[#00143D] pt-2 border-t border-slate-200">
                 <span>Total (USDT)</span>
-                <span className="text-base text-[#FF1028] price-tag">
-                  {formatCurrency(finalTotal + shipping)}
+                <span className="text-base text-[#FF1028] price-tag font-mono">
+                  {formatCurrency(totalDue)}
                 </span>
               </div>
             </div>

@@ -38,6 +38,11 @@ import {
   generateOrderNumber,
   generateMerchantTradeNo,
 } from "@/utils/helpers";
+import {
+  calculateFreightCost,
+  FREIGHT_CONFIGS,
+  normalizeFreightMethod,
+} from "@/utils/shipping";
 import { submitCheckoutOrder } from "@/app/actions/store-checkout";
 import { CourierSelector } from "@/components/checkout/CourierSelector";
 import { CourierLogo } from "@/components/checkout/CourierLogo";
@@ -64,7 +69,7 @@ export default function CheckoutPage() {
   const [state, setState] = useState("CA");
   const [postal, setPostal] = useState("94110");
   const [country, setCountry] = useState("United States");
-  const [shippingCourier, setShippingCourier] = useState<"yunexpress" | "sf_express" | "dhl">("sf_express");
+  const [shippingCourier, setShippingCourier] = useState<"air" | "sea">("air");
   const [customsNotes, setCustomsNotes] = useState("");
 
   // Payment Portal State
@@ -77,15 +82,13 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [qrExpirySeconds, setQrExpirySeconds] = useState(1800); // 30 mins
 
-  // Cart shipping
+  // Dynamic Freight Shipping Calculation
+  const totalUnits = items.reduce((sum, i) => sum + i.quantity, 0);
   const isFreeShipping = useCartStore((state) => state.freeShipping);
-  const baseShippingCost = isFreeShipping || subtotal > 75 ? 0 : 4.99;
-  const courierCost =
-    shippingCourier === "dhl"
-      ? 18.99
-      : shippingCourier === "sf_express"
-      ? isFreeShipping ? 0 : 8.99
-      : baseShippingCost;
+  const courierCost = calculateFreightCost(items, shippingCourier, {
+    isFreeShippingPromo: isFreeShipping,
+    orderSubtotal: subtotal,
+  });
   const grandTotal = Math.max(0, subtotal - discountAmount + courierCost);
 
   // Expiry countdown for Binance Pay
@@ -230,7 +233,7 @@ export default function CheckoutPage() {
                   <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
                     2
                   </span>
-                  <span>Air Courier</span>
+                  <span>Freight Mode</span>
                 </div>
 
                 <ChevronRight className="w-4 h-4 text-slate-300" />
@@ -284,17 +287,16 @@ export default function CheckoutPage() {
                   <span className="font-bold text-slate-800">{merchantTradeNo}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block uppercase">Air Cargo Tracking</span>
+                  <span className="text-[10px] text-slate-400 block uppercase">Logistics Freight Method</span>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <CourierLogo courier={shippingCourier} size="sm" className="w-5 h-5 rounded-md" />
                     <span className="font-bold text-blue-600">
-                      {shippingCourier === "dhl"
-                        ? "DHL-88921-HK"
-                        : shippingCourier === "sf_express"
-                        ? "SF-20268-HK"
-                        : "YUN-98218-HK"}
+                      {shippingCourier === "sea" ? "SEA-NGB-20268-OCN" : "AIR-SZX-98218-EXP"}
                     </span>
                   </div>
+                  <span className="text-[9px] text-slate-400 block mt-0.5 truncate">
+                    {FREIGHT_CONFIGS[shippingCourier]?.shortName || "Air Cargo"} ({totalUnits} {totalUnits === 1 ? "unit" : "units"})
+                  </span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block uppercase">Settlement Amount</span>
@@ -447,7 +449,7 @@ export default function CheckoutPage() {
                         type="submit"
                         className="w-full bg-[#00143D] hover:bg-[#FF1028] text-white py-3.5 rounded-2xl font-black font-heading text-xs uppercase tracking-wider transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
                       >
-                        <span>Continue to Air Courier Selection</span>
+                        <span>Continue to Freight Logistics Selection</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -455,13 +457,13 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* STEP 2: Courier Method Selection */}
+              {/* STEP 2: Freight Logistics Mode Selection */}
               {currentStep === 2 && (
                 <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <h3 className="font-heading font-black text-base text-[#00143D] uppercase tracking-wider flex items-center gap-2">
                       <Plane className="w-4 h-4 text-[#FF1028]" />
-                      <span>2. Select Air Freight Courier</span>
+                      <span>2. Select Freight Logistics Mode (Air vs Sea)</span>
                     </h3>
                     <button
                       onClick={() => setCurrentStep(1)}
@@ -475,21 +477,22 @@ export default function CheckoutPage() {
                     <CourierSelector
                       selectedCourier={shippingCourier}
                       onSelectCourier={(courier) => setShippingCourier(courier)}
-                      baseShippingCost={baseShippingCost}
+                      items={items}
                       isFreeShipping={isFreeShipping}
+                      orderSubtotal={subtotal}
                     />
 
-                    {/* Airfreight Trust & Clearance Notice */}
+                    {/* Air & Sea Freight Trust & Clearance Notice */}
                     <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start gap-3 text-xs">
                       <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200/60">
                         <ShieldCheck className="w-4 h-4" />
                       </div>
                       <div className="space-y-0.5 min-w-0">
                         <span className="font-heading font-black text-slate-900 block text-xs">
-                          Guaranteed DDP Pre-Cleared Airfreight
+                          Guaranteed DDP Pre-Cleared Freight Cargo
                         </span>
                         <p className="text-[11px] text-slate-500 leading-relaxed">
-                          All direct flights include customs VAT clearance and export paperwork. Zero surprise tariffs upon arrival, backed by 100% Binance escrow protection.
+                          All direct flights and ocean containers include export documentation and destination customs VAT pre-clearance. Zero surprise tariffs upon arrival, backed by 100% Binance escrow protection.
                         </p>
                       </div>
                     </div>
@@ -657,11 +660,7 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-1.5 min-w-0">
                       <CourierLogo courier={shippingCourier} size="sm" className="w-4 h-4 rounded-md" />
                       <span className="truncate">
-                        {shippingCourier === "dhl"
-                          ? "DHL Worldwide"
-                          : shippingCourier === "sf_express"
-                          ? "SF International"
-                          : "YunExpress Line"}
+                        {FREIGHT_CONFIGS[shippingCourier]?.name || "Direct Air Freight"}
                       </span>
                     </div>
                     <span className="font-mono font-bold text-slate-900 shrink-0">

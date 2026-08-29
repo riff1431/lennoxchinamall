@@ -1,126 +1,107 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Check, Plane, Sparkles, Clock, ShieldCheck, Zap } from "lucide-react";
-import { CourierLogo, CourierCode } from "./CourierLogo";
+import { Check, Plane, Ship, Sparkles, Clock, ShieldCheck, Zap, Box, Layers } from "lucide-react";
+import { CourierLogo } from "./CourierLogo";
+import {
+  calculateFreightCost,
+  FREIGHT_CONFIGS,
+  FreightModeConfig,
+  getEstimatedFreightDeliveryDate,
+  normalizeFreightMethod,
+} from "@/utils/shipping";
 
-export interface CourierOption {
-  id: "yunexpress" | "sf_express" | "dhl" | string;
-  name: string;
-  courierCode: CourierCode;
-  deliveryTime: string;
-  minDays: number;
-  maxDays: number;
-  routeDescription: string;
+export interface FreightOption extends FreightModeConfig {
   cost: number;
   originalCost?: number;
-  badge?: string;
-  badgeType?: "popular" | "fast" | "value" | "default";
-  features?: string[];
-  imageUrl?: string;
+  perUnitRate: number;
 }
 
 interface CourierSelectorProps {
-  selectedCourier: string;
-  onSelectCourier: (id: "yunexpress" | "sf_express" | "dhl") => void;
-  baseShippingCost: number;
-  isFreeShipping: boolean;
+  selectedCourier: "air" | "sea" | string;
+  onSelectCourier: (id: "air" | "sea") => void;
+  totalUnits?: number;
+  items?: Array<{ quantity: number }>;
+  isFreeShipping?: boolean;
+  orderSubtotal?: number;
 }
 
 export function CourierSelector({
   selectedCourier,
   onSelectCourier,
-  baseShippingCost,
-  isFreeShipping,
+  totalUnits: explicitTotalUnits,
+  items,
+  isFreeShipping = false,
+  orderSubtotal = 0,
 }: CourierSelectorProps) {
-  // Helper to calculate approximate arrival date string
-  const getEstimatedDates = (minDays: number, maxDays: number) => {
-    const today = new Date();
-    const minDate = new Date(today);
-    minDate.setDate(today.getDate() + minDays);
-
-    const maxDate = new Date(today);
-    maxDate.setDate(today.getDate() + maxDays);
-
-    const minMonth = minDate.toLocaleDateString("en-US", { month: "short" });
-    const minDay = minDate.getDate();
-    const maxMonth = maxDate.toLocaleDateString("en-US", { month: "short" });
-    const maxDay = maxDate.getDate();
-
-    if (minMonth === maxMonth) {
-      return `${minMonth} ${minDay} – ${maxDay}`;
+  const totalUnits = useMemo(() => {
+    if (explicitTotalUnits !== undefined) return explicitTotalUnits;
+    if (items && items.length > 0) {
+      return items.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
     }
-    return `${minMonth} ${minDay} – ${maxMonth} ${maxDay}`;
-  };
+    return 1;
+  }, [explicitTotalUnits, items]);
 
-  const couriers: CourierOption[] = useMemo(
-    () => [
+  const activeMethod = normalizeFreightMethod(selectedCourier);
+
+  const freightOptions: FreightOption[] = useMemo(() => {
+    const airCost = calculateFreightCost(totalUnits, "air", {
+      isFreeShippingPromo: isFreeShipping,
+      orderSubtotal,
+    });
+    const seaCost = calculateFreightCost(totalUnits, "sea", {
+      isFreeShippingPromo: isFreeShipping,
+      orderSubtotal,
+    });
+
+    return [
       {
-        id: "yunexpress",
-        name: "YunExpress Tracked Line",
-        courierCode: "yunexpress",
-        deliveryTime: "7–12 Business Days",
-        minDays: 7,
-        maxDays: 12,
-        routeDescription: "Shenzhen Air Hub • Local USPS / National Post Handover",
-        cost: baseShippingCost,
-        originalCost: baseShippingCost === 0 ? 4.99 : undefined,
-        badge: "Best Value",
-        badgeType: "value",
-        features: ["DDP Tax Cleared", "Door-to-Door Tracking"],
+        ...FREIGHT_CONFIGS.air,
+        cost: airCost,
+        originalCost: isFreeShipping ? FREIGHT_CONFIGS.air.baseCost + (totalUnits - 1) * FREIGHT_CONFIGS.air.perUnitCost : undefined,
+        perUnitRate: FREIGHT_CONFIGS.air.perUnitCost,
       },
       {
-        id: "sf_express",
-        name: "SF International Priority",
-        courierCode: "sf_express",
-        deliveryTime: "5–8 Business Days",
-        minDays: 5,
-        maxDays: 8,
-        routeDescription: "Direct Hong Kong Daily Cargo Flight • Priority Sorting",
-        cost: isFreeShipping ? 0 : 8.99,
-        originalCost: isFreeShipping ? 8.99 : undefined,
-        badge: "Most Popular",
-        badgeType: "popular",
-        features: ["Guaranteed Air Cargo Slot", "Fast Customs Clearance"],
+        ...FREIGHT_CONFIGS.sea,
+        cost: seaCost,
+        originalCost: isFreeShipping ? FREIGHT_CONFIGS.sea.baseCost + (totalUnits - 1) * FREIGHT_CONFIGS.sea.perUnitCost : undefined,
+        perUnitRate: FREIGHT_CONFIGS.sea.perUnitCost,
       },
-      {
-        id: "dhl",
-        name: "DHL Worldwide Express",
-        courierCode: "dhl",
-        deliveryTime: "3–5 Business Days",
-        minDays: 3,
-        maxDays: 5,
-        routeDescription: "VIP Dedicated Air Express • VIP Direct Customs Priority",
-        cost: 18.99,
-        badge: "Fastest Express",
-        badgeType: "fast",
-        features: ["Ultra Fast Transit", "Signature on Delivery"],
-      },
-    ],
-    [baseShippingCost, isFreeShipping]
-  );
+    ];
+  }, [totalUnits, isFreeShipping, orderSubtotal]);
 
   return (
     <div
       role="radiogroup"
-      aria-label="Select Air Freight Courier"
+      aria-label="Select Freight Shipping Method"
       className="space-y-3.5"
     >
-      {couriers.map((courier) => {
-        const isSelected = selectedCourier === courier.id;
-        const estDelivery = getEstimatedDates(courier.minDays, courier.maxDays);
+      {/* Unit & Volume Context Header */}
+      <div className="flex items-center justify-between px-1 text-xs text-slate-500">
+        <span className="flex items-center gap-1.5 font-semibold text-slate-700">
+          <Box className="w-3.5 h-3.5 text-blue-600" />
+          Procurement Cargo Volume: <strong className="text-slate-900 font-mono font-bold">{totalUnits} {totalUnits === 1 ? "Unit" : "Units"}</strong>
+        </span>
+        <span className="text-[11px] text-slate-400 font-mono">
+          Dynamic space &amp; weight scaling
+        </span>
+      </div>
+
+      {freightOptions.map((freight) => {
+        const isSelected = activeMethod === freight.id;
+        const estDelivery = getEstimatedFreightDeliveryDate(freight.minDays, freight.maxDays);
 
         return (
           <div
-            key={courier.id}
+            key={freight.id}
             role="radio"
             aria-checked={isSelected}
             tabIndex={0}
-            onClick={() => onSelectCourier(courier.id as "yunexpress" | "sf_express" | "dhl")}
+            onClick={() => onSelectCourier(freight.id)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                onSelectCourier(courier.id as "yunexpress" | "sf_express" | "dhl");
+                onSelectCourier(freight.id);
               }
             }}
             className={`group relative p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 cursor-pointer transition-all duration-200 outline-none select-none ${
@@ -130,13 +111,12 @@ export function CourierSelector({
             }`}
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-              {/* Left Section: Logo & Carrier Info */}
+              {/* Left Section: Logo & Logistics Info */}
               <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0">
-                {/* Dynamic Brand Logo */}
+                {/* Dynamic Freight Vector Badge */}
                 <CourierLogo
-                  courier={courier.courierCode}
-                  name={courier.name}
-                  imageUrl={courier.imageUrl}
+                  courier={freight.id}
+                  name={freight.name}
                   size="md"
                 />
 
@@ -144,25 +124,24 @@ export function CourierSelector({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <span className="font-heading font-black text-sm sm:text-base text-slate-900 leading-tight">
-                      {courier.name}
+                      {freight.name}
                     </span>
 
                     {/* Dynamic Tag / Badge */}
-                    {courier.badge && (
+                    {freight.badge && (
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight border ${
-                          courier.badgeType === "popular"
-                            ? "bg-red-50 text-[#FF1028] border-red-200/80"
-                            : courier.badgeType === "fast"
-                            ? "bg-amber-50 text-amber-900 border-amber-300/80 font-mono"
-                            : courier.badgeType === "value"
-                            ? "bg-blue-50 text-blue-700 border-blue-200/80"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
+                          freight.badgeType === "fast"
+                            ? "bg-blue-50 text-blue-700 border-blue-200/80 font-mono"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200/80 font-mono"
                         }`}
                       >
-                        {courier.badgeType === "popular" && <Sparkles className="w-2.5 h-2.5" />}
-                        {courier.badgeType === "fast" && <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-600" />}
-                        {courier.badge}
+                        {freight.badgeType === "fast" ? (
+                          <Zap className="w-2.5 h-2.5 fill-blue-500 text-blue-600" />
+                        ) : (
+                          <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                        )}
+                        {freight.badge}
                       </span>
                     )}
                   </div>
@@ -171,7 +150,7 @@ export function CourierSelector({
                   <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500">
                     <span className="flex items-center gap-1 font-semibold text-slate-700">
                       <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      {courier.deliveryTime}
+                      {freight.deliveryTime}
                     </span>
                     <span className="hidden sm:inline text-slate-300">•</span>
                     <span className="text-[11px] sm:text-xs text-slate-500">
@@ -180,7 +159,7 @@ export function CourierSelector({
                   </div>
 
                   <p className="text-[11px] text-slate-400 mt-1 line-clamp-1 hidden sm:block">
-                    {courier.routeDescription}
+                    {freight.routeDescription}
                   </p>
                 </div>
               </div>
@@ -190,23 +169,23 @@ export function CourierSelector({
                 {/* Price Display */}
                 <div className="text-left sm:text-right">
                   <div className="flex items-center sm:justify-end gap-1.5">
-                    {courier.originalCost !== undefined && (
+                    {freight.originalCost !== undefined && (
                       <span className="text-xs text-slate-400 line-through font-mono">
-                        ${courier.originalCost.toFixed(2)}
+                        ${freight.originalCost.toFixed(2)}
                       </span>
                     )}
-                    {courier.cost === 0 ? (
+                    {freight.cost === 0 ? (
                       <span className="px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 font-mono font-black text-sm border border-emerald-200/80">
                         FREE
                       </span>
                     ) : (
                       <span className="font-mono font-black text-base sm:text-lg text-slate-900">
-                        ${courier.cost.toFixed(2)}
+                        ${freight.cost.toFixed(2)}
                       </span>
                     )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-mono block">
-                    USDT Airfreight
+                    USDT ({totalUnits} {totalUnits === 1 ? "unit" : "units"} calculated)
                   </span>
                 </div>
 
@@ -223,10 +202,10 @@ export function CourierSelector({
               </div>
             </div>
 
-            {/* Mobile Sub-features Pills */}
-            {courier.features && (
+            {/* Sub-features Pills */}
+            {freight.features && (
               <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-1.5">
-                {courier.features.map((feat, idx) => (
+                {freight.features.map((feat, idx) => (
                   <span
                     key={idx}
                     className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100/80 px-2 py-0.5 rounded-md"
@@ -235,6 +214,10 @@ export function CourierSelector({
                     {feat}
                   </span>
                 ))}
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-slate-500 bg-blue-50/60 text-blue-700 px-2 py-0.5 rounded-md ml-auto">
+                  <Layers className="w-2.5 h-2.5" />
+                  +${freight.perUnitRate.toFixed(2)} / addl unit
+                </span>
               </div>
             )}
           </div>

@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 
 export type CourierCode =
+  | "air"
+  | "sea"
   | "yunexpress"
   | "sf_express"
   | "sf"
@@ -61,6 +63,76 @@ export function CourierLogo({
 
   // Render stylized, high-fidelity dynamic vector logos
   const renderVectorLogo = () => {
+    // 0a. Air Freight / Direct Air Cargo
+    if (normalizedCode === "air" || normalizedCode.includes("airfreight" ) || normalizedCode.includes("aircargo")) {
+      return (
+        <div
+          className={`relative ${sizeMap.box} rounded-2xl bg-gradient-to-br from-[#00143D] via-[#0284C7] to-[#0EA5E9] p-1.5 shadow-sm flex flex-col items-center justify-center text-white shrink-0 overflow-hidden ring-1 ring-cyan-400/30 transition-transform duration-300 group-hover:scale-105 ${className}`}
+          title={name || "Direct Air Freight"}
+        >
+          <svg
+            viewBox="0 0 100 100"
+            className="w-full h-full drop-shadow-xs"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15 75 L45 25 C47 22 51 21 55 23 L85 41 C88 43 89 47 87 50 L73 71 C71 74 67 75 63 74 L21 59"
+              stroke="white"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeOpacity="0.3"
+            />
+            <path
+              d="M20 70 L58 32 C62 28 68 29 70 34 L74 42 C76 46 73 50 68 52 L36 66 L20 70 Z"
+              fill="#FFFFFF"
+            />
+            <circle cx="56" cy="44" r="5" fill="#38BDF8" />
+          </svg>
+          <span className="absolute bottom-0.5 text-[8px] sm:text-[9px] font-black tracking-wider uppercase text-cyan-100 font-heading">
+            AIR
+          </span>
+        </div>
+      );
+    }
+
+    // 0b. Sea Freight / Ocean Container Cargo
+    if (normalizedCode === "sea" || normalizedCode.includes("seafreight") || normalizedCode.includes("ocean") || normalizedCode.includes("container")) {
+      return (
+        <div
+          className={`relative ${sizeMap.box} rounded-2xl bg-gradient-to-br from-[#064E3B] via-[#0D9488] to-[#047857] p-1.5 shadow-sm flex flex-col items-center justify-center text-white shrink-0 overflow-hidden ring-1 ring-emerald-400/30 transition-transform duration-300 group-hover:scale-105 ${className}`}
+          title={name || "Ocean Sea Freight"}
+        >
+          <svg
+            viewBox="0 0 100 100"
+            className="w-full h-full drop-shadow-xs"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Cargo container hull */}
+            <path
+              d="M15 55 L85 55 L75 75 C74 78 70 80 66 80 L34 80 C30 80 26 78 25 75 Z"
+              fill="#FFFFFF"
+            />
+            {/* Containers stacked on deck */}
+            <rect x="25" y="38" width="14" height="13" rx="2" fill="#34D399" />
+            <rect x="43" y="34" width="14" height="17" rx="2" fill="#F59E0B" />
+            <rect x="61" y="40" width="14" height="11" rx="2" fill="#60A5FA" />
+            {/* Ocean wave line */}
+            <path
+              d="M10 82 Q 25 77, 40 82 T 70 82 T 95 82"
+              stroke="#A7F3D0"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="absolute bottom-0.5 text-[8px] sm:text-[9px] font-black tracking-wider uppercase text-emerald-100 font-heading">
+            SEA
+          </span>
+        </div>
+      );
+    }
+
     // 1. YunExpress (云途物流) - Signature Blue & Vibrant Orange Jet Wing
     if (normalizedCode.includes("yun") || normalizedCode === "yunexpress") {
       return (
