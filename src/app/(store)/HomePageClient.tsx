@@ -15,6 +15,7 @@ import { DirectSourcingDepartmentsSection } from "@/components/sections/DirectSo
 import { ChinaManufacturingClustersSection } from "@/components/sections/ChinaManufacturingClustersSection";
 import { BrowsingHistorySection } from "@/components/sections/BrowsingHistorySection";
 import { HeroLennoxSection } from "@/components/sections/HeroLennoxSection";
+import { CategoryShowcaseBannerSection } from "@/components/sections/CategoryShowcaseBannerSection";
 import { DualPromotionalShowcaseSection } from "@/components/sections/DualPromotionalShowcaseSection";
 import { SourcingAssuranceSection } from "@/components/sections/SourcingAssuranceSection";
 import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoModal";
@@ -128,7 +129,12 @@ export function HomePageClient({ sections }: HomePageClientProps) {
         <HeroLennoxSection onOpenVideoModal={setActiveVideoModal} />
       </MotionSection>
 
-      {/* ── 2. Top Selling Products Carousel (5 Columns, Auto-Loop 3s) ── */}
+      {/* ── 2. Categories Showcase & "Your World. All in One Place." Lifestyle Hero Banner ── */}
+      <MotionSection effect="fade-up" delay={60}>
+        <CategoryShowcaseBannerSection />
+      </MotionSection>
+
+      {/* ── 3. Top Selling Products Carousel (5 Columns, Auto-Loop 3s) ── */}
       <MotionSection effect="fade-up" delay={80}>
         <TopSellingProductsSection products={bestSellers} autoPlayInterval={3000} />
       </MotionSection>
