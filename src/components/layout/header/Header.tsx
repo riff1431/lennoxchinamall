@@ -224,15 +224,14 @@ export function Header({
 
           {/* ── Mobile Full-Width Search Input & Autocomplete ── */}
           <div className="mt-1.5 md:hidden relative" ref={mobileSearchContainerRef}>
-            <form onSubmit={handleMobileSearch} className="relative flex items-center">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+            <form onSubmit={handleMobileSearch} className="relative flex items-center bg-white rounded-lg border border-slate-200 focus-within:border-slate-300 shadow-xs h-10 overflow-hidden">
               <input
                 type="text"
                 placeholder="Search 100,000+ factory products..."
                 value={mobileSearchQuery}
                 onChange={(e) => setMobileSearchQuery(e.target.value)}
                 onFocus={() => setIsMobileSearchFocused(true)}
-                className="w-full pl-9 pr-16 min-h-[38px] rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-[#FF1028] focus:bg-white focus:ring-2 focus:ring-[#FF1028]/10 font-medium transition-all"
+                className="w-full h-full pl-3.5 pr-12 text-xs text-slate-800 bg-transparent placeholder:text-slate-400 outline-none font-normal"
                 style={{ fontSize: "16px" }}
                 aria-label="Search products"
                 role="combobox"
@@ -242,18 +241,22 @@ export function Header({
                 <button
                   type="button"
                   onClick={() => setMobileSearchQuery("")}
-                  className="absolute right-12 text-slate-400 p-1 min-h-[38px] flex items-center cursor-pointer hover:text-slate-600"
+                  className="absolute right-11 text-slate-400 p-1 flex items-center cursor-pointer hover:text-slate-600"
                   aria-label="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
               ) : null}
-              <button
-                type="submit"
-                className="absolute right-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#FF1028] to-[#E00B20] text-white text-[11px] font-black uppercase shadow-xs min-h-[30px] cursor-pointer hover:shadow-md active:scale-[0.97] transition-all"
-              >
-                Go
-              </button>
+              <div className="absolute right-0 top-0 bottom-0 flex items-center">
+                <span className="h-5 w-px bg-slate-200" />
+                <button
+                  type="submit"
+                  className="h-full px-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Search"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </div>
             </form>
 
             {/* ── Mobile Search Dropdown Autocomplete Panel ── */}

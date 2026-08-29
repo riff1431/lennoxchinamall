@@ -14,7 +14,6 @@ import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { HOT_SEARCH_TAGS } from "./headerConfig";
-import { DepartmentPicker } from "./DepartmentPicker";
 import type { Category } from "@/types/database";
 
 interface SearchCategory extends Partial<Category> {
@@ -27,20 +26,18 @@ interface SearchCategory extends Partial<Category> {
 }
 
 interface HeaderSearchBarProps {
-  rootCategories: SearchCategory[];
-  categories: SearchCategory[];
-  isMounted: boolean;
+  rootCategories?: SearchCategory[];
+  categories?: SearchCategory[];
+  isMounted?: boolean;
 }
 
 export function HeaderSearchBar({
-  rootCategories,
-  categories,
-  isMounted,
+  categories = [],
+  isMounted = true,
 }: HeaderSearchBarProps) {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchSuggestions, setSearchSuggestions] = useState<{
     products: { id: string; title: string; slug: string; price: number; image?: string; sku?: string }[];
@@ -113,16 +110,9 @@ export function HeaderSearchBar({
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!searchQuery.trim()) {
-      if (selectedCategory && selectedCategory !== "all") {
-        setIsSearchFocused(false);
-        router.push(`/categories/${selectedCategory}`);
-      }
       return;
     }
-    let url = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
-    if (selectedCategory !== "all") {
-      url += `&category=${selectedCategory}`;
-    }
+    const url = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
     setIsSearchFocused(false);
     router.push(url);
   };
@@ -137,53 +127,49 @@ export function HeaderSearchBar({
 
   return (
     <div ref={searchContainerRef} className="flex-1 max-w-2xl hidden md:block relative">
+      {/* ── Mercado Libre Style Clean Search Bar ── */}
       <form
         onSubmit={handleSearch}
-        className="flex w-full items-center rounded-xl border-2 border-[#00143D] bg-white shadow-xs focus-within:border-[#FF1028] focus-within:ring-2 focus-within:ring-[#FF1028]/15 transition-all duration-200 relative"
+        className="flex w-full items-center bg-white rounded-md shadow-xs hover:shadow-sm focus-within:shadow-md border border-slate-200 focus-within:border-slate-300 transition-all duration-200 relative h-10 overflow-hidden"
       >
-        {/* Department Picker */}
-        <DepartmentPicker
-          selectedCategory={selectedCategory}
-          onSelect={setSelectedCategory}
-          rootCategories={rootCategories}
+        {/* Main Search Input */}
+        <input
+          type="text"
+          placeholder="Search 100,000+ factory products (e.g. 4K Drone, 3D Printer, OBD2)..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsSearchFocused(true)}
+          className="w-full h-full pl-4 pr-14 text-xs sm:text-sm text-slate-800 bg-transparent placeholder:text-slate-400 outline-none font-normal"
+          aria-label="Search products"
+          aria-autocomplete="list"
+          role="combobox"
+          aria-controls="search-suggestions-popup"
+          aria-expanded={hasSuggestions}
         />
 
-        {/* Main Search Input */}
-        <div className="relative flex-1 flex items-center">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search 100,000+ factory products (e.g. 4K Drone, 3D Printer, OBD2)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            className="w-full pl-10 pr-8 py-2.5 text-xs sm:text-sm text-slate-900 bg-transparent placeholder:text-slate-400 outline-none font-medium"
-            aria-label="Search products"
-            aria-autocomplete="list"
-            role="combobox"
-            aria-controls="search-suggestions-popup"
-            aria-expanded={hasSuggestions}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
-              aria-label="Clear search"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+        {/* Clear Search Button */}
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="absolute right-12 text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors cursor-pointer"
+            aria-label="Clear search"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
 
-        {/* Submit Search Button */}
-        <button
-          type="submit"
-          className="bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-5 py-2.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all duration-200 shrink-0 cursor-pointer hover:shadow-md active:scale-[0.98] rounded-r-[9px]"
-        >
-          <Search className="w-4 h-4" />
-          <span>Search</span>
-        </button>
+        {/* Search Action Button with subtle left divider line */}
+        <div className="absolute right-0 top-0 bottom-0 flex items-center">
+          <span className="h-5 w-px bg-slate-200" />
+          <button
+            type="submit"
+            className="h-full px-3.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
+            aria-label="Search"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        </div>
       </form>
 
       {/* Hot Search Quick Tags */}
@@ -208,9 +194,9 @@ export function HeaderSearchBar({
         {hasSuggestions && (
           <motion.div
             id="search-suggestions-popup"
-            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            initial={{ opacity: 0, y: -4, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
             className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden z-50 text-xs"
             role="listbox"
@@ -302,3 +288,5 @@ export function HeaderSearchBar({
     </div>
   );
 }
+
+export default HeaderSearchBar;
