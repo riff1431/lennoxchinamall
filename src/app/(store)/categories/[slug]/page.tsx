@@ -1,7 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { MOCK_CATEGORIES } from "@/lib/mockData";
+import { getCategoryBySlug, getCategories } from "@/services/categories";
 import { CategoryPageClient } from "./CategoryPageClient";
 import { CategoryJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 
@@ -12,10 +12,11 @@ interface CategoryPageProps {
 }
 
 export async function generateStaticParams() {
+  const categories = await getCategories();
   const staticSlugs = [
     { slug: "flash-deals" },
     { slug: "new-arrivals" },
-    ...MOCK_CATEGORIES.map((c) => ({ slug: c.slug })),
+    ...categories.map((c) => ({ slug: c.slug })),
   ];
   return staticSlugs;
 }
@@ -28,7 +29,7 @@ export async function generateMetadata({
 
   const isFlashDealsPage = slug === "flash-deals";
   const isNewArrivalsPage = slug === "new-arrivals";
-  const category = MOCK_CATEGORIES.find((c) => c.slug === slug);
+  const category = await getCategoryBySlug(slug);
 
   const title = isFlashDealsPage
     ? "Flash Deals & Limited Drops — Direct Factory Pricing"
@@ -89,7 +90,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const slug = resolvedParams.slug;
 
   const isSpecial = slug === "flash-deals" || slug === "new-arrivals";
-  const category = MOCK_CATEGORIES.find((c) => c.slug === slug);
+  const category = await getCategoryBySlug(slug);
 
   if (!category && !isSpecial) {
     notFound();

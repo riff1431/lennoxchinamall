@@ -15,13 +15,24 @@ export type AuditAction =
   | "PERMISSIONS_UPDATED"
   | "USER_DELETED"
   | "SETTINGS_CHANGED"
-  | "BROADCAST_CREATED";
+  | "BROADCAST_CREATED"
+  | "PRODUCT_CREATED"
+  | "PRODUCT_UPDATED"
+  | "PRODUCT_DELETED"
+  | "PRODUCTS_BULK_DELETED"
+  | "PRODUCTS_STATUS_CHANGED"
+  | "BRAND_CREATED"
+  | "BRAND_UPDATED"
+  | "BRAND_DELETED"
+  | "CATEGORY_CREATED"
+  | "CATEGORY_UPDATED"
+  | "CATEGORY_DELETED";
 
 export interface LogAuditParams {
   adminId: string;
   adminEmail?: string;
   action: AuditAction;
-  entityType: "user" | "role" | "order" | "product" | "setting" | "inventory" | "notification_broadcast";
+  entityType: "user" | "role" | "order" | "product" | "setting" | "inventory" | "notification_broadcast" | "brand" | "category";
   entityId?: string;
   changes?: Record<string, unknown>;
   ip?: string;

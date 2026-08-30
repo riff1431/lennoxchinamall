@@ -17,6 +17,7 @@ interface CategoryState {
   getRootCategories: () => Category[];
   getCategoryBySlug: (slug: string) => Category | undefined;
   getCategoryById: (id: string) => Category | undefined;
+  setCategories: (categories: Category[]) => void;
 }
 
 export const useCategoryStore = create<CategoryState>()(
@@ -24,6 +25,10 @@ export const useCategoryStore = create<CategoryState>()(
     (set, get) => ({
       categories: MOCK_CATEGORIES as Category[],
       isLoaded: true,
+
+      setCategories: (newCategories: Category[]) => {
+        set({ categories: newCategories });
+      },
 
       addCategory: (newCategory: Category) => {
         set((state) => ({

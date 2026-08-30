@@ -108,9 +108,13 @@ export async function getProducts(
 
     const { data, error, count } = await query;
 
-    if (error || !data || data.length === 0) {
-      // Fallback to mock data if database is not yet seeded
+    if (error) {
+      console.warn("Supabase products query error, falling back to mock data:", error.message);
       return getFallbackProducts(options);
+    }
+
+    if (!data || data.length === 0) {
+      return { products: [], total: 0 };
     }
 
     const rawProducts = data as unknown as Product[];
@@ -156,10 +160,15 @@ export async function getProductBySlug(
       error = byIdResult.error;
     }
 
-    if (error || !data) {
+    if (error) {
+      console.warn("Supabase product query error, falling back to mock data:", error.message);
       const fallback = MOCK_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
       if (!fallback) return null;
       return isAdmin ? fallback : sanitizePublicProduct(fallback);
+    }
+
+    if (!data) {
+      return null;
     }
 
     const product = data as unknown as Product;

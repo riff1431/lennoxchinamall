@@ -12,6 +12,8 @@ interface ProductState {
   addProduct: (product: Product) => void;
   updateProduct: (id: string, updates: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
+  deleteProducts: (ids: string[]) => void;
+  bulkUpdateStatus: (ids: string[], status: Product["status"]) => void;
   duplicateProduct: (id: string) => Product | null;
   resetToDefaults: () => void;
   setProducts: (products: Product[]) => void;
@@ -60,6 +62,28 @@ export const useProductStore = create<ProductState>()(
       deleteProduct: (id: string) => {
         set((state) => ({
           products: state.products.filter((p) => p.id !== id),
+        }));
+      },
+
+      deleteProducts: (ids: string[]) => {
+        const idSet = new Set(ids);
+        set((state) => ({
+          products: state.products.filter((p) => !idSet.has(p.id)),
+        }));
+      },
+
+      bulkUpdateStatus: (ids: string[], status: Product["status"]) => {
+        const idSet = new Set(ids);
+        set((state) => ({
+          products: state.products.map((p) =>
+            idSet.has(p.id)
+              ? {
+                  ...p,
+                  status,
+                  updated_at: new Date().toISOString(),
+                }
+              : p
+          ),
         }));
       },
 

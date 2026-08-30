@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { MOCK_CATEGORIES } from "@/lib/mockData";
+import { getCategories } from "@/services/categories";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
@@ -27,7 +27,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CategoriesDirectoryPage() {
+export default async function CategoriesDirectoryPage() {
+  const categories = await getCategories();
   const breadcrumbItems = [{ label: "All Departments & Sourcing Hubs", href: "/categories" }];
 
   return (
@@ -45,7 +46,7 @@ export default function CategoriesDirectoryPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MOCK_CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <div
             key={cat.id}
             className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"

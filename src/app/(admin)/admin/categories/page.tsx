@@ -47,6 +47,7 @@ import { slugify, cn } from "@/utils/helpers";
 import { Category } from "@/types/database";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { getAdminCategories, createCategory as createCategoryAction, updateCategory as updateCategoryAction, deleteCategory as deleteCategoryAction, bulkDeleteCategories as bulkDeleteCategoriesAction, reorderCategories as reorderCategoriesAction } from "@/app/actions/admin-categories";
 
 type ViewMode = "table" | "grid" | "tree";
 type FilterPreset = "all" | "active" | "root" | "subcategories";
@@ -59,7 +60,40 @@ export default function AdminCategoriesPage() {
     updateCategory,
     deleteCategory,
     resetToDefaults,
+    setCategories,
   } = useCategoryStore();
+
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getAdminCategories();
+      if (result.success && result.categories) {
+        // Sync Zustand store with DB data, preserving client-only fields
+        const enriched = result.categories.map(dbCat => {
+          const existingLocal = categories.find(c => c.id === dbCat.id);
+          return {
+            ...dbCat,
+            // Preserve client-only extended fields from local store
+            bg_color: existingLocal?.bg_color || dbCat.bg_color || '#EBF4FB',
+            subcategories: existingLocal?.subcategories || dbCat.subcategories || [],
+            thumbnail_url: existingLocal?.thumbnail_url || dbCat.thumbnail_url || dbCat.image_url,
+            iconName: dbCat.icon || existingLocal?.iconName || 'FolderTree',
+          };
+        });
+        setCategories(enriched);
+      }
+    } catch {
+      toast.error("Failed to load categories.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>("table");
@@ -126,7 +160,7 @@ export default function AdminCategoriesPage() {
     setIsSlideOverOpen(true);
   };
 
-  const handleDuplicate = (cat: Category) => {
+  const handleDuplicate = async (cat: Category) => {
     const newSlug = `${cat.slug}-copy-${Date.now().toString().slice(-4)}`;
     const duplicateCat: Category = {
       ...cat,
@@ -139,21 +173,24 @@ export default function AdminCategoriesPage() {
     };
     addCategory(duplicateCat);
     toast.success(`Duplicated category "${cat.name}".`);
+    await createCategoryAction(duplicateCat);
   };
 
-  const handleToggleStatus = (cat: Category) => {
+  const handleToggleStatus = async (cat: Category) => {
     const updatedStatus = !cat.is_active;
     updateCategory(cat.id, { is_active: updatedStatus });
     toast.success(
       `Category "${cat.name}" is now ${updatedStatus ? "Active" : "Draft / Hidden"}.`
     );
+    await updateCategoryAction(cat.id, { is_active: updatedStatus });
   };
 
-  const handleMovePriority = (cat: Category, direction: "up" | "down") => {
+  const handleMovePriority = async (cat: Category, direction: "up" | "down") => {
     const currentPos = cat.position || 1;
     const targetPos = direction === "up" ? Math.max(1, currentPos - 1) : currentPos + 1;
     updateCategory(cat.id, { position: targetPos });
     toast.info(`Updated priority for "${cat.name}" to #${targetPos}`);
+    await updateCategoryAction(cat.id, { position: targetPos });
   };
 
   const handleCopySlug = (cat: Category) => {
@@ -170,7 +207,7 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
       toast.warning("Category name is required.");
@@ -181,7 +218,7 @@ export default function AdminCategoriesPage() {
     const thumbnailUrl = formThumbnailImages[0] || imageUrl || null;
 
     if (editingCategory) {
-      updateCategory(editingCategory.id, {
+      const updates = {
         name: formName.trim(),
         slug: formSlug.trim() || slugify(formName),
         parent_id: formParentId === "root" ? null : formParentId,
@@ -196,8 +233,15 @@ export default function AdminCategoriesPage() {
         seo_description: formSeoDesc.trim() || formDescription.trim() || null,
         subcategories: formSubcategories,
         is_active: formIsActive,
-      });
+      };
+      
+      updateCategory(editingCategory.id, updates);
       toast.success(`Category "${formName}" updated successfully.`);
+      
+      const serverResult = await updateCategoryAction(editingCategory.id, updates);
+      if (!serverResult.success) {
+         toast.warning(`Failed to save to database: ${serverResult.error}`);
+      }
     } else {
       const newCat: Category = {
         id: `cat-${Date.now()}`,
@@ -219,16 +263,28 @@ export default function AdminCategoriesPage() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
+      
       addCategory(newCat);
       toast.success(`Category "${formName}" created successfully.`);
+      
+      const serverResult = await createCategoryAction(newCat);
+      if (!serverResult.success) {
+         toast.error(`Failed to save to database: ${serverResult.error}`);
+      }
     }
 
     setIsSlideOverOpen(false);
   };
 
-  const handleDeleteCategory = (cat: Category) => {
+  const handleDeleteCategory = async (cat: Category) => {
     deleteCategory(cat.id);
-    toast.success(`Category "${cat.name}" deleted.`);
+    const serverResult = await deleteCategoryAction(cat.id);
+    if (!serverResult.success) {
+      toast.error(`Failed to delete from database: ${serverResult.error}`);
+      // Ideally we would revert the optimistic delete here, but for now just show error
+    } else {
+      toast.success(`Category "${cat.name}" deleted.`);
+    }
   };
 
   const handleResetDefaults = () => {
@@ -536,9 +592,12 @@ export default function AdminCategoriesPage() {
       requiresConfirmation: true,
       confirmTitle: "Activate Selected Categories",
       confirmMessage: "Set all selected categories to Active on the storefront?",
-      onClick: (selected) => {
+      onClick: async (selected) => {
         selected.forEach((s) => updateCategory(s.id, { is_active: true }));
         toast.success(`Activated ${selected.length} categories.`);
+        for (const s of selected) {
+          await updateCategoryAction(s.id, { is_active: true });
+        }
       },
     },
     {
@@ -548,9 +607,12 @@ export default function AdminCategoriesPage() {
       requiresConfirmation: true,
       confirmTitle: "Deactivate Selected Categories",
       confirmMessage: "Hide all selected categories from the storefront?",
-      onClick: (selected) => {
+      onClick: async (selected) => {
         selected.forEach((s) => updateCategory(s.id, { is_active: false }));
         toast.success(`Set ${selected.length} categories to Draft.`);
+        for (const s of selected) {
+          await updateCategoryAction(s.id, { is_active: false });
+        }
       },
     },
     {
@@ -560,9 +622,16 @@ export default function AdminCategoriesPage() {
       requiresConfirmation: true,
       confirmTitle: "Bulk Delete Categories",
       confirmMessage: "Are you sure you want to delete the selected categories?",
-      onClick: (selected) => {
+      onClick: async (selected) => {
+        const ids = selected.map(s => s.id);
         selected.forEach((s) => deleteCategory(s.id));
-        toast.success(`Deleted ${selected.length} categories.`);
+        
+        const serverResult = await bulkDeleteCategoriesAction(ids);
+        if (!serverResult.success) {
+           toast.error(`Failed to bulk delete from database: ${serverResult.error}`);
+        } else {
+           toast.success(`Deleted ${selected.length} categories.`);
+        }
       },
     },
   ];

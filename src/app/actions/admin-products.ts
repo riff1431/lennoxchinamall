@@ -20,7 +20,7 @@ export interface FetchAdminProductsParams {
 
 export async function getAdminProducts(params?: FetchAdminProductsParams) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : true;
+  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access", products: [], categories: [], brands: [] };
   }
@@ -75,7 +75,7 @@ export async function getAdminProducts(params?: FetchAdminProductsParams) {
 
 export async function getAdminProductById(id: string) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : true;
+  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access", product: null, categories: [], brands: [] };
   }
@@ -121,7 +121,7 @@ export async function getAdminProductById(id: string) {
 
 export async function createProduct(formData: FormData) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : true;
+  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access" };
   }
@@ -395,7 +395,7 @@ export async function createProduct(formData: FormData) {
         await logAuditEvent({
           adminId: session.id,
           adminEmail: session.email,
-          action: "SETTINGS_CHANGED",
+          action: "PRODUCT_CREATED",
           entityType: "product",
           entityId: newProd.id,
           changes: { title, sku, basePrice, supplierCode },
@@ -418,12 +418,9 @@ export async function createProduct(formData: FormData) {
     };
   } catch (err: any) {
     console.error("Create product error:", err);
-    registerCachedProduct(createdProduct);
     return {
-      success: true,
-      message: `Product "${title}" created successfully!`,
-      productId: createdProduct.id,
-      product: createdProduct,
+      success: false,
+      error: err?.message || "Failed to create product. Please try again.",
     };
   }
 }
@@ -432,7 +429,7 @@ export async function createProduct(formData: FormData) {
 
 export async function updateProduct(id: string, formData: FormData) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : true;
+  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access" };
   }
@@ -584,7 +581,7 @@ export async function updateProduct(id: string, formData: FormData) {
       await logAuditEvent({
         adminId: session.id,
         adminEmail: session.email,
-        action: "SETTINGS_CHANGED",
+        action: "PRODUCT_UPDATED",
         entityType: "product",
         entityId: id,
         changes: { title, basePrice, status },
@@ -598,7 +595,7 @@ export async function updateProduct(id: string, formData: FormData) {
     return { success: true, message: `Product "${title}" updated successfully!` };
   } catch (err: any) {
     console.error("Update product error:", err);
-    return { success: true, message: `Product "${title}" updated successfully!` };
+    return { success: false, error: err?.message || "Failed to update product. Please try again." };
   }
 }
 
@@ -621,7 +618,7 @@ export async function deleteProduct(id: string) {
     await logAuditEvent({
       adminId: session.id,
       adminEmail: session.email,
-      action: "SETTINGS_CHANGED",
+      action: "PRODUCT_DELETED",
       entityType: "product",
       entityId: id,
       changes: { action: "DELETED" },
@@ -637,9 +634,45 @@ export async function deleteProduct(id: string) {
 
 // ─── Bulk Product Actions ───────────────────────────────────────────────────
 
+export async function bulkDeleteProducts(ids: string[]) {
+  const session = await getSession();
+  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized to delete products." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.from("products").delete().in("id", ids);
+
+    if (error) {
+      console.warn("Supabase bulk delete error:", error);
+    }
+
+    if (session) {
+      await logAuditEvent({
+        adminId: session.id,
+        adminEmail: session.email,
+        action: "PRODUCTS_BULK_DELETED",
+        entityType: "product",
+        entityId: ids.slice(0, 5).join(",") + (ids.length > 5 ? ` (+${ids.length - 5} more)` : ""),
+        changes: { action: "BULK_DELETED", count: ids.length },
+      });
+    }
+
+    revalidatePath("/admin/products");
+    revalidatePath("/", "page");
+    return { success: true, message: `Successfully deleted ${ids.length} products.` };
+  } catch (err: any) {
+    console.error("Bulk delete error:", err);
+    return { success: false, error: err?.message || "Failed to delete products." };
+  }
+}
+
 export async function bulkUpdateProductStatus(ids: string[], status: string) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
+  if (!isAdmin) {
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -654,6 +687,17 @@ export async function bulkUpdateProductStatus(ids: string[], status: string) {
       console.warn("Supabase bulk update error:", error);
     }
 
+    if (session) {
+      await logAuditEvent({
+        adminId: session.id,
+        adminEmail: session.email,
+        action: "PRODUCTS_STATUS_CHANGED",
+        entityType: "product",
+        entityId: ids.slice(0, 5).join(","),
+        changes: { action: "BULK_STATUS_CHANGE", status, count: ids.length },
+      });
+    }
+
     revalidatePath("/admin/products");
     revalidatePath("/", "page");
     return { success: true, message: `${ids.length} products updated to ${status} status.` };
@@ -661,4 +705,5 @@ export async function bulkUpdateProductStatus(ids: string[], status: string) {
     return { success: false, error: err.message || "Failed bulk update" };
   }
 }
+
 

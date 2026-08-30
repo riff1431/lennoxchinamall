@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Award,
@@ -22,14 +22,34 @@ import {
 } from "@/components/admin/forms";
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { slugify } from "@/utils/helpers";
-import { MOCK_BRANDS } from "@/lib/mockData";
+import { getAdminBrands, createBrand, updateBrand, deleteBrand, bulkDeleteBrands } from "@/app/actions/admin-brands";
 import { Brand } from "@/types/database";
 
 export default function AdminBrandsPage() {
   const toast = useAdminToast();
-  const [brands, setBrands] = useState<Brand[]>(MOCK_BRANDS);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    loadBrands();
+  }, []);
+
+  const loadBrands = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getAdminBrands();
+      if (result.success && 'brands' in result && result.brands) {
+        setBrands(result.brands);
+      }
+    } catch {
+      toast.error("Failed to load brands.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Form State
   const [formName, setFormName] = useState("");
@@ -65,51 +85,63 @@ export default function AdminBrandsPage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
       toast.warning("Brand manufacturer name is required.");
       return;
     }
 
-    const logoUrl = formLogos[0] || null;
+    setIsSaving(true);
+    const logoUrl = formLogos[0] || undefined;
+    const slug = formSlug.trim() || slugify(formName);
+    const desc = formDescription.trim() || undefined;
 
     if (editingBrand) {
-      setBrands((prev) =>
-        prev.map((b) =>
-          b.id === editingBrand.id
-            ? {
-                ...b,
-                name: formName.trim(),
-                slug: formSlug.trim() || slugify(formName),
-                logo_url: logoUrl,
-                description: formDescription.trim() || null,
-                is_active: formIsActive,
-              }
-            : b
-        )
-      );
-      toast.success(`Brand "${formName}" updated successfully.`);
-    } else {
-      const newBrand: Brand = {
-        id: `brand-${Date.now()}`,
+      const res = await updateBrand(editingBrand.id, {
         name: formName.trim(),
-        slug: formSlug.trim() || slugify(formName),
+        slug: slug,
         logo_url: logoUrl,
-        description: formDescription.trim() || null,
+        description: desc,
         is_active: formIsActive,
-        created_at: new Date().toISOString(),
-      };
-      setBrands((prev) => [newBrand, ...prev]);
-      toast.success(`Brand "${formName}" created successfully.`);
-    }
+      });
 
-    setIsSlideOverOpen(false);
+      if (res.success) {
+        toast.success(`Brand "${formName}" updated successfully.`);
+        await loadBrands();
+        setIsSlideOverOpen(false);
+      } else {
+        toast.error(res.error || "Failed to update brand.");
+      }
+    } else {
+      const res = await createBrand({
+        name: formName.trim(),
+        slug: slug,
+        logo_url: logoUrl,
+        description: desc,
+        is_active: formIsActive,
+      });
+
+      if (res.success) {
+        toast.success(`Brand "${formName}" created successfully.`);
+        await loadBrands();
+        setIsSlideOverOpen(false);
+      } else {
+        toast.error(res.error || "Failed to create brand.");
+      }
+    }
+    
+    setIsSaving(false);
   };
 
-  const handleDelete = (brand: Brand) => {
-    setBrands((prev) => prev.filter((b) => b.id !== brand.id));
-    toast.success(`Brand "${brand.name}" removed.`);
+  const handleDelete = async (brand: Brand) => {
+    const res = await deleteBrand(brand.id);
+    if (res.success) {
+      toast.success(`Brand "${brand.name}" removed.`);
+      await loadBrands();
+    } else {
+      toast.error(res.error || "Failed to delete brand.");
+    }
   };
 
   const columns: Column<Brand>[] = [
@@ -195,10 +227,15 @@ export default function AdminBrandsPage() {
       requiresConfirmation: true,
       confirmTitle: "Bulk Delete Brands",
       confirmMessage: "Are you sure you want to delete the selected brand partners?",
-      onClick: (selected) => {
-        const ids = new Set(selected.map((s) => s.id));
-        setBrands((prev) => prev.filter((b) => !ids.has(b.id)));
-        toast.success(`Removed ${selected.length} brand entries.`);
+      onClick: async (selected) => {
+        const ids = selected.map((s) => s.id);
+        const res = await bulkDeleteBrands(ids);
+        if (res.success) {
+          toast.success(`Removed ${selected.length} brand entries.`);
+          await loadBrands();
+        } else {
+          toast.error(res.error || "Failed to bulk delete brands.");
+        }
       },
     },
   ];
@@ -273,6 +310,7 @@ export default function AdminBrandsPage() {
       <AdminDataTable<Brand>
         data={brands}
         columns={columns}
+        isLoading={isLoading}
         keyExtractor={(item) => item.id}
         searchPlaceholder="Search brands by name or slug..."
         searchFields={["name", "slug"]}
@@ -300,16 +338,18 @@ export default function AdminBrandsPage() {
             <button
               type="button"
               onClick={() => setIsSlideOverOpen(false)}
-              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+              disabled={isSaving}
+              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="px-5 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-bold text-xs shadow-xs font-heading uppercase cursor-pointer"
+              disabled={isSaving}
+              className="px-5 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-bold text-xs shadow-xs font-heading uppercase cursor-pointer disabled:opacity-50"
             >
-              {editingBrand ? "Save Brand Changes" : "Register Brand"}
+              {isSaving ? "Saving..." : (editingBrand ? "Save Brand Changes" : "Register Brand")}
             </button>
           </div>
         }

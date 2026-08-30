@@ -22,17 +22,19 @@ import {
   Edit,
   CheckCircle2,
 } from "lucide-react";
-import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_BRANDS } from "@/lib/mockData";
+import { MOCK_PRODUCTS } from "@/lib/mockData";
 import { Product, Category, Brand } from "@/types/database";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
 import { AdminActionMenu } from "@/components/admin/AdminActionMenu";
 import { Modal } from "@/components/ui/Modal";
 import { useAdminToast } from "@/hooks/useAdminToast";
-import { formatCurrency, cn } from "@/utils/helpers";
+import { formatCurrency, cn, slugify } from "@/utils/helpers";
 import {
   getAdminProducts,
   deleteProduct,
+  bulkDeleteProducts,
+  bulkUpdateProductStatus,
 } from "@/app/actions/admin-products";
 import { useProductStore } from "@/store/useProductStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
@@ -44,17 +46,22 @@ export default function AdminProductsPage() {
   const storeCategories = useCategoryStore((state) => state.categories);
   const addProductToStore = useProductStore((state) => state.addProduct);
   const deleteProductFromStore = useProductStore((state) => state.deleteProduct);
+  const deleteProductsFromStore = useProductStore((state) => state.deleteProducts);
+  const bulkUpdateStatusInStore = useProductStore((state) => state.bulkUpdateStatus);
   const duplicateProductInStore = useProductStore((state) => state.duplicateProduct);
+  const resetToDefaults = useProductStore((state) => state.resetToDefaults);
 
   const [products, setProducts] = useState<Product[]>(storeProducts.length > 0 ? storeProducts : MOCK_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(storeCategories.length > 0 ? storeCategories : MOCK_CATEGORIES);
-  const [brands, setBrands] = useState<Brand[]>(MOCK_BRANDS);
+  const [categories, setCategories] = useState<Category[]>(storeCategories.length > 0 ? storeCategories : []);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Keep state in sync with store
   useEffect(() => {
-    if (storeProducts && storeProducts.length > 0) {
+    if (storeProducts) {
       setProducts(storeProducts);
     }
   }, [storeProducts]);
@@ -66,7 +73,6 @@ export default function AdminProductsPage() {
       if (res.success && res.products) {
         // Merge with locally created products in store
         const currentStore = useProductStore.getState().products;
-        const dbMap = new Map(res.products.map((p) => [p.id, p]));
         const merged = [...currentStore];
         res.products.forEach((p) => {
           if (!merged.some((m) => m.id === p.id)) {
@@ -109,22 +115,83 @@ export default function AdminProductsPage() {
   };
 
   const handleDeleteProduct = async (productId: string, title: string) => {
+    // Optimistic removal
+    const previousProducts = products;
     deleteProductFromStore(productId);
     setProducts((prev) => prev.filter((p) => p.id !== productId));
     toast.success(`Removed "${title}" from catalogue.`);
     try {
-      await deleteProduct(productId);
-    } catch {
-      // ignored
+      const result = await deleteProduct(productId);
+      if (!result.success) {
+        // Rollback on failure
+        setProducts(previousProducts);
+        toast.error(result.error || `Failed to delete "${title}". Change reverted.`);
+      }
+    } catch (err) {
+      // Rollback on failure
+      setProducts(previousProducts);
+      toast.error(`Failed to delete "${title}". Change reverted.`);
     }
   };
 
-  const handleExportCSV = () => {
-    const headers = "ID,Title,Slug,SKU,Category,Price,ComparePrice,SupplierCost,SupplierCode,Origin,Videos\n";
-    const rows = products
+  const handleBulkDelete = async (selected: Product[]) => {
+    const ids = selected.map((s) => s.id);
+    const idSet = new Set(ids);
+    const previousProducts = products;
+    deleteProductsFromStore(ids);
+    setProducts((prev) => prev.filter((p) => !idSet.has(p.id)));
+    toast.success(`Removed ${selected.length} product${selected.length > 1 ? "s" : ""} from catalogue.`);
+    try {
+      const result = await bulkDeleteProducts(ids);
+      if (!result.success) {
+        setProducts(previousProducts);
+        toast.error(result.error || "Failed to delete products. Changes reverted.");
+      }
+    } catch (err) {
+      setProducts(previousProducts);
+      toast.error("Failed to delete products. Changes reverted.");
+    }
+  };
+
+  const handleBulkPublish = async (selected: Product[]) => {
+    const ids = selected.map((s) => s.id);
+    bulkUpdateStatusInStore(ids, "published");
+    setProducts((prev) =>
+      prev.map((p) => (ids.includes(p.id) ? { ...p, status: "published" } : p))
+    );
+    toast.success(`Published ${selected.length} product${selected.length > 1 ? "s" : ""} to storefront.`);
+    try {
+      await bulkUpdateProductStatus(ids, "published");
+    } catch (err) {
+      console.error("Bulk publish error:", err);
+    }
+  };
+
+  const handleBulkDraft = async (selected: Product[]) => {
+    const ids = selected.map((s) => s.id);
+    bulkUpdateStatusInStore(ids, "draft");
+    setProducts((prev) =>
+      prev.map((p) => (ids.includes(p.id) ? { ...p, status: "draft" } : p))
+    );
+    toast.success(`Set ${selected.length} product${selected.length > 1 ? "s" : ""} to Draft.`);
+    try {
+      await bulkUpdateProductStatus(ids, "draft");
+    } catch (err) {
+      console.error("Bulk draft error:", err);
+    }
+  };
+
+  const handleExportCSV = (selectedItems?: Product[]) => {
+    const itemsToExport = selectedItems || products;
+    const headers = "ID,Title,Slug,SKU,Category,Price,ComparePrice,SupplierCost,SupplierCode,Origin,Stock,Status,Videos\n";
+    const rows = itemsToExport
       .map(
         (p) =>
-          `"${p.id}","${p.title.replace(/"/g, '""')}","${p.slug}","${p.sku}","${p.category_id}",${p.base_price},${p.compare_at_price || ""},${p.cost || ""},"${p.supplier_code || ""}","${p.shipping_origin || ""}",${p.videos?.length || 0}`
+          `"${p.id}","${p.title.replace(/"/g, '""')}","${p.slug}","${p.sku}","${
+            categories.find((c) => c.id === p.category_id)?.name || p.category_id || ""
+          }",${p.base_price},${p.compare_at_price || ""},${p.cost || ""},"${p.supplier_code || ""}","${
+            p.shipping_origin || ""
+          }",${p.variants?.[0]?.stock ?? 35},"${p.status || "published"}",${p.videos?.length || 0}`
       )
       .join("\n");
 
@@ -136,7 +203,170 @@ export default function AdminProductsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Product catalogue CSV exported.");
+    toast.success(
+      selectedItems
+        ? `Exported ${selectedItems.length} selected products.`
+        : "Product catalogue CSV exported."
+    );
+  };
+
+  const handleDownloadSampleCSV = () => {
+    const sampleHeaders = "Title,SKU,Price,ComparePrice,Cost,Category,Origin,SupplierCode,Stock,MediaURL\n";
+    const sampleRows = [
+      `"DJI Air 3 Fly More Combo","DJI-AIR-3",1349.00,1549.00,890.00,"RC Drones & Toys","Shenzhen, China","SUP-SZ-DJI01",25,"https://images.unsplash.com/photo-1527977966376-1c8408f9f108"`,
+      `"Creality K1 Max High-Speed 3D Printer","CRE-K1-MAX",899.00,999.00,580.00,"Tools & DIY Hardware","Shenzhen, China","SUP-SZ-CRE02",15,"https://images.unsplash.com/photo-1581092160607-ee22621dd758"`,
+    ].join("\n");
+
+    const blob = new Blob([sampleHeaders + sampleRows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "sample_product_import.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleProcessImportCSV = () => {
+    if (!importFile) {
+      toast.error("Please choose a CSV file to import.");
+      return;
+    }
+
+    setIsImporting(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        if (lines.length <= 1) {
+          toast.error("CSV file contains no data rows.");
+          setIsImporting(false);
+          return;
+        }
+
+        // Header line parse
+        const headerCols = lines[0].split(",").map((h) => h.replace(/^["']|["']$/g, "").trim().toLowerCase());
+        const newProducts: Product[] = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          // Simple regex-based CSV line parser handling quoted commas
+          const matches = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(",");
+          const values = matches.map((m) => m.replace(/^"|"$/g, "").trim());
+
+          const rowData: Record<string, string> = {};
+          headerCols.forEach((col, idx) => {
+            rowData[col] = values[idx] || "";
+          });
+
+          const title = rowData["title"] || rowData["name"] || `Imported Item ${i}`;
+          const sku = rowData["sku"] || `IMP-${Date.now().toString().slice(-4)}-${i}`;
+          const basePrice = parseFloat(rowData["price"] || rowData["retail price"] || "99.00") || 99;
+          const cost = parseFloat(rowData["cost"] || rowData["supplier cost"] || "") || Math.round(basePrice * 0.55);
+          const compareAtPrice = parseFloat(rowData["compareprice"] || rowData["compare at price"] || "") || null;
+          const origin = rowData["origin"] || rowData["shipping origin"] || "Shenzhen, China";
+          const supplierCode = rowData["suppliercode"] || rowData["supplier code"] || `SUP-IMP-${i}`;
+          const stock = parseInt(rowData["stock"] || rowData["quantity"] || "40", 10) || 40;
+          const mediaUrl = rowData["mediaurl"] || rowData["image"] || "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=200&auto=format&fit=crop&q=80";
+
+          // Match category if present
+          const matchedCategory = categories.find(
+            (c) =>
+              c.name.toLowerCase() === (rowData["category"] || "").toLowerCase() ||
+              c.id === rowData["category_id"]
+          );
+
+          const newProd: Product = {
+            id: `prod-${Date.now()}-${i}`,
+            title,
+            slug: slugify(title) + `-${Date.now().toString().slice(-4)}`,
+            sku,
+            category_id: matchedCategory ? matchedCategory.id : (categories[0]?.id || "cat-1"),
+            brand_id: brands[0]?.id || null,
+            short_description: `High quality ${title} sourced directly from verified manufacturer.`,
+            description: `<p>Factory direct ${title}. Verified quality inspection, guaranteed delivery, export-grade packaging.</p>`,
+            base_price: basePrice,
+            compare_at_price: compareAtPrice,
+            cost,
+            supplier_code: supplierCode,
+            shipping_origin: origin,
+            status: "published",
+            is_featured: false,
+            is_best_seller: false,
+            is_new_arrival: true,
+            is_flash_deal: false,
+            flash_deal_ends_at: null,
+            tags: ["Imported", "Catalogue"],
+            weight: 1.2,
+            net_weight: 1.0,
+            dimensions: { length: 20, width: 15, height: 10, unit: "cm" },
+            hs_code: "8543.70.9960",
+            cargo_type: "general",
+            package_type: "corrugated_box",
+            seo_title: `${title} | Lennox ChinaMall`,
+            seo_description: `Order factory-direct ${title} with secure USDT escrow and air cargo shipping.`,
+            avg_rating: 4.8,
+            review_count: 12,
+            sold_count: 45,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            variants: [
+              {
+                id: `var-${Date.now()}-${i}`,
+                product_id: `prod-${Date.now()}-${i}`,
+                sku: `${sku}-STD`,
+                title: "Standard",
+                price: basePrice,
+                compare_at_price: compareAtPrice,
+                cost,
+                stock,
+                low_stock_threshold: 5,
+                weight: null,
+                attributes: {},
+                image_url: mediaUrl,
+                supplier_code: supplierCode,
+                is_active: true,
+                position: 0,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+            ],
+            media: [
+              {
+                id: `med-${Date.now()}-${i}`,
+                product_id: `prod-${Date.now()}-${i}`,
+                url: mediaUrl,
+                alt: title,
+                type: "image",
+                position: 0,
+                created_at: new Date().toISOString(),
+              },
+            ],
+            videos: [],
+          };
+
+          newProducts.push(newProd);
+          addProductToStore(newProd);
+        }
+
+        setProducts((prev) => [...newProducts, ...prev]);
+        toast.success(`Successfully imported ${newProducts.length} products!`);
+        setIsImportModalOpen(false);
+        setImportFile(null);
+      } catch (err) {
+        console.error("CSV import error:", err);
+        toast.error("Failed to parse CSV file. Please check format.");
+      } finally {
+        setIsImporting(false);
+      }
+    };
+    reader.readAsText(importFile);
+  };
+
+  const handleRestoreDefaults = () => {
+    resetToDefaults();
+    setProducts(MOCK_PRODUCTS);
+    toast.success("Restored 13 default catalogue products.");
   };
 
   // Filter options for AdminDataTable
@@ -159,27 +389,31 @@ export default function AdminProductsPage() {
       requiresConfirmation: true,
       confirmTitle: "Bulk Delete Products",
       confirmMessage: "Are you sure you want to permanently delete the selected products?",
-      onClick: (selected) => {
-        const ids = new Set(selected.map((s) => s.id));
-        setProducts((prev) => prev.filter((p) => !ids.has(p.id)));
-        toast.success(`Removed ${selected.length} products from catalogue.`);
-      },
+      onClick: handleBulkDelete,
+    },
+    {
+      label: "Set to Published",
+      icon: CheckCircle2,
+      variant: "success",
+      requiresConfirmation: true,
+      confirmTitle: "Publish Selected Products",
+      confirmMessage: "Make all selected products active and visible on the storefront?",
+      onClick: handleBulkPublish,
+    },
+    {
+      label: "Set to Draft",
+      icon: Eye,
+      variant: "default",
+      requiresConfirmation: true,
+      confirmTitle: "Set Selected Products to Draft",
+      confirmMessage: "Hide selected products from the public storefront?",
+      onClick: handleBulkDraft,
     },
     {
       label: "Export Selected",
       icon: Download,
       variant: "default",
-      onClick: (selected) => {
-        const headers = "ID,Title,SKU,Price\n";
-        const rows = selected.map((p) => `"${p.id}","${p.title}","${p.sku}",${p.base_price}`).join("\n");
-        const blob = new Blob([headers + rows], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "selected_products.csv";
-        a.click();
-        toast.success(`Exported ${selected.length} products to CSV.`);
-      },
+      onClick: (selected) => handleExportCSV(selected),
     },
   ];
 
@@ -477,6 +711,16 @@ export default function AdminProductsPage() {
           { label: "Products" },
         ]}
         actions={[
+          ...(totalProducts < MOCK_PRODUCTS.length
+            ? [
+                {
+                  label: "Restore Demo",
+                  icon: Sparkles,
+                  variant: "secondary" as const,
+                  onClick: handleRestoreDefaults,
+                },
+              ]
+            : []),
           {
             label: "Import CSV",
             icon: Upload,
@@ -487,7 +731,7 @@ export default function AdminProductsPage() {
             label: "Export CSV",
             icon: Download,
             variant: "secondary",
-            onClick: handleExportCSV,
+            onClick: () => handleExportCSV(),
           },
           {
             label: "Add Product",
@@ -549,58 +793,107 @@ export default function AdminProductsPage() {
         defaultSortKey="base_price"
         defaultSortDirection="desc"
         isLoading={isLoading}
-        emptyTitle="No products found"
-        emptyDescription="Get started by adding your first product listing or importing via CSV."
+        emptyTitle="No products in catalogue"
+        emptyDescription="Get started by adding a new product listing, importing from CSV, or restoring default sample items."
         emptyAction={{
-          label: "Add Product",
-          onClick: () => router.push("/admin/products/new"),
+          label: totalProducts === 0 ? "Restore Sample Catalogue" : "Add Product",
+          onClick: () => {
+            if (totalProducts === 0) {
+              handleRestoreDefaults();
+            } else {
+              router.push("/admin/products/new");
+            }
+          },
         }}
-        onExportCsv={handleExportCSV}
+        onExportCsv={() => handleExportCSV()}
         renderCard={renderProductCard}
       />
 
       {/* ── 4. Bulk CSV Import Modal ── */}
       <Modal
         isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
+        onClose={() => {
+          setIsImportModalOpen(false);
+          setImportFile(null);
+        }}
         title="Bulk Import Products (CSV)"
         size="md"
       >
         <div className="p-6 space-y-4 text-xs text-slate-800 dark:text-slate-200">
           <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
-            Upload a CSV file containing your product titles, SKUs, retail USDT prices, supplier codes, and media URLs.
+            Upload a CSV file containing your product titles, SKUs, retail USDT prices, supplier codes, and media URLs to instantly populate your catalogue.
           </p>
 
-          <div
-            onClick={() => {
-              toast.success("Bulk imported products from CSV manifest!");
-              setIsImportModalOpen(false);
-            }}
-            className="p-8 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-center space-y-2 bg-slate-50 dark:bg-slate-900 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          <label
+            htmlFor="product-csv-file-input"
+            className={cn(
+              "p-7 rounded-2xl border-2 border-dashed text-center space-y-2 cursor-pointer transition-all block",
+              importFile
+                ? "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20"
+                : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
           >
-            <Copy className="w-10 h-10 mx-auto text-emerald-500" />
-            <span className="font-bold text-slate-800 dark:text-slate-200 block font-heading">
-              Click or Drag CSV File Here
-            </span>
-            <span className="text-[10px] text-slate-400 block font-mono">
-              Supported formats: .csv, .tsv
-            </span>
+            <input
+              id="product-csv-file-input"
+              type="file"
+              accept=".csv,text/csv,text/plain"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setImportFile(e.target.files[0]);
+                }
+              }}
+            />
+            {importFile ? (
+              <>
+                <CheckCircle2 className="w-9 h-9 mx-auto text-emerald-500 animate-in zoom-in-50 duration-150" />
+                <span className="font-bold text-slate-900 dark:text-white block font-heading text-sm">
+                  {importFile.name}
+                </span>
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-mono">
+                  {(importFile.size / 1024).toFixed(1)} KB — Ready to parse &amp; import
+                </span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-9 h-9 mx-auto text-[#2F65F6]" />
+                <span className="font-bold text-slate-800 dark:text-slate-200 block font-heading text-sm">
+                  Click to Browse or Drag CSV File
+                </span>
+                <span className="text-[10px] text-slate-400 block font-mono">
+                  Supported formats: .csv (UTF-8)
+                </span>
+              </>
+            )}
+          </label>
+
+          <div className="flex items-center justify-between py-1 text-[11px] text-slate-500 dark:text-slate-400">
+            <span>Need a template to get started?</span>
+            <button
+              type="button"
+              onClick={handleDownloadSampleCSV}
+              className="font-bold text-[#2F65F6] hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <Download className="w-3 h-3" />
+              <span>Download Sample CSV</span>
+            </button>
           </div>
 
           <div className="pt-3 flex gap-3">
             <button
               type="button"
-              onClick={() => {
-                toast.success("Bulk imported products from CSV manifest!");
-                setIsImportModalOpen(false);
-              }}
-              className="flex-1 bg-[#00143D] hover:bg-[#002266] text-white py-2.5 rounded-xl font-bold transition-colors shadow-xs cursor-pointer font-heading uppercase text-xs"
+              disabled={!importFile || isImporting}
+              onClick={handleProcessImportCSV}
+              className="flex-1 bg-[#00143D] hover:bg-[#002266] disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-bold transition-colors shadow-xs cursor-pointer font-heading uppercase text-xs flex items-center justify-center gap-2"
             >
-              Process &amp; Import
+              {isImporting ? "Processing..." : "Process & Import"}
             </button>
             <button
               type="button"
-              onClick={() => setIsImportModalOpen(false)}
+              onClick={() => {
+                setIsImportModalOpen(false);
+                setImportFile(null);
+              }}
               className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-2.5 rounded-xl font-bold transition-colors cursor-pointer text-xs"
             >
               Cancel

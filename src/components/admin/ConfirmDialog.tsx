@@ -96,11 +96,11 @@ export function ConfirmDialog({
             }}
             isLoading={isLoading}
             className={
-              variant === "danger"
+              effectiveVariant === "danger"
                 ? "bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl"
-                : variant === "warning"
+                : effectiveVariant === "warning"
                 ? "bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl"
-                : variant === "success"
+                : effectiveVariant === "success"
                 ? "bg-[#10B981] hover:bg-emerald-600 text-white font-bold rounded-xl"
                 : "bg-[#2F65F6] hover:bg-[#2563EB] text-white font-bold rounded-xl shadow-blue-500/25"
             }
