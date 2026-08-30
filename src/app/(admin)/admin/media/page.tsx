@@ -32,6 +32,8 @@ import { formatDate } from "@/utils/helpers";
 import { MOCK_MEDIA, MediaAsset } from "@/lib/mockData";
 import { uploadMediaFile } from "@/app/actions/storage";
 
+import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/client";
+
 function isVideoUrl(url: string): boolean {
   if (!url) return false;
   if (url.startsWith("data:video/") || url.startsWith("blob:")) return true;
@@ -62,6 +64,51 @@ function getEmbedVideoUrl(url: string): string | null {
   if (url.includes("/embed/")) {
     return url;
   }
+  return null;
+}
+
+async function uploadFileDirect(file: File, bucket = "products", folder = "media"): Promise<string | null> {
+  // Method 1: Client-side direct Supabase upload (Bypasses Next.js server actions body limit)
+  try {
+    const supabase = createBrowserSupabaseClient();
+    const fileExt = (file.name.split(".").pop() || "mp4").toLowerCase();
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, {
+        contentType: file.type || (folder === "videos" ? "video/mp4" : "image/jpeg"),
+        upsert: true,
+      });
+
+    if (!error && data?.path) {
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+      if (publicUrlData?.publicUrl) {
+        return publicUrlData.publicUrl;
+      }
+    }
+  } catch (clientErr) {
+    console.warn("Client direct storage upload fallback:", clientErr);
+  }
+
+  // Method 2: Fallback to Server Action for smaller files (< 40MB)
+  if (file.size < 40 * 1024 * 1024) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", bucket);
+      formData.append("folder", folder);
+      const res = await uploadMediaFile(formData);
+      if (res.success && res.url) {
+        return res.url;
+      }
+    } catch (serverErr) {
+      console.warn("Server action upload fallback:", serverErr);
+    }
+  }
+
   return null;
 }
 
@@ -137,19 +184,20 @@ export default function AdminMediaPage() {
         finalDimensions = analyzedFile.dimensions;
         finalFormat = analyzedFile.format;
         finalType = analyzedFile.type;
+        // Default to local preview URL (blob:...) so it never fails even if offline/local
+        finalUrl = analyzedFile.previewUrl;
 
-        // Upload to storage bucket via Server Action
-        const formData = new FormData();
-        formData.append("file", analyzedFile.file);
-        formData.append("bucket", "products");
-        formData.append("folder", analyzedFile.type === "video" ? "videos" : "media");
-
-        const uploadRes = await uploadMediaFile(formData);
-        if (uploadRes.success && uploadRes.url) {
-          finalUrl = uploadRes.url;
-        } else {
-          // Fallback to local Object URL / base64 for instant preview
-          finalUrl = analyzedFile.previewUrl;
+        try {
+          const remoteUrl = await uploadFileDirect(
+            analyzedFile.file,
+            "products",
+            analyzedFile.type === "video" ? "videos" : "media"
+          );
+          if (remoteUrl) {
+            finalUrl = remoteUrl;
+          }
+        } catch (uploadErr) {
+          console.warn("Remote upload skipped/failed:", uploadErr);
         }
       } else {
         const ext = finalUrl.split(".").pop()?.toUpperCase() || (isVideoUrl(finalUrl) ? "MP4" : "JPG");
