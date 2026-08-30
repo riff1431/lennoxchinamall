@@ -8,3 +8,5 @@ export * from "./AdminUploader";
 export * from "./AdminTextarea";
 export * from "./AdminFormSection";
 export * from "./AdminIconPicker";
+export * from "./AdminCategorySelect";
+export * from "./AdminBrandSelect";

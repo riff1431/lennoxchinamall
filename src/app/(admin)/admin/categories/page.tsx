@@ -41,6 +41,7 @@ import {
 import { CategoryCardGrid } from "@/components/admin/categories/CategoryCardGrid";
 import { CategoryTreeView } from "@/components/admin/categories/CategoryTreeView";
 import { CategoryTagInput } from "@/components/admin/categories/CategoryTagInput";
+import { CategoryAvatar } from "@/components/admin/categories/CategoryAvatar";
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { slugify, cn } from "@/utils/helpers";
 import { Category } from "@/types/database";
@@ -320,29 +321,15 @@ export default function AdminCategoriesPage() {
 
         return (
           <div className="flex items-center gap-3">
-            {/* Storefront Circular Avatar Thumbnail */}
-            <div
-              style={{ backgroundColor: bg }}
-              className="w-11 h-11 rounded-2xl border border-black/5 flex items-center justify-center shrink-0 p-1.5 shadow-2xs relative overflow-hidden transition-transform hover:scale-105"
-            >
-              {thumb ? (
-                <div className="relative w-full h-full">
-                  <Image
-                    src={thumb}
-                    alt={row.name}
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <CategoryIcon
-                  icon={row.icon || row.iconName || "FolderTree"}
-                  name={row.name}
-                  className="w-5 h-5 text-[#FF1028]"
-                />
-              )}
-            </div>
+            <CategoryAvatar
+              name={row.name}
+              thumbnailUrl={row.thumbnail_url}
+              imageUrl={row.image_url}
+              icon={row.icon}
+              iconName={row.iconName}
+              bgColor={row.bg_color}
+              size="md"
+            />
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-slate-900 dark:text-white text-xs font-heading">
@@ -1081,28 +1068,14 @@ export default function AdminCategoriesPage() {
                         <span className="text-[9px] font-mono uppercase text-slate-400 mb-2">
                           Homepage Avatar
                         </span>
-                        <div
-                          style={{ backgroundColor: formBgColor }}
-                          className="w-16 h-16 rounded-full flex items-center justify-center relative overflow-hidden shadow-2xs border border-black/[0.04]"
-                        >
-                          {formThumbnailImages[0] ? (
-                            <div className="relative w-full h-full p-2">
-                              <Image
-                                src={formThumbnailImages[0]}
-                                alt={formName || "Preview"}
-                                fill
-                                className="object-contain"
-                                unoptimized
-                              />
-                            </div>
-                          ) : (
-                            <CategoryIcon
-                              icon={formIcon}
-                              name={formName}
-                              className="w-7 h-7 text-slate-800"
-                            />
-                          )}
-                        </div>
+                        <CategoryAvatar
+                          name={formName || "Preview"}
+                          thumbnailUrl={formThumbnailImages[0]}
+                          imageUrl={formImages[0]}
+                          icon={formIcon}
+                          bgColor={formBgColor}
+                          size="xl"
+                        />
                         <span className="mt-2 text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px] font-heading">
                           {formName || "Category Name"}
                         </span>

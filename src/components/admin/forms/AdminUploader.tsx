@@ -96,9 +96,14 @@ export function AdminUploader({
           const uploadedUrl = await onUpload(file);
           newUrls.push(uploadedUrl);
         } else {
-          // Local preview URL fallback
-          const localUrl = URL.createObjectURL(file);
-          newUrls.push(localUrl);
+          // Read file as persistent Data URL so it persists across page reloads in localStorage
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsDataURL(file);
+          });
+          newUrls.push(dataUrl);
         }
       } catch (err: unknown) {
         console.error("Upload error:", err);

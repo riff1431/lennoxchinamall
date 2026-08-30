@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Category } from "@/types/database";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { CategoryAvatar } from "@/components/admin/categories/CategoryAvatar";
 import { cn } from "@/utils/helpers";
 
 interface CategoryTreeViewProps {
@@ -122,29 +123,16 @@ export function CategoryTreeView({
               </div>
             )}
 
-            {/* Circular Avatar / Preset Icon */}
-            <div
-              style={{ backgroundColor: bg }}
-              className="w-11 h-11 rounded-xl border border-black/5 flex items-center justify-center shrink-0 p-1.5 relative overflow-hidden shadow-2xs group-hover:scale-105 transition-transform"
-            >
-              {thumb ? (
-                <div className="relative w-full h-full">
-                  <Image
-                    src={thumb}
-                    alt={cat.name}
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <CategoryIcon
-                  icon={cat.icon || cat.iconName || "FolderTree"}
-                  name={cat.name}
-                  className="w-5 h-5 text-[#FF1028]"
-                />
-              )}
-            </div>
+            <CategoryAvatar
+              name={cat.name}
+              thumbnailUrl={cat.thumbnail_url}
+              imageUrl={cat.image_url}
+              icon={cat.icon}
+              iconName={cat.iconName}
+              bgColor={cat.bg_color}
+              size="md"
+              className="group-hover:scale-105"
+            />
 
             {/* Title & Metadata */}
             <div className="min-w-0 flex-1">

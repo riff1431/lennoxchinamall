@@ -244,11 +244,11 @@ export const MOCK_CATEGORIES: (Category & { iconName: string; subcategories?: st
 ];
 
 export const MOCK_BRANDS: Brand[] = [
-  { id: "brand-1", name: "Eachine Labs", slug: "eachine-labs", logo_url: null, description: "FPV & RC Tech", is_active: true, created_at: new Date().toISOString() },
-  { id: "brand-2", name: "BlitzWolf", slug: "blitzwolf", logo_url: null, description: "Audio & Power Accessories", is_active: true, created_at: new Date().toISOString() },
-  { id: "brand-3", name: "Creality 3D", slug: "creality-3d", logo_url: null, description: "Desktop 3D Printing", is_active: true, created_at: new Date().toISOString() },
-  { id: "brand-4", name: "Astrolux EDC", slug: "astrolux-edc", logo_url: null, description: "High Performance Flashlights", is_active: true, created_at: new Date().toISOString() },
-  { id: "brand-5", name: "Topshak Tools", slug: "topshak-tools", logo_url: null, description: "Power Tools & Solder", is_active: true, created_at: new Date().toISOString() }
+  { id: "brand-1", name: "Eachine Labs", slug: "eachine-labs", logo_url: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=200&auto=format&fit=crop&q=80", description: "FPV & Aerial RC Tech", is_active: true, created_at: new Date().toISOString() },
+  { id: "brand-2", name: "BlitzWolf", slug: "blitzwolf", logo_url: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=200&auto=format&fit=crop&q=80", description: "Audio & Power Accessories", is_active: true, created_at: new Date().toISOString() },
+  { id: "brand-3", name: "Creality 3D", slug: "creality-3d", logo_url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&auto=format&fit=crop&q=80", description: "Desktop 3D Printing & Laser", is_active: true, created_at: new Date().toISOString() },
+  { id: "brand-4", name: "Astrolux EDC", slug: "astrolux-edc", logo_url: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=200&auto=format&fit=crop&q=80", description: "High Performance Flashlights", is_active: true, created_at: new Date().toISOString() },
+  { id: "brand-5", name: "Topshak Tools", slug: "topshak-tools", logo_url: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=200&auto=format&fit=crop&q=80", description: "Power Tools & Solder Gear", is_active: true, created_at: new Date().toISOString() }
 ];
 
 export const MOCK_PRODUCTS: Product[] = [

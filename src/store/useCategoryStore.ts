@@ -94,6 +94,15 @@ export const useCategoryStore = create<CategoryState>()(
     {
       name: "lennox_chinamall_categories_v1",
       partialize: (state) => ({ categories: state.categories }),
+      onRehydrateStorage: () => (state) => {
+        if (state && Array.isArray(state.categories)) {
+          state.categories = state.categories.map((cat) => ({
+            ...cat,
+            thumbnail_url: cat.thumbnail_url?.startsWith("blob:") ? null : cat.thumbnail_url,
+            image_url: cat.image_url?.startsWith("blob:") ? null : cat.image_url,
+          }));
+        }
+      },
     }
   )
 );

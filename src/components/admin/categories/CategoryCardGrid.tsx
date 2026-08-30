@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Category } from "@/types/database";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { CategoryAvatar } from "@/components/admin/categories/CategoryAvatar";
 import { cn } from "@/utils/helpers";
 
 interface CategoryCardGridProps {
@@ -117,29 +118,16 @@ export function CategoryCardGrid({
             <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
               {/* Avatar & Title Row */}
               <div className="flex items-start gap-3.5 -mt-8 relative z-10">
-                {/* Storefront Circular Avatar Thumbnail */}
-                <div
-                  style={{ backgroundColor: bg }}
-                  className="w-14 h-14 rounded-2xl border-2 border-white dark:border-[#111827] shadow-md flex items-center justify-center shrink-0 p-2 relative overflow-hidden transition-transform group-hover:scale-105"
-                >
-                  {thumb ? (
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={thumb}
-                        alt={cat.name}
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <CategoryIcon
-                      icon={cat.icon || cat.iconName || "FolderTree"}
-                      name={cat.name}
-                      className="w-6 h-6 text-[#FF1028]"
-                    />
-                  )}
-                </div>
+                <CategoryAvatar
+                  name={cat.name}
+                  thumbnailUrl={cat.thumbnail_url}
+                  imageUrl={cat.image_url}
+                  icon={cat.icon}
+                  iconName={cat.iconName}
+                  bgColor={cat.bg_color}
+                  size="lg"
+                  className="border-2 border-white dark:border-[#111827] shadow-md group-hover:scale-105"
+                />
 
                 <div className="min-w-0 flex-1 pt-4">
                   <h3 className="font-heading font-black text-slate-900 dark:text-white text-sm leading-snug truncate">

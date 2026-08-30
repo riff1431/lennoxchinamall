@@ -33,10 +33,13 @@ import { MOCK_CATEGORIES, MOCK_BRANDS } from "@/lib/mockData";
 import {
   AdminInput,
   AdminSelect,
+  AdminCategorySelect,
+  AdminBrandSelect,
   AdminUploader,
   AdminTextarea,
   AdminFormSection,
 } from "@/components/admin/forms";
+import { useCategoryStore } from "@/store/useCategoryStore";
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { formatCurrency, slugify, cn } from "@/utils/helpers";
 import { createProduct, updateProduct } from "@/app/actions/admin-products";
@@ -56,6 +59,11 @@ export function ProductEditor({
 }: ProductEditorProps) {
   const router = useRouter();
   const toast = useAdminToast();
+  const storeCategories = useCategoryStore((state) => state.categories);
+  const activeCategories = useMemo(() => {
+    return storeCategories && storeCategories.length > 0 ? storeCategories : categories;
+  }, [storeCategories, categories]);
+
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "pricing" | "media" | "inventory" | "seo">("general");
 
@@ -63,7 +71,7 @@ export function ProductEditor({
   const [title, setTitle] = useState(initialProduct?.title || "");
   const [slug, setSlug] = useState(initialProduct?.slug || "");
   const [sku, setSku] = useState(initialProduct?.sku || `LCM-${Math.floor(1000 + Math.random() * 9000)}`);
-  const [categoryId, setCategoryId] = useState(initialProduct?.category_id || categories[0]?.id || "");
+  const [categoryId, setCategoryId] = useState(initialProduct?.category_id || activeCategories[0]?.id || "");
   const [brandId, setBrandId] = useState(initialProduct?.brand_id || brands[0]?.id || "");
   const [shortDescription, setShortDescription] = useState(initialProduct?.short_description || "");
   const [description, setDescription] = useState(initialProduct?.description || "");
@@ -216,9 +224,15 @@ export function ProductEditor({
     }
   };
 
-  const currentCategoryName = useMemo(() => {
-    return categories.find((c) => c.id === categoryId)?.name || "General Department";
-  }, [categories, categoryId]);
+  const currentCategory = useMemo(() => {
+    return activeCategories.find((c) => c.id === categoryId);
+  }, [activeCategories, categoryId]);
+
+  const currentCategoryName = currentCategory?.name || "General Department";
+
+  const currentBrand = useMemo(() => {
+    return brands.find((b) => b.id === brandId);
+  }, [brands, brandId]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-[1600px] mx-auto pb-16 font-montserrat">
@@ -364,19 +378,19 @@ export function ProductEditor({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <AdminSelect
+                  <AdminCategorySelect
                     label="Department Category"
                     required
                     value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    options={categories.map((c) => ({ value: c.id, label: c.name }))}
+                    onChange={(val) => setCategoryId(val)}
+                    categories={activeCategories}
                   />
 
-                  <AdminSelect
+                  <AdminBrandSelect
                     label="Brand / Manufacturer"
                     value={brandId}
-                    onChange={(e) => setBrandId(e.target.value)}
-                    options={brands.map((b) => ({ value: b.id, label: b.name }))}
+                    onChange={(val) => setBrandId(val)}
+                    brands={brands}
                   />
                 </div>
               </AdminFormSection>
@@ -962,10 +976,26 @@ export function ProductEditor({
                 )}
               </div>
 
-              <div className="space-y-1 px-1">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase block truncate">
-                  {currentCategoryName}
-                </span>
+              <div className="space-y-1.5 px-1">
+                <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400 font-semibold uppercase">
+                  <span className="truncate">{currentCategoryName}</span>
+                  {currentBrand && (
+                    <span className="inline-flex items-center gap-1 font-mono text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 shrink-0">
+                      {currentBrand.logo_url && (
+                        <span className="w-2.5 h-2.5 relative inline-block shrink-0">
+                          <Image
+                            src={currentBrand.logo_url}
+                            alt={currentBrand.name}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                        </span>
+                      )}
+                      <span className="truncate max-w-[90px]">{currentBrand.name}</span>
+                    </span>
+                  )}
+                </div>
                 <h4 className="font-bold text-xs text-slate-900 dark:text-white line-clamp-2 font-heading">
                   {title || "Your Product Listing Title"}
                 </h4>
