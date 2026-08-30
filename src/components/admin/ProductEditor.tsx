@@ -27,9 +27,15 @@ import {
   Sliders,
   FileText,
   ShieldAlert,
+  Film,
+  Play,
+  Check,
+  Search,
+  FolderOpen,
 } from "lucide-react";
 import { Product, Category, Brand, Variant, ProductStatus } from "@/types/database";
 import { MOCK_CATEGORIES, MOCK_BRANDS } from "@/lib/mockData";
+import { Modal } from "@/components/ui/Modal";
 import {
   AdminInput,
   AdminSelect,
@@ -41,6 +47,7 @@ import {
 } from "@/components/admin/forms";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { useProductStore } from "@/store/useProductStore";
+import { useMediaStore } from "@/store/useMediaStore";
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { formatCurrency, slugify, cn } from "@/utils/helpers";
 import { createProduct, updateProduct } from "@/app/actions/admin-products";
@@ -104,18 +111,43 @@ export function ProductEditor({
   );
 
   const [video1Title, setVideo1Title] = useState(
-    initialProduct?.videos?.[0]?.title || "Slot 1: Factory QC & Teardown Demo"
+    initialProduct?.videos?.[0]?.title || "Slot 1: Quality Inspection / Factory QC Teardown"
   );
   const [video1Url, setVideo1Url] = useState(
-    initialProduct?.videos?.[0]?.url || "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    initialProduct?.videos?.[0]?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov"
   );
 
   const [video2Title, setVideo2Title] = useState(
-    initialProduct?.videos?.[1]?.title || "Slot 2: Live Flight & Hands-on Performance"
+    initialProduct?.videos?.[1]?.title || "Slot 2: Live Flight / Hands-on Performance Demo"
   );
   const [video2Url, setVideo2Url] = useState(
-    initialProduct?.videos?.[1]?.url || "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    initialProduct?.videos?.[1]?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov"
   );
+
+  // Video Picker from Media Asset Library
+  const [videoPickerSlot, setVideoPickerSlot] = useState<1 | 2 | null>(null);
+  const [videoPickerSearch, setVideoPickerSearch] = useState("");
+  const mediaAssets = useMediaStore((state) => state.media);
+  const availableVideoAssets = useMemo(() => {
+    return mediaAssets.filter(
+      (m) =>
+        m.type === "video" ||
+        m.category === "dual-video" ||
+        /\.(mp4|webm|mov|avi|mkv|m4v)(\?.*)?$/i.test(m.url) ||
+        m.url.includes("/storage/hero-ad/")
+    );
+  }, [mediaAssets]);
+
+  const filteredVideoAssets = useMemo(() => {
+    if (!videoPickerSearch.trim()) return availableVideoAssets;
+    const query = videoPickerSearch.toLowerCase();
+    return availableVideoAssets.filter(
+      (m) =>
+        m.name.toLowerCase().includes(query) ||
+        m.format.toLowerCase().includes(query) ||
+        m.url.toLowerCase().includes(query)
+    );
+  }, [availableVideoAssets, videoPickerSearch]);
 
   // Inventory & Variants
   const [stock, setStock] = useState<number>(initialProduct?.variants?.[0]?.stock ?? 45);
@@ -721,15 +753,28 @@ export function ProductEditor({
                 icon={Video}
                 description="Lennox ChinaMall features two dedicated video slots directly on the storefront detail page to maximize buyer trust and conversion."
               >
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {/* Slot 1 Video */}
                   <div className="p-4.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-xs font-bold text-amber-600 dark:text-amber-400 font-heading flex items-center gap-1.5">
                         <Video className="w-4 h-4" />
                         Slot 1: Quality Inspection / Factory QC Teardown
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400">Embed / MP4</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVideoPickerSlot(1);
+                            setVideoPickerSearch("");
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <FolderOpen className="w-3.5 h-3.5" />
+                          <span>Choose from Media Library</span>
+                        </button>
+                        <span className="text-[10px] font-mono text-slate-400">Embed / MP4 / MOV</span>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -737,14 +782,53 @@ export function ProductEditor({
                         label="Video Title"
                         value={video1Title}
                         onChange={(e) => setVideo1Title(e.target.value)}
-                        placeholder="e.g. Factory QC Inspection & Teardown"
+                        placeholder="e.g. Slot 1: Factory QC & Teardown Demo"
                       />
                       <AdminInput
-                        label="Embed / YouTube / MP4 URL"
+                        label="Embed / Direct Video URL"
                         value={video1Url}
                         onChange={(e) => setVideo1Url(e.target.value)}
-                        placeholder="https://www.youtube.com/embed/..."
+                        placeholder="https://... (.mp4 / .mov / YouTube)"
                       />
+                    </div>
+
+                    {/* Quick Suggestions Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">
+                        Quick Media Library Presets:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVideo1Title("Slot 1: Hardware Teardown QC");
+                          setVideo1Url("https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov");
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-all cursor-pointer flex items-center gap-1",
+                          video1Url.includes("69f39980682e5")
+                            ? "bg-amber-500 text-white border-amber-600 shadow-xs"
+                            : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-amber-400"
+                        )}
+                      >
+                        <Film className="w-3 h-3 text-amber-500" />
+                        <span>2026-04-30-69f39980682e5 (51.4 MB QC Teardown)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVideo1Title("Slot 1: Flight Stability & QC Test");
+                          setVideo1Url("https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov");
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-all cursor-pointer flex items-center gap-1",
+                          video1Url.includes("69f399744ce0c")
+                            ? "bg-amber-500 text-white border-amber-600 shadow-xs"
+                            : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-amber-400"
+                        )}
+                      >
+                        <Film className="w-3 h-3 text-blue-500" />
+                        <span>2026-04-30-69f399744ce0c (11.5 MB QC Demo)</span>
+                      </button>
                     </div>
 
                     {/* Live Video Preview Frame */}
@@ -761,6 +845,7 @@ export function ProductEditor({
                           <video
                             src={video1Url}
                             controls
+                            playsInline
                             className="w-full h-full object-contain bg-black"
                           />
                         )}
@@ -770,12 +855,25 @@ export function ProductEditor({
 
                   {/* Slot 2 Video */}
                   <div className="p-4.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-xs font-bold text-[#2F65F6] font-heading flex items-center gap-1.5">
                         <Video className="w-4 h-4" />
                         Slot 2: Live Flight / Hands-on Performance Demo
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400">Embed / MP4</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVideoPickerSlot(2);
+                            setVideoPickerSearch("");
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                        >
+                          <FolderOpen className="w-3.5 h-3.5" />
+                          <span>Choose from Media Library</span>
+                        </button>
+                        <span className="text-[10px] font-mono text-slate-400">Embed / MP4 / MOV</span>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -783,14 +881,53 @@ export function ProductEditor({
                         label="Video Title"
                         value={video2Title}
                         onChange={(e) => setVideo2Title(e.target.value)}
-                        placeholder="e.g. 4K Live Flight & Wind Resistance Demo"
+                        placeholder="e.g. Slot 2: Live Flight & Hands-on Performance"
                       />
                       <AdminInput
-                        label="Embed / YouTube / MP4 URL"
+                        label="Embed / Direct Video URL"
                         value={video2Url}
                         onChange={(e) => setVideo2Url(e.target.value)}
-                        placeholder="https://www.youtube.com/embed/..."
+                        placeholder="https://... (.mp4 / .mov / YouTube)"
                       />
+                    </div>
+
+                    {/* Quick Suggestions Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">
+                        Quick Media Library Presets:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVideo2Title("Slot 2: Live Performance & Stress Test");
+                          setVideo2Url("https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov");
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-all cursor-pointer flex items-center gap-1",
+                          video2Url.includes("69f399744ce0c")
+                            ? "bg-blue-600 text-white border-blue-700 shadow-xs"
+                            : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400"
+                        )}
+                      >
+                        <Film className="w-3 h-3 text-blue-500" />
+                        <span>2026-04-30-69f399744ce0c (11.5 MB Live Flight Demo)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setVideo2Title("Slot 2: Factory Teardown Inspection");
+                          setVideo2Url("https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov");
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-all cursor-pointer flex items-center gap-1",
+                          video2Url.includes("69f39980682e5")
+                            ? "bg-blue-600 text-white border-blue-700 shadow-xs"
+                            : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-400"
+                        )}
+                      >
+                        <Film className="w-3 h-3 text-amber-500" />
+                        <span>2026-04-30-69f39980682e5 (51.4 MB QC Teardown)</span>
+                      </button>
                     </div>
 
                     {/* Live Video Preview Frame */}
@@ -807,6 +944,7 @@ export function ProductEditor({
                           <video
                             src={video2Url}
                             controls
+                            playsInline
                             className="w-full h-full object-contain bg-black"
                           />
                         )}
@@ -1141,6 +1279,145 @@ export function ProductEditor({
           </div>
         </div>
       </div>
+
+      {/* ── Media Asset Video Picker Modal ── */}
+      <Modal
+        isOpen={videoPickerSlot !== null}
+        onClose={() => setVideoPickerSlot(null)}
+        title={`Select Video for Slot ${videoPickerSlot}`}
+        size="2xl"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={videoPickerSearch}
+                onChange={(e) => setVideoPickerSearch(e.target.value)}
+                placeholder="Search uploaded videos by filename or format..."
+                className="w-full pl-10 pr-4 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-hidden focus:ring-2 focus:ring-[#2F65F6]"
+              />
+            </div>
+            <span className="text-[11px] font-mono text-slate-500 shrink-0">
+              {filteredVideoAssets.length} Video{filteredVideoAssets.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[60vh] overflow-y-auto pr-1">
+            {filteredVideoAssets.length === 0 ? (
+              <div className="sm:col-span-2 py-10 text-center space-y-2">
+                <Video className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="text-xs text-slate-500">No matching video assets found in Media Library.</p>
+                <Link
+                  href="/admin/media"
+                  className="text-xs font-bold text-[#2F65F6] hover:underline"
+                  target="_blank"
+                >
+                  Upload New Video in Media Library &rarr;
+                </Link>
+              </div>
+            ) : (
+              filteredVideoAssets.map((asset) => {
+                const isCurrentSelected =
+                  (videoPickerSlot === 1 && video1Url === asset.url) ||
+                  (videoPickerSlot === 2 && video2Url === asset.url);
+
+                return (
+                  <div
+                    key={asset.id}
+                    className={cn(
+                      "p-3 rounded-2xl border transition-all flex flex-col justify-between space-y-2.5",
+                      isCurrentSelected
+                        ? "border-[#2F65F6] bg-blue-50/40 dark:bg-blue-950/20 ring-2 ring-blue-500/20"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300"
+                    )}
+                  >
+                    {/* Video Player / Thumbnail */}
+                    <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/40">
+                      {asset.url.includes("youtube") || asset.url.includes("vimeo") || asset.url.includes("/embed/") ? (
+                        <iframe
+                          src={asset.url}
+                          title={asset.name}
+                          className="w-full h-full"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <video
+                          src={asset.url}
+                          controls
+                          playsInline
+                          className="w-full h-full object-contain bg-black"
+                        />
+                      )}
+                      <div className="absolute top-2 left-2 flex items-center gap-1 pointer-events-none">
+                        <span className="bg-black/80 backdrop-blur-xs text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded">
+                          {asset.format}
+                        </span>
+                        <span className="bg-blue-600/90 text-white font-mono text-[9px] font-bold px-1.5 py-0.5 rounded">
+                          {asset.size}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Metadata & Actions */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate font-mono">
+                          {asset.name}
+                        </h5>
+                        <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase shrink-0">
+                          {asset.category}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-mono truncate">
+                        {asset.dimensions || "1080p Full HD"}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (videoPickerSlot === 1) {
+                          setVideo1Url(asset.url);
+                          if (!video1Title || video1Title.startsWith("Slot 1:")) {
+                            setVideo1Title(`Slot 1: ${asset.name.replace(/\.[^/.]+$/, "")} QC`);
+                          }
+                        } else if (videoPickerSlot === 2) {
+                          setVideo2Url(asset.url);
+                          if (!video2Title || video2Title.startsWith("Slot 2:")) {
+                            setVideo2Title(`Slot 2: ${asset.name.replace(/\.[^/.]+$/, "")} Demo`);
+                          }
+                        }
+                        toast.success(`Attached "${asset.name}" to Slot ${videoPickerSlot}!`);
+                        setVideoPickerSlot(null);
+                      }}
+                      className={cn(
+                        "w-full py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5",
+                        isCurrentSelected
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                          : "bg-[#00143D] text-white hover:bg-[#002366]"
+                      )}
+                    >
+                      {isCurrentSelected ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Currently Selected</span>
+                        </>
+                      ) : (
+                        <>
+                          <Video className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Use in Slot {videoPickerSlot}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      </Modal>
     </form>
   );
 }

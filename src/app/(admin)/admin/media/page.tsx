@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Image as ImageIcon,
@@ -31,6 +31,7 @@ import { useAdminToast } from "@/hooks/useAdminToast";
 import { formatDate } from "@/utils/helpers";
 import { MOCK_MEDIA, MediaAsset } from "@/lib/mockData";
 import { uploadMediaFile } from "@/app/actions/storage";
+import { useMediaStore } from "@/store/useMediaStore";
 
 import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/client";
 
@@ -114,7 +115,18 @@ async function uploadFileDirect(file: File, bucket = "products", folder = "media
 
 export default function AdminMediaPage() {
   const toast = useAdminToast();
-  const [mediaList, setMediaList] = useState<MediaAsset[]>(MOCK_MEDIA);
+  const storeMedia = useMediaStore((state) => state.media);
+  const addMediaToStore = useMediaStore((state) => state.addMediaAsset);
+  const deleteMediaFromStore = useMediaStore((state) => state.deleteMediaAsset);
+
+  const [mediaList, setMediaList] = useState<MediaAsset[]>(storeMedia.length > 0 ? storeMedia : MOCK_MEDIA);
+
+  // Sync state with store
+  useEffect(() => {
+    if (storeMedia && storeMedia.length > 0) {
+      setMediaList(storeMedia);
+    }
+  }, [storeMedia]);
 
   // Modals & SlideOver
   const [isUploadSlideOverOpen, setIsUploadSlideOverOpen] = useState(false);
@@ -217,6 +229,7 @@ export default function AdminMediaPage() {
         uploaded_at: new Date().toISOString(),
       };
 
+      addMediaToStore(newAsset);
       setMediaList((prev) => [newAsset, ...prev]);
       toast.success(`${finalType === "video" ? "Video" : "Media"} asset "${newAsset.name}" added to Media Library.`);
       setIsUploadSlideOverOpen(false);
@@ -229,6 +242,7 @@ export default function AdminMediaPage() {
   };
 
   const handleDeleteAsset = (asset: MediaAsset) => {
+    deleteMediaFromStore(asset.id);
     setMediaList((prev) => prev.filter((m) => m.id !== asset.id));
     toast.success(`Asset "${asset.name}" removed.`);
   };

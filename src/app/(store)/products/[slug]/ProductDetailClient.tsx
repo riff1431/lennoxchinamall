@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Heart,
@@ -26,8 +27,10 @@ import {
   Film,
   Sparkles,
   HelpCircle,
+  AlertCircle,
 } from "lucide-react";
 import { Product, Category } from "@/types/database";
+import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { RelatedProductsSection } from "@/components/product/RelatedProductsSection";
 import { ProductReviewsAndQA } from "@/components/product/ProductReviewsAndQA";
 import { ProductQASection } from "@/components/product/ProductQASection";
@@ -43,16 +46,34 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
 
 interface ProductDetailClientProps {
-  product: Product;
+  product?: Product | null;
   category?: Category | null;
+  slug?: string;
 }
 
-export function ProductDetailClient({ product: initialProduct, category: initialCategory }: ProductDetailClientProps) {
+export function ProductDetailClient({
+  product: initialProduct,
+  category: initialCategory,
+  slug: urlSlug,
+}: ProductDetailClientProps) {
   const router = useRouter();
-  const storeProduct = useProductStore((state) => state.getProductBySlug(initialProduct?.slug || ""));
+  const searchSlug = urlSlug || initialProduct?.slug || initialProduct?.id || "";
+
+  const isMounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  const storeProduct = useProductStore((state) => (searchSlug ? state.getProductBySlug(searchSlug) : undefined));
+  const isProductStoreLoaded = useProductStore((state) => state.isLoaded);
   const storeCategories = useCategoryStore((state) => state.categories);
-  const product = storeProduct || initialProduct;
-  const category = (storeCategories && storeCategories.find((c) => c.id === product?.category_id)) || initialCategory;
+
+  const product = initialProduct || (isMounted ? storeProduct : undefined);
+  const category =
+    (storeCategories && storeCategories.find((c) => c.id === product?.category_id)) ||
+    initialCategory ||
+    (product?.category_id ? MOCK_CATEGORIES.find((c) => c.id === product.category_id) : null);
 
   // Media & Gallery States
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -90,7 +111,7 @@ export function ProductDetailClient({ product: initialProduct, category: initial
   });
 
   useEffect(() => {
-    if (!product.is_flash_deal) return;
+    if (!product?.is_flash_deal) return;
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
@@ -100,22 +121,16 @@ export function ProductDetailClient({ product: initialProduct, category: initial
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [product.is_flash_deal]);
+  }, [product?.is_flash_deal]);
 
   // Stores
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
-  const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id));
+  const isInWishlist = useWishlistStore((state) => (product?.id ? state.isInWishlist(product.id) : false));
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
-  const isInCompare = useCompareStore((state) => state.isInCompare(product.id));
+  const isInCompare = useCompareStore((state) => (product?.id ? state.isInCompare(product.id) : false));
   const toggleCompare = useCompareStore((state) => state.toggleItem);
   const addProductToHistory = useHistoryStore((state) => state.addProduct);
-
-  const isMounted = React.useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
 
   const mountedIsInWishlist = isMounted && isInWishlist;
   const mountedIsInCompare = isMounted && isInCompare;
@@ -140,6 +155,64 @@ export function ProductDetailClient({ product: initialProduct, category: initial
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Fallback and loading states if product is not resolved
+  if (!product) {
+    if (!isMounted) {
+      return (
+        <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+            <div className="h-6 w-64 bg-slate-200 rounded mb-8" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-5 aspect-square bg-slate-200 rounded-3xl" />
+              <div className="lg:col-span-4 space-y-4">
+                <div className="h-8 bg-slate-200 rounded w-3/4" />
+                <div className="h-4 bg-slate-200 rounded w-1/2" />
+                <div className="h-24 bg-slate-200 rounded-2xl" />
+                <div className="h-12 bg-slate-200 rounded-2xl" />
+              </div>
+              <div className="lg:col-span-3 space-y-4">
+                <div className="h-48 bg-slate-200 rounded-2xl" />
+                <div className="h-48 bg-slate-200 rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full text-center bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+          <div className="w-16 h-16 bg-red-50 text-[#FF1028] rounded-2xl flex items-center justify-center mx-auto border border-red-100">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-[#00143D] font-heading">
+              Product Not Found
+            </h1>
+            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+              The product you are looking for ({searchSlug || "item"}) could not be located in our catalogue.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#00143D] hover:bg-[#002366] text-white text-xs font-bold font-heading uppercase tracking-wider transition-colors shadow-xs"
+            >
+              Browse Catalogue
+            </Link>
+            <Link
+              href="/categories"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+            >
+              All Departments
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Derived variant data
   const currentVariant = product.variants?.[selectedVariantIndex];
   const activePrice = currentVariant?.price || product.base_price;
@@ -151,13 +224,50 @@ export function ProductDetailClient({ product: initialProduct, category: initial
 
   // Media gallery list
   const fallbackUrl = "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80";
-  const images = product.media && product.media.length > 0
-    ? product.media.map((m) => m.url)
+  const images = (product.media && product.media.length > 0)
+    ? product.media.map((m) => m.url).filter(Boolean)
     : [
         fallbackUrl,
         "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=800&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=800&auto=format&fit=crop&q=80",
       ];
+
+  // Dynamic Video Configurations
+  const video1Config = product.videos?.[0];
+  const video1Url = video1Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov";
+  const video1Title = video1Config?.title || `${product.title} — Hardware Teardown QC`;
+  const video1Poster = images[1] || images[0] || fallbackUrl;
+
+  const video2Config = product.videos?.[1];
+  const video2Url = video2Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov";
+  const video2Title = video2Config?.title || `${product.title} — Live Performance & Stress Test`;
+  const video2Poster = images[2] || images[0] || fallbackUrl;
+
+  // Dynamic Specifications
+  const dynamicSpecs = useMemo(() => {
+    const specsMap: Record<string, string> = {};
+
+    if (product.specifications && typeof product.specifications === "object") {
+      Object.assign(specsMap, product.specifications);
+    }
+    if (product.specs && typeof product.specs === "object") {
+      Object.assign(specsMap, product.specs);
+    }
+
+    const defaults: Record<string, string> = {
+      "Manufacturing Origin": product.shipping_origin || "Shenzhen / Guangdong, China",
+      "QC Certification": "100% Pre-Departure Dual Laser & Load Tested (Grade A+)",
+      "HS Customs Code": product.hs_code || "8517.62.00",
+      "Shipping Weight": product.weight ? `${product.weight} kg` : "0.85 kg",
+      "SKU Identifier": currentVariant?.sku || product.sku,
+      "Direct Brand": product.brand?.name || "Lennox Direct Factory",
+      "Department / Cluster": category?.name || "Hardware & Electronics",
+      "Payment Escrow": "Binance Pay USDT (Zero Gas Fees & Instant Escrow)",
+      "Warranty & Guarantee": "30-Day Money-Back Guarantee + 1-Year Direct Factory Support",
+    };
+
+    return { ...defaults, ...specsMap };
+  }, [product, currentVariant, category]);
 
   // Handlers
   const handleAddToCart = (openDrawer = true) => {
@@ -724,22 +834,22 @@ export function ProductDetailClient({ product: initialProduct, category: initial
               <div
                 onClick={() =>
                   setActiveVideoModal({
-                    title: `${product.title} — QC Teardown & Circuit Inspection`,
+                    title: video1Title,
                     subtitle: "Shenzhen Inspection Lab Benchmark • 100% Signal & Load Testing",
                     tag: "QC LAB BENCHMARK",
                     hub: product.shipping_origin || "Shenzhen SZX Hub",
-                    productPrice: product.base_price,
+                    productPrice: activePrice,
                     productLink: `/products/${product.slug}`,
-                    poster: images[1] || images[0],
-                    videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+                    poster: video1Poster,
+                    videoUrl: video1Url,
                   })
                 }
                 className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
               >
                 {/* Live Video Preview */}
                 <video
-                  src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov"
-                  poster={images[1] || images[0]}
+                  src={video1Url}
+                  poster={video1Poster}
                   playsInline
                   autoPlay
                   muted
@@ -774,13 +884,13 @@ export function ProductDetailClient({ product: initialProduct, category: initial
                 {/* Card Footer Details */}
                 <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
                   <div className="flex items-center justify-between">
-                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
-                      Hardware Teardown QC
+                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors truncate">
+                      {video1Config?.title || "Hardware Teardown QC"}
                     </h5>
                     <span className="text-[10px] font-mono font-bold text-emerald-400">PASSED</span>
                   </div>
                   <p className="text-[11px] text-slate-300 line-clamp-1">
-                    Shenzhen Inspection Lab Benchmark
+                    {product.shipping_origin || "Shenzhen Inspection Lab Benchmark"}
                   </p>
                 </div>
               </div>
@@ -789,22 +899,22 @@ export function ProductDetailClient({ product: initialProduct, category: initial
               <div
                 onClick={() =>
                   setActiveVideoModal({
-                    title: `${product.title} — 100% Full Load Stress & Performance Test`,
+                    title: video2Title,
                     subtitle: "Live Sourcing QC • Direct Verification",
                     tag: "FACTORY STRESS DEMO",
                     hub: product.shipping_origin || "Shenzhen SZX Hub",
-                    productPrice: product.base_price,
+                    productPrice: activePrice,
                     productLink: `/products/${product.slug}`,
-                    poster: images[2] || images[0],
-                    videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
+                    poster: video2Poster,
+                    videoUrl: video2Url,
                   })
                 }
                 className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
               >
                 {/* Live Video Preview */}
                 <video
-                  src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov"
-                  poster={images[2] || images[0]}
+                  src={video2Url}
+                  poster={video2Poster}
                   playsInline
                   autoPlay
                   muted
@@ -839,8 +949,8 @@ export function ProductDetailClient({ product: initialProduct, category: initial
                 {/* Card Footer Details */}
                 <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
                   <div className="flex items-center justify-between">
-                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors">
-                      Live Performance Test
+                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors truncate">
+                      {video2Config?.title || "Live Performance Test"}
                     </h5>
                     <span className="text-[10px] font-mono font-bold text-emerald-400">PASSED</span>
                   </div>
@@ -944,33 +1054,23 @@ export function ProductDetailClient({ product: initialProduct, category: initial
                     Product Overview
                   </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
-                    {product.description || "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty."}
+                    {product.description || product.short_description || "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty."}
                   </p>
                 </div>
 
                 <div className="border border-slate-200 rounded-xl sm:rounded-2xl overflow-hidden">
                   <table className="w-full text-left text-[11px] sm:text-xs divide-y divide-slate-200">
                     <tbody className="divide-y divide-slate-200">
-                      <tr className="bg-slate-50">
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 w-2/5 sm:w-1/3 align-top">Manufacturing Origin</td>
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-900 break-words">Shenzhen / Ningbo, China</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">QC Grade</td>
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-emerald-600">Grade A+ Dual Laser Inspected</td>
-                      </tr>
-                      <tr className="bg-slate-50">
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">HS Customs Code</td>
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-mono font-bold text-slate-900 break-all">85176200</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">Shipping Weight</td>
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-mono font-bold text-slate-900">1.25 kg</td>
-                      </tr>
-                      <tr className="bg-slate-50">
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 align-top">Warranty</td>
-                        <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-900">30-Day Money-Back + 1-Year Factory Support</td>
-                      </tr>
+                      {Object.entries(dynamicSpecs).map(([label, value], idx) => (
+                        <tr key={label} className={idx % 2 === 0 ? "bg-slate-50" : "bg-white"}>
+                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 w-2/5 sm:w-1/3 align-top">
+                            {label}
+                          </td>
+                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-900 break-words">
+                            {value}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>

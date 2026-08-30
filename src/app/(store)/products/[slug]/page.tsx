@@ -96,29 +96,36 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const product =
     dbProduct ||
     getCachedProductBySlug(slug) ||
-    MOCK_PRODUCTS.find((p) => p.slug === slug);
+    MOCK_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
 
-  if (!product) {
-    notFound();
-  }
+  const category = product?.category_id
+    ? categories.find((c) => c.id === product.category_id) ||
+      MOCK_CATEGORIES.find((c) => c.id === product.category_id)
+    : null;
 
-  const category =
-    categories.find((c) => c.id === product.category_id) ||
-    MOCK_CATEGORIES.find((c) => c.id === product.category_id);
-
-  const breadcrumbItems = [
-    {
-      label: category?.name || "Departments",
-      href: category ? `/categories/${category.slug}` : "/categories",
-    },
-    { label: product.title, href: `/products/${product.slug}` },
-  ];
+  const breadcrumbItems = product
+    ? [
+        {
+          label: category?.name || "Departments",
+          href: category ? `/categories/${category.slug}` : "/categories",
+        },
+        { label: product.title, href: `/products/${product.slug}` },
+      ]
+    : [];
 
   return (
     <>
-      <ProductJsonLd product={product} />
-      <BreadcrumbJsonLd items={breadcrumbItems} />
-      <ProductDetailClient product={product} category={category} />
+      {product && (
+        <>
+          <ProductJsonLd product={product} />
+          <BreadcrumbJsonLd items={breadcrumbItems} />
+        </>
+      )}
+      <ProductDetailClient
+        product={product || null}
+        category={category}
+        slug={slug}
+      />
     </>
   );
 }

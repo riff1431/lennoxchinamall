@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/session";
 import { Product, Variant, ProductMedia, ProductVideo, Category, Brand } from "@/types/database";
-import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_BRANDS } from "@/lib/mockData";
+import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_BRANDS, registerCachedProduct } from "@/lib/mockData";
 import { logAuditEvent } from "@/lib/audit";
 import { slugify } from "@/utils/helpers";
 
@@ -362,10 +362,11 @@ export async function createProduct(formData: FormData) {
       }
     }
 
-    MOCK_PRODUCTS.unshift(createdProduct);
+    registerCachedProduct(createdProduct);
 
     revalidatePath("/admin/products");
     revalidatePath("/products/[slug]", "page");
+    revalidatePath(`/products/${createdProduct.slug}`, "page");
     revalidatePath("/", "page");
 
     return {
@@ -376,7 +377,7 @@ export async function createProduct(formData: FormData) {
     };
   } catch (err: any) {
     console.error("Create product error:", err);
-    MOCK_PRODUCTS.unshift(createdProduct);
+    registerCachedProduct(createdProduct);
     return {
       success: true,
       message: `Product "${title}" created successfully!`,

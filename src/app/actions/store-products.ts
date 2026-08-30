@@ -53,7 +53,7 @@ export async function getFilteredProducts(filters: ProductFilters = {}): Promise
     // Start with all catalogue products (from DB or rich fallback seed)
     let { data: dbProducts, error } = await supabase
       .from("products")
-      .select("*, categories:category_id(*), brands:brand_id(*), media(*), variants(*)")
+      .select("*, category:categories(*), brand:brands(*), media:product_media(*), videos:product_videos(*), variants(*)")
       .eq("status", "published");
 
     let allProducts: Product[] = (dbProducts && dbProducts.length > 0 && !error)

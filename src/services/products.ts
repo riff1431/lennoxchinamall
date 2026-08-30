@@ -52,7 +52,7 @@ export async function getProducts(
 
     let query = supabase
       .from("products")
-      .select("*, category:categories(*), brand:brands(*), variants(*), media(*), videos:product_videos(*)", {
+      .select("*, category:categories(*), brand:brands(*), variants(*), media:product_media(*), videos:product_videos(*)", {
         count: "exact",
       });
 
@@ -128,23 +128,36 @@ export async function getProducts(
 }
 
 /**
- * Fetch a single product by slug with variants, media, and dual video slots
+ * Fetch a single product by slug or id with variants, media, and dual video slots
  */
 export async function getProductBySlug(
   slug: string,
   isAdmin = false
 ): Promise<Product | null> {
+  if (!slug) return null;
   try {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
+    // Query product by slug first
+    let { data, error } = await supabase
       .from("products")
-      .select("*, category:categories(*), brand:brands(*), variants(*), media(*), videos:product_videos(*)")
+      .select("*, category:categories(*), brand:brands(*), variants(*), media:product_media(*), videos:product_videos(*)")
       .eq("slug", slug)
-      .single();
+      .maybeSingle();
+
+    // If not found by slug, try matching by id
+    if (!data && !error) {
+      const byIdResult = await supabase
+        .from("products")
+        .select("*, category:categories(*), brand:brands(*), variants(*), media:product_media(*), videos:product_videos(*)")
+        .eq("id", slug)
+        .maybeSingle();
+      data = byIdResult.data;
+      error = byIdResult.error;
+    }
 
     if (error || !data) {
-      const fallback = MOCK_PRODUCTS.find((p) => p.slug === slug);
+      const fallback = MOCK_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
       if (!fallback) return null;
       return isAdmin ? fallback : sanitizePublicProduct(fallback);
     }
@@ -152,7 +165,7 @@ export async function getProductBySlug(
     const product = data as unknown as Product;
     return isAdmin ? product : sanitizePublicProduct(product);
   } catch {
-    const fallback = MOCK_PRODUCTS.find((p) => p.slug === slug);
+    const fallback = MOCK_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
     if (!fallback) return null;
     return isAdmin ? fallback : sanitizePublicProduct(fallback);
   }

@@ -1200,13 +1200,27 @@ MOCK_CATEGORIES.forEach((c) => {
   CATEGORY_SLUG_MAP.set(c.slug, c);
 });
 
+export function registerCachedProduct(product: Product) {
+  if (!product) return;
+  PRODUCT_SLUG_MAP.set(product.slug, product);
+  PRODUCT_ID_MAP.set(product.id, product);
+  const existingIdx = MOCK_PRODUCTS.findIndex((p) => p.id === product.id || p.slug === product.slug);
+  if (existingIdx >= 0) {
+    MOCK_PRODUCTS[existingIdx] = { ...MOCK_PRODUCTS[existingIdx], ...product };
+  } else {
+    MOCK_PRODUCTS.unshift(product);
+  }
+}
+
 export function getCachedProductBySlug(slug: string): Product | undefined {
+  if (!slug) return undefined;
   if (PRODUCT_SLUG_MAP.has(slug)) return PRODUCT_SLUG_MAP.get(slug);
-  return MOCK_PRODUCTS.find((p) => p.slug.includes(slug) || slug.includes(p.slug));
+  return MOCK_PRODUCTS.find((p) => p.slug === slug || p.id === slug || p.slug.includes(slug) || slug.includes(p.slug));
 }
 
 export function getCachedProductById(id: string): Product | undefined {
-  return PRODUCT_ID_MAP.get(id);
+  if (!id) return undefined;
+  return PRODUCT_ID_MAP.get(id) || MOCK_PRODUCTS.find((p) => p.id === id || p.slug === id);
 }
 
 export function getCachedCategoryBySlug(slug: string) {
@@ -1407,6 +1421,50 @@ export interface MediaAsset {
 
 export const MOCK_MEDIA: MediaAsset[] = [
   {
+    id: "med-v1",
+    name: "2026-04-30-69f399744ce0c",
+    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
+    type: "video",
+    size: "11.5 MB",
+    dimensions: "1080x1920",
+    format: "MOV",
+    category: "dual-video",
+    uploaded_at: new Date().toISOString(),
+  },
+  {
+    id: "med-v2",
+    name: "2026-04-30-69f39980682e5",
+    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+    type: "video",
+    size: "51.4 MB",
+    dimensions: "1080x1920",
+    format: "MOV",
+    category: "dual-video",
+    uploaded_at: new Date().toISOString(),
+  },
+  {
+    id: "med-5",
+    name: "lennox-hero-promo-banner.jpg",
+    url: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&auto=format&fit=crop&q=80",
+    type: "image",
+    size: "1.8 MB",
+    dimensions: "1920x600",
+    format: "JPG",
+    category: "banner",
+    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+  },
+  {
+    id: "med-4",
+    name: "drone-flight-test-qc.mp4",
+    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+    type: "video",
+    size: "42.8 MB",
+    dimensions: "1080p (60fps)",
+    format: "MP4 / Dual-Video",
+    category: "dual-video",
+    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
+  },
+  {
     id: "med-1",
     name: "eachine-ex5-4k-hero.jpg",
     url: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=1200&auto=format&fit=crop&q=80",
@@ -1438,28 +1496,6 @@ export const MOCK_MEDIA: MediaAsset[] = [
     format: "JPG",
     category: "product",
     uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
-  },
-  {
-    id: "med-4",
-    name: "drone-flight-test-qc.mp4",
-    url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-    type: "video",
-    size: "42.8 MB",
-    dimensions: "1080p (60fps)",
-    format: "MP4 / YouTube",
-    category: "dual-video",
-    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
-  },
-  {
-    id: "med-5",
-    name: "lennox-hero-promo-banner.jpg",
-    url: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&auto=format&fit=crop&q=80",
-    type: "image",
-    size: "1.8 MB",
-    dimensions: "1920x600",
-    format: "JPG",
-    category: "banner",
-    uploaded_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
   },
 ];
 
