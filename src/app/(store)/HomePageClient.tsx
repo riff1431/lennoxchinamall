@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -22,6 +22,8 @@ import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoM
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useCategoryStore } from "@/store/useCategoryStore";
+import { useProductStore } from "@/store/useProductStore";
+import { Product } from "@/types/database";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { HomepageSection } from "@/types/homepage";
@@ -71,9 +73,10 @@ const HERO_SLIDES = [
 
 export interface HomePageClientProps {
   sections?: HomepageSection[];
+  initialProducts?: Product[];
 }
 
-export function HomePageClient({ sections }: HomePageClientProps) {
+export function HomePageClient({ sections, initialProducts = [] }: HomePageClientProps) {
   const heroSection = sections?.find((s) => s.type === "hero_banner" && s.is_active);
   const rawSlides = heroSection?.config?.slides;
 
@@ -94,6 +97,9 @@ export function HomePageClient({ sections }: HomePageClientProps) {
     : HERO_SLIDES;
 
   const { getRootCategories } = useCategoryStore();
+  const storeProducts = useProductStore((state) => state.products);
+  const isProductStoreLoaded = useProductStore((state) => state.isLoaded);
+
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
@@ -104,8 +110,31 @@ export function HomePageClient({ sections }: HomePageClientProps) {
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("all");
   const [activeVideoModal, setActiveVideoModal] = useState<ReelsVideoData | null>(null);
 
-  const flashDeals = MOCK_PRODUCTS.filter((p) => p.is_flash_deal);
-  const bestSellers = MOCK_PRODUCTS.filter((p) => p.is_best_seller);
+  // Dynamic products combining store state (client admin additions) and server products
+  const allProducts = useMemo(() => {
+    if (isMounted && isProductStoreLoaded && storeProducts && storeProducts.length > 0) {
+      return storeProducts.filter((p) => p.status === "published");
+    }
+    if (initialProducts && initialProducts.length > 0) {
+      return initialProducts.filter((p) => p.status === "published");
+    }
+    return MOCK_PRODUCTS.filter((p) => p.status === "published");
+  }, [isMounted, isProductStoreLoaded, storeProducts, initialProducts]);
+
+  const flashDeals = useMemo(() => {
+    const deals = allProducts.filter((p) => p.is_flash_deal);
+    return deals.length > 0 ? deals : allProducts.slice(0, 5);
+  }, [allProducts]);
+
+  const bestSellers = useMemo(() => {
+    const sellers = allProducts.filter((p) => p.is_best_seller);
+    return sellers.length > 0 ? sellers : allProducts.slice(0, 10);
+  }, [allProducts]);
+
+  const topRated = useMemo(() => {
+    const rated = allProducts.filter((p) => (p.avg_rating || 5) >= 4.5);
+    return rated.length > 0 ? rated : allProducts.slice(0, 4);
+  }, [allProducts]);
 
   // Auto rotate hero carousel
   useEffect(() => {
@@ -115,10 +144,12 @@ export function HomePageClient({ sections }: HomePageClientProps) {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const filteredProducts =
-    activeCategoryFilter === "all"
-      ? MOCK_PRODUCTS
-      : MOCK_PRODUCTS.filter((p) => p.category_id === activeCategoryFilter);
+  const filteredProducts = useMemo(() => {
+    if (activeCategoryFilter === "all") {
+      return allProducts;
+    }
+    return allProducts.filter((p) => p.category_id === activeCategoryFilter);
+  }, [activeCategoryFilter, allProducts]);
 
   const activeSlide = slides[currentSlide] || slides[0];
 
@@ -146,7 +177,7 @@ export function HomePageClient({ sections }: HomePageClientProps) {
 
       {/* ── 4. Middle Section: Best Sellings, Top Rated & Dual Promotional Banners ── */}
       <MotionSection effect="fade-up" delay={100}>
-        <DualPromotionalShowcaseSection />
+        <DualPromotionalShowcaseSection bestSellers={bestSellers} topRated={topRated} />
       </MotionSection>
 
       {/* ── 5. Direct Sourcing Departments Carousel (Auto-Loop 3s) ── */}

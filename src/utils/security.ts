@@ -62,8 +62,8 @@ export const DEFAULT_MEDIA_MIMES = [
   "video/quicktime",
 ];
 
-export const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
-export const MAX_MEDIA_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+export const MAX_IMAGE_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
+export const MAX_MEDIA_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
 
 export function validateFileUpload(
   file: { size: number; type: string; name?: string },

@@ -33,8 +33,8 @@ export const MAX_PRODUCT_VIDEOS = 2;
 export const MAX_REVIEW_IMAGES = 5;
 export const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 export const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm"];
-export const MAX_IMAGE_SIZE_MB = 5;
-export const MAX_VIDEO_SIZE_MB = 50;
+export const MAX_IMAGE_SIZE_MB = 100;
+export const MAX_VIDEO_SIZE_MB = 100;
 
 // ─── Order Statuses (for display) ───────────────────────────────────────────
 

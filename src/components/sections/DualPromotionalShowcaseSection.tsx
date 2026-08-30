@@ -58,8 +58,43 @@ export function DualPromotionalShowcaseSection({
   bestSellers,
   topRated,
 }: DualPromotionalShowcaseSectionProps) {
-  const bestSellerItems = DEFAULT_BEST_SELLERS;
-  const topRatedItems = DEFAULT_TOP_RATED;
+  const bestSellerItems =
+    bestSellers && bestSellers.length > 0
+      ? bestSellers.slice(0, 2).map((p) => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          discountBadge:
+            p.compare_at_price && p.compare_at_price > p.base_price
+              ? `-$${(p.compare_at_price - p.base_price).toFixed(2)}`
+              : undefined,
+          comparePrice: p.compare_at_price || p.base_price,
+          price: p.base_price,
+          image:
+            p.media?.[0]?.url ||
+            p.variants?.[0]?.image_url ||
+            "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=500&auto=format&fit=crop&q=80",
+        }))
+      : DEFAULT_BEST_SELLERS;
+
+  const topRatedItems =
+    topRated && topRated.length > 0
+      ? topRated.slice(0, 2).map((p) => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          discountBadge:
+            p.compare_at_price && p.compare_at_price > p.base_price
+              ? `-$${(p.compare_at_price - p.base_price).toFixed(2)}`
+              : undefined,
+          comparePrice: p.compare_at_price || p.base_price,
+          price: p.base_price,
+          image:
+            p.media?.[0]?.url ||
+            p.variants?.[0]?.image_url ||
+            "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=500&auto=format&fit=crop&q=80",
+        }))
+      : DEFAULT_TOP_RATED;
 
   return (
     <section className="space-y-4 sm:space-y-5">

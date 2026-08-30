@@ -2,8 +2,12 @@ import React from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MOCK_PRODUCTS, MOCK_CATEGORIES, getCachedProductBySlug } from "@/lib/mockData";
+import { getProductBySlug } from "@/services/products";
+import { getCategories } from "@/services/categories";
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+
+export const dynamic = "force-dynamic";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lennoxchinamall.com";
 
@@ -21,7 +25,10 @@ export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const product = getCachedProductBySlug(resolvedParams.slug) || MOCK_PRODUCTS.find((p) => p.slug === resolvedParams.slug);
+  const product =
+    (await getProductBySlug(resolvedParams.slug)) ||
+    getCachedProductBySlug(resolvedParams.slug) ||
+    MOCK_PRODUCTS.find((p) => p.slug === resolvedParams.slug);
 
   if (!product) {
     return {
@@ -47,7 +54,7 @@ export async function generateMetadata({
       product.title,
       product.brand?.name || "Lennox Direct",
       product.sku,
-      ...product.tags,
+      ...(product.tags || []),
       "China factory price",
       "Binance Pay USDT",
     ],
@@ -81,13 +88,23 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
-  const product = getCachedProductBySlug(slug) || MOCK_PRODUCTS.find((p) => p.slug === slug);
+  const [dbProduct, categories] = await Promise.all([
+    getProductBySlug(slug),
+    getCategories(),
+  ]);
+
+  const product =
+    dbProduct ||
+    getCachedProductBySlug(slug) ||
+    MOCK_PRODUCTS.find((p) => p.slug === slug);
 
   if (!product) {
     notFound();
   }
 
-  const category = MOCK_CATEGORIES.find((c) => c.id === product.category_id);
+  const category =
+    categories.find((c) => c.id === product.category_id) ||
+    MOCK_CATEGORIES.find((c) => c.id === product.category_id);
 
   const breadcrumbItems = [
     {

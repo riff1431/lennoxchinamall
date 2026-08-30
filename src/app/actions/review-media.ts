@@ -5,8 +5,8 @@ import { getSession } from "@/lib/auth/session";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB
+const MAX_IMAGE_SIZE = 100 * 1024 * 1024; // 100 MB
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100 MB
 
 export async function uploadReviewMedia(formData: FormData): Promise<{
   success: boolean;
@@ -36,11 +36,11 @@ export async function uploadReviewMedia(formData: FormData): Promise<{
     }
 
     if (isImage && file.size > MAX_IMAGE_SIZE) {
-      return { success: false, error: "Image file exceeds the 10MB limit." };
+      return { success: false, error: "Image file exceeds the 100MB limit." };
     }
 
     if (isVideo && file.size > MAX_VIDEO_SIZE) {
-      return { success: false, error: "Video file exceeds the 50MB limit." };
+      return { success: false, error: "Video file exceeds the 100MB limit." };
     }
 
     const supabase = await createClient();

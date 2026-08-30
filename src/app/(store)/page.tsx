@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import { HomePageClient } from "./HomePageClient";
 import { WebsiteJsonLd } from "@/components/seo/JsonLd";
 import { getStorefrontSections } from "@/services/homepage";
+import { getProducts } from "@/services/products";
+
+export const dynamic = "force-dynamic";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lennoxchinamall.com";
 
@@ -32,12 +35,15 @@ export const metadata: Metadata = {
 };
 
 export default async function StoreHomePage() {
-  const sections = await getStorefrontSections();
+  const [sections, { products }] = await Promise.all([
+    getStorefrontSections(),
+    getProducts({ limit: 60 }),
+  ]);
 
   return (
     <>
       <WebsiteJsonLd />
-      <HomePageClient sections={sections} />
+      <HomePageClient sections={sections} initialProducts={products} />
     </>
   );
 }

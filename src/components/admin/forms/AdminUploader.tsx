@@ -39,12 +39,12 @@ export interface AdminUploaderProps {
 
 export function AdminUploader({
   label,
-  helperText = "PNG, JPG, WEBP, MP4 up to 10MB",
+  helperText = "PNG, JPG, WEBP, MP4 up to 100MB",
   errorMessage,
   values = [],
   onChange,
   maxFiles = 5,
-  maxSizeMb = 10,
+  maxSizeMb = 100,
   accept = "image/*,video/*,application/pdf",
   required,
   disabled,

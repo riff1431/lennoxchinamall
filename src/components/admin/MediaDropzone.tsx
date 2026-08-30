@@ -38,7 +38,7 @@ export function MediaDropzone({
   onFileAnalyzed,
   currentFile,
   className = "",
-  maxSizeMB = 50,
+  maxSizeMB = 100,
 }: MediaDropzoneProps) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

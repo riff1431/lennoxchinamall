@@ -108,7 +108,7 @@ export const DEFAULT_STORE_SETTINGS: AllStoreSettings = {
   storage: {
     products_bucket: "products",
     banners_bucket: "banners",
-    max_image_mb: 10,
+    max_image_mb: 100,
     max_video_mb: 100,
     allowed_mime_types: ["image/jpeg", "image/png", "image/webp", "video/mp4"],
   },

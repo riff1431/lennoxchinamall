@@ -38,6 +38,8 @@ import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCompareStore } from "@/store/useCompareStore";
 import { useHistoryStore } from "@/store/useHistoryStore";
+import { useProductStore } from "@/store/useProductStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
 
 interface ProductDetailClientProps {
@@ -45,8 +47,12 @@ interface ProductDetailClientProps {
   category?: Category | null;
 }
 
-export function ProductDetailClient({ product, category }: ProductDetailClientProps) {
+export function ProductDetailClient({ product: initialProduct, category: initialCategory }: ProductDetailClientProps) {
   const router = useRouter();
+  const storeProduct = useProductStore((state) => state.getProductBySlug(initialProduct?.slug || ""));
+  const storeCategories = useCategoryStore((state) => state.categories);
+  const product = storeProduct || initialProduct;
+  const category = (storeCategories && storeCategories.find((c) => c.id === product?.category_id)) || initialCategory;
 
   // Media & Gallery States
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);

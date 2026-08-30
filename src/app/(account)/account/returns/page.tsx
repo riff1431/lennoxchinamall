@@ -266,7 +266,7 @@ export default function ReturnsPage() {
           <div className="p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 text-center space-y-1 cursor-pointer hover:border-slate-400">
             <Upload className="w-6 h-6 mx-auto text-slate-400" />
             <span className="font-bold text-slate-700 block">Attach Defect Evidence (Photos / MP4)</span>
-            <span className="text-[10px] text-slate-500">Max 50MB direct upload</span>
+            <span className="text-[10px] text-slate-500">Max 100MB direct upload</span>
           </div>
 
           <div className="pt-2 flex gap-3">

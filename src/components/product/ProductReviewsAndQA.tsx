@@ -1108,7 +1108,7 @@ export function ProductReviewsAndQA({
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center justify-between">
                 <span>Upload Photos / Unboxing Video (Optional)</span>
-                <span className="text-[10px] text-slate-400 font-semibold">Max 10MB JPG/PNG, 50MB MP4</span>
+                <span className="text-[10px] text-slate-400 font-semibold">Max 100MB JPG/PNG, 100MB MP4</span>
               </label>
 
               <input
