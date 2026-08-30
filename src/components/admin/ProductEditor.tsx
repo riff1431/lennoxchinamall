@@ -750,12 +750,20 @@ export function ProductEditor({
                     {/* Live Video Preview Frame */}
                     {video1Url && (
                       <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/10 border border-slate-200 dark:border-slate-800">
-                        <iframe
-                          src={video1Url}
-                          title="Slot 1 Video Preview"
-                          className="w-full h-full"
-                          allowFullScreen
-                        />
+                        {video1Url.includes("youtube") || video1Url.includes("vimeo") || video1Url.includes("/embed/") ? (
+                          <iframe
+                            src={video1Url}
+                            title="Slot 1 Video Preview"
+                            className="w-full h-full"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video
+                            src={video1Url}
+                            controls
+                            className="w-full h-full object-contain bg-black"
+                          />
+                        )}
                       </div>
                     )}
                   </div>
@@ -788,12 +796,20 @@ export function ProductEditor({
                     {/* Live Video Preview Frame */}
                     {video2Url && (
                       <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/10 border border-slate-200 dark:border-slate-800">
-                        <iframe
-                          src={video2Url}
-                          title="Slot 2 Video Preview"
-                          className="w-full h-full"
-                          allowFullScreen
-                        />
+                        {video2Url.includes("youtube") || video2Url.includes("vimeo") || video2Url.includes("/embed/") ? (
+                          <iframe
+                            src={video2Url}
+                            title="Slot 2 Video Preview"
+                            className="w-full h-full"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <video
+                            src={video2Url}
+                            controls
+                            className="w-full h-full object-contain bg-black"
+                          />
+                        )}
                       </div>
                     )}
                   </div>

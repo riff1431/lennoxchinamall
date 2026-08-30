@@ -11,6 +11,9 @@ import {
   HardDrive,
   UploadCloud,
   Layers,
+  Play,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
@@ -21,12 +24,46 @@ import { Modal } from "@/components/ui/Modal";
 import {
   AdminInput,
   AdminSelect,
-  AdminUploader,
   AdminFormSection,
 } from "@/components/admin/forms";
+import { MediaDropzone, AnalyzedMediaFile } from "@/components/admin/MediaDropzone";
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { formatDate } from "@/utils/helpers";
 import { MOCK_MEDIA, MediaAsset } from "@/lib/mockData";
+import { uploadMediaFile } from "@/app/actions/storage";
+
+function isVideoUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith("data:video/") || url.startsWith("blob:")) return true;
+  return (
+    /\.(mp4|webm|mov|avi|mkv|m4v|flv|wmv|3gp|ogv|ts|qt)(\?.*)?$/i.test(url) ||
+    url.includes("youtube.com") ||
+    url.includes("youtu.be") ||
+    url.includes("vimeo.com") ||
+    url.includes("/storage/hero-ad/") ||
+    url.includes("/videos/")
+  );
+}
+
+function getEmbedVideoUrl(url: string): string | null {
+  if (!url) return null;
+  if (url.includes("youtube.com/watch?v=")) {
+    const videoId = url.split("v=")[1]?.split("&")[0];
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  if (url.includes("youtu.be/")) {
+    const videoId = url.split("youtu.be/")[1]?.split("?")[0];
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  if (url.includes("vimeo.com/") && !url.includes("player.vimeo.com")) {
+    const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
+    return `https://player.vimeo.com/video/${videoId}`;
+  }
+  if (url.includes("/embed/")) {
+    return url;
+  }
+  return null;
+}
 
 export default function AdminMediaPage() {
   const toast = useAdminToast();
@@ -35,46 +72,112 @@ export default function AdminMediaPage() {
   // Modals & SlideOver
   const [isUploadSlideOverOpen, setIsUploadSlideOverOpen] = useState(false);
   const [previewAsset, setPreviewAsset] = useState<MediaAsset | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Upload Form Fields
   const [formName, setFormName] = useState("");
   const [formType, setFormType] = useState<"image" | "video" | "document">("image");
   const [formCategory, setFormCategory] = useState<MediaAsset["category"]>("product");
-  const [formUploads, setFormUploads] = useState<string[]>([]);
+  const [analyzedFile, setAnalyzedFile] = useState<AnalyzedMediaFile | null>(null);
   const [formDirectUrl, setFormDirectUrl] = useState("");
 
   const handleOpenUpload = () => {
     setFormName("");
     setFormType("image");
     setFormCategory("product");
-    setFormUploads([]);
+    setAnalyzedFile(null);
     setFormDirectUrl("");
     setIsUploadSlideOverOpen(true);
   };
 
-  const handleSaveUpload = (e: React.FormEvent) => {
+  const handleFileAnalyzed = (analyzed: AnalyzedMediaFile | null) => {
+    setAnalyzedFile(analyzed);
+    if (analyzed) {
+      if (!formName) {
+        setFormName(analyzed.name.replace(/\.[^/.]+$/, ""));
+      }
+      setFormType(analyzed.type);
+      setFormCategory(analyzed.suggestedCategory);
+    }
+  };
+
+  const handleDirectUrlChange = (url: string) => {
+    setFormDirectUrl(url);
+    if (url.trim()) {
+      if (isVideoUrl(url)) {
+        setFormType("video");
+        setFormCategory("dual-video");
+      } else if (/\.(pdf|doc|docx|txt)(\?.*)?$/i.test(url)) {
+        setFormType("document");
+      } else {
+        setFormType("image");
+      }
+    }
+  };
+
+  const handleSaveUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    const finalUrl = formUploads[0] || formDirectUrl.trim();
-    if (!finalUrl) {
-      toast.warning("Please upload a file or specify a direct URL.");
+
+    if (!analyzedFile && !formDirectUrl.trim()) {
+      toast.warning("Please select a local file or specify a direct CDN / Video URL.");
       return;
     }
 
-    const newAsset: MediaAsset = {
-      id: `med-${Date.now()}`,
-      name: formName.trim() || `Asset-${Date.now().toString().slice(-4)}`,
-      url: finalUrl,
-      type: formType,
-      category: formCategory,
-      size: "1.2 MB",
-      dimensions: "1920x1080",
-      format: finalUrl.endsWith(".mp4") ? "MP4" : "JPG",
-      uploaded_at: new Date().toISOString(),
-    };
+    setIsUploading(true);
 
-    setMediaList((prev) => [newAsset, ...prev]);
-    toast.success(`Asset "${newAsset.name}" added to Media Library.`);
-    setIsUploadSlideOverOpen(false);
+    try {
+      let finalUrl = formDirectUrl.trim();
+      let finalSize = "1.5 MB";
+      let finalDimensions = "1920x1080";
+      let finalFormat = formType === "video" ? "MP4" : "JPG";
+      let finalType = formType;
+
+      if (analyzedFile) {
+        finalSize = analyzedFile.size;
+        finalDimensions = analyzedFile.dimensions;
+        finalFormat = analyzedFile.format;
+        finalType = analyzedFile.type;
+
+        // Upload to storage bucket via Server Action
+        const formData = new FormData();
+        formData.append("file", analyzedFile.file);
+        formData.append("bucket", "products");
+        formData.append("folder", analyzedFile.type === "video" ? "videos" : "media");
+
+        const uploadRes = await uploadMediaFile(formData);
+        if (uploadRes.success && uploadRes.url) {
+          finalUrl = uploadRes.url;
+        } else {
+          // Fallback to local Object URL / base64 for instant preview
+          finalUrl = analyzedFile.previewUrl;
+        }
+      } else {
+        const ext = finalUrl.split(".").pop()?.toUpperCase() || (isVideoUrl(finalUrl) ? "MP4" : "JPG");
+        finalFormat = ext.length <= 5 ? ext : "MEDIA";
+        finalType = isVideoUrl(finalUrl) ? "video" : "image";
+      }
+
+      const newAsset: MediaAsset = {
+        id: `med-${Date.now()}`,
+        name: formName.trim() || analyzedFile?.name || `Asset-${Date.now().toString().slice(-4)}`,
+        url: finalUrl,
+        type: finalType,
+        category: formCategory,
+        size: finalSize,
+        dimensions: finalDimensions,
+        format: finalFormat,
+        uploaded_at: new Date().toISOString(),
+      };
+
+      setMediaList((prev) => [newAsset, ...prev]);
+      toast.success(`${finalType === "video" ? "Video" : "Media"} asset "${newAsset.name}" added to Media Library.`);
+      setIsUploadSlideOverOpen(false);
+    } catch (err: unknown) {
+      console.error("Save media asset error:", err);
+      toast.error("Failed to commit asset. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDeleteAsset = (asset: MediaAsset) => {
@@ -84,8 +187,8 @@ export default function AdminMediaPage() {
 
   // Metrics
   const totalAssets = mediaList.length;
-  const imageCount = mediaList.filter((m) => m.type === "image").length;
-  const videoCount = mediaList.filter((m) => m.type === "video").length;
+  const imageCount = mediaList.filter((m) => m.type === "image" && !isVideoUrl(m.url)).length;
+  const videoCount = mediaList.filter((m) => m.type === "video" || isVideoUrl(m.url)).length;
   const bannerCount = mediaList.filter((m) => m.category === "banner").length;
 
   const columns: Column<MediaAsset>[] = [
@@ -93,43 +196,94 @@ export default function AdminMediaPage() {
       header: "Asset Preview & Name",
       accessorKey: "name",
       sortable: true,
-      cell: (row) => (
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative">
-            {row.type === "image" ? (
-              <Image
-                src={row.url}
-                alt={row.name}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            ) : row.type === "video" ? (
-              <Video className="w-5 h-5 text-[#2F65F6]" />
-            ) : (
-              <FileText className="w-5 h-5 text-amber-500" />
-            )}
+      cell: (row) => {
+        const isVideo = row.type === "video" || isVideoUrl(row.url);
+        const isDoc = !isVideo && (row.type === "document" || /\.(pdf|doc|docx|txt)(\?.*)?$/i.test(row.url));
+
+        return (
+          <div className="flex items-center gap-3">
+            <div
+              onClick={() => setPreviewAsset(row)}
+              className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden relative cursor-pointer group shadow-2xs hover:ring-2 hover:ring-[#2F65F6] transition-all"
+            >
+              {isVideo ? (
+                <div className="w-full h-full relative bg-slate-900 flex items-center justify-center">
+                  <video
+                    src={row.url}
+                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                    muted
+                    preload="metadata"
+                  />
+                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 flex items-center justify-center transition-colors">
+                    <div className="w-6 h-6 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                      <Play className="w-3 h-3 fill-white ml-0.5" />
+                    </div>
+                  </div>
+                </div>
+              ) : isDoc ? (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-amber-500">
+                  <FileText className="w-5 h-5 mb-0.5" />
+                  <span className="text-[8px] font-mono font-bold uppercase text-slate-500">DOC</span>
+                </div>
+              ) : (
+                <Image
+                  src={row.url}
+                  alt={row.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform"
+                  unoptimized
+                />
+              )}
+            </div>
+            <div className="min-w-0">
+              <span
+                onClick={() => setPreviewAsset(row)}
+                className="font-bold text-slate-900 dark:text-white text-xs font-heading block truncate max-w-xs hover:text-[#2F65F6] cursor-pointer"
+                title={row.name}
+              >
+                {row.name}
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                {row.format} • {row.dimensions} • {row.size}
+              </span>
+            </div>
           </div>
-          <div>
-            <span className="font-bold text-slate-900 dark:text-white text-xs font-heading block truncate max-w-xs">
-              {row.name}
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono block">
-              {row.format} • {row.dimensions} • {row.size}
-            </span>
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       header: "Media Type",
       accessorKey: "type",
       sortable: true,
-      cell: (row) => (
-        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-          {row.type}
-        </span>
-      ),
+      cell: (row) => {
+        const isVideo = row.type === "video" || isVideoUrl(row.url);
+        const isDoc = !isVideo && (row.type === "document" || /\.(pdf|doc|docx|txt)(\?.*)?$/i.test(row.url));
+
+        if (isVideo) {
+          return (
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 flex items-center gap-1 w-fit">
+              <Video className="w-3 h-3" />
+              VIDEO
+            </span>
+          );
+        }
+
+        if (isDoc) {
+          return (
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 flex items-center gap-1 w-fit">
+              <FileText className="w-3 h-3" />
+              DOCUMENT
+            </span>
+          );
+        }
+
+        return (
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/40 flex items-center gap-1 w-fit">
+            <ImageIcon className="w-3 h-3" />
+            IMAGE
+          </span>
+        );
+      },
     },
     {
       header: "Category Scope",
@@ -140,6 +294,8 @@ export default function AdminMediaPage() {
             ? "emerald"
             : row.category === "banner"
             ? "purple"
+            : row.category === "dual-video"
+            ? "rose"
             : "blue";
         return <StatusBadge status={row.category} tone={tone} />;
       },
@@ -213,7 +369,7 @@ export default function AdminMediaPage() {
       {/* ── 1. Page Header ── */}
       <AdminPageHeader
         title="Media Asset Library"
-        subtitle="Manage product imagery, factory QC video demonstrations, promotional banners, and CDN assets."
+        subtitle="Manage product imagery, factory QC video demonstrations, promotional banners, and CDN assets up to 100MB."
         badge={{ text: `${totalAssets} Media Files`, variant: "blue" }}
         breadcrumbs={[
           { label: "Catalogue & Inventory", href: "/admin/products" },
@@ -310,37 +466,64 @@ export default function AdminMediaPage() {
       {/* ── 4. Slide-Over Panel: Media Asset Uploader ── */}
       <SlideOver
         isOpen={isUploadSlideOverOpen}
-        onClose={() => setIsUploadSlideOverOpen(false)}
+        onClose={() => !isUploading && setIsUploadSlideOverOpen(false)}
         title="Upload Media Asset"
-        description="Upload images, dual-video demo files, or promotional banners to CDN."
+        description="Upload any image, video file (MP4, MOV, WebM, AVI up to 100MB), or direct CDN link."
         size="lg"
         footer={
           <div className="flex items-center justify-end gap-3 w-full">
             <button
               type="button"
+              disabled={isUploading}
               onClick={() => setIsUploadSlideOverOpen(false)}
-              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="button"
+              disabled={isUploading}
               onClick={handleSaveUpload}
-              className="px-5 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-bold text-xs shadow-xs font-heading uppercase cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-bold text-xs shadow-xs font-heading uppercase cursor-pointer flex items-center gap-2 disabled:opacity-50"
             >
-              Commit Asset
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <span>Commit Asset</span>
+              )}
             </button>
           </div>
         }
       >
         <form onSubmit={handleSaveUpload} className="space-y-5">
+          <AdminFormSection title="File Payload (Images & Videos up to 100MB)">
+            <MediaDropzone
+              currentFile={analyzedFile}
+              onFileAnalyzed={handleFileAnalyzed}
+              maxSizeMB={100}
+            />
+
+            <div className="pt-2">
+              <AdminInput
+                label="Or Direct CDN / Video Embed URL"
+                type="url"
+                value={formDirectUrl}
+                onChange={(e) => handleDirectUrlChange(e.target.value)}
+                placeholder="https://... (.mp4, .mov, YouTube embed, etc.)"
+              />
+            </div>
+          </AdminFormSection>
+
           <AdminFormSection title="Asset Metadata">
             <AdminInput
               label="Asset Name / Description"
               required
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              placeholder="e.g. EX5 Quadcopter Hero Angle"
+              placeholder="e.g. Factory QC Drone Teardown 4K"
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -350,7 +533,7 @@ export default function AdminMediaPage() {
                 onChange={(e) => setFormType(e.target.value as typeof formType)}
                 options={[
                   { value: "image", label: "Product Imagery / Photo" },
-                  { value: "video", label: "Dual QC Video Demonstration" },
+                  { value: "video", label: "QC Video Demonstration / Video File" },
                   { value: "document", label: "Technical PDF Specification" },
                 ]}
               />
@@ -360,79 +543,113 @@ export default function AdminMediaPage() {
                 onChange={(e) => setFormCategory(e.target.value as typeof formCategory)}
                 options={[
                   { value: "product", label: "Product Catalog" },
-                  { value: "banner", label: "Homepage Header Banner" },
                   { value: "dual-video", label: "QC Teardown Video Slot" },
+                  { value: "banner", label: "Homepage Header Banner" },
                   { value: "brand", label: "Manufacturer Emblem" },
                 ]}
-              />
-            </div>
-          </AdminFormSection>
-
-          <AdminFormSection title="File Payload">
-            <AdminUploader
-              label="Drop or Select Local File"
-              values={formUploads}
-              onChange={setFormUploads}
-              maxFiles={1}
-            />
-
-            <div className="pt-2">
-              <AdminInput
-                label="Or Direct CDN / Video Embed URL"
-                type="url"
-                value={formDirectUrl}
-                onChange={(e) => setFormDirectUrl(e.target.value)}
-                placeholder="https://..."
               />
             </div>
           </AdminFormSection>
         </form>
       </SlideOver>
 
-      {/* ── 5. Preview Modal ── */}
+      {/* ── 5. Preview Modal (Interactive Video Player & Image Lightbox) ── */}
       <Modal
         isOpen={Boolean(previewAsset)}
         onClose={() => setPreviewAsset(null)}
         title={previewAsset?.name || "Media Preview"}
         size="lg"
       >
-        {previewAsset && (
-          <div className="space-y-4 pt-1">
-            <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 flex items-center justify-center">
-              {previewAsset.type === "image" ? (
-                <Image
-                  src={previewAsset.url}
-                  alt={previewAsset.name}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              ) : (
-                <div className="text-white text-center space-y-2 p-4">
-                  <Video className="w-12 h-12 mx-auto text-[#2F65F6]" />
-                  <span className="font-mono text-xs block">{previewAsset.url}</span>
-                </div>
-              )}
-            </div>
+        {previewAsset && (() => {
+          const isVideo = previewAsset.type === "video" || isVideoUrl(previewAsset.url);
+          const isDoc = !isVideo && (previewAsset.type === "document" || /\.(pdf|doc|docx|txt)(\?.*)?$/i.test(previewAsset.url));
+          const embedUrl = getEmbedVideoUrl(previewAsset.url);
 
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 text-xs font-mono">
-              <span className="text-slate-400">
-                {previewAsset.format} • {previewAsset.dimensions} • {previewAsset.size}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(previewAsset.url);
-                  toast.info("Copied CDN URL.");
-                }}
-                className="text-[#2F65F6] hover:underline font-bold"
-              >
-                Copy CDN URL
-              </button>
+          return (
+            <div className="space-y-4 pt-1">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center shadow-inner border border-slate-800">
+                {isVideo ? (
+                  embedUrl ? (
+                    <iframe
+                      src={embedUrl}
+                      title={previewAsset.name}
+                      className="w-full h-full rounded-2xl"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video
+                      src={previewAsset.url}
+                      controls
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-contain rounded-2xl bg-black"
+                    />
+                  )
+                ) : isDoc ? (
+                  <div className="text-white text-center space-y-3 p-6">
+                    <FileText className="w-16 h-16 mx-auto text-amber-400" />
+                    <p className="font-mono text-sm font-bold">{previewAsset.name}</p>
+                    <a
+                      href={previewAsset.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2F65F6] text-white font-bold text-xs hover:bg-blue-600 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Open Document in New Tab
+                    </a>
+                  </div>
+                ) : (
+                  <Image
+                    src={previewAsset.url}
+                    alt={previewAsset.name}
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-mono">
+                <div className="space-y-0.5">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 block">
+                    {previewAsset.format} • {previewAsset.dimensions} • {previewAsset.size}
+                  </span>
+                  <span className="text-[11px] text-slate-400 truncate max-w-md block">
+                    {previewAsset.url}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(previewAsset.url);
+                      toast.info("Copied CDN URL to clipboard.");
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#2F65F6] hover:bg-blue-50 dark:hover:bg-blue-950 font-bold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copy CDN URL
+                  </button>
+
+                  <a
+                    href={previewAsset.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg bg-[#2F65F6] text-white hover:bg-blue-600 font-bold text-xs transition-colors flex items-center gap-1"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Direct Link
+                  </a>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
     </div>
   );
 }
+

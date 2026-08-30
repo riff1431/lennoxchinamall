@@ -67,9 +67,13 @@ export function MediaDropzone({
       }
 
       const fileExt = (file.name.split(".").pop() || "").toLowerCase();
-      const isImage = file.type.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif", "svg", "avif"].includes(fileExt);
-      const isVideo = file.type.startsWith("video/") || ["mp4", "webm", "mov", "avi", "mkv"].includes(fileExt);
-      const isDoc = file.type.includes("pdf") || ["pdf", "doc", "docx", "txt"].includes(fileExt);
+      const imageExtensions = ["jpg", "jpeg", "png", "webp", "gif", "svg", "avif", "bmp", "ico", "tiff", "heic"];
+      const videoExtensions = ["mp4", "webm", "mov", "avi", "mkv", "m4v", "flv", "wmv", "3gp", "ogv", "ts", "qt"];
+      const docExtensions = ["pdf", "doc", "docx", "txt", "xls", "xlsx", "csv"];
+
+      const isVideo = file.type.startsWith("video/") || videoExtensions.includes(fileExt);
+      const isDoc = file.type.includes("pdf") || docExtensions.includes(fileExt);
+      const isImage = !isVideo && !isDoc && (file.type.startsWith("image/") || imageExtensions.includes(fileExt));
 
       const mediaType: "image" | "video" | "document" = isVideo
         ? "video"
@@ -219,7 +223,7 @@ export function MediaDropzone({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,video/*,.pdf,.doc,.docx"
+        accept="image/*,video/*,.pdf,.doc,.docx,.mp4,.mov,.webm,.avi,.mkv,.m4v,.flv,.wmv,.3gp,.ogv"
         onChange={handleFileChange}
         className="hidden"
       />

@@ -28,15 +28,52 @@ export async function uploadMediaFile(formData: FormData): Promise<{
     return { success: false, error: "No file provided." };
   }
 
+  if (file.size > 100 * 1024 * 1024) {
+    return { success: false, error: "File exceeds the maximum 100MB limit." };
+  }
+
   try {
     const fileExt = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const isVideo = file.type.startsWith("video/") || ["mp4", "webm", "mov", "avi"].includes(fileExt);
+    const videoExtensions = ["mp4", "webm", "mov", "avi", "mkv", "m4v", "flv", "wmv", "3gp", "ogv", "ts", "qt"];
+    const isVideo = file.type.startsWith("video/") || videoExtensions.includes(fileExt);
     const isDoc = file.type.includes("pdf") || ["pdf", "doc", "docx", "txt"].includes(fileExt);
     const mediaType: "image" | "video" | "document" = isVideo ? "video" : isDoc ? "document" : "image";
     
     // Format size
     const sizeInMb = file.size / (1024 * 1024);
     const sizeFormatted = sizeInMb >= 1 ? `${sizeInMb.toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`;
+
+    const getContentType = () => {
+      if (file.type && file.type !== "application/octet-stream" && file.type !== "") return file.type;
+      switch (fileExt) {
+        case "mov":
+        case "qt":
+          return "video/quicktime";
+        case "mp4":
+        case "m4v":
+          return "video/mp4";
+        case "webm":
+          return "video/webm";
+        case "avi":
+          return "video/x-msvideo";
+        case "mkv":
+          return "video/x-matroska";
+        case "png":
+          return "image/png";
+        case "webp":
+          return "image/webp";
+        case "gif":
+          return "image/gif";
+        case "svg":
+          return "image/svg+xml";
+        case "avif":
+          return "image/avif";
+        case "pdf":
+          return "application/pdf";
+        default:
+          return isVideo ? "video/mp4" : "image/jpeg";
+      }
+    };
 
     const supabase = await createClient();
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
@@ -47,7 +84,7 @@ export async function uploadMediaFile(formData: FormData): Promise<{
     const { data, error } = await supabase.storage
       .from(bucket)
       .upload(fileName, buffer, {
-        contentType: file.type || (isVideo ? "video/mp4" : "image/jpeg"),
+        contentType: getContentType(),
         upsert: true,
       });
 
