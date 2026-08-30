@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -228,8 +228,15 @@ export function ProductEditor({
 
   const estimatedAirCargoCost = useMemo(() => {
     if (chargeableWeight <= 0) return 0;
-    return Number((4.50 + chargeableWeight * 6.20).toFixed(2));
-  }, [chargeableWeight]);
+    const dgFee = cargoType !== "general" ? 2.50 : 0;
+    return Number((4.99 + chargeableWeight * 6.50 + dgFee).toFixed(2));
+  }, [chargeableWeight, cargoType]);
+
+  const estimatedSeaCargoCost = useMemo(() => {
+    if (cbm <= 0 && (weight || 0) <= 0) return 0;
+    const rt = Math.max(cbm, (weight || 0) / 1000, 0.05);
+    return Number((Math.max(15.0, 12.0 + rt * 45.0)).toFixed(2));
+  }, [cbm, weight]);
 
   const handleApplyPreset = (preset: (typeof PARCEL_PRESETS)[0]) => {
     setLength(preset.l);
@@ -253,23 +260,6 @@ export function ProductEditor({
         ]
   );
 
-  const [video1Title, setVideo1Title] = useState(
-    initialProduct?.videos?.[0]?.title || "Slot 1: Quality Inspection / Factory QC Teardown"
-  );
-  const [video1Url, setVideo1Url] = useState(
-    initialProduct?.videos?.[0]?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov"
-  );
-
-  const [video2Title, setVideo2Title] = useState(
-    initialProduct?.videos?.[1]?.title || "Slot 2: Live Flight / Hands-on Performance Demo"
-  );
-  const [video2Url, setVideo2Url] = useState(
-    initialProduct?.videos?.[1]?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov"
-  );
-
-  // Video Picker from Media Asset Library
-  const [videoPickerSlot, setVideoPickerSlot] = useState<1 | 2 | null>(null);
-  const [videoPickerSearch, setVideoPickerSearch] = useState("");
   const mediaAssets = useMediaStore((state) => state.media);
   const availableVideoAssets = useMemo(() => {
     return mediaAssets.filter(
@@ -280,6 +270,47 @@ export function ProductEditor({
         m.url.includes("/storage/hero-ad/")
     );
   }, [mediaAssets]);
+
+  const defaultQcVideo1 = availableVideoAssets[0] || {
+    name: "2026-04-30-69f39980682e5",
+    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+  };
+  const defaultQcVideo2 = availableVideoAssets[1] || {
+    name: "2026-04-30-69f399744ce0c",
+    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
+  };
+
+  const [video1Title, setVideo1Title] = useState(
+    initialProduct?.videos?.[0]?.title || `Slot 1: Quality Inspection / Factory QC Teardown (${defaultQcVideo1.name.replace(/\.[^/.]+$/, "")})`
+  );
+  const [video1Url, setVideo1Url] = useState(
+    initialProduct?.videos?.[0]?.url || defaultQcVideo1.url
+  );
+
+  const [video2Title, setVideo2Title] = useState(
+    initialProduct?.videos?.[1]?.title || `Slot 2: Live Flight / Hands-on Performance Demo (${defaultQcVideo2.name.replace(/\.[^/.]+$/, "")})`
+  );
+  const [video2Url, setVideo2Url] = useState(
+    initialProduct?.videos?.[1]?.url || defaultQcVideo2.url
+  );
+
+  // Dynamically update default videos in create mode if media store updates
+  useEffect(() => {
+    if (mode === "create" && (!initialProduct?.videos || initialProduct.videos.length === 0)) {
+      if (availableVideoAssets[0] && (!video1Url || video1Url.includes("dQw4w9WgXcQ"))) {
+        setVideo1Url(availableVideoAssets[0].url);
+        setVideo1Title(`Slot 1: Factory QC Teardown (${availableVideoAssets[0].name.replace(/\.[^/.]+$/, "")})`);
+      }
+      if (availableVideoAssets[1] && (!video2Url || video2Url.includes("dQw4w9WgXcQ"))) {
+        setVideo2Url(availableVideoAssets[1].url);
+        setVideo2Title(`Slot 2: Live Flight Demo (${availableVideoAssets[1].name.replace(/\.[^/.]+$/, "")})`);
+      }
+    }
+  }, [mode, initialProduct, availableVideoAssets, video1Url, video2Url]);
+
+  // Video Picker from Media Asset Library
+  const [videoPickerSlot, setVideoPickerSlot] = useState<1 | 2 | null>(null);
+  const [videoPickerSearch, setVideoPickerSearch] = useState("");
 
   const filteredVideoAssets = useMemo(() => {
     if (!videoPickerSearch.trim()) return availableVideoAssets;
@@ -1051,7 +1082,7 @@ export function ProductEditor({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                     <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
                       <span className="text-[10px] text-slate-400 block font-sans">CBM Volume</span>
                       <span className="text-base sm:text-lg font-black text-blue-400">
@@ -1060,23 +1091,31 @@ export function ProductEditor({
                     </div>
 
                     <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-sans">Volumetric Weight</span>
+                      <span className="text-[10px] text-slate-400 block font-sans">Volumetric Wt</span>
                       <span className="text-base sm:text-lg font-black text-amber-300">
                         {volumetricWeight.toFixed(2)} <span className="text-xs text-slate-500">KG</span>
                       </span>
                     </div>
 
                     <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-sans">Billable Weight</span>
+                      <span className="text-[10px] text-slate-400 block font-sans">Billable Wt</span>
                       <span className="text-base sm:text-lg font-black text-emerald-400">
                         {chargeableWeight.toFixed(2)} <span className="text-xs text-slate-500">KG</span>
                       </span>
                     </div>
 
                     <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block font-sans">Est. Airfreight</span>
+                      <span className="text-[10px] text-slate-400 block font-sans">Est. Airfreight ⚡</span>
                       <span className="text-base sm:text-lg font-black text-white">
                         ${estimatedAirCargoCost.toFixed(2)}{" "}
+                        <span className="text-xs text-slate-500 font-sans">USDT</span>
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block font-sans">Est. Sea Cargo 🚢</span>
+                      <span className="text-base sm:text-lg font-black text-cyan-300">
+                        ${estimatedSeaCargoCost.toFixed(2)}{" "}
                         <span className="text-xs text-slate-500 font-sans">USDT</span>
                       </span>
                     </div>

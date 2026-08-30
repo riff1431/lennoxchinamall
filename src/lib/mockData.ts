@@ -1430,10 +1430,10 @@ export interface MediaAsset {
 export const MOCK_MEDIA: MediaAsset[] = [
   {
     id: "med-v1",
-    name: "2026-04-30-69f399744ce0c",
-    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
+    name: "2026-04-30-69f39980682e5",
+    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
     type: "video",
-    size: "11.5 MB",
+    size: "51.4 MB",
     dimensions: "1080x1920",
     format: "MOV",
     category: "dual-video",
@@ -1441,10 +1441,10 @@ export const MOCK_MEDIA: MediaAsset[] = [
   },
   {
     id: "med-v2",
-    name: "2026-04-30-69f39980682e5",
-    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+    name: "2026-04-30-69f399744ce0c",
+    url: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
     type: "video",
-    size: "51.4 MB",
+    size: "11.5 MB",
     dimensions: "1080x1920",
     format: "MOV",
     category: "dual-video",

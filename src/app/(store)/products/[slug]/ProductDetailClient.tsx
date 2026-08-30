@@ -28,6 +28,8 @@ import {
   Sparkles,
   HelpCircle,
   AlertCircle,
+  Ship,
+  Box,
 } from "lucide-react";
 import { Product, Category } from "@/types/database";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
@@ -38,6 +40,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ReelsVideoModal, ReelsVideoData } from "@/components/common/ReelsVideoModal";
 import { useCartStore } from "@/store/useCartStore";
+import { calculateComprehensiveShipping } from "@/utils/shipping";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCompareStore } from "@/store/useCompareStore";
 import { useHistoryStore } from "@/store/useHistoryStore";
@@ -318,6 +321,24 @@ export function ProductDetailClient({
     return { ...defaults, ...specsMap };
   }, [product, currentVariant, category]);
 
+  const shippingMethod = useCartStore((state) => state.shippingMethod);
+  const setShippingMethod = useCartStore((state) => state.setShippingMethod);
+
+  // Dynamic Live Freight Calculation for Current Product & Quantity
+  const productShippingPreview = useMemo(() => {
+    return calculateComprehensiveShipping([
+      {
+        id: currentVariant?.id || product.id,
+        productId: product.id,
+        title: product.title,
+        quantity,
+        dimensions: product.dimensions,
+        weight: product.weight,
+        cargoType: product.cargo_type,
+      },
+    ]);
+  }, [product, currentVariant, quantity]);
+
   // Handlers
   const handleAddToCart = (openDrawer = true) => {
     if (isOutOfStock) return;
@@ -335,6 +356,9 @@ export function ProductDetailClient({
       stock: activeStock,
       attributes: currentVariant?.attributes as Record<string, string>,
       supplierCode: product.supplier_code || undefined,
+      dimensions: product.dimensions || undefined,
+      weight: product.weight ?? undefined,
+      cargoType: product.cargo_type || undefined,
     });
 
     setAddedToast(true);
@@ -835,30 +859,93 @@ export function ProductDetailClient({
               </div>
             </div>
 
-            {/* ── Logistics SLA & Payment Security Guarantee (Minimal 2-Box) ── */}
-            <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5 text-xs">
-              <div className="flex items-start gap-2.5">
-                <Plane className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-900 block font-heading">
-                    Air Cargo Priority: 5–8 Business Days
-                  </span>
-                  <span className="text-[11px] text-slate-500 block">
-                    Dispatches within 24h. Free air cargo on orders over $75 USDT.
-                  </span>
+            {/* ── Dynamic International Freight Logistics Calculator ── */}
+            <div className="p-4 sm:p-4.5 rounded-3xl bg-gradient-to-b from-white to-slate-50/60 border border-slate-200/90 shadow-xs space-y-3.5 text-xs font-montserrat">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <Plane className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-heading font-black text-xs uppercase tracking-wider text-slate-900 block">
+                      Freight Route &amp; Cost
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      Live calculated for {quantity} {quantity === 1 ? "unit" : "units"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 font-mono text-[10px] bg-slate-100/80 text-slate-700 font-bold px-2.5 py-1 rounded-full border border-slate-200/60">
+                  <Box className="w-3 h-3 text-slate-500" />
+                  <span>{productShippingPreview.totalGrossWeight.toFixed(2)} kg</span>
+                  <span className="text-slate-300">•</span>
+                  <span>{productShippingPreview.totalCbm.toFixed(4)} m³</span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5 pt-2 border-t border-slate-200/60">
-                <Coins className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-slate-900 block font-heading">
-                    Binance Pay USDT Escrow
-                  </span>
-                  <span className="text-[11px] text-slate-500 block">
-                    Zero gas fees. 30-Day Money-Back Warranty policy.
-                  </span>
-                </div>
+              {/* Air vs Sea Premium Segmented Switcher */}
+              <div className="grid grid-cols-2 gap-2 bg-slate-100/70 p-1 rounded-2xl border border-slate-200/60">
+                <button
+                  type="button"
+                  onClick={() => setShippingMethod("air")}
+                  className={`p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                    shippingMethod === "air"
+                      ? "bg-white text-[#00143D] shadow-xs ring-1 ring-slate-900/10"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase flex items-center gap-1.5 font-heading">
+                      <Zap className={`w-3.5 h-3.5 ${shippingMethod === "air" ? "fill-blue-500 text-blue-600" : "text-slate-400"}`} />
+                      Air Express
+                    </span>
+                    <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
+                      {productShippingPreview.air.totalCost === 0 ? "FREE" : `$${productShippingPreview.air.totalCost.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-[10px]">
+                    <span className="text-slate-500 font-medium">5–8 Business Days</span>
+                    <span className="text-[9px] font-bold font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">Fastest</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShippingMethod("sea")}
+                  className={`p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                    shippingMethod === "sea"
+                      ? "bg-white text-[#00143D] shadow-xs ring-1 ring-slate-900/10"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase flex items-center gap-1.5 font-heading">
+                      <Ship className={`w-3.5 h-3.5 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
+                      Sea Container
+                    </span>
+                    <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
+                      {productShippingPreview.sea.totalCost === 0 ? "FREE" : `$${productShippingPreview.sea.totalCost.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-[10px]">
+                    <span className="text-slate-500 font-medium">20–30 Days Bulk</span>
+                    <span className="text-[9px] font-bold font-mono text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded">Lowest Rate</span>
+                  </div>
+                </button>
+              </div>
+
+              {/* Minimal Telemetry Pill & Customs Route */}
+              <div className="flex items-center justify-between px-1 text-[11px] text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  Shenzhen Hub Departure • DDP Pre-Cleared
+                </span>
+                <span className="font-mono text-[10px] text-slate-400">
+                  {shippingMethod === "sea"
+                    ? `${productShippingPreview.sea.chargeableMetric} CBM billable`
+                    : `${productShippingPreview.air.chargeableMetric} kg billable`}
+                </span>
               </div>
             </div>
           </div>
@@ -1207,57 +1294,97 @@ export function ProductDetailClient({
 
             {/* Shipping & Warranty Tab */}
             {activeTab === "shipping" && (
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-heading font-black text-xs uppercase text-slate-900 mb-2 flex items-center gap-2">
-                    <Plane className="w-4 h-4 text-blue-600" />
-                    Global Airfreight &amp; Customs Guarantee
-                  </h4>
-                  <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
-                    All shipments depart directly from <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen (SZX) / Hong Kong (HKG)"}</span> air cargo consolidation facilities. Products undergo export customs pre-clearance with declared HS code <span className="font-mono font-bold text-blue-600">{product.hs_code || "8517.62.00"}</span>.
-                  </p>
+              <div className="space-y-6 font-montserrat">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-blue-50/50 border border-blue-100">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <Plane className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-black text-xs uppercase tracking-wider text-slate-900">
+                        Global Air &amp; Ocean Freight Guarantee
+                      </h4>
+                      <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                        Shipments depart directly from <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen (SZX) Hub"}</span> with export customs pre-clearance under HS Code <span className="font-mono font-bold text-blue-700">{product.hs_code || "8517.62.00"}</span>.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 px-3 py-1 rounded-full text-[10px] font-bold font-mono text-emerald-700 bg-emerald-100/80 border border-emerald-200 self-start sm:self-auto">
+                    100% DDP Covered
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Package Sizing</span>
-                    <h5 className="font-bold text-slate-900 text-xs">
-                      {dynamicSpecs["Package Dimensions"]}
-                    </h5>
-                    <p className="text-[11px] text-slate-500">Gross Shipping Weight: {dynamicSpecs["Gross Shipping Weight"]}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 transition-all space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider">01. Dimensions</span>
+                      <Box className="w-4 h-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
+                        {dynamicSpecs["Package Dimensions"]}
+                      </h5>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Gross Wt: {dynamicSpecs["Gross Shipping Weight"]}</p>
+                    </div>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase">Dispatch SLA</span>
-                    <h5 className="font-bold text-slate-900 text-xs">
-                      {product.lead_time || "Same Day Dispatch (24h)"}
-                    </h5>
-                    <p className="text-[11px] text-slate-500">Handed to carrier at Shenzhen Airport Hub</p>
+                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-300 transition-all space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wider">02. Dispatch SLA</span>
+                      <Clock className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm">
+                        {product.lead_time || "Same Day Dispatch (24h)"}
+                      </h5>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Shenzhen Airport Flight Facility</p>
+                    </div>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-amber-600 uppercase">Air Cargo DG Class</span>
-                    <h5 className="font-bold text-slate-900 text-xs truncate">
-                      {dynamicSpecs["Cargo Classification"]}
-                    </h5>
-                    <p className="text-[11px] text-slate-500">Certified for international air passenger/cargo transit</p>
+                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-amber-300 transition-all space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-wider">03. DG Class</span>
+                      <Zap className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-slate-900 text-xs truncate">
+                        {dynamicSpecs["Cargo Classification"]}
+                      </h5>
+                      <p className="text-[11px] text-slate-500 mt-0.5">PI967 Certified Air Passenger Pass</p>
+                    </div>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-purple-600 uppercase">Tariff &amp; HS Code</span>
-                    <h5 className="font-bold text-slate-900 text-xs font-mono">
-                      HS {product.hs_code || "8517.62.00"}
-                    </h5>
-                    <p className="text-[11px] text-slate-500">Fast-track automated export customs declaration</p>
+                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 transition-all space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-purple-600 uppercase tracking-wider">04. Customs Code</span>
+                      <ShieldCheck className="w-4 h-4 text-purple-500" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
+                        HS {product.hs_code || "8517.62.00"}
+                      </h5>
+                      <p className="text-[11px] text-slate-500 mt-0.5">Fast-track automated manifest</p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-slate-900 block">30-Day Money-Back Warranty</span>
-                    <span className="text-[11px] text-slate-500">Disputes settled instantly in USDT via Binance escrow.</span>
+                <div className="p-4 rounded-3xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="font-heading font-black text-xs uppercase tracking-wider block">
+                        30-Day Money-Back Warranty &amp; Binance Pay Escrow
+                      </span>
+                      <span className="text-[11px] text-slate-300">
+                        Disputes settled instantly in USDT via Binance escrow with zero gateway surcharge.
+                      </span>
+                    </div>
                   </div>
-                  <ShieldCheck className="w-6 h-6 text-emerald-600" />
+                  <span className="px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-[11px] font-mono shrink-0 uppercase tracking-wider">
+                    Buyer Protected
+                  </span>
                 </div>
               </div>
             )}

@@ -23,6 +23,7 @@ import {
   Clock,
   Sparkles,
   AlertCircle,
+  Ship,
 } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
@@ -312,61 +313,63 @@ export default function CartPage() {
               {/* Dynamic Shipping Selection */}
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span className="flex items-center gap-1.5 font-heading">
+                  <span className="flex items-center gap-1.5 font-heading uppercase tracking-wider text-[11px]">
                     <Truck className="w-3.5 h-3.5 text-blue-600" />
                     Freight Shipping Route
                   </span>
-                  <span className="font-mono text-[11px] text-slate-400">
-                    {shippingBreakdown.totalGrossWeight.toFixed(2)}kg • {shippingBreakdown.totalCbm.toFixed(3)}m³
+                  <span className="font-mono text-[10px] text-slate-400 font-semibold">
+                    {shippingBreakdown.totalGrossWeight.toFixed(2)} kg • {shippingBreakdown.totalCbm.toFixed(3)} m³
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-200/70">
                   <button
                     type="button"
                     onClick={() => setShippingMethod("air")}
-                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer ${
                       shippingMethod === "air"
-                        ? "border-[#00143D] bg-blue-50/70 ring-1 ring-[#00143D] text-[#00143D]"
-                        : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                        ? "bg-white text-slate-900 shadow-xs border border-slate-300 ring-1 ring-blue-500/20"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase font-heading flex items-center gap-1">
-                        ⚡ Direct Air
+                      <span className="text-xs font-black uppercase font-heading flex items-center gap-1.5">
+                        <Zap className={`w-3.5 h-3.5 ${shippingMethod === "air" ? "fill-blue-500 text-blue-600" : "text-slate-400"}`} />
+                        Direct Air
                       </span>
-                      <span className="text-xs font-mono font-black">
+                      <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
                         {shippingBreakdown.air.totalCost === 0 ? "FREE" : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-500 block mt-0.5">5–8 Days Priority</span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">5–8 Days Priority</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setShippingMethod("sea")}
-                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer ${
                       shippingMethod === "sea"
-                        ? "border-[#00143D] bg-blue-50/70 ring-1 ring-[#00143D] text-[#00143D]"
-                        : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                        ? "bg-white text-slate-900 shadow-xs border border-slate-300 ring-1 ring-blue-500/20"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase font-heading flex items-center gap-1">
-                        🚢 Sea Cargo
+                      <span className="text-xs font-black uppercase font-heading flex items-center gap-1.5">
+                        <Ship className={`w-3.5 h-3.5 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
+                        Sea Cargo
                       </span>
-                      <span className="text-xs font-mono font-black">
+                      <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
                         {shippingBreakdown.sea.totalCost === 0 ? "FREE" : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-500 block mt-0.5">20–30 Days Bulk Container</span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">20–30 Days Bulk</span>
                   </button>
                 </div>
               </div>
 
               {/* Price Computations */}
-              <div className="space-y-3 text-xs pt-2 border-t border-slate-100">
-                <div className="flex justify-between text-slate-600 font-semibold">
+              <div className="space-y-2.5 text-xs pt-3 border-t border-slate-100 font-montserrat">
+                <div className="flex justify-between text-slate-600 font-medium">
                   <span>Procurement Subtotal</span>
                   <span className="font-bold text-slate-900 font-mono">{formatCurrency(subtotal)}</span>
                 </div>
@@ -380,7 +383,7 @@ export default function CartPage() {
                   </div>
                 )}
 
-                <div className="flex justify-between text-slate-600 font-semibold">
+                <div className="flex justify-between text-slate-600 font-medium">
                   <span>
                     {shippingMethod === "sea" ? "Ocean Container Freight" : "Priority Direct Air Cargo"} ({totalUnits} {totalUnits === 1 ? "unit" : "units"})
                   </span>
@@ -394,8 +397,8 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex justify-between text-base font-black text-[#00143D] pt-3 border-t border-slate-200">
-                  <span>Total Due (USDT)</span>
-                  <span className="text-xl text-[#FF1028] font-mono">
+                  <span className="font-heading uppercase text-xs tracking-wider">Total Due (USDT)</span>
+                  <span className="text-xl text-[#FF1028] font-mono font-black">
                     {formatCurrency(totalDue)}
                   </span>
                 </div>

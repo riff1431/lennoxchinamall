@@ -18,6 +18,9 @@ import {
   Truck,
   Check,
   Lock,
+  Zap,
+  Ship,
+  Box,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/helpers";
 import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
@@ -97,62 +100,65 @@ export function CartDrawer() {
         items.length > 0 ? (
           <div className="flex flex-col gap-3 w-full font-montserrat">
             {/* Dynamic Air vs Sea Freight Selector */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5">
-                <span className="flex items-center gap-1">
+            <div className="space-y-1.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 px-0.5">
+                <span className="flex items-center gap-1.5 font-heading uppercase tracking-wider text-[10px]">
                   <Truck className="w-3.5 h-3.5 text-blue-600" />
-                  Select Shipping Mode
+                  Freight Mode
                 </span>
-                <span className="font-mono text-[10px] text-slate-400">
-                  {shippingBreakdown.totalGrossWeight.toFixed(2)}kg • {shippingBreakdown.totalCbm.toFixed(3)}m³
+                <span className="font-mono text-[10px] text-slate-400 font-semibold">
+                  {shippingBreakdown.totalGrossWeight.toFixed(2)} kg • {shippingBreakdown.totalCbm.toFixed(3)} m³
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+
+              <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
                   onClick={() => setShippingMethod("air")}
-                  className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`p-2 rounded-xl text-left transition-all duration-200 cursor-pointer ${
                     shippingMethod === "air"
-                      ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600 text-blue-900"
-                      : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                      ? "bg-white text-slate-900 shadow-xs border border-slate-300 ring-1 ring-blue-500/20"
+                      : "bg-slate-100/70 text-slate-600 hover:bg-white/60 hover:text-slate-900 border border-transparent"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase flex items-center gap-1 font-heading">
-                      ⚡ By Air
+                      <Zap className={`w-3 h-3 ${shippingMethod === "air" ? "fill-blue-500 text-blue-600" : "text-slate-400"}`} />
+                      Air Cargo
                     </span>
-                    <span className="text-xs font-black font-mono">
+                    <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
                       {shippingBreakdown.air.totalCost === 0 ? "FREE" : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
                     </span>
                   </div>
-                  <span className="text-[9px] text-slate-500 block">5–8 Days Express</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">5–8 Days Express</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setShippingMethod("sea")}
-                  className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`p-2 rounded-xl text-left transition-all duration-200 cursor-pointer ${
                     shippingMethod === "sea"
-                      ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600 text-blue-900"
-                      : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                      ? "bg-white text-slate-900 shadow-xs border border-slate-300 ring-1 ring-blue-500/20"
+                      : "bg-slate-100/70 text-slate-600 hover:bg-white/60 hover:text-slate-900 border border-transparent"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase flex items-center gap-1 font-heading">
-                      🚢 By Sea
+                      <Ship className={`w-3 h-3 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
+                      Sea Cargo
                     </span>
-                    <span className="text-xs font-black font-mono">
+                    <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
                       {shippingBreakdown.sea.totalCost === 0 ? "FREE" : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
                     </span>
                   </div>
-                  <span className="text-[9px] text-slate-500 block">20–30 Days Container</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">20–30 Days Bulk</span>
                 </button>
               </div>
             </div>
 
             {/* Automatic Price Calculations */}
-            <div className="space-y-1.5 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-200">
-              <div className="flex justify-between text-slate-600 font-semibold">
+            <div className="space-y-1.5 text-xs bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
+              <div className="flex justify-between text-slate-600 font-medium">
                 <span>Items Subtotal</span>
                 <span className="font-bold text-slate-900 font-mono">{formatCurrency(subtotal)}</span>
               </div>
@@ -164,21 +170,21 @@ export function CartDrawer() {
                   <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-slate-600 font-semibold">
+              <div className="flex justify-between text-slate-600 font-medium">
                 <span>
-                  Shipping ({shippingMethod === "sea" ? "Ocean Freight" : "Air Cargo Express"})
+                  Shipping ({shippingMethod === "sea" ? "Ocean Container" : "Priority Air"})
                 </span>
                 <span className="font-bold text-slate-900 font-mono">
                   {activeShippingCost === 0 ? (
-                    <span className="text-[#10B981] font-black uppercase">FREE</span>
+                    <span className="text-emerald-600 font-black uppercase">FREE</span>
                   ) : (
                     formatCurrency(activeShippingCost)
                   )}
                 </span>
               </div>
               <div className="flex justify-between text-sm font-black text-[#00143D] pt-2 border-t border-slate-200">
-                <span>Total (USDT)</span>
-                <span className="text-base text-[#FF1028] price-tag font-mono">
+                <span className="font-heading uppercase text-xs tracking-wider">Total (USDT)</span>
+                <span className="text-base text-[#FF1028] price-tag font-mono font-black">
                   {formatCurrency(totalDue)}
                 </span>
               </div>
@@ -188,7 +194,7 @@ export function CartDrawer() {
             <Link
               href="/checkout"
               onClick={closeCart}
-              className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98"
+              className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 font-heading uppercase tracking-wider"
             >
               <Lock className="w-4 h-4" />
               <span>Checkout with Binance Pay USDT</span>
@@ -198,9 +204,9 @@ export function CartDrawer() {
             <Link
               href="/cart"
               onClick={closeCart}
-              className="w-full text-center text-xs font-bold text-slate-600 hover:text-[#00143D] transition-colors py-0.5"
+              className="w-full text-center text-xs font-bold text-slate-500 hover:text-[#00143D] transition-colors py-0.5"
             >
-              View Full Cart &amp; Edit Details &rarr;
+              View Full Cart &amp; Edit Details →
             </Link>
           </div>
         ) : undefined
