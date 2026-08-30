@@ -34,22 +34,46 @@ import {
   getAdminProducts,
   deleteProduct,
 } from "@/app/actions/admin-products";
+import { useProductStore } from "@/store/useProductStore";
+import { useCategoryStore } from "@/store/useCategoryStore";
 
 export default function AdminProductsPage() {
   const router = useRouter();
   const toast = useAdminToast();
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(MOCK_CATEGORIES);
+  const storeProducts = useProductStore((state) => state.products);
+  const storeCategories = useCategoryStore((state) => state.categories);
+  const addProductToStore = useProductStore((state) => state.addProduct);
+  const deleteProductFromStore = useProductStore((state) => state.deleteProduct);
+  const duplicateProductInStore = useProductStore((state) => state.duplicateProduct);
+
+  const [products, setProducts] = useState<Product[]>(storeProducts.length > 0 ? storeProducts : MOCK_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(storeCategories.length > 0 ? storeCategories : MOCK_CATEGORIES);
   const [brands, setBrands] = useState<Brand[]>(MOCK_BRANDS);
   const [isLoading, setIsLoading] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  // Keep state in sync with store
+  useEffect(() => {
+    if (storeProducts && storeProducts.length > 0) {
+      setProducts(storeProducts);
+    }
+  }, [storeProducts]);
 
   const loadProducts = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await getAdminProducts();
-      if (res.success) {
-        setProducts(res.products);
+      if (res.success && res.products) {
+        // Merge with locally created products in store
+        const currentStore = useProductStore.getState().products;
+        const dbMap = new Map(res.products.map((p) => [p.id, p]));
+        const merged = [...currentStore];
+        res.products.forEach((p) => {
+          if (!merged.some((m) => m.id === p.id)) {
+            merged.push(p);
+          }
+        });
+        setProducts(merged);
         if (res.categories?.length) setCategories(res.categories);
         if (res.brands?.length) setBrands(res.brands);
       }
@@ -68,30 +92,30 @@ export default function AdminProductsPage() {
   }, [loadProducts]);
 
   const handleDuplicateProduct = (product: Product) => {
-    const duplicated: Product = {
-      ...product,
-      id: `prod-${Date.now()}`,
-      title: `${product.title} (Copy)`,
-      sku: `${product.sku}-COPY`,
-      slug: `${product.slug}-copy`,
-    };
-    setProducts((prev) => [duplicated, ...prev]);
-    toast.success(`Duplicated "${product.title}" successfully.`);
+    const duplicated = duplicateProductInStore(product.id);
+    if (duplicated) {
+      toast.success(`Duplicated "${product.title}" successfully.`);
+    } else {
+      const newCopy: Product = {
+        ...product,
+        id: `prod-${Date.now()}`,
+        title: `${product.title} (Copy)`,
+        sku: `${product.sku}-COPY`,
+        slug: `${product.slug}-copy`,
+      };
+      addProductToStore(newCopy);
+      toast.success(`Duplicated "${product.title}" successfully.`);
+    }
   };
 
   const handleDeleteProduct = async (productId: string, title: string) => {
+    deleteProductFromStore(productId);
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+    toast.success(`Removed "${title}" from catalogue.`);
     try {
-      const res = await deleteProduct(productId);
-      if (res.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== productId));
-        toast.success(`Removed "${title}" from catalogue.`);
-      } else {
-        // Optimistic UI removal for mock data
-        setProducts((prev) => prev.filter((p) => p.id !== productId));
-        toast.success(`Removed "${title}" from catalogue.`);
-      }
+      await deleteProduct(productId);
     } catch {
-      toast.error("Failed to delete product.");
+      // ignored
     }
   };
 

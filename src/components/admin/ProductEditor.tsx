@@ -40,6 +40,7 @@ import {
   AdminFormSection,
 } from "@/components/admin/forms";
 import { useCategoryStore } from "@/store/useCategoryStore";
+import { useProductStore } from "@/store/useProductStore";
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { formatCurrency, slugify, cn } from "@/utils/helpers";
 import { createProduct, updateProduct } from "@/app/actions/admin-products";
@@ -203,6 +204,38 @@ export function ProductEditor({
       if (mode === "edit" && initialProduct?.id) {
         const res = await updateProduct(initialProduct.id, formData);
         if (res.success) {
+          useProductStore.getState().updateProduct(initialProduct.id, {
+            title: title.trim(),
+            slug: slug.trim() || slugify(title),
+            sku: sku.trim(),
+            category_id: categoryId,
+            brand_id: brandId,
+            short_description: shortDescription.trim(),
+            description: description.trim(),
+            base_price: basePrice,
+            compare_at_price: compareAtPrice,
+            cost,
+            supplier_code: supplierCode.trim(),
+            shipping_origin: shippingOrigin.trim(),
+            weight,
+            status,
+            is_featured: isFeatured,
+            is_flash_deal: isFlashDeal,
+            is_best_seller: isBestSeller,
+            is_new_arrival: isNewArrival,
+            seo_title: seoTitle.trim(),
+            seo_description: seoDescription.trim(),
+            tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+            media: images.map((url, i) => ({
+              id: `m-${Date.now()}-${i}`,
+              product_id: initialProduct.id,
+              url,
+              alt: title,
+              type: "image" as const,
+              position: i + 1,
+              created_at: new Date().toISOString(),
+            })),
+          });
           toast.success(res.message || `Updated "${title}" successfully!`);
           router.push("/admin/products");
         } else {
@@ -211,6 +244,73 @@ export function ProductEditor({
       } else {
         const res = await createProduct(formData);
         if (res.success) {
+          if (res.product) {
+            useProductStore.getState().addProduct(res.product);
+          } else {
+            const newProdObj: Product = {
+              id: res.productId || `prod-${Date.now()}`,
+              title: title.trim(),
+              slug: slug.trim() || slugify(title),
+              sku: sku.trim(),
+              category_id: categoryId,
+              brand_id: brandId,
+              short_description: shortDescription.trim(),
+              description: description.trim(),
+              base_price: basePrice,
+              compare_at_price: compareAtPrice,
+              cost,
+              supplier_code: supplierCode.trim(),
+              shipping_origin: shippingOrigin.trim(),
+              weight,
+              status,
+              is_featured: isFeatured,
+              is_flash_deal: isFlashDeal,
+              is_best_seller: isBestSeller,
+              is_new_arrival: isNewArrival,
+              flash_deal_ends_at: null,
+              seo_title: seoTitle.trim(),
+              seo_description: seoDescription.trim(),
+              dimensions: null,
+              hs_code: null,
+              avg_rating: 5.0,
+              review_count: 0,
+              sold_count: 0,
+              tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              media: (images.length > 0 ? images : ["https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80"]).map((url, i) => ({
+                id: `m-${Date.now()}-${i}`,
+                product_id: res.productId || `prod-${Date.now()}`,
+                url,
+                alt: title,
+                type: "image" as const,
+                position: i + 1,
+                created_at: new Date().toISOString(),
+              })),
+              variants: [
+                {
+                  id: `v-${Date.now()}`,
+                  product_id: res.productId || `prod-${Date.now()}`,
+                  sku: `${sku}-STD`,
+                  title: "Standard Edition",
+                  price: basePrice,
+                  compare_at_price: compareAtPrice,
+                  cost,
+                  stock: stock,
+                  low_stock_threshold: 10,
+                  weight: weight || 0.5,
+                  attributes: {},
+                  image_url: images[0] || null,
+                  supplier_code: supplierCode,
+                  is_active: true,
+                  position: 1,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                },
+              ],
+            };
+            useProductStore.getState().addProduct(newProdObj);
+          }
           toast.success(res.message || `Created "${title}" successfully!`);
           router.push("/admin/products");
         } else {
