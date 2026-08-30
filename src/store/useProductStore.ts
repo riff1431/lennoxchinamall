@@ -1,9 +1,10 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { Product } from "@/types/database";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
+import { safeLocalStorage } from "@/utils/safeStorage";
 
 interface ProductState {
   products: Product[];
@@ -110,6 +111,7 @@ export const useProductStore = create<ProductState>()(
     }),
     {
       name: "lennox_chinamall_products_v2",
+      storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({ products: state.products }),
     }
   )

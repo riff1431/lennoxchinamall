@@ -11,6 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/utils/helpers";
+import { compressImageFile } from "@/utils/imageCompression";
 
 export interface UploadedFileItem {
   id: string;
@@ -96,13 +97,8 @@ export function AdminUploader({
           const uploadedUrl = await onUpload(file);
           newUrls.push(uploadedUrl);
         } else {
-          // Read file as persistent Data URL so it persists across page reloads in localStorage
-          const dataUrl = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(new Error("Failed to read file"));
-            reader.readAsDataURL(file);
-          });
+          // Read and compress image to avoid exceeding localStorage quota
+          const dataUrl = await compressImageFile(file, 1200, 1200, 0.82);
           newUrls.push(dataUrl);
         }
       } catch (err: unknown) {

@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { safeLocalStorage } from "@/utils/safeStorage";
 import { AttributeGroup, MOCK_ATTRIBUTES } from "@/lib/mockData";
 
 export interface ExtendedAttributeGroup extends AttributeGroup {
@@ -250,6 +251,7 @@ export const useAttributeStore = create<AttributeState>()(
     }),
     {
       name: "lennox_chinamall_attributes_v2",
+      storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({ attributes: state.attributes }),
     }
   )

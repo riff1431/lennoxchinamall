@@ -1,8 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { calculateFreightCost } from "@/utils/shipping";
+import { safeLocalStorage } from "@/utils/safeStorage";
 
 export interface CartItemType {
   id: string; // unique item key: variantId or productId + attributes
@@ -251,6 +252,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "lennox_cart_storage",
+      storage: createJSONStorage(() => safeLocalStorage),
     }
   )
 );

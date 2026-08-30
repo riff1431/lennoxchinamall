@@ -1,9 +1,10 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { Category } from "@/types/database";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
+import { safeLocalStorage } from "@/utils/safeStorage";
 
 interface CategoryState {
   categories: Category[];
@@ -93,6 +94,7 @@ export const useCategoryStore = create<CategoryState>()(
     }),
     {
       name: "lennox_chinamall_categories_v1",
+      storage: createJSONStorage(() => safeLocalStorage),
       partialize: (state) => ({ categories: state.categories }),
       onRehydrateStorage: () => (state) => {
         if (state && Array.isArray(state.categories)) {

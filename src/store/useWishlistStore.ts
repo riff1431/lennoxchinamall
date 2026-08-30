@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { safeLocalStorage } from "@/utils/safeStorage";
 
 export interface WishlistItemType {
   id: string;
@@ -66,6 +67,7 @@ export const useWishlistStore = create<WishlistStore>()(
     }),
     {
       name: "lennox_wishlist_storage",
+      storage: createJSONStorage(() => safeLocalStorage),
     }
   )
 );

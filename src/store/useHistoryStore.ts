@@ -1,8 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { Product } from "@/types/database";
+import { safeLocalStorage } from "@/utils/safeStorage";
 
 export interface HistoryItem {
   id: string;
@@ -71,6 +72,7 @@ export const useHistoryStore = create<HistoryStore>()(
     }),
     {
       name: "lennox_browsing_history_storage",
+      storage: createJSONStorage(() => safeLocalStorage),
     }
   )
 );

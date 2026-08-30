@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { safeLocalStorage } from "@/utils/safeStorage";
 
 export interface CompareItemType {
   id: string;
@@ -70,6 +71,7 @@ export const useCompareStore = create<CompareStore>()(
     }),
     {
       name: "lennox_compare_storage",
+      storage: createJSONStorage(() => safeLocalStorage),
     }
   )
 );
