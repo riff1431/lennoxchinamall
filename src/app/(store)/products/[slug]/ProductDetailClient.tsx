@@ -232,16 +232,38 @@ export function ProductDetailClient({
         "https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=800&auto=format&fit=crop&q=80",
       ];
 
-  // Dynamic Video Configurations
+  // Helper for video embed thumbnails
+  const getEmbedThumbnail = (url: string): string | undefined => {
+    if (!url) return undefined;
+    if (url.includes("youtube.com/watch?v=")) {
+      const id = url.split("v=")[1]?.split("&")[0];
+      return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1]?.split("?")[0];
+      return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    }
+    if (url.includes("/embed/")) {
+      const id = url.split("/embed/")[1]?.split("?")[0];
+      if (id && !id.includes("/")) {
+        return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+      }
+    }
+    return undefined;
+  };
+
+  // Dynamic Video Configurations (Uses direct video frames, not product gallery photos)
   const video1Config = product.videos?.[0];
   const video1Url = video1Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov";
   const video1Title = video1Config?.title || `${product.title} — Hardware Teardown QC`;
-  const video1Poster = images[1] || images[0] || fallbackUrl;
+  const isVideo1Embed = video1Url.includes("youtube") || video1Url.includes("vimeo") || video1Url.includes("/embed/");
+  const video1Poster = isVideo1Embed ? getEmbedThumbnail(video1Url) : undefined;
 
   const video2Config = product.videos?.[1];
   const video2Url = video2Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov";
   const video2Title = video2Config?.title || `${product.title} — Live Performance & Stress Test`;
-  const video2Poster = images[2] || images[0] || fallbackUrl;
+  const isVideo2Embed = video2Url.includes("youtube") || video2Url.includes("vimeo") || video2Url.includes("/embed/");
+  const video2Poster = isVideo2Embed ? getEmbedThumbnail(video2Url) : undefined;
 
   // Dynamic Specifications
   const dynamicSpecs = useMemo(() => {
@@ -254,11 +276,38 @@ export function ProductDetailClient({
       Object.assign(specsMap, product.specs);
     }
 
+    const dims = (product.dimensions && typeof product.dimensions === "object" ? product.dimensions : null) as any;
+    const dimensionStr = dims && dims.length && dims.width && dims.height
+      ? `${dims.length} × ${dims.width} × ${dims.height} ${dims.unit || "cm"}`
+      : "30.0 × 20.0 × 12.0 cm";
+
+    const cargoLabels: Record<string, string> = {
+      general: "General Cargo (普货 - Non-Battery)",
+      lithium_built_in: "Built-in Lithium Battery (PI967 Air Cargo Pass)",
+      lithium_pure: "Pure Battery / Power Bank (PI965 Special Line)",
+      liquid_cream: "Liquid / Cream / Cosmetics (Airfreight Certified)",
+      magnetic: "Magnetized Goods (Shielded & Inspected)",
+      powder: "Powder / Chemical (Lab Tested)",
+    };
+
+    const packageLabels: Record<string, string> = {
+      corrugated_box: "Double-Wall Corrugated Air-Cargo Box",
+      bubble_mailer: "Padded Waterproof Bubble Mailer",
+      retail_box: "Original Factory Retail Color Box",
+      wooden_crate: "Reinforced Wooden Pallet / Crate",
+      anti_static: "Anti-Static Shielding Bag",
+    };
+
     const defaults: Record<string, string> = {
       "Manufacturing Origin": product.shipping_origin || "Shenzhen / Guangdong, China",
-      "QC Certification": "100% Pre-Departure Dual Laser & Load Tested (Grade A+)",
+      "Package Dimensions": dimensionStr,
+      "Gross Shipping Weight": product.weight ? `${product.weight} kg` : "0.85 kg",
+      "Net Product Weight": product.net_weight ? `${product.net_weight} kg` : (product.weight ? `${(product.weight * 0.8).toFixed(2)} kg` : "0.65 kg"),
+      "Cargo Classification": cargoLabels[product.cargo_type || ""] || "Built-in Lithium Battery (PI967 Air Cargo Pass)",
+      "Packaging Container": packageLabels[product.package_type || ""] || "Double-Wall Corrugated Air-Cargo Box",
+      "Dispatch SLA": product.lead_time || "Same Day Dispatch (Within 24h)",
       "HS Customs Code": product.hs_code || "8517.62.00",
-      "Shipping Weight": product.weight ? `${product.weight} kg` : "0.85 kg",
+      "QC Certification": "100% Pre-Departure Dual Laser & Load Tested (Grade A+)",
       "SKU Identifier": currentVariant?.sku || product.sku,
       "Direct Brand": product.brand?.name || "Lennox Direct Factory",
       "Department / Cluster": category?.name || "Hardware & Electronics",
@@ -846,16 +895,26 @@ export function ProductDetailClient({
                 }
                 className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
               >
-                {/* Live Video Preview */}
-                <video
-                  src={video1Url}
-                  poster={video1Poster}
-                  playsInline
-                  autoPlay
-                  muted
-                  loop
-                  className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500"
-                />
+                {/* Live Video Preview — Uses Actual Video Stream / Frame */}
+                {isVideo1Embed ? (
+                  <iframe
+                    src={video1Url}
+                    title={video1Title}
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80 group-hover:opacity-95"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                ) : (
+                  <video
+                    src={video1Url}
+                    poster={video1Poster}
+                    playsInline
+                    autoPlay
+                    muted
+                    loop
+                    preload="auto"
+                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-105 transition-all duration-500"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/40 to-transparent pointer-events-none" />
 
                 {/* Top Badges */}
@@ -911,16 +970,26 @@ export function ProductDetailClient({
                 }
                 className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
               >
-                {/* Live Video Preview */}
-                <video
-                  src={video2Url}
-                  poster={video2Poster}
-                  playsInline
-                  autoPlay
-                  muted
-                  loop
-                  className="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500"
-                />
+                {/* Live Video Preview — Uses Actual Video Stream / Frame */}
+                {isVideo2Embed ? (
+                  <iframe
+                    src={video2Url}
+                    title={video2Title}
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80 group-hover:opacity-95"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                ) : (
+                  <video
+                    src={video2Url}
+                    poster={video2Poster}
+                    playsInline
+                    autoPlay
+                    muted
+                    loop
+                    preload="auto"
+                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-105 transition-all duration-500"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/40 to-transparent pointer-events-none" />
 
                 {/* Top Badges */}
@@ -1138,13 +1207,51 @@ export function ProductDetailClient({
 
             {/* Shipping & Warranty Tab */}
             {activeTab === "shipping" && (
-              <div className="space-y-4">
-                <h4 className="font-heading font-black text-xs uppercase text-slate-900">
-                  Global Airfreight &amp; Customs Guarantee
-                </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  All shipments depart via Hong Kong (HKG) or Shenzhen (SZX) air cargo facilities directly to destination countries. Import duties are pre-cleared for North America and European Union destinations.
-                </p>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-heading font-black text-xs uppercase text-slate-900 mb-2 flex items-center gap-2">
+                    <Plane className="w-4 h-4 text-blue-600" />
+                    Global Airfreight &amp; Customs Guarantee
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
+                    All shipments depart directly from <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen (SZX) / Hong Kong (HKG)"}</span> air cargo consolidation facilities. Products undergo export customs pre-clearance with declared HS code <span className="font-mono font-bold text-blue-600">{product.hs_code || "8517.62.00"}</span>.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Package Sizing</span>
+                    <h5 className="font-bold text-slate-900 text-xs">
+                      {dynamicSpecs["Package Dimensions"]}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">Gross Shipping Weight: {dynamicSpecs["Gross Shipping Weight"]}</p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase">Dispatch SLA</span>
+                    <h5 className="font-bold text-slate-900 text-xs">
+                      {product.lead_time || "Same Day Dispatch (24h)"}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">Handed to carrier at Shenzhen Airport Hub</p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-amber-600 uppercase">Air Cargo DG Class</span>
+                    <h5 className="font-bold text-slate-900 text-xs truncate">
+                      {dynamicSpecs["Cargo Classification"]}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">Certified for international air passenger/cargo transit</p>
+                  </div>
+
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-purple-600 uppercase">Tariff &amp; HS Code</span>
+                    <h5 className="font-bold text-slate-900 text-xs font-mono">
+                      HS {product.hs_code || "8517.62.00"}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">Fast-track automated export customs declaration</p>
+                  </div>
+                </div>
+
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-slate-900 block">30-Day Money-Back Warranty</span>

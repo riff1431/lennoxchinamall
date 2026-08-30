@@ -223,6 +223,15 @@ export interface Brand {
   created_at: string;
 }
 
+export interface ProductDimensions {
+  length: number;
+  width: number;
+  height: number;
+  unit?: "cm" | "inch";
+  volumetric_weight?: number;
+  cbm?: number;
+}
+
 export interface Product {
   id: string;
   title: string;
@@ -242,11 +251,21 @@ export interface Product {
   is_flash_deal: boolean;
   flash_deal_ends_at: string | null;
   tags: string[];
-  weight: number | null;
-  dimensions: Json | null; // { length, width, height }
+  weight: number | null; // Gross shipping weight (KG)
+  net_weight?: number | null; // Net product weight (KG)
+  dimensions: ProductDimensions | Json | null; // { length, width, height, unit, volumetric_weight, cbm }
   shipping_origin: string | null;
   hs_code: string | null;
   supplier_code: string | null; // Private: admin only
+  cargo_type?: "general" | "lithium_built_in" | "lithium_pure" | "liquid_cream" | "magnetic" | "powder" | string | null;
+  package_type?: "corrugated_box" | "bubble_mailer" | "retail_box" | "wooden_crate" | "anti_static" | string | null;
+  customs_declared_value?: number | null;
+  customs_declaration_name?: string | null;
+  lead_time?: string | null;
+  domestic_shipping_cost?: number | null;
+  supplier_contact?: string | null;
+  moq?: number | null;
+  purchase_url?: string | null;
   seo_title: string | null;
   seo_description: string | null;
   avg_rating: number;

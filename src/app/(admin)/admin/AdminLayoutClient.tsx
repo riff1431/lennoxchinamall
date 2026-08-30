@@ -1264,7 +1264,7 @@ export function AdminLayoutClient({
       )}
 
       {/* ── Main Dynamic Content Canvas ── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* ── Sticky Modern Top Header Bar ── */}
         <header
           className={cn(
@@ -1731,7 +1731,7 @@ export function AdminLayoutClient({
         )}
 
         {/* ── Main Dynamic Content Canvas ── */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pt-2 overflow-x-hidden min-w-0">
+        <main className="flex-1 p-3 sm:p-5 lg:p-7 pt-2 min-w-0 pb-24 lg:pb-12">
           {children}
         </main>
 

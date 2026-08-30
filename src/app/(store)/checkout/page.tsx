@@ -69,7 +69,14 @@ export default function CheckoutPage() {
   const [state, setState] = useState("CA");
   const [postal, setPostal] = useState("94110");
   const [country, setCountry] = useState("United States");
-  const [shippingCourier, setShippingCourier] = useState<"air" | "sea">("air");
+  const storeShippingMethod = useCartStore((state) => state.shippingMethod);
+  const setStoreShippingMethod = useCartStore((state) => state.setShippingMethod);
+  const [shippingCourier, setShippingCourierState] = useState<"air" | "sea">(storeShippingMethod || "air");
+
+  const setShippingCourier = (method: "air" | "sea") => {
+    setShippingCourierState(method);
+    setStoreShippingMethod(method);
+  };
   const [customsNotes, setCustomsNotes] = useState("");
 
   // Payment Portal State

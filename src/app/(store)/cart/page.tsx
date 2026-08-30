@@ -45,6 +45,9 @@ export default function CartPage() {
   const discountAmount = useCartStore((state) => state.discountAmount);
   const couponCode = useCartStore((state) => state.couponCode);
   const isFreeShipping = useCartStore((state) => state.freeShipping);
+  const shippingMethod = useCartStore((state) => state.shippingMethod);
+  const setShippingMethod = useCartStore((state) => state.setShippingMethod);
+  const getShippingBreakdown = useCartStore((state) => state.getShippingBreakdown);
   const applyCoupon = useCartStore((state) => state.applyCoupon);
   const removeCoupon = useCartStore((state) => state.removeCoupon);
 
@@ -54,12 +57,10 @@ export default function CartPage() {
   const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
-  const shipping = calculateFreightCost(items, "air", {
-    isFreeShippingPromo: isFreeShipping,
-    orderSubtotal: subtotal,
-  });
-  const totalDue = Math.max(0, subtotal - discountAmount + shipping);
+  const shippingBreakdown = getShippingBreakdown();
+  const totalUnits = shippingBreakdown.totalUnits;
+  const activeShipping = shippingMethod === "sea" ? shippingBreakdown.sea.totalCost : shippingBreakdown.air.totalCost;
+  const totalDue = Math.max(0, subtotal - discountAmount + activeShipping);
 
   const freeShippingThreshold = FREIGHT_CONFIGS.air.freeThreshold || 150;
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
@@ -308,8 +309,63 @@ export default function CartPage() {
                 Order Sourcing Summary
               </h3>
 
+              {/* Dynamic Shipping Selection */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                  <span className="flex items-center gap-1.5 font-heading">
+                    <Truck className="w-3.5 h-3.5 text-blue-600" />
+                    Freight Shipping Route
+                  </span>
+                  <span className="font-mono text-[11px] text-slate-400">
+                    {shippingBreakdown.totalGrossWeight.toFixed(2)}kg • {shippingBreakdown.totalCbm.toFixed(3)}m³
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShippingMethod("air")}
+                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                      shippingMethod === "air"
+                        ? "border-[#00143D] bg-blue-50/70 ring-1 ring-[#00143D] text-[#00143D]"
+                        : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase font-heading flex items-center gap-1">
+                        ⚡ Direct Air
+                      </span>
+                      <span className="text-xs font-mono font-black">
+                        {shippingBreakdown.air.totalCost === 0 ? "FREE" : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 block mt-0.5">5–8 Days Priority</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShippingMethod("sea")}
+                    className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer ${
+                      shippingMethod === "sea"
+                        ? "border-[#00143D] bg-blue-50/70 ring-1 ring-[#00143D] text-[#00143D]"
+                        : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase font-heading flex items-center gap-1">
+                        🚢 Sea Cargo
+                      </span>
+                      <span className="text-xs font-mono font-black">
+                        {shippingBreakdown.sea.totalCost === 0 ? "FREE" : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 block mt-0.5">20–30 Days Bulk Container</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Price Computations */}
-              <div className="space-y-3 text-xs">
+              <div className="space-y-3 text-xs pt-2 border-t border-slate-100">
                 <div className="flex justify-between text-slate-600 font-semibold">
                   <span>Procurement Subtotal</span>
                   <span className="font-bold text-slate-900 font-mono">{formatCurrency(subtotal)}</span>
@@ -325,12 +381,14 @@ export default function CartPage() {
                 )}
 
                 <div className="flex justify-between text-slate-600 font-semibold">
-                  <span>Tracked Air Cargo ({totalUnits} {totalUnits === 1 ? "unit" : "units"})</span>
+                  <span>
+                    {shippingMethod === "sea" ? "Ocean Container Freight" : "Priority Direct Air Cargo"} ({totalUnits} {totalUnits === 1 ? "unit" : "units"})
+                  </span>
                   <span className="font-bold text-slate-900 font-mono">
-                    {shipping === 0 ? (
+                    {activeShipping === 0 ? (
                       <span className="text-emerald-600 font-black uppercase">FREE</span>
                     ) : (
-                      formatCurrency(shipping)
+                      formatCurrency(activeShipping)
                     )}
                   </span>
                 </div>

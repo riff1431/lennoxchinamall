@@ -32,6 +32,18 @@ import {
   Check,
   Search,
   FolderOpen,
+  Scale,
+  Plane,
+  Truck,
+  ShieldCheck,
+  Box,
+  Ruler,
+  Calculator,
+  AlertTriangle,
+  Info,
+  BatteryCharging,
+  Tag,
+  HelpCircle,
 } from "lucide-react";
 import { Product, Category, Brand, Variant, ProductStatus } from "@/types/database";
 import { MOCK_CATEGORIES, MOCK_BRANDS } from "@/lib/mockData";
@@ -58,6 +70,74 @@ interface ProductEditorProps {
   categories?: Category[];
   brands?: Brand[];
 }
+
+const PARCEL_PRESETS = [
+  {
+    id: "flyer",
+    label: "Small Flyer / Envelope",
+    icon: "✉️",
+    l: 22,
+    w: 15,
+    h: 3,
+    gw: 0.25,
+    nw: 0.18,
+    pkg: "bubble_mailer",
+    cargo: "general",
+    desc: "22×15×3 cm • 0.25 kg",
+  },
+  {
+    id: "tech_box",
+    label: "Standard Tech Box",
+    icon: "📦",
+    l: 30,
+    w: 20,
+    h: 12,
+    gw: 0.85,
+    nw: 0.65,
+    pkg: "retail_box",
+    cargo: "lithium_built_in",
+    desc: "30×20×12 cm • 0.85 kg",
+  },
+  {
+    id: "drone_combo",
+    label: "Drone Combo Kit",
+    icon: "🚁",
+    l: 36,
+    w: 26,
+    h: 14,
+    gw: 1.45,
+    nw: 1.10,
+    pkg: "corrugated_box",
+    cargo: "lithium_built_in",
+    desc: "36×26×14 cm • 1.45 kg",
+  },
+  {
+    id: "carton",
+    label: "Medium Carton",
+    icon: "📦",
+    l: 45,
+    w: 32,
+    h: 22,
+    gw: 2.80,
+    nw: 2.30,
+    pkg: "corrugated_box",
+    cargo: "general",
+    desc: "45×32×22 cm • 2.80 kg",
+  },
+  {
+    id: "heavy_crate",
+    label: "Large Heavy Cargo",
+    icon: "🛫",
+    l: 58,
+    w: 42,
+    h: 35,
+    gw: 6.50,
+    nw: 5.80,
+    pkg: "wooden_crate",
+    cargo: "general",
+    desc: "58×42×35 cm • 6.50 kg",
+  },
+];
 
 export function ProductEditor({
   mode,
@@ -96,9 +176,72 @@ export function ProductEditor({
   const [compareAtPrice, setCompareAtPrice] = useState<number>(initialProduct?.compare_at_price ?? 179.0);
   const [cost, setCost] = useState<number>(initialProduct?.cost ?? 52.0); // Secret Factory Cost
   const [supplierCode, setSupplierCode] = useState(initialProduct?.supplier_code || `SUP-SZ-${Math.floor(1000 + Math.random() * 9000)}`);
-  const [purchaseUrl, setPurchaseUrl] = useState("https://1688.com");
+  const [purchaseUrl, setPurchaseUrl] = useState(initialProduct?.purchase_url || "https://1688.com");
   const [shippingOrigin, setShippingOrigin] = useState(initialProduct?.shipping_origin || "Shenzhen, Guangdong, China");
-  const [weight, setWeight] = useState<number>(initialProduct?.weight ?? 0.85);
+  
+  // Physical Parcel Dimensions & Weights
+  const initialDims = (initialProduct?.dimensions && typeof initialProduct.dimensions === "object" ? initialProduct.dimensions : null) as any;
+  const [length, setLength] = useState<number>(initialDims?.length ?? 30);
+  const [width, setWidth] = useState<number>(initialDims?.width ?? 20);
+  const [height, setHeight] = useState<number>(initialDims?.height ?? 12);
+  const [dimensionUnit, setDimensionUnit] = useState<"cm" | "inch">(initialDims?.unit === "inch" ? "inch" : "cm");
+  const [weight, setWeight] = useState<number>(initialProduct?.weight ?? 0.85); // Gross shipping weight (KG)
+  const [netWeight, setNetWeight] = useState<number>(initialProduct?.net_weight ?? 0.65); // Net product weight (KG)
+
+  // Cargo, Packaging & Customs Compliance
+  const [cargoType, setCargoType] = useState<string>(initialProduct?.cargo_type || "lithium_built_in");
+  const [packageType, setPackageType] = useState<string>(initialProduct?.package_type || "corrugated_box");
+  const [hsCode, setHsCode] = useState<string>(initialProduct?.hs_code || "8517.62.00");
+  const [customsDeclaredValue, setCustomsDeclaredValue] = useState<number>(
+    initialProduct?.customs_declared_value ?? (initialProduct?.base_price ? Math.round(initialProduct.base_price * 0.35) : 25.0)
+  );
+  const [customsDeclarationName, setCustomsDeclarationName] = useState<string>(
+    initialProduct?.customs_declaration_name || "Electronic Device Accessory / 消费电子配件"
+  );
+  const [leadTime, setLeadTime] = useState<string>(initialProduct?.lead_time || "Same Day Dispatch (24h)");
+  const [domesticShippingCost, setDomesticShippingCost] = useState<number>(initialProduct?.domestic_shipping_cost ?? 1.50);
+  const [supplierContact, setSupplierContact] = useState<string>(initialProduct?.supplier_contact || "");
+  const [moq, setMoq] = useState<number>(initialProduct?.moq ?? 1);
+
+  // Dynamic Logistics Computations
+  const cbm = useMemo(() => {
+    if (length <= 0 || width <= 0 || height <= 0) return 0;
+    if (dimensionUnit === "inch") {
+      return Number(((length * width * height * 16.387) / 1000000).toFixed(4));
+    }
+    return Number(((length * width * height) / 1000000).toFixed(4));
+  }, [length, width, height, dimensionUnit]);
+
+  const volumetricWeight = useMemo(() => {
+    if (length <= 0 || width <= 0 || height <= 0) return 0;
+    const lCm = dimensionUnit === "inch" ? length * 2.54 : length;
+    const wCm = dimensionUnit === "inch" ? width * 2.54 : width;
+    const hCm = dimensionUnit === "inch" ? height * 2.54 : height;
+    return Number(((lCm * wCm * hCm) / 5000).toFixed(2));
+  }, [length, width, height, dimensionUnit]);
+
+  const chargeableWeight = useMemo(() => {
+    return Number(Math.max(weight || 0, volumetricWeight || 0).toFixed(2));
+  }, [weight, volumetricWeight]);
+
+  const isVolumetricChargeApplied = volumetricWeight > (weight || 0);
+
+  const estimatedAirCargoCost = useMemo(() => {
+    if (chargeableWeight <= 0) return 0;
+    return Number((4.50 + chargeableWeight * 6.20).toFixed(2));
+  }, [chargeableWeight]);
+
+  const handleApplyPreset = (preset: (typeof PARCEL_PRESETS)[0]) => {
+    setLength(preset.l);
+    setWidth(preset.w);
+    setHeight(preset.h);
+    setDimensionUnit("cm");
+    setWeight(preset.gw);
+    setNetWeight(preset.nw);
+    setPackageType(preset.pkg);
+    setCargoType(preset.cargo);
+    toast.info(`Applied preset "${preset.label}" (${preset.desc})`);
+  };
 
   // Media & Video Showcases
   const [images, setImages] = useState<string[]>(
@@ -213,7 +356,6 @@ export function ProductEditor({
       formData.set("cost", String(cost));
       formData.set("supplier_code", supplierCode.trim());
       formData.set("shipping_origin", shippingOrigin.trim());
-      formData.set("weight", String(weight));
       formData.set("stock", String(stock));
       formData.set("status", status);
       formData.set("is_featured", String(isFeatured));
@@ -224,6 +366,26 @@ export function ProductEditor({
       formData.set("seo_description", seoDescription.trim());
       formData.set("tags", tags);
 
+      // Sizing, Weight & Logistics
+      formData.set("length", String(length));
+      formData.set("width", String(width));
+      formData.set("height", String(height));
+      formData.set("dimension_unit", dimensionUnit);
+      formData.set("weight", String(weight));
+      formData.set("net_weight", String(netWeight));
+      formData.set("volumetric_weight", String(volumetricWeight));
+      formData.set("cbm", String(cbm));
+      formData.set("cargo_type", cargoType);
+      formData.set("package_type", packageType);
+      formData.set("hs_code", hsCode.trim());
+      formData.set("customs_declared_value", String(customsDeclaredValue));
+      formData.set("customs_declaration_name", customsDeclarationName.trim());
+      formData.set("lead_time", leadTime);
+      formData.set("domestic_shipping_cost", String(domesticShippingCost));
+      formData.set("supplier_contact", supplierContact.trim());
+      formData.set("moq", String(moq));
+      formData.set("purchase_url", purchaseUrl.trim());
+
       // Videos
       formData.set("video1_url", video1Url);
       formData.set("video1_title", video1Title);
@@ -232,6 +394,15 @@ export function ProductEditor({
 
       // Images
       images.forEach((img) => formData.append("images", img));
+
+      const dimensionsObj = {
+        length,
+        width,
+        height,
+        unit: dimensionUnit,
+        volumetric_weight: volumetricWeight,
+        cbm,
+      };
 
       if (mode === "edit" && initialProduct?.id) {
         const res = await updateProduct(initialProduct.id, formData);
@@ -250,6 +421,18 @@ export function ProductEditor({
             supplier_code: supplierCode.trim(),
             shipping_origin: shippingOrigin.trim(),
             weight,
+            net_weight: netWeight,
+            dimensions: dimensionsObj,
+            hs_code: hsCode.trim(),
+            cargo_type: cargoType,
+            package_type: packageType,
+            customs_declared_value: customsDeclaredValue,
+            customs_declaration_name: customsDeclarationName.trim(),
+            lead_time: leadTime,
+            domestic_shipping_cost: domesticShippingCost,
+            supplier_contact: supplierContact.trim(),
+            moq,
+            purchase_url: purchaseUrl.trim(),
             status,
             is_featured: isFeatured,
             is_flash_deal: isFlashDeal,
@@ -267,6 +450,26 @@ export function ProductEditor({
               position: i + 1,
               created_at: new Date().toISOString(),
             })),
+            videos: [
+              {
+                id: `v-${Date.now()}-1`,
+                product_id: initialProduct.id,
+                url: video1Url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+                title: video1Title || "Slot 1: Hardware Teardown QC",
+                type: video1Url.includes("youtube") || video1Url.includes("vimeo") || video1Url.includes("/embed/") ? ("embed" as const) : ("uploaded" as const),
+                position: 1,
+                created_at: new Date().toISOString(),
+              },
+              {
+                id: `v-${Date.now()}-2`,
+                product_id: initialProduct.id,
+                url: video2Url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
+                title: video2Title || "Slot 2: Live Flight Demo",
+                type: video2Url.includes("youtube") || video2Url.includes("vimeo") || video2Url.includes("/embed/") ? ("embed" as const) : ("uploaded" as const),
+                position: 2,
+                created_at: new Date().toISOString(),
+              },
+            ],
           });
           toast.success(res.message || `Updated "${title}" successfully!`);
           router.push("/admin/products");
@@ -294,6 +497,18 @@ export function ProductEditor({
               supplier_code: supplierCode.trim(),
               shipping_origin: shippingOrigin.trim(),
               weight,
+              net_weight: netWeight,
+              dimensions: dimensionsObj,
+              hs_code: hsCode.trim(),
+              cargo_type: cargoType,
+              package_type: packageType,
+              customs_declared_value: customsDeclaredValue,
+              customs_declaration_name: customsDeclarationName.trim(),
+              lead_time: leadTime,
+              domestic_shipping_cost: domesticShippingCost,
+              supplier_contact: supplierContact.trim(),
+              moq,
+              purchase_url: purchaseUrl.trim(),
               status,
               is_featured: isFeatured,
               is_flash_deal: isFlashDeal,
@@ -302,8 +517,6 @@ export function ProductEditor({
               flash_deal_ends_at: null,
               seo_title: seoTitle.trim(),
               seo_description: seoDescription.trim(),
-              dimensions: null,
-              hs_code: null,
               avg_rating: 5.0,
               review_count: 0,
               sold_count: 0,
@@ -319,6 +532,26 @@ export function ProductEditor({
                 position: i + 1,
                 created_at: new Date().toISOString(),
               })),
+              videos: [
+                {
+                  id: `v-${Date.now()}-1`,
+                  product_id: res.productId || `prod-${Date.now()}`,
+                  url: video1Url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
+                  title: video1Title || "Slot 1: Hardware Teardown QC",
+                  type: video1Url.includes("youtube") || video1Url.includes("vimeo") || video1Url.includes("/embed/") ? ("embed" as const) : ("uploaded" as const),
+                  position: 1,
+                  created_at: new Date().toISOString(),
+                },
+                {
+                  id: `v-${Date.now()}-2`,
+                  product_id: res.productId || `prod-${Date.now()}`,
+                  url: video2Url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
+                  title: video2Title || "Slot 2: Live Flight Demo",
+                  type: video2Url.includes("youtube") || video2Url.includes("vimeo") || video2Url.includes("/embed/") ? ("embed" as const) : ("uploaded" as const),
+                  position: 2,
+                  created_at: new Date().toISOString(),
+                },
+              ],
               variants: [
                 {
                   id: `v-${Date.now()}`,
@@ -436,7 +669,7 @@ export function ProductEditor({
         {/* Main Workspace (Left 8 Cols) */}
         <div className="lg:col-span-8 space-y-5">
           {/* Form Tabs Navigation */}
-          <div className="flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2.5 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5 overflow-x-auto no-scrollbar scroll-smooth overscroll-x-contain py-1">
             {(
               [
                 { id: "general", label: "General & Specs", icon: Package },
@@ -454,7 +687,7 @@ export function ProductEditor({
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "px-3.5 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
+                    "px-3.5 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer shrink-0",
                     isActive
                       ? "bg-[#00143D] text-white shadow-xs font-heading"
                       : "bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -675,10 +908,11 @@ export function ProductEditor({
                 </div>
               </AdminFormSection>
 
+              {/* Protected China Factory Sourcing Secrets */}
               <AdminFormSection
-                title="Protected China Factory Sourcing Secrets"
+                title="Protected China Factory Sourcing & Supplier Secrets"
                 icon={Lock}
-                description="Encrypted supplier identifiers and direct 1688 procurement links are strictly restricted to admin eyes."
+                description="Encrypted supplier identifiers, direct 1688 wholesale links, and private negotiation records restricted to admin eyes."
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <AdminInput
@@ -687,6 +921,7 @@ export function ProductEditor({
                     value={supplierCode}
                     onChange={(e) => setSupplierCode(e.target.value)}
                     placeholder="SUP-SZ-9012"
+                    helperText="Internal code mapped to Chinese factory / vendor."
                   />
 
                   <AdminInput
@@ -694,6 +929,7 @@ export function ProductEditor({
                     value={shippingOrigin}
                     onChange={(e) => setShippingOrigin(e.target.value)}
                     placeholder="Shenzhen, Guangdong, China"
+                    helperText="Primary dispatch airport / consolidation warehouse."
                   />
 
                   <div className="sm:col-span-2">
@@ -705,6 +941,7 @@ export function ProductEditor({
                           value={purchaseUrl}
                           onChange={(e) => setPurchaseUrl(e.target.value)}
                           placeholder="https://detail.1688.com/offer/..."
+                          helperText="Direct procurement URL for purchasing team restock."
                         />
                       </div>
                       {purchaseUrl && (
@@ -712,24 +949,315 @@ export function ProductEditor({
                           href={purchaseUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="mt-6 px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors text-xs font-bold flex items-center gap-1 shrink-0"
+                          className="mt-6 px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors text-xs font-bold flex items-center gap-1 shrink-0 cursor-pointer"
                           title="Test Supplier Link"
                         >
                           <ExternalLink className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Open</span>
+                          <span>Open Link</span>
                         </a>
                       )}
                     </div>
                   </div>
 
                   <AdminInput
-                    label="Parcel Weight (KG)"
+                    label="Supplier Contact / WeChat / WangWang ID"
+                    value={supplierContact}
+                    onChange={(e) => setSupplierContact(e.target.value)}
+                    placeholder="WeChat: factory_sz_888 / WangWang: szdrone_oem"
+                    helperText="Private factory rep contact details for bulk inquiries."
+                  />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <AdminInput
+                      label="Factory MOQ (Units)"
+                      type="number"
+                      min={1}
+                      value={moq}
+                      onChange={(e) => setMoq(Math.max(1, Number(e.target.value)))}
+                      helperText="Minimum order quantity."
+                    />
+
+                    <AdminInput
+                      label="China Domestic Courier (¥ / $)"
+                      type="number"
+                      step="0.1"
+                      min={0}
+                      value={domesticShippingCost}
+                      onChange={(e) => setDomesticShippingCost(Number(e.target.value))}
+                      helperText="Inland fee to Shenzhen Hub."
+                    />
+                  </div>
+                </div>
+              </AdminFormSection>
+
+              {/* China Sourcing Logistics & Parcel Dimensions Engine */}
+              <AdminFormSection
+                title="China Sourcing Logistics & Parcel Dimensions Engine"
+                icon={Box}
+                description="Live volumetric & air cargo calculators, physical package dimensions, hazardous cargo certification, and customs declarations."
+                badge={
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/40">
+                    AIR CARGO READY
+                  </span>
+                }
+              >
+                {/* 1. Quick-Fill Parcel Presets */}
+                <div className="space-y-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 font-heading">
+                      <Zap className="w-3.5 h-3.5 text-amber-500" />
+                      1-Click Package Dimension Presets
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">Quick auto-fill</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {PARCEL_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => handleApplyPreset(preset)}
+                        className="px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-[#2F65F6] hover:bg-blue-50/50 dark:hover:bg-blue-950/30 text-slate-700 dark:text-slate-300 transition-all flex items-center gap-1.5 cursor-pointer group"
+                      >
+                        <span>{preset.icon}</span>
+                        <span className="font-bold text-slate-900 dark:text-white group-hover:text-[#2F65F6]">
+                          {preset.label}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">({preset.desc})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Interactive Real-Time Logistics Telemetry Bar */}
+                <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3 shadow-sm border border-slate-800 font-mono">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                      <Calculator className="w-3.5 h-3.5 text-blue-400" />
+                      Live Air Cargo Freight &amp; Sizing Engine
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1",
+                        isVolumetricChargeApplied
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                      )}
+                    >
+                      <Scale className="w-3 h-3" />
+                      {isVolumetricChargeApplied
+                        ? "Charged by Volumetric Weight (Size Heavy)"
+                        : "Charged by Gross Weight (Actual Weight)"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block font-sans">CBM Volume</span>
+                      <span className="text-base sm:text-lg font-black text-blue-400">
+                        {cbm.toFixed(4)} <span className="text-xs text-slate-500">m³</span>
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block font-sans">Volumetric Weight</span>
+                      <span className="text-base sm:text-lg font-black text-amber-300">
+                        {volumetricWeight.toFixed(2)} <span className="text-xs text-slate-500">KG</span>
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block font-sans">Billable Weight</span>
+                      <span className="text-base sm:text-lg font-black text-emerald-400">
+                        {chargeableWeight.toFixed(2)} <span className="text-xs text-slate-500">KG</span>
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block font-sans">Est. Airfreight</span>
+                      <span className="text-base sm:text-lg font-black text-white">
+                        ${estimatedAirCargoCost.toFixed(2)}{" "}
+                        <span className="text-xs text-slate-500 font-sans">USDT</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Physical Dimensions (L, W, H) & Unit Selector */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 font-heading flex items-center gap-1.5">
+                      <Ruler className="w-3.5 h-3.5 text-blue-500" />
+                      Parcel Physical Dimensions (L × W × H)
+                    </label>
+
+                    {/* Unit Switcher */}
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setDimensionUnit("cm")}
+                        className={cn(
+                          "px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer",
+                          dimensionUnit === "cm"
+                            ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                            : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                        )}
+                      >
+                        Centimeters (cm)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDimensionUnit("inch")}
+                        className={cn(
+                          "px-2.5 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer",
+                          dimensionUnit === "inch"
+                            ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
+                            : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                        )}
+                      >
+                        Inches (in)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <AdminInput
+                      label={`Length (${dimensionUnit})`}
+                      type="number"
+                      step="0.1"
+                      min={0.1}
+                      value={length}
+                      onChange={(e) => setLength(Math.max(0, Number(e.target.value)))}
+                      placeholder="30"
+                      helperText="Longest side of shipping carton."
+                    />
+
+                    <AdminInput
+                      label={`Width (${dimensionUnit})`}
+                      type="number"
+                      step="0.1"
+                      min={0.1}
+                      value={width}
+                      onChange={(e) => setWidth(Math.max(0, Number(e.target.value)))}
+                      placeholder="20"
+                      helperText="Median side of carton."
+                    />
+
+                    <AdminInput
+                      label={`Height (${dimensionUnit})`}
+                      type="number"
+                      step="0.1"
+                      min={0.1}
+                      value={height}
+                      onChange={(e) => setHeight(Math.max(0, Number(e.target.value)))}
+                      placeholder="12"
+                      helperText="Vertical height of carton."
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Dual Weight Breakdown (Gross vs. Net) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <AdminInput
+                    label="Gross Shipping Weight (KG)"
+                    required
                     type="number"
                     step="0.01"
+                    min={0.01}
                     value={weight}
                     onChange={(e) => setWeight(Number(e.target.value))}
-                    helperText="Used for calculated Air Cargo express rates."
+                    helperText="Total boxed weight including bubble wrap and outer carton."
                   />
+
+                  <AdminInput
+                    label="Net Product Weight (KG)"
+                    type="number"
+                    step="0.01"
+                    min={0.01}
+                    value={netWeight}
+                    onChange={(e) => setNetWeight(Number(e.target.value))}
+                    helperText="Bare product weight (used in customer specs table)."
+                  />
+                </div>
+
+                {/* 5. Dangerous Goods / Battery & Packaging Classification */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <AdminSelect
+                    label="Cargo & Battery Classification (Airfreight DG Class)"
+                    value={cargoType}
+                    onChange={(e) => setCargoType(e.target.value)}
+                    options={[
+                      { value: "general", label: "📦 General Cargo (普货 - Standard Non-Battery)" },
+                      { value: "lithium_built_in", label: "🔋 Built-in Lithium Battery (PI967 - Drone / Phone)" },
+                      { value: "lithium_pure", label: "⚡ Pure Lithium Battery / Power Bank (PI965)" },
+                      { value: "liquid_cream", label: "🧴 Liquid / Cream / Cosmetics (化妆品/液体)" },
+                      { value: "magnetic", label: "🧲 Magnetized Goods / Speaker (带磁货物)" },
+                      { value: "powder", label: "🧪 Powder / Chemical (粉末敏感品)" },
+                    ]}
+                    helperText="Mandatory for China Customs export screening and airline manifest."
+                  />
+
+                  <AdminSelect
+                    label="Packaging Material & Outer Container"
+                    value={packageType}
+                    onChange={(e) => setPackageType(e.target.value)}
+                    options={[
+                      { value: "corrugated_box", label: "📦 Double-Wall Corrugated Air-Cargo Box" },
+                      { value: "bubble_mailer", label: "✉️ Shockproof Waterproof Bubble Mailer" },
+                      { value: "retail_box", label: "🎁 Original Factory Color Gift Box" },
+                      { value: "wooden_crate", label: "🪵 Reinforced Wooden Pallet / Export Crate" },
+                      { value: "anti_static", label: "🛡️ Anti-Static Shielding Bag" },
+                    ]}
+                    helperText="Protection class provided for international airfreight transit."
+                  />
+                </div>
+
+                {/* 6. Customs Tariffs & Cross-Border Export Compliance */}
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 font-heading block">
+                    Cross-Border Customs &amp; Tariff Compliance
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <AdminInput
+                      label="HS Customs Tariff Code"
+                      value={hsCode}
+                      onChange={(e) => setHsCode(e.target.value)}
+                      placeholder="8517.62.00 / 8806.22.00"
+                      helperText="Harmonized System code for automated customs duty clearance."
+                    />
+
+                    <AdminInput
+                      label="Declared Customs Value ($ USDT)"
+                      type="number"
+                      step="0.5"
+                      min={0}
+                      value={customsDeclaredValue}
+                      onChange={(e) => setCustomsDeclaredValue(Number(e.target.value))}
+                      helperText="Declared commodity value on air waybill (AWB) invoice."
+                    />
+
+                    <AdminInput
+                      label="Customs Declaration Commodity Name"
+                      value={customsDeclarationName}
+                      onChange={(e) => setCustomsDeclarationName(e.target.value)}
+                      placeholder="RC Quadcopter Toy / 遥控无人机玩具"
+                      helperText="English & Chinese product title on export shipping manifest."
+                    />
+
+                    <AdminSelect
+                      label="Sourcing & Dispatch SLA / Lead Time"
+                      value={leadTime}
+                      onChange={(e) => setLeadTime(e.target.value)}
+                      options={[
+                        { value: "Same Day Dispatch (24h)", label: "⚡ Same Day Dispatch (Within 24h)" },
+                        { value: "1–2 Business Days", label: "📦 1–2 Business Days (Shenzhen SZX Hub)" },
+                        { value: "3–5 Days Factory Direct", label: "🏭 3–5 Days Factory Sourcing & QC" },
+                        { value: "7–10 Days Pre-Order", label: "🛠️ 7–10 Days Custom OEM Manufacturing" },
+                      ]}
+                      helperText="Expected time from order placement to international carrier handoff."
+                    />
+                  </div>
                 </div>
               </AdminFormSection>
             </div>
@@ -1129,7 +1657,7 @@ export function ProductEditor({
         </div>
 
         {/* ── Side Inspector Column (Right 4 Cols) ── */}
-        <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-16">
+        <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:overscroll-contain pr-0.5 no-scrollbar sm:[scrollbar-width:thin]">
           {/* 1. Status & Visibility Controller Card */}
           <div className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -1418,6 +1946,56 @@ export function ProductEditor({
           </div>
         </div>
       </Modal>
+
+      {/* ── Mobile & Laptop Quick Sticky Save Bar ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 p-3 sm:px-6 flex items-center justify-between gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:hidden">
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={cn(
+              "w-2.5 h-2.5 rounded-full shrink-0",
+              status === "published"
+                ? "bg-[#16A34A] ring-2 ring-emerald-100 dark:ring-emerald-950"
+                : status === "draft"
+                ? "bg-amber-500 ring-2 ring-amber-100 dark:ring-amber-950"
+                : "bg-slate-400"
+            )}
+          />
+          <div className="min-w-0">
+            <div className="text-xs font-bold text-slate-900 dark:text-white truncate font-heading">
+              {title || (mode === "create" ? "New Product Listing" : "Edit Product")}
+            </div>
+            <div className="text-[10px] text-slate-400 font-mono">
+              {status.toUpperCase()} • ${basePrice > 0 ? basePrice.toFixed(2) : "0.00"} USDT
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/admin/products"
+            className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+          >
+            Cancel
+          </Link>
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#FF1028] hover:bg-[#E00B20] text-white transition-all shadow-md shadow-red-500/20 font-heading uppercase flex items-center gap-1.5 disabled:opacity-50"
+          >
+            {isSaving ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>{mode === "create" ? "Publish" : "Save"}</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </form>
   );
 }

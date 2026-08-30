@@ -145,8 +145,37 @@ export async function createProduct(formData: FormData) {
   const status = (formData.get("status") as any) || "published";
   const seoTitle = (formData.get("seo_title") as string) || null;
   const seoDescription = (formData.get("seo_description") as string) || null;
-  const weight = Number(formData.get("weight")) || null;
+  const weight = Number(formData.get("weight")) || null; // Gross weight
+  const netWeight = Number(formData.get("net_weight")) || null;
   const stock = Number(formData.get("stock")) || 50;
+
+  // Parcel Dimensions & Physical Sizing
+  const length = Number(formData.get("length")) || 0;
+  const width = Number(formData.get("width")) || 0;
+  const height = Number(formData.get("height")) || 0;
+  const dimensionUnit = (formData.get("dimension_unit") as "cm" | "inch") || "cm";
+  const cbm = length > 0 && width > 0 && height > 0 ? Number(((length * width * height) / 1000000).toFixed(6)) : 0;
+  const volumetricWeight = length > 0 && width > 0 && height > 0 ? Number(((length * width * height) / 5000).toFixed(2)) : 0;
+  const dimensions = length > 0 || width > 0 || height > 0 ? {
+    length,
+    width,
+    height,
+    unit: dimensionUnit,
+    volumetric_weight: volumetricWeight,
+    cbm,
+  } : null;
+
+  // Customs & Logistics
+  const hsCode = (formData.get("hs_code") as string) || null;
+  const cargoType = (formData.get("cargo_type") as string) || "general";
+  const packageType = (formData.get("package_type") as string) || "corrugated_box";
+  const customsDeclaredValue = Number(formData.get("customs_declared_value")) || null;
+  const customsDeclarationName = (formData.get("customs_declaration_name") as string) || null;
+  const leadTime = (formData.get("lead_time") as string) || "Same Day Dispatch (24h)";
+  const domesticShippingCost = Number(formData.get("domestic_shipping_cost")) || null;
+  const supplierContact = (formData.get("supplier_contact") as string) || null;
+  const moq = Number(formData.get("moq")) || 1;
+  const purchaseUrl = (formData.get("purchase_url") as string) || null;
 
   // Dual Videos
   const video1Url = formData.get("video1_url") as string;
@@ -189,8 +218,18 @@ export async function createProduct(formData: FormData) {
     seo_title: seoTitle,
     seo_description: seoDescription,
     weight,
-    dimensions: null,
-    hs_code: null,
+    net_weight: netWeight,
+    dimensions,
+    hs_code: hsCode,
+    cargo_type: cargoType,
+    package_type: packageType,
+    customs_declared_value: customsDeclaredValue,
+    customs_declaration_name: customsDeclarationName,
+    lead_time: leadTime,
+    domestic_shipping_cost: domesticShippingCost,
+    supplier_contact: supplierContact,
+    moq,
+    purchase_url: purchaseUrl,
     avg_rating: 5.0,
     review_count: 0,
     sold_count: 0,
@@ -295,6 +334,8 @@ export async function createProduct(formData: FormData) {
         seo_title: seoTitle,
         seo_description: seoDescription,
         weight,
+        dimensions,
+        hs_code: hsCode,
         tags,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -416,6 +457,35 @@ export async function updateProduct(id: string, formData: FormData) {
   const seoTitle = (formData.get("seo_title") as string) || null;
   const seoDescription = (formData.get("seo_description") as string) || null;
   const weight = Number(formData.get("weight")) || null;
+  const netWeight = Number(formData.get("net_weight")) || null;
+
+  // Parcel Dimensions & Physical Sizing
+  const length = Number(formData.get("length")) || 0;
+  const width = Number(formData.get("width")) || 0;
+  const height = Number(formData.get("height")) || 0;
+  const dimensionUnit = (formData.get("dimension_unit") as "cm" | "inch") || "cm";
+  const cbm = length > 0 && width > 0 && height > 0 ? Number(((length * width * height) / 1000000).toFixed(6)) : 0;
+  const volumetricWeight = length > 0 && width > 0 && height > 0 ? Number(((length * width * height) / 5000).toFixed(2)) : 0;
+  const dimensions = length > 0 || width > 0 || height > 0 ? {
+    length,
+    width,
+    height,
+    unit: dimensionUnit,
+    volumetric_weight: volumetricWeight,
+    cbm,
+  } : null;
+
+  // Customs & Logistics
+  const hsCode = (formData.get("hs_code") as string) || null;
+  const cargoType = (formData.get("cargo_type") as string) || "general";
+  const packageType = (formData.get("package_type") as string) || "corrugated_box";
+  const customsDeclaredValue = Number(formData.get("customs_declared_value")) || null;
+  const customsDeclarationName = (formData.get("customs_declaration_name") as string) || null;
+  const leadTime = (formData.get("lead_time") as string) || "Same Day Dispatch (24h)";
+  const domesticShippingCost = Number(formData.get("domestic_shipping_cost")) || null;
+  const supplierContact = (formData.get("supplier_contact") as string) || null;
+  const moq = Number(formData.get("moq")) || 1;
+  const purchaseUrl = (formData.get("purchase_url") as string) || null;
 
   // Dual Videos
   const video1Url = formData.get("video1_url") as string;
@@ -459,6 +529,8 @@ export async function updateProduct(id: string, formData: FormData) {
         seo_title: seoTitle,
         seo_description: seoDescription,
         weight,
+        dimensions,
+        hs_code: hsCode,
         tags,
         updated_at: new Date().toISOString(),
       })

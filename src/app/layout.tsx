@@ -59,9 +59,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} min-h-full antialiased`}
     >
-      <body className="font-sans text-slate-800 bg-[#F8FAFC] min-h-full antialiased selection:bg-[#FF1028] selection:text-white">
+      <body className="font-sans text-slate-800 bg-[#F8FAFC] min-h-screen antialiased selection:bg-[#FF1028] selection:text-white">
         <SitePreloader />
         <Suspense fallback={null}>
           <RouteProgressBar />

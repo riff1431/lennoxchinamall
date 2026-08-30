@@ -37,6 +37,9 @@ export function CartDrawer() {
   const discountAmount = useCartStore((state) => state.discountAmount);
   const couponCode = useCartStore((state) => state.couponCode);
   const isFreeShipping = useCartStore((state) => state.freeShipping);
+  const shippingMethod = useCartStore((state) => state.shippingMethod);
+  const setShippingMethod = useCartStore((state) => state.setShippingMethod);
+  const getShippingBreakdown = useCartStore((state) => state.getShippingBreakdown);
   const applyCoupon = useCartStore((state) => state.applyCoupon);
   const removeCoupon = useCartStore((state) => state.removeCoupon);
 
@@ -46,12 +49,10 @@ export function CartDrawer() {
     isError: boolean;
   } | null>(null);
 
-  const totalUnits = items.reduce((sum, item) => sum + item.quantity, 0);
-  const shipping = calculateFreightCost(items, "air", {
-    isFreeShippingPromo: isFreeShipping,
-    orderSubtotal: subtotal,
-  });
-  const totalDue = Math.max(0, subtotal - discountAmount + shipping);
+  const shippingBreakdown = getShippingBreakdown();
+  const totalUnits = shippingBreakdown.totalUnits;
+  const activeShippingCost = shippingMethod === "sea" ? shippingBreakdown.sea.totalCost : shippingBreakdown.air.totalCost;
+  const totalDue = Math.max(0, subtotal - discountAmount + activeShippingCost);
 
   const freeShippingThreshold = FREIGHT_CONFIGS.air.freeThreshold || 150;
   const progressToFreeShipping = Math.min(
@@ -85,8 +86,8 @@ export function CartDrawer() {
           </div>
           <div>
             <h3 className="text-sm font-black text-[#00143D] font-heading">Your Sourcing Cart</h3>
-            <span className="text-[10px] text-slate-400 font-medium block">
-              {items.length} unique hardware item{items.length !== 1 ? "s" : ""}
+            <span className="text-[10px] text-slate-400 font-medium block font-mono">
+              {items.length} item{items.length !== 1 ? "s" : ""} • {shippingBreakdown.totalGrossWeight.toFixed(2)} KG • {shippingBreakdown.totalCbm.toFixed(3)} m³
             </span>
           </div>
         </div>
@@ -94,28 +95,84 @@ export function CartDrawer() {
       size="md"
       footer={
         items.length > 0 ? (
-          <div className="flex flex-col gap-3.5 w-full">
+          <div className="flex flex-col gap-3 w-full font-montserrat">
+            {/* Dynamic Air vs Sea Freight Selector */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 px-0.5">
+                <span className="flex items-center gap-1">
+                  <Truck className="w-3.5 h-3.5 text-blue-600" />
+                  Select Shipping Mode
+                </span>
+                <span className="font-mono text-[10px] text-slate-400">
+                  {shippingBreakdown.totalGrossWeight.toFixed(2)}kg • {shippingBreakdown.totalCbm.toFixed(3)}m³
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShippingMethod("air")}
+                  className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                    shippingMethod === "air"
+                      ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600 text-blue-900"
+                      : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase flex items-center gap-1 font-heading">
+                      ⚡ By Air
+                    </span>
+                    <span className="text-xs font-black font-mono">
+                      {shippingBreakdown.air.totalCost === 0 ? "FREE" : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-slate-500 block">5–8 Days Express</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShippingMethod("sea")}
+                  className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                    shippingMethod === "sea"
+                      ? "border-blue-600 bg-blue-50/60 ring-1 ring-blue-600 text-blue-900"
+                      : "border-slate-200 bg-white hover:border-slate-300 text-slate-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black uppercase flex items-center gap-1 font-heading">
+                      🚢 By Sea
+                    </span>
+                    <span className="text-xs font-black font-mono">
+                      {shippingBreakdown.sea.totalCost === 0 ? "FREE" : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-slate-500 block">20–30 Days Container</span>
+                </button>
+              </div>
+            </div>
+
             {/* Automatic Price Calculations */}
-            <div className="space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+            <div className="space-y-1.5 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-200">
               <div className="flex justify-between text-slate-600 font-semibold">
                 <span>Items Subtotal</span>
-                <span className="font-bold text-slate-900">{formatCurrency(subtotal)}</span>
+                <span className="font-bold text-slate-900 font-mono">{formatCurrency(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-[#FF1028] font-bold">
                   <span className="flex items-center gap-1">
                     <Tag className="w-3 h-3" /> Voucher ({couponCode})
                   </span>
-                  <span>-{formatCurrency(discountAmount)}</span>
+                  <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-slate-600 font-semibold">
-                <span>Estimated Air Cargo ({totalUnits} {totalUnits === 1 ? "unit" : "units"})</span>
+                <span>
+                  Shipping ({shippingMethod === "sea" ? "Ocean Freight" : "Air Cargo Express"})
+                </span>
                 <span className="font-bold text-slate-900 font-mono">
-                  {shipping === 0 ? (
+                  {activeShippingCost === 0 ? (
                     <span className="text-[#10B981] font-black uppercase">FREE</span>
                   ) : (
-                    formatCurrency(shipping)
+                    formatCurrency(activeShippingCost)
                   )}
                 </span>
               </div>
@@ -141,9 +198,9 @@ export function CartDrawer() {
             <Link
               href="/cart"
               onClick={closeCart}
-              className="w-full text-center text-xs font-bold text-slate-600 hover:text-[#00143D] transition-colors py-1"
+              className="w-full text-center text-xs font-bold text-slate-600 hover:text-[#00143D] transition-colors py-0.5"
             >
-              View Full Cart & Edit Details →
+              View Full Cart &amp; Edit Details &rarr;
             </Link>
           </div>
         ) : undefined

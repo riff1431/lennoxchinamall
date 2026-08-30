@@ -2,7 +2,12 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { calculateFreightCost } from "@/utils/shipping";
+import {
+  calculateFreightCost,
+  calculateComprehensiveShipping,
+  ComprehensiveShippingResult,
+  normalizeFreightMethod,
+} from "@/utils/shipping";
 import { safeLocalStorage } from "@/utils/safeStorage";
 
 export interface CartItemType {
@@ -20,11 +25,22 @@ export interface CartItemType {
   brandId?: string;
   attributes?: Record<string, string>;
   supplierCode?: string;
+  weight?: number; // Gross weight in KG
+  dimensions?: {
+    length?: number;
+    width?: number;
+    height?: number;
+    unit?: "cm" | "inch";
+    volumetric_weight?: number;
+    cbm?: number;
+  } | any;
+  cargoType?: string;
 }
 
 interface CartStore {
   items: CartItemType[];
   isOpen: boolean;
+  shippingMethod: "air" | "sea";
   couponCode: string | null;
   couponTitle: string | null;
   discountType: string | null;
@@ -35,6 +51,7 @@ interface CartStore {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
+  setShippingMethod: (method: "air" | "sea") => void;
   addItem: (item: CartItemType) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -44,6 +61,7 @@ interface CartStore {
   removeCoupon: () => void;
   getTotalItems: () => number;
   getSubtotal: () => number;
+  getShippingBreakdown: () => ComprehensiveShippingResult;
   getShippingCost: (method?: "air" | "sea" | "standard" | "express" | string) => number;
   getFinalTotal: (shippingMethod?: "air" | "sea" | "standard" | "express" | string) => number;
 }
@@ -53,6 +71,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       isOpen: false,
+      shippingMethod: "air",
       couponCode: null,
       couponTitle: null,
       discountType: null,
@@ -64,6 +83,7 @@ export const useCartStore = create<CartStore>()(
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
+      setShippingMethod: (method) => set({ shippingMethod: method }),
 
       addItem: (newItem) => {
         const currentItems = get().items;
@@ -232,17 +252,24 @@ export const useCartStore = create<CartStore>()(
         );
       },
 
-      getShippingCost: (method = "air") => {
+      getShippingBreakdown: () => {
         const items = get().items;
         const subtotal = get().getSubtotal();
         const isFree = get().freeShipping;
-        return calculateFreightCost(items, method, {
+        return calculateComprehensiveShipping(items, {
           isFreeShippingPromo: isFree,
           orderSubtotal: subtotal,
         });
       },
 
-      getFinalTotal: (shippingMethod = "air") => {
+      getShippingCost: (method) => {
+        const selectedMethod = method || get().shippingMethod || "air";
+        const breakdown = get().getShippingBreakdown();
+        const norm = normalizeFreightMethod(selectedMethod);
+        return norm === "sea" ? breakdown.sea.totalCost : breakdown.air.totalCost;
+      },
+
+      getFinalTotal: (shippingMethod) => {
         const subtotal = get().getSubtotal();
         const shipping = get().getShippingCost(shippingMethod);
         const discount = get().discountAmount;
