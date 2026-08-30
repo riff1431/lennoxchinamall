@@ -226,8 +226,8 @@ export function CategoryPageClient({ slug, category }: CategoryPageClientProps) 
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900">
-      {/* ── 1. Page Header & Breadcrumbs ── */}
-      <div className="bg-white border-b border-slate-200 py-6">
+      {/* ── 1. Page Breadcrumbs ── */}
+      <div className="bg-white border-b border-slate-200 py-3.5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Breadcrumbs
             items={[
@@ -235,49 +235,6 @@ export function CategoryPageClient({ slug, category }: CategoryPageClientProps) 
               { label: pageTitle },
             ]}
           />
-
-          <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="bg-[#00143D] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">
-                  Direct Factory Gate
-                </span>
-                <span className="text-xs text-slate-500 font-mono">
-                  {resultData.totalCount} Products Found
-                </span>
-              </div>
-              <div className="flex items-center gap-3 mt-1.5">
-                {(category?.icon || category?.iconName) && (
-                  <div className="w-9 h-9 rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center p-1.5 border border-red-100 shrink-0 shadow-2xs overflow-hidden">
-                    <CategoryIcon
-                      icon={category.icon || category.iconName}
-                      name={category.name}
-                      className="w-5 h-5 text-[#FF1028]"
-                    />
-                  </div>
-                )}
-                <h1 className="text-2xl sm:text-3xl font-black font-heading text-[#00143D] tracking-tight">
-                  {pageTitle}
-                </h1>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 max-w-2xl mt-1.5 leading-relaxed">
-                {pageSubtitle}
-              </p>
-            </div>
-
-            {/* Quick Sourcing Hub Tag */}
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3 shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-[#00143D] text-white flex items-center justify-center">
-                <Plane className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">Direct Airfreight</span>
-                <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> 100% Quality Checked
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
