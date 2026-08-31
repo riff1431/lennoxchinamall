@@ -31,21 +31,47 @@ import { useAdminToast } from "@/hooks/useAdminToast";
 import { formatDate } from "@/utils/helpers";
 import { MOCK_MEDIA, MediaAsset } from "@/lib/mockData";
 import { uploadMediaFile } from "@/app/actions/storage";
-import { useMediaStore } from "@/store/useMediaStore";
+import { useMediaStore, normalizeAssetType } from "@/store/useMediaStore";
 
 import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/client";
 
-function isVideoUrl(url: string): boolean {
-  if (!url) return false;
-  if (url.startsWith("data:video/") || url.startsWith("blob:")) return true;
+function isVideoAsset(asset: { url?: string; type?: string; format?: string; name?: string }): boolean {
+  if (!asset) return false;
+  if (asset.type === "video") return true;
+  if (asset.type === "image" || asset.type === "document") return false;
+  const format = (asset.format || "").toUpperCase();
+  const name = (asset.name || "").toLowerCase();
+  const url = asset.url || "";
+
+  if (["JPG", "JPEG", "PNG", "WEBP", "GIF", "SVG", "AVIF", "BMP", "ICO"].includes(format)) return false;
+  if (/\.(jpg|jpeg|png|webp|gif|svg|avif|bmp|ico)$/i.test(name)) return false;
+  if (url.startsWith("data:image/")) return false;
+  if (url.startsWith("data:video/")) return true;
+
+  if (["MP4", "WEBM", "MOV", "AVI", "MKV", "M4V", "FLV", "WMV", "3GP", "OGV"].includes(format) || format.includes("VIDEO")) return true;
+  if (/\.(mp4|webm|mov|avi|mkv|m4v|flv|wmv|3gp|ogv|ts|qt)(\?.*)?$/i.test(name)) return true;
+
   return (
     /\.(mp4|webm|mov|avi|mkv|m4v|flv|wmv|3gp|ogv|ts|qt)(\?.*)?$/i.test(url) ||
     url.includes("youtube.com") ||
     url.includes("youtu.be") ||
     url.includes("vimeo.com") ||
-    url.includes("/storage/hero-ad/") ||
-    url.includes("/videos/")
+    url.includes("/storage/hero-ad/")
   );
+}
+
+function isDocAsset(asset: { url?: string; type?: string; format?: string; name?: string }): boolean {
+  if (!asset) return false;
+  if (asset.type === "document") return true;
+  if (asset.type === "image" || asset.type === "video") return false;
+  const format = (asset.format || "").toUpperCase();
+  const name = (asset.name || "").toLowerCase();
+  const url = asset.url || "";
+
+  if (["PDF", "DOC", "DOCX", "TXT", "XLS", "XLSX", "CSV"].includes(format)) return true;
+  if (/\.(pdf|doc|docx|txt|xls|xlsx|csv)$/i.test(name)) return true;
+  if (url.startsWith("data:image/") || url.startsWith("data:video/")) return false;
+  return /\.(pdf|doc|docx|txt|xls|xlsx|csv)(\?.*)?$/i.test(url);
 }
 
 function getEmbedVideoUrl(url: string): string | null {
@@ -117,12 +143,14 @@ export default function AdminMediaPage() {
   const addMediaToStore = useMediaStore((state) => state.addMediaAsset);
   const deleteMediaFromStore = useMediaStore((state) => state.deleteMediaAsset);
 
-  const [mediaList, setMediaList] = useState<MediaAsset[]>(storeMedia.length > 0 ? storeMedia : MOCK_MEDIA);
+  const [mediaList, setMediaList] = useState<MediaAsset[]>(
+    storeMedia.length > 0 ? storeMedia.map(normalizeAssetType) : MOCK_MEDIA.map(normalizeAssetType)
+  );
 
   // Sync state with store
   useEffect(() => {
     if (storeMedia && storeMedia.length > 0) {
-      setMediaList(storeMedia);
+      setMediaList(storeMedia.map(normalizeAssetType));
     }
   }, [storeMedia]);
 
@@ -161,10 +189,10 @@ export default function AdminMediaPage() {
   const handleDirectUrlChange = (url: string) => {
     setFormDirectUrl(url);
     if (url.trim()) {
-      if (isVideoUrl(url)) {
+      if (isVideoAsset({ url })) {
         setFormType("video");
         setFormCategory("dual-video");
-      } else if (/\.(pdf|doc|docx|txt)(\?.*)?$/i.test(url)) {
+      } else if (isDocAsset({ url })) {
         setFormType("document");
       } else {
         setFormType("image");
@@ -210,12 +238,12 @@ export default function AdminMediaPage() {
           console.warn("Remote upload skipped/failed:", uploadErr);
         }
       } else {
-        const ext = finalUrl.split(".").pop()?.toUpperCase() || (isVideoUrl(finalUrl) ? "MP4" : "JPG");
+        const ext = finalUrl.split(".").pop()?.toUpperCase() || (isVideoAsset({ url: finalUrl }) ? "MP4" : "JPG");
         finalFormat = ext.length <= 5 ? ext : "MEDIA";
-        finalType = isVideoUrl(finalUrl) ? "video" : "image";
+        finalType = isVideoAsset({ url: finalUrl, format: finalFormat }) ? "video" : isDocAsset({ url: finalUrl }) ? "document" : "image";
       }
 
-      const newAsset: MediaAsset = {
+      const newAsset: MediaAsset = normalizeAssetType({
         id: `med-${Date.now()}`,
         name: formName.trim() || analyzedFile?.name || `Asset-${Date.now().toString().slice(-4)}`,
         url: finalUrl,
@@ -225,11 +253,11 @@ export default function AdminMediaPage() {
         dimensions: finalDimensions,
         format: finalFormat,
         uploaded_at: new Date().toISOString(),
-      };
+      });
 
       addMediaToStore(newAsset);
-      setMediaList((prev) => [newAsset, ...prev]);
-      toast.success(`${finalType === "video" ? "Video" : "Media"} asset "${newAsset.name}" added to Media Library.`);
+      setMediaList((prev) => [newAsset, ...prev.map(normalizeAssetType)]);
+      toast.success(`${newAsset.type === "video" ? "Video" : newAsset.type === "document" ? "Document" : "Image"} asset "${newAsset.name}" added to Media Library.`);
       setIsUploadSlideOverOpen(false);
     } catch (err: unknown) {
       console.error("Save media asset error:", err);
@@ -247,8 +275,8 @@ export default function AdminMediaPage() {
 
   // Metrics
   const totalAssets = mediaList.length;
-  const imageCount = mediaList.filter((m) => m.type === "image" && !isVideoUrl(m.url)).length;
-  const videoCount = mediaList.filter((m) => m.type === "video" || isVideoUrl(m.url)).length;
+  const imageCount = mediaList.filter((m) => !isVideoAsset(m) && !isDocAsset(m)).length;
+  const videoCount = mediaList.filter((m) => isVideoAsset(m)).length;
   const bannerCount = mediaList.filter((m) => m.category === "banner").length;
 
   const columns: Column<MediaAsset>[] = [
@@ -257,8 +285,8 @@ export default function AdminMediaPage() {
       accessorKey: "name",
       sortable: true,
       cell: (row) => {
-        const isVideo = row.type === "video" || isVideoUrl(row.url);
-        const isDoc = !isVideo && (row.type === "document" || /\.(pdf|doc|docx|txt)(\?.*)?$/i.test(row.url));
+        const isVideo = isVideoAsset(row);
+        const isDoc = isDocAsset(row);
 
         return (
           <div className="flex items-center gap-3">
@@ -316,8 +344,8 @@ export default function AdminMediaPage() {
       accessorKey: "type",
       sortable: true,
       cell: (row) => {
-        const isVideo = row.type === "video" || isVideoUrl(row.url);
-        const isDoc = !isVideo && (row.type === "document" || /\.(pdf|doc|docx|txt)(\?.*)?$/i.test(row.url));
+        const isVideo = isVideoAsset(row);
+        const isDoc = isDocAsset(row);
 
         if (isVideo) {
           return (
@@ -621,8 +649,8 @@ export default function AdminMediaPage() {
         size="lg"
       >
         {previewAsset && (() => {
-          const isVideo = previewAsset.type === "video" || isVideoUrl(previewAsset.url);
-          const isDoc = !isVideo && (previewAsset.type === "document" || /\.(pdf|doc|docx|txt)(\?.*)?$/i.test(previewAsset.url));
+          const isVideo = isVideoAsset(previewAsset);
+          const isDoc = isDocAsset(previewAsset);
           const embedUrl = getEmbedVideoUrl(previewAsset.url);
 
           return (

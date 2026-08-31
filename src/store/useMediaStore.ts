@@ -94,15 +94,57 @@ interface MediaState {
   getDualVideos: () => MediaAsset[];
 }
 
+export function normalizeAssetType(asset: MediaAsset): MediaAsset {
+  const format = (asset.format || "").toUpperCase();
+  const url = asset.url || "";
+  const name = (asset.name || "").toLowerCase();
+
+  const isImageExt =
+    ["JPG", "JPEG", "PNG", "WEBP", "GIF", "SVG", "AVIF", "BMP", "ICO"].includes(format) ||
+    /\.(jpg|jpeg|png|webp|gif|svg|avif|bmp|ico)$/i.test(name) ||
+    url.startsWith("data:image/") ||
+    (url.startsWith("https://images.unsplash.com") && !url.includes("video"));
+
+  const isVideoExt =
+    ["MP4", "WEBM", "MOV", "AVI", "MKV", "M4V", "FLV", "WMV", "3GP", "OGV"].includes(format) ||
+    format.includes("VIDEO") ||
+    /\.(mp4|webm|mov|avi|mkv|m4v|flv|wmv|3gp|ogv|ts|qt)(\?.*)?$/i.test(url) ||
+    url.startsWith("data:video/") ||
+    url.includes("youtube.com") ||
+    url.includes("youtu.be") ||
+    url.includes("vimeo.com") ||
+    url.includes("/storage/hero-ad/");
+
+  const isDocExt =
+    ["PDF", "DOC", "DOCX", "TXT", "XLS", "XLSX", "CSV"].includes(format) ||
+    /\.(pdf|doc|docx|txt|xls|xlsx|csv)(\?.*)?$/i.test(url) ||
+    /\.(pdf|doc|docx|txt|xls|xlsx|csv)$/i.test(name);
+
+  let correctedType: "image" | "video" | "document" = asset.type || "image";
+  if (isImageExt) {
+    correctedType = "image";
+  } else if (isVideoExt) {
+    correctedType = "video";
+  } else if (isDocExt) {
+    correctedType = "document";
+  }
+
+  return {
+    ...asset,
+    type: correctedType,
+  };
+}
+
 export const useMediaStore = create<MediaState>()(
   persist(
     (set, get) => ({
-      media: DEFAULT_MEDIA_ASSETS,
+      media: DEFAULT_MEDIA_ASSETS.map(normalizeAssetType),
       isLoaded: true,
 
       addMediaAsset: (newAsset: MediaAsset) => {
+        const normalized = normalizeAssetType(newAsset);
         set((state) => ({
-          media: [newAsset, ...state.media],
+          media: [normalized, ...state.media.map(normalizeAssetType)],
         }));
       },
 
@@ -113,7 +155,7 @@ export const useMediaStore = create<MediaState>()(
       },
 
       resetToDefaults: () => {
-        set({ media: DEFAULT_MEDIA_ASSETS });
+        set({ media: DEFAULT_MEDIA_ASSETS.map(normalizeAssetType) });
       },
 
       getVideoAssets: () => {
@@ -141,7 +183,7 @@ export const useMediaStore = create<MediaState>()(
     }),
     {
       name: "lennox_chinamall_media_v2",
-      partialize: (state) => ({ media: state.media }),
+      partialize: (state) => ({ media: state.media.map(normalizeAssetType) }),
     }
   )
 );
