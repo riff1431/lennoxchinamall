@@ -112,13 +112,28 @@ export function HomePageClient({ sections, initialProducts = [] }: HomePageClien
 
   // Dynamic products combining store state (client admin additions) and server products
   const allProducts = useMemo(() => {
-    if (isMounted && isProductStoreLoaded && storeProducts && storeProducts.length > 0) {
-      return storeProducts.filter((p) => p.status === "published");
-    }
+    const map = new Map<string, Product>();
+
+    // 1. Initial base mock products
+    MOCK_PRODUCTS.forEach((p) => {
+      if (p.status === "published") map.set(p.id, p);
+    });
+
+    // 2. Server products from database query
     if (initialProducts && initialProducts.length > 0) {
-      return initialProducts.filter((p) => p.status === "published");
+      initialProducts.forEach((p) => {
+        if (p.status === "published") map.set(p.id, p);
+      });
     }
-    return MOCK_PRODUCTS.filter((p) => p.status === "published");
+
+    // 3. Client-side store additions / real-time updates
+    if (isMounted && isProductStoreLoaded && storeProducts && storeProducts.length > 0) {
+      storeProducts.forEach((p) => {
+        if (p.status === "published") map.set(p.id, p);
+      });
+    }
+
+    return Array.from(map.values());
   }, [isMounted, isProductStoreLoaded, storeProducts, initialProducts]);
 
   const flashDeals = useMemo(() => {

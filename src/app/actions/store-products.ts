@@ -50,15 +50,24 @@ export async function getFilteredProducts(filters: ProductFilters = {}): Promise
   try {
     const supabase = await createClient();
 
-    // Start with all catalogue products (from DB or rich fallback seed)
     let { data: dbProducts, error } = await supabase
       .from("products")
       .select("*, category:categories(*), brand:brands(*), media:product_media(*), videos:product_videos(*), variants(*)")
       .eq("status", "published");
 
-    let allProducts: Product[] = (dbProducts && dbProducts.length > 0 && !error)
-      ? (dbProducts as any)
-      : MOCK_PRODUCTS;
+    // Merge database products with mock catalogue so newly added products persist alongside catalogue
+    const productMap = new Map<string, Product>();
+    MOCK_PRODUCTS.forEach((p) => {
+      if (p.status === "published") productMap.set(p.id, p);
+    });
+
+    if (dbProducts && dbProducts.length > 0 && !error) {
+      (dbProducts as unknown as Product[]).forEach((p) => {
+        if (p.status === "published") productMap.set(p.id, p);
+      });
+    }
+
+    let allProducts: Product[] = Array.from(productMap.values());
 
     // 1. Text Search Query Filter
     if (filters.q && filters.q.trim().length > 0) {

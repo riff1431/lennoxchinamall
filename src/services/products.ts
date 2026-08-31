@@ -113,11 +113,23 @@ export async function getProducts(
       return getFallbackProducts(options);
     }
 
-    if (!data || data.length === 0) {
-      return { products: [], total: 0 };
+    // Merge Supabase database products with base catalogue
+    const productMap = new Map<string, Product>();
+    MOCK_PRODUCTS.forEach((p) => {
+      if (options.isAdmin || p.status === "published") {
+        productMap.set(p.id, p);
+      }
+    });
+
+    if (data && data.length > 0) {
+      (data as unknown as Product[]).forEach((p) => {
+        if (options.isAdmin || p.status === "published") {
+          productMap.set(p.id, p);
+        }
+      });
     }
 
-    const rawProducts = data as unknown as Product[];
+    const rawProducts = Array.from(productMap.values());
     const products = options.isAdmin
       ? rawProducts
       : rawProducts.map(sanitizePublicProduct);
@@ -160,15 +172,10 @@ export async function getProductBySlug(
       error = byIdResult.error;
     }
 
-    if (error) {
-      console.warn("Supabase product query error, falling back to mock data:", error.message);
+    if (error || !data) {
       const fallback = MOCK_PRODUCTS.find((p) => p.slug === slug || p.id === slug);
       if (!fallback) return null;
       return isAdmin ? fallback : sanitizePublicProduct(fallback);
-    }
-
-    if (!data) {
-      return null;
     }
 
     const product = data as unknown as Product;

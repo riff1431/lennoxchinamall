@@ -65,20 +65,25 @@ export async function getAdminProducts(params?: FetchAdminProductsParams) {
     const categories = categoriesData && categoriesData.length > 0 ? categoriesData : MOCK_CATEGORIES;
     const brands = brandsData && brandsData.length > 0 ? brandsData : MOCK_BRANDS;
 
-    if (error) {
-      console.error("Error fetching admin products from Supabase:", error);
-      let filtered = [...MOCK_PRODUCTS];
-      if (params?.categoryId && params.categoryId !== "all") {
-        filtered = filtered.filter((p) => p.category_id === params.categoryId);
-      }
-      if (params?.search && params.search.trim()) {
-        const s = params.search.toLowerCase();
-        filtered = filtered.filter((p) => p.title.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s));
-      }
-      return { success: true, products: filtered, categories, brands };
+    const productMap = new Map<string, Product>();
+    MOCK_PRODUCTS.forEach((p) => productMap.set(p.id, p));
+    if (productsData && productsData.length > 0) {
+      (productsData as Product[]).forEach((p) => productMap.set(p.id, p));
+    }
+    let allProducts = Array.from(productMap.values());
+
+    if (params?.categoryId && params.categoryId !== "all") {
+      allProducts = allProducts.filter((p) => p.category_id === params.categoryId);
+    }
+    if (params?.status && params.status !== "all") {
+      allProducts = allProducts.filter((p) => p.status === params.status);
+    }
+    if (params?.search && params.search.trim()) {
+      const s = params.search.toLowerCase();
+      allProducts = allProducts.filter((p) => p.title.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s));
     }
 
-    return { success: true, products: (productsData || []) as Product[], categories, brands };
+    return { success: true, products: allProducts, categories, brands };
   } catch (err) {
     console.error("Fetch admin products error:", err);
     return { success: true, products: MOCK_PRODUCTS, categories: MOCK_CATEGORIES, brands: MOCK_BRANDS };
