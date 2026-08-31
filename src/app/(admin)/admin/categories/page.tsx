@@ -81,15 +81,15 @@ export default function AdminCategoriesPage() {
           const existingLocal = categories.find((c) => c.id === dbCat.id);
           const combined: Category = {
             ...dbCat,
-            bg_color: dbCat.bg_color || existingLocal?.bg_color,
+            bg_color: dbCat.bg_color || existingLocal?.bg_color || null,
             subcategories:
               (dbCat.subcategories && dbCat.subcategories.length > 0)
                 ? dbCat.subcategories
                 : existingLocal?.subcategories,
-            thumbnail_url: dbCat.thumbnail_url || existingLocal?.thumbnail_url || dbCat.image_url,
-            image_url: dbCat.image_url || existingLocal?.image_url,
-            icon: dbCat.icon || existingLocal?.icon || existingLocal?.iconName,
-            iconName: dbCat.icon || existingLocal?.iconName || existingLocal?.icon,
+            thumbnail_url: dbCat.thumbnail_url || existingLocal?.thumbnail_url || dbCat.image_url || null,
+            image_url: dbCat.image_url || existingLocal?.image_url || null,
+            icon: dbCat.icon || existingLocal?.icon || existingLocal?.iconName || null,
+            iconName: dbCat.icon || existingLocal?.iconName || existingLocal?.icon || undefined,
           };
           return enrichCategoryWithVisuals(combined);
         });
@@ -1276,7 +1276,7 @@ export default function AdminCategoriesPage() {
                           bgColor={formBgColor}
                           size="xl"
                         />
-                        <span className="mt-2 text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px] font-heading">
+                        <span className="mt-2 text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-30 font-heading">
                           {formName || "Category Name"}
                         </span>
                       </div>

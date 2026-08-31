@@ -390,7 +390,7 @@ export async function adjustItemStock(payload: StockAdjustmentPayload): Promise<
         new_total: item.shenzhen_stock + item.guangzhou_stock + item.hk_air_stock + (payload.type === "subtract" ? -payload.quantity : payload.quantity),
         reason: payload.reason,
         reference_type: "manual_adjustment",
-        notes: payload.notes || null,
+        notes: payload.notes || undefined,
         created_by: session.email,
         created_at: new Date().toISOString(),
       });

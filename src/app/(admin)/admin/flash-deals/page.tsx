@@ -290,7 +290,7 @@ export default function AdminFlashDealsPage() {
       );
       const stock =
         p.variants?.reduce((sum, v) => sum + (v.stock || 0), 0) || 50;
-      const categoryName = categoryMap.get(p.category_id) || p.category_id;
+      const categoryName = (p.category_id ? categoryMap.get(p.category_id) : null) || p.category_id || "General";
 
       return [
         p.id,
@@ -382,7 +382,7 @@ export default function AdminFlashDealsPage() {
       sortable: true,
       className: "min-w-[240px]",
       cell: (row) => {
-        const categoryName = categoryMap.get(row.category_id) || "Hardware";
+        const categoryName = (row.category_id ? categoryMap.get(row.category_id) : null) || "Hardware";
         const thumbUrl =
           row.media?.[0]?.url ||
           "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=200&auto=format&fit=crop&q=80";
@@ -399,7 +399,7 @@ export default function AdminFlashDealsPage() {
                 unoptimized
               />
             </div>
-            <div className="min-w-0 max-w-[200px]">
+            <div className="min-w-0 max-w-50">
               <h4
                 className="font-bold text-slate-900 dark:text-white text-xs truncate hover:text-[#2F65F6] transition-colors"
                 title={row.title}
@@ -779,7 +779,7 @@ export default function AdminFlashDealsPage() {
               value={selectedProductId}
               onChange={(e) => handleProductSelectChange(e.target.value)}
               disabled={!!editingProduct}
-              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] disabled:opacity-60 transition-colors cursor-pointer"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60 transition-colors cursor-pointer"
             >
               {allProducts.map((prod) => (
                 <option key={prod.id} value={prod.id}>
@@ -807,7 +807,7 @@ export default function AdminFlashDealsPage() {
                 required
                 value={formBasePrice}
                 onChange={(e) => setFormBasePrice(parseFloat(e.target.value) || 0)}
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[#16A34A] dark:text-emerald-400 font-mono font-bold text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[#16A34A] dark:text-emerald-400 font-mono font-bold text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
               />
               <span className="text-[10px] text-slate-400 block font-normal">
                 Discounted price paid by buyer in USDT
@@ -827,7 +827,7 @@ export default function AdminFlashDealsPage() {
                 onChange={(e) =>
                   setFormComparePrice(parseFloat(e.target.value) || 0)
                 }
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-500 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-500 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
               />
               <div className="flex items-center justify-between text-[10px] text-slate-400">
                 <span>Strikethrough reference</span>
@@ -882,7 +882,7 @@ export default function AdminFlashDealsPage() {
               required
               value={formEndsAt}
               onChange={(e) => setFormEndsAt(e.target.value)}
-              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] transition-colors"
+              className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
             />
           </div>
 

@@ -373,7 +373,9 @@ export async function createProduct(formData: FormData) {
             position: idx + 1,
           }));
           if (mediaInserts.length > 0) {
-            await supabase.from("product_media").insert(mediaInserts).catch(() => {});
+            try {
+              await supabase.from("product_media").insert(mediaInserts);
+            } catch {}
           }
         }
 
@@ -397,19 +399,23 @@ export async function createProduct(formData: FormData) {
           });
         }
         if (videoInserts.length > 0) {
-          await supabase.from("product_videos").insert(videoInserts).catch(() => {});
+          try {
+            await supabase.from("product_videos").insert(videoInserts);
+          } catch {}
         }
 
-        await supabase.from("variants").insert({
-          product_id: newProdId,
-          sku: `${sku}-STD`,
-          title: "Standard Edition",
-          price: basePrice,
-          compare_at_price: compareAtPrice,
-          cost,
-          stock: stock,
-          is_active: true,
-        }).catch(() => {});
+        try {
+          await supabase.from("variants").insert({
+            product_id: newProdId,
+            sku: `${sku}-STD`,
+            title: "Standard Edition",
+            price: basePrice,
+            compare_at_price: compareAtPrice,
+            cost,
+            stock: stock,
+            is_active: true,
+          });
+        } catch {}
       } else {
         const serviceClient = createServiceClient();
         const { data: svcProd } = await serviceClient
@@ -570,6 +576,10 @@ export async function updateProduct(id: string, formData: FormData) {
     supplier_contact: supplierContact,
     moq,
     purchase_url: purchaseUrl,
+    flash_deal_ends_at: null,
+    avg_rating: 5.0,
+    review_count: 0,
+    sold_count: 0,
     tags,
     media: (imageUrls || []).filter(Boolean).map((url, idx) => ({
       id: `m-${Date.now()}-${idx}`,

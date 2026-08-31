@@ -221,6 +221,7 @@ export interface Brand {
   is_active: boolean;
   product_count?: number;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface ProductDimensions {
@@ -239,7 +240,7 @@ export interface Product {
   sku: string;
   short_description: string | null;
   description: string | null;
-  category_id: string;
+  category_id: string | null;
   brand_id: string | null;
   base_price: number;
   compare_at_price: number | null;
@@ -249,7 +250,7 @@ export interface Product {
   is_best_seller: boolean;
   is_new_arrival: boolean;
   is_flash_deal: boolean;
-  flash_deal_ends_at: string | null;
+  flash_deal_ends_at?: string | null;
   tags: string[];
   weight: number | null; // Gross shipping weight (KG)
   net_weight?: number | null; // Net product weight (KG)
