@@ -387,7 +387,7 @@ export default function AdminIntegrationsPage() {
                 value={endpointInput}
                 onChange={(e) => setEndpointInput(e.target.value)}
                 placeholder="https://api.gateway.com/v1"
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F65F6] font-mono"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
               />
             </div>
 
@@ -396,7 +396,7 @@ export default function AdminIntegrationsPage() {
               <select
                 value={authMethodInput}
                 onChange={(e) => setAuthMethodInput(e.target.value as IntegrationService["authMethod"])}
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
               >
                 <option value="API Key + HMAC SHA512">API Key + HMAC SHA512 (Binance / YunExpress)</option>
                 <option value="Cloudinary API Secret">Cloudinary API Secret / API Key (Cloud Storage & CDN)</option>
@@ -412,7 +412,7 @@ export default function AdminIntegrationsPage() {
                 rows={3}
                 value={detailsInput}
                 onChange={(e) => setDetailsInput(e.target.value)}
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3.5 outline-none focus:border-[#2F65F6]"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl p-3.5 outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
 
