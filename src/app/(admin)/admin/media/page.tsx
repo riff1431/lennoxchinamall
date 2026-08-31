@@ -69,7 +69,21 @@ function getEmbedVideoUrl(url: string): string | null {
 }
 
 async function uploadFileDirect(file: File, bucket = "products", folder = "media"): Promise<string | null> {
-  // Method 1: Client-side direct Supabase upload (Bypasses Next.js server actions body limit)
+  // Method 1: Server Action pipeline (Cloudinary Media CDN & Supabase Storage)
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bucket", bucket);
+    formData.append("folder", folder);
+    const res = await uploadMediaFile(formData);
+    if (res.success && res.url && !res.url.startsWith("data:")) {
+      return res.url;
+    }
+  } catch (serverErr) {
+    console.warn("Server action upload attempt failed:", serverErr);
+  }
+
+  // Method 2: Client-side Supabase Storage fallback
   try {
     const supabase = createBrowserSupabaseClient();
     const fileExt = (file.name.split(".").pop() || "mp4").toLowerCase();
@@ -92,22 +106,6 @@ async function uploadFileDirect(file: File, bucket = "products", folder = "media
     }
   } catch (clientErr) {
     console.warn("Client direct storage upload fallback:", clientErr);
-  }
-
-  // Method 2: Fallback to Server Action for smaller files (< 40MB)
-  if (file.size < 40 * 1024 * 1024) {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("bucket", bucket);
-      formData.append("folder", folder);
-      const res = await uploadMediaFile(formData);
-      if (res.success && res.url) {
-        return res.url;
-      }
-    } catch (serverErr) {
-      console.warn("Server action upload fallback:", serverErr);
-    }
   }
 
   return null;
