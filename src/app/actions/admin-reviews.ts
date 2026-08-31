@@ -17,7 +17,7 @@ async function verifyAdminAuth() {
   const session = await getSession();
   if (
     !session ||
-    !["super_admin", "catalogue_manager", "order_manager", "support_agent"].includes(session.role)
+    !["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager", "support_agent"].includes(session.role)
   ) {
     throw new Error("Unauthorized access. Admin privileges required.");
   }

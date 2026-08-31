@@ -25,6 +25,8 @@ import {
   Sliders,
   Server,
   Zap,
+  Globe,
+  Languages,
 } from "lucide-react";
 import { AllStoreSettings } from "@/types/settings";
 import { DEFAULT_STORE_SETTINGS } from "@/lib/settings-constants";
@@ -621,6 +623,148 @@ export default function AdminSettingsPage() {
                   onChange={(e) => updateDomainField("shipping_zones", "air_express_lead_days", Number(e.target.value))}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Languages & Localization Card (Full Width in Grid) */}
+          <div className="lg:col-span-2 bg-white dark:bg-[#111827] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <Languages className="w-5 h-5 text-[#2F65F6]" />
+                <div>
+                  <h3 className="font-heading font-black text-slate-900 dark:text-white text-base">
+                    Storefront Languages &amp; Dynamic Localization
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Define the default store language for new visitors and manage active bilingual configurations (English &amp; Spanish).
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase font-mono bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                Bilingual Engine Active
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+              {/* Default Language Selector */}
+              <div className="space-y-3">
+                <label className="font-bold text-slate-700 dark:text-slate-300 block">
+                  Default Storefront Language (New Visitors)
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* English Card */}
+                  <button
+                    type="button"
+                    onClick={() => updateDomainField("localization", "default_locale", "en")}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      (settings.localization.default_locale === "en" || settings.localization.default_locale === "en-US")
+                        ? "bg-blue-50/70 dark:bg-blue-950/40 border-[#2F65F6] ring-1 ring-[#2F65F6] text-[#00143D] dark:text-white shadow-xs"
+                        : "bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl">🇺🇸</span>
+                      {(settings.localization.default_locale === "en" || settings.localization.default_locale === "en-US") && (
+                        <CheckCircle2 className="w-4 h-4 text-[#2F65F6]" />
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <span className="font-heading font-black text-sm block">English (EN)</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Default Global Sourcing</span>
+                    </div>
+                  </button>
+
+                  {/* Spanish Card */}
+                  <button
+                    type="button"
+                    onClick={() => updateDomainField("localization", "default_locale", "es")}
+                    className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      (settings.localization.default_locale === "es" || settings.localization.default_locale === "es-ES")
+                        ? "bg-red-50/70 dark:bg-red-950/40 border-[#FF1028] ring-1 ring-[#FF1028] text-[#00143D] dark:text-white shadow-xs"
+                        : "bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl">🇪🇸</span>
+                      {(settings.localization.default_locale === "es" || settings.localization.default_locale === "es-ES") && (
+                        <CheckCircle2 className="w-4 h-4 text-[#FF1028]" />
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <span className="font-heading font-black text-sm block">Español (ES)</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Spanish / América Latina</span>
+                    </div>
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  When a customer visits Lennox ChinaMall without prior language preferences, the storefront will automatically load in this default language.
+                </p>
+              </div>
+
+              {/* Format & Units */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700 dark:text-slate-300">Date Format</label>
+                    <input
+                      type="text"
+                      value={settings.localization.date_format}
+                      onChange={(e) => updateDomainField("localization", "date_format", e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700 dark:text-slate-300">Time Format</label>
+                    <select
+                      value={settings.localization.time_format}
+                      onChange={(e) => updateDomainField("localization", "time_format", e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                    >
+                      <option value="24h">24 Hours (Military/Export)</option>
+                      <option value="12h">12 Hours (AM/PM)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700 dark:text-slate-300">Weight Unit</label>
+                    <select
+                      value={settings.localization.weight_unit}
+                      onChange={(e) => updateDomainField("localization", "weight_unit", e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                    >
+                      <option value="kg">Kilograms (kg - International)</option>
+                      <option value="lbs">Pounds (lbs)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-bold text-slate-700 dark:text-slate-300">Dimension Unit</label>
+                    <select
+                      value={settings.localization.dimension_unit}
+                      onChange={(e) => updateDomainField("localization", "dimension_unit", e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                    >
+                      <option value="cm">Centimeters (cm)</option>
+                      <option value="in">Inches (in)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Active Supported Languages pill info */}
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-[11px]">
+                  <span className="font-bold text-slate-600 dark:text-slate-300">Active Supported Languages:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold">
+                      English (en)
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold">
+                      Español (es)
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

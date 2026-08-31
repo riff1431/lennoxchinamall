@@ -258,7 +258,7 @@ export async function getInventoryItems(filters?: {
   error?: string;
 }> {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager"].includes(session.role)) {
     return { success: false, items: [], error: "Unauthorized access" };
   }
 
@@ -340,7 +340,7 @@ export async function adjustItemStock(payload: StockAdjustmentPayload): Promise<
   error?: string;
 }> {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access." };
   }
 
@@ -418,6 +418,8 @@ export async function adjustItemStock(payload: StockAdjustmentPayload): Promise<
   }
 }
 
+export const adjustStock = adjustItemStock;
+
 // ─── 4. Save / Update Inventory Item ────────────────────────────────────────
 
 export async function saveInventoryItem(payload: Partial<InventoryItemRecord>): Promise<{
@@ -426,7 +428,7 @@ export async function saveInventoryItem(payload: Partial<InventoryItemRecord>): 
   error?: string;
 }> {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access." };
   }
 
@@ -496,8 +498,8 @@ export async function saveInventoryItem(payload: Partial<InventoryItemRecord>): 
       const newItem: InventoryItemRecord = {
         id: payload.id || `inv-${Date.now()}`,
         sku: payload.sku || "LCM-NEW-SKU",
-        product_name: payload.product_name || "New Product",
-        variant_name: payload.variant_name || "Standard Unit",
+        product_name: payload.product_name || "New Sourced Product",
+        variant_name: payload.variant_name || "Default Option",
         category_name: payload.category_name || "Consumer Electronics",
         supplier_code: payload.supplier_code || "SUP-SZ-9021",
         sourcing_cost_usdt: payload.sourcing_cost_usdt || 0,
@@ -516,18 +518,19 @@ export async function saveInventoryItem(payload: Partial<InventoryItemRecord>): 
     await logAuditEvent({
       adminId: session.id,
       adminEmail: session.email,
-      action: payload.id ? "SETTINGS_CHANGED" : "SYSTEM_MAINTENANCE",
+      action: "SETTINGS_CHANGED",
       entityType: "inventory",
-      entityId: payload.id || payload.sku || "unknown",
-      changes: payload,
+      changes: { sku: payload.sku, updates: payload },
     }).catch(() => {});
 
     revalidatePath("/admin/inventory");
-    return { success: true, message: `Inventory SKU ${payload.sku} saved successfully!` };
+    return { success: true, message: `Inventory item ${payload.sku} saved successfully!` };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to save inventory item" };
   }
 }
+
+export const updateLowStockThreshold = saveInventoryItem;
 
 // ─── 5. Delete Inventory Item ───────────────────────────────────────────────
 

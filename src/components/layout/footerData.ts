@@ -30,89 +30,92 @@ export interface ContactInfo {
   href?: string;
 }
 
-export const FOOTER_TRUST_ITEMS: TrustItem[] = [
+export const getLocalizedFooterTrustItems = (isSpanish: boolean): TrustItem[] => [
   {
     id: "usdt-escrow",
     icon: Coins,
-    title: "USDT Escrow Checkout",
-    subtitle: "Zero-fee Binance Pay settlement with 100% cryptographic escrow.",
+    title: isSpanish ? "Pago Seguro en USDT" : "USDT Escrow Checkout",
+    subtitle: isSpanish ? "Liquidación con Binance Pay sin comisiones y custodia criptográfica 100%." : "Zero-fee Binance Pay settlement with 100% cryptographic escrow.",
     colorClass: "text-[#FF1028]",
     bgClass: "bg-[#FF1028]/10 border-[#FF1028]/20",
   },
   {
     id: "factory-direct",
     icon: ShieldCheck,
-    title: "Direct Factory Sourcing",
-    subtitle: "Direct partnerships with verified plants in Shenzhen & Ningbo.",
+    title: isSpanish ? "Abastecimiento Directo Fábrica" : "Direct Factory Sourcing",
+    subtitle: isSpanish ? "Alianzas directas con fábricas verificadas en Shenzhen y Ningbo." : "Direct partnerships with verified plants in Shenzhen & Ningbo.",
     colorClass: "text-blue-400",
     bgClass: "bg-blue-500/10 border-blue-500/20",
   },
   {
     id: "air-cargo",
     icon: Truck,
-    title: "5-8 Days Global Air Cargo",
-    subtitle: "Door-to-door tracked expedited shipping via DHL & YunExpress.",
+    title: isSpanish ? "5–8 Días Carga Aérea Global" : "5-8 Days Global Air Cargo",
+    subtitle: isSpanish ? "Envío urgente puerta a puerta rastreado vía DHL y YunExpress." : "Door-to-door tracked expedited shipping via DHL & YunExpress.",
     colorClass: "text-emerald-400",
     bgClass: "bg-emerald-500/10 border-emerald-500/20",
   },
   {
     id: "warranty",
     icon: Headphones,
-    title: "30-Day QC Warranty",
-    subtitle: "Direct USDT refunds & dedicated VIP sourcing dispute desk.",
+    title: isSpanish ? "Garantía de Calidad 30 Días" : "30-Day QC Warranty",
+    subtitle: isSpanish ? "Reembolsos directos en USDT y mesa de soporte VIP de compras." : "Direct USDT refunds & dedicated VIP sourcing dispute desk.",
     colorClass: "text-amber-400",
     bgClass: "bg-amber-500/10 border-amber-500/20",
   },
 ];
 
-export const FOOTER_SECTIONS: FooterSection[] = [
+export const getLocalizedFooterSections = (isSpanish: boolean): FooterSection[] => [
   {
     id: "departments",
-    title: "Shop Departments",
+    title: isSpanish ? "Departamentos" : "Shop Departments",
     links: [
-      { label: "Consumer Electronics", href: "/categories/consumer-electronics" },
-      { label: "4K Drones & FPV Systems", href: "/categories/rc-drones-toys", badge: "HOT" },
-      { label: "3D Printers & CNC Tools", href: "/categories/tools-diy-hardware" },
-      { label: "Smart Home & IoT Robotics", href: "/categories/smart-home-living" },
-      { label: "Flash Deals & Daily Drops", href: "/categories/flash-deals", badge: "DEALS" },
-      { label: "New Factory Arrivals", href: "/categories/new-arrivals" },
+      { label: isSpanish ? "Electrónica de Consumo" : "Consumer Electronics", href: "/categories/consumer-electronics" },
+      { label: isSpanish ? "Drones 4K y Sistemas FPV" : "4K Drones & FPV Systems", href: "/categories/rc-drones-toys", badge: "HOT" },
+      { label: isSpanish ? "Impresoras 3D y Herramientas CNC" : "3D Printers & CNC Tools", href: "/categories/tools-diy-hardware" },
+      { label: isSpanish ? "Hogar Inteligente y Robótica" : "Smart Home & IoT Robotics", href: "/categories/smart-home-living" },
+      { label: isSpanish ? "Ofertas Flash y Descuentos" : "Flash Deals & Daily Drops", href: "/categories/flash-deals", badge: "DEALS" },
+      { label: isSpanish ? "Nuevas Llegadas de Fábrica" : "New Factory Arrivals", href: "/categories/new-arrivals" },
     ],
   },
   {
     id: "customer-service",
-    title: "Customer Support",
+    title: isSpanish ? "Servicio al Cliente" : "Customer Support",
     links: [
-      { label: "24/7 Sourcing Support Desk", href: "/account/support" },
-      { label: "Track Air Cargo Shipment", href: "/account/orders" },
-      { label: "Cross-Border Shipping Policy", href: "/pages/shipping-policy" },
-      { label: "30-Day Return & USDT Refund", href: "/account/returns" },
-      { label: "Frequently Asked Questions", href: "/pages/faq" },
-      { label: "Binance Pay USDT Guide", href: "/pages/faq" },
+      { label: isSpanish ? "Soporte de Abastecimiento 24/7" : "24/7 Sourcing Support Desk", href: "/account/support" },
+      { label: isSpanish ? "Rastrear Envío de Carga Aérea" : "Track Air Cargo Shipment", href: "/account/orders" },
+      { label: isSpanish ? "Política de Envío Internacional" : "Cross-Border Shipping Policy", href: "/pages/shipping-policy" },
+      { label: isSpanish ? "Garantía 30 Días y Reembolso USDT" : "30-Day Return & USDT Refund", href: "/account/returns" },
+      { label: isSpanish ? "Preguntas Frecuentes (FAQ)" : "Frequently Asked Questions", href: "/pages/faq" },
+      { label: isSpanish ? "Guía de Pago Binance Pay USDT" : "Binance Pay USDT Guide", href: "/pages/faq" },
     ],
   },
   {
     id: "sourcing-network",
-    title: "Sourcing & Network",
+    title: isSpanish ? "Red de Abastecimiento" : "Sourcing & Network",
     links: [
-      { label: "About China Mall", href: "/pages/about" },
-      { label: "Shenzhen Logistics Hub", href: "/pages/about" },
-      { label: "Verified Supplier Network", href: "/categories" },
-      { label: "Wholesale & VIP Bulk Orders", href: "/account/support" },
-      { label: "Affiliate & Partner Program", href: "/pages/about" },
+      { label: isSpanish ? "Acerca de China Mall" : "About China Mall", href: "/pages/about" },
+      { label: isSpanish ? "Hub Logístico de Shenzhen" : "Shenzhen Logistics Hub", href: "/pages/about" },
+      { label: isSpanish ? "Red de Proveedores Verificados" : "Verified Supplier Network", href: "/categories" },
+      { label: isSpanish ? "Pedidos Mayoristas y VIP" : "Wholesale & VIP Bulk Orders", href: "/account/support" },
+      { label: isSpanish ? "Programa de Afiliados" : "Affiliate & Partner Program", href: "/pages/about" },
     ],
   },
   {
     id: "legal-compliance",
-    title: "Legal & Trust",
+    title: isSpanish ? "Legal y Confianza" : "Legal & Trust",
     links: [
-      { label: "Privacy Policy", href: "/pages/privacy-policy" },
-      { label: "Terms of Service", href: "/pages/terms" },
-      { label: "USDT Escrow Agreement", href: "/pages/terms" },
-      { label: "Customs & Export Clearance", href: "/pages/shipping-policy" },
-      { label: "Cookie Preferences", href: "/pages/privacy-policy" },
+      { label: isSpanish ? "Política de Privacidad" : "Privacy Policy", href: "/pages/privacy-policy" },
+      { label: isSpanish ? "Términos de Servicio" : "Terms of Service", href: "/pages/terms" },
+      { label: isSpanish ? "Acuerdo de Custodia USDT" : "USDT Escrow Agreement", href: "/pages/terms" },
+      { label: isSpanish ? "Despacho de Aduanas y Exportación" : "Customs & Export Clearance", href: "/pages/shipping-policy" },
+      { label: isSpanish ? "Preferencias de Cookies" : "Cookie Preferences", href: "/pages/privacy-policy" },
     ],
   },
 ];
+
+export const FOOTER_TRUST_ITEMS: TrustItem[] = getLocalizedFooterTrustItems(false);
+export const FOOTER_SECTIONS: FooterSection[] = getLocalizedFooterSections(false);
 
 export const FOOTER_CONTACTS: ContactInfo[] = [
   {

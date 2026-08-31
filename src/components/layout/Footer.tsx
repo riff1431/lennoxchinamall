@@ -19,11 +19,14 @@ import {
 } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
 import { subscribeNewsletter, NewsletterResult } from "@/app/actions/newsletter";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import {
   FOOTER_SECTIONS,
   FOOTER_TRUST_ITEMS,
   FOOTER_CONTACTS,
   FooterSection,
+  getLocalizedFooterTrustItems,
+  getLocalizedFooterSections,
 } from "./footerData";
 
 /* ──────────────────────────────────────────────────────────
@@ -101,11 +104,15 @@ export function Footer({
   logoUrl = "/logo-lennoxchinamall.png",
   sections = FOOTER_SECTIONS,
 }: FooterProps = {}) {
+  const { locale, setLocale, t, isSpanish } = useTranslation();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newsletterFeedback, setNewsletterFeedback] = useState<NewsletterResult | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const trustItems = getLocalizedFooterTrustItems(isSpanish);
+  const activeSections = sections === FOOTER_SECTIONS ? getLocalizedFooterSections(isSpanish) : sections;
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,7 +163,7 @@ export function Footer({
           
           {/* Trust Value Badges Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 mb-8">
-            {FOOTER_TRUST_ITEMS.map((item) => {
+            {trustItems.map((item) => {
               const Icon = item.icon;
               return (
                 <div
@@ -186,13 +193,13 @@ export function Footer({
             <div className="space-y-1.5 text-center lg:text-left max-w-xl">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FF1028]/10 text-[#FF1028] border border-[#FF1028]/25 text-[10px] font-black uppercase tracking-wider">
                 <Sparkles className="w-3 h-3" />
-                <span>Direct Factory Drops &amp; Wholesales</span>
+                <span>{isSpanish ? "Lanzamientos Directos de Fábrica y Mayoreo" : "Direct Factory Drops & Wholesales"}</span>
               </div>
               <h3 className="text-lg sm:text-xl font-black font-heading text-white tracking-tight">
-                Get Weekly Shenzhen Tech Drops &amp; 10% Off
+                {t.footer.newsletterTitle}
               </h3>
               <p className="text-xs text-slate-400">
-                Direct factory pricing, newly verified batches, and VIP wholesale pricing in your inbox.
+                {t.footer.newsletterDesc}
               </p>
             </div>
 
@@ -204,7 +211,7 @@ export function Footer({
                   <input
                     type="email"
                     required
-                    placeholder="Enter your business email..."
+                    placeholder={t.footer.emailPlaceholder}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isSubmitting}
@@ -221,7 +228,7 @@ export function Footer({
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span>Subscribe</span>
+                      <span>{t.footer.subscribe}</span>
                       <Send className="w-3.5 h-3.5" />
                     </>
                   )}
@@ -280,7 +287,9 @@ export function Footer({
             </Link>
 
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Lennox China Mall connects international buyers directly to verified manufacturers across Shenzhen, Ningbo, and Yiwu with zero-fee USDT cryptographic escrow.
+              {isSpanish
+                ? "Lennox China Mall conecta a compradores internacionales directamente con fabricantes certificados en Shenzhen, Ningbo y Yiwu con custodia criptográfica en USDT sin comisiones."
+                : "Lennox China Mall connects international buyers directly to verified manufacturers across Shenzhen, Ningbo, and Yiwu with zero-fee USDT cryptographic escrow."}
             </p>
 
             {/* Live Operational Status Indicator */}
@@ -289,7 +298,7 @@ export function Footer({
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span>Shenzhen Logistics Hub: Active 24/7</span>
+              <span>{isSpanish ? "Hub Logístico de Shenzhen: Activo 24/7" : "Shenzhen Logistics Hub: Active 24/7"}</span>
             </div>
 
             {/* Interactive Contact Items with Clipboard Copy */}
@@ -329,7 +338,7 @@ export function Footer({
                       {copiedKey === contact.label ? (
                         <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 animate-in fade-in">
                           <Check className="w-3.5 h-3.5" />
-                          <span>Copied</span>
+                          <span>{isSpanish ? "Copiado" : "Copied"}</span>
                         </span>
                       ) : (
                         <Copy className="w-3.5 h-3.5" />
@@ -344,7 +353,7 @@ export function Footer({
           {/* Dynamic Navigation Columns & App Section (8 Columns on Desktop) */}
           <div className="lg:col-span-8 flex flex-col justify-between">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-              {sections.map((section) => {
+              {activeSections.map((section) => {
                 const isOpen = openAccordion === section.id;
                 return (
                   <div key={section.id} className="space-y-3">
@@ -515,8 +524,32 @@ export function Footer({
             </span>
           </div>
 
-          {/* Right: Social Media Dock & Smooth Back to Top */}
+          {/* Right: Language Switcher, Social Media Dock & Smooth Back to Top */}
           <div className="flex items-center gap-3">
+            {/* Bilingual Switcher */}
+            <div className="flex items-center gap-1 bg-white/[0.06] p-1 rounded-lg border border-white/10 text-xs">
+              <button
+                type="button"
+                onClick={() => setLocale("en")}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                  locale === "en" ? "bg-[#FF1028] text-white shadow-xs" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocale("es")}
+                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                  locale === "es" ? "bg-[#FF1028] text-white shadow-xs" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                ES
+              </button>
+            </div>
+
+            <div className="h-4 w-px bg-slate-800" />
+
             {/* Social Icons */}
             <div className="flex items-center gap-1">
               <a

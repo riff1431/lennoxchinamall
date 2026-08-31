@@ -18,6 +18,7 @@ import { Product } from "@/types/database";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface TopSellingProductsSectionProps {
   products: Product[];
@@ -28,10 +29,13 @@ interface TopSellingProductsSectionProps {
 
 export function TopSellingProductsSection({
   products,
-  title = "Top Selling Direct Products",
-  subtitle = "Highest volume verified factory hardware sourced directly from Shenzhen, Ningbo & Dongguan",
+  title,
+  subtitle,
   autoPlayInterval = 3000,
 }: TopSellingProductsSectionProps) {
+  const { t, isSpanish } = useTranslation();
+  const displayTitle = title || (isSpanish ? "Productos Más Vendidos de Fábrica" : "Top Selling Direct Products");
+  const displaySubtitle = subtitle || (isSpanish ? "Hardware de fábrica certificado de mayor volumen obtenido directamente de Shenzhen, Ningbo y Dongguan" : "Highest volume verified factory hardware sourced directly from Shenzhen, Ningbo & Dongguan");
   // Ensure we have a rich list of products to loop through
   const displayProducts = products && products.length > 0 ? products : [];
 
@@ -194,22 +198,22 @@ export function TopSellingProductsSection({
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-[#FF1028] text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider font-heading shadow-xs">
               <Flame className="w-3.5 h-3.5 fill-white text-white animate-pulse" />
-              <span>TOP SELLING FACTORY HARDWARE</span>
+              <span>{t.home.topSellingHardware}</span>
             </span>
 
             {/* Auto-play status pill */}
             <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[9px] font-mono text-slate-600">
               <span className={`w-1.5 h-1.5 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 animate-ping"}`} />
-              <span>{isPaused ? "Paused" : "Live Auto-Loop (3s)"}</span>
+              <span>{isPaused ? (isSpanish ? "Pausado" : "Paused") : (isSpanish ? "Bucle Automático (3s)" : "Live Auto-Loop (3s)")}</span>
             </span>
           </div>
 
           {/* Heading */}
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#00143D] font-heading tracking-tight">
-            {title}
+            {displayTitle}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-2xl">
-            {subtitle}
+            {displaySubtitle}
           </p>
         </div>
 
@@ -220,14 +224,14 @@ export function TopSellingProductsSection({
             <button
               onClick={prevSlide}
               className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-md bg-white hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
-              aria-label="Previous Products"
+              aria-label={isSpanish ? "Productos anteriores" : "Previous Products"}
             >
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={nextSlide}
               className="w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-md bg-white hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
-              aria-label="Next Products"
+              aria-label={isSpanish ? "Siguientes productos" : "Next Products"}
             >
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
@@ -238,7 +242,7 @@ export function TopSellingProductsSection({
             href="/categories/consumer-electronics"
             className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2 rounded-md bg-[#00143D] hover:bg-[#FF1028] text-white text-xs font-black font-heading transition-all shadow-xs group cursor-pointer btn-smooth"
           >
-            <span>View All</span>
+            <span>{t.home.viewAllDeals}</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>

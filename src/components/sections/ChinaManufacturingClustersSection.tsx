@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   Zap,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ClusterItem {
   id: string;
@@ -34,107 +35,98 @@ interface ClusterItem {
   link: string;
 }
 
-const CLUSTERS: ClusterItem[] = [
-  {
-    id: "shenzhen",
-    code: "SZX • 01",
-    name: "Shenzhen High-Tech",
-    region: "Guangdong Silicon Delta",
-    description: "4K Camera Drones, Gimbal Stabilizers, Smart Microelectronics",
-    guarantee: "7-10 Days Air Express",
-    guaranteeIcon: Plane,
-    icon: Cpu,
-    gradient: "from-cyan-500/20 via-blue-500/10 to-transparent",
-    iconBg: "bg-cyan-500/15 border-cyan-400/30 text-cyan-300",
-    iconColor: "text-cyan-400",
-    accentBorder: "hover:border-cyan-400/50",
-    accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(6,182,212,0.35)]",
-    badgeBg: "bg-cyan-500/10 border-cyan-500/30 text-cyan-300",
-    badgeText: "AIR PRIORITY",
-    link: "/categories",
-  },
-  {
-    id: "ningbo",
-    code: "NGB • 02",
-    name: "Ningbo Machinery",
-    region: "Zhejiang Coastal Cluster",
-    description: "CoreXY 3D Printers, Laser Engravers, Heavy Power Hardware",
-    guarantee: "Inspected at Gate",
-    guaranteeIcon: ShieldCheck,
-    icon: Factory,
-    gradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
-    iconBg: "bg-amber-500/15 border-amber-400/30 text-amber-300",
-    iconColor: "text-amber-400",
-    accentBorder: "hover:border-amber-400/50",
-    accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(245,158,11,0.35)]",
-    badgeBg: "bg-amber-500/10 border-amber-500/30 text-amber-300",
-    badgeText: "QC CERTIFIED",
-    link: "/categories",
-  },
-  {
-    id: "dongguan",
-    code: "DGG • 03",
-    name: "Dongguan Audio",
-    region: "Pearl River Acoustics Hub",
-    description: "120W Bluetooth Boomboxes, TWS Earbuds, Studio Soundcards",
-    guarantee: "Factory Batch Verified",
-    guaranteeIcon: CheckCircle2,
-    icon: Headphones,
-    gradient: "from-purple-500/20 via-indigo-500/10 to-transparent",
-    iconBg: "bg-purple-500/15 border-purple-400/30 text-purple-300",
-    iconColor: "text-purple-400",
-    accentBorder: "hover:border-purple-400/50",
-    accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(168,85,247,0.35)]",
-    badgeBg: "bg-purple-500/10 border-purple-500/30 text-purple-300",
-    badgeText: "BATCH TESTED",
-    link: "/categories",
-  },
-  {
-    id: "guangzhou",
-    code: "CAN • 04",
-    name: "Guangzhou Automotive",
-    region: "Greater Bay Mobility Zone",
-    description: "OBD2 Diagnostic Tablets, Jump Starters, Car Electronics",
-    guarantee: "Direct Manufacturer PO",
-    guaranteeIcon: Boxes,
-    icon: Car,
-    gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
-    iconBg: "bg-emerald-500/15 border-emerald-400/30 text-emerald-300",
-    iconColor: "text-emerald-400",
-    accentBorder: "hover:border-emerald-400/50",
-    accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(16,185,129,0.35)]",
-    badgeBg: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
-    badgeText: "DIRECT PO",
-    link: "/categories",
-  },
-];
-
 export function ChinaManufacturingClustersSection() {
+  const { t, isSpanish } = useTranslation();
+
+  const clusters: ClusterItem[] = [
+    {
+      id: "shenzhen",
+      code: "SZX • 01",
+      name: isSpanish ? "Shenzhen Alta Tecnología" : "Shenzhen High-Tech",
+      region: isSpanish ? "Silicon Delta de Guangdong" : "Guangdong Silicon Delta",
+      description: isSpanish ? "Drones con Cámara 4K, Estabilizadores Gimbal, Microelectrónica Inteligente" : "4K Camera Drones, Gimbal Stabilizers, Smart Microelectronics",
+      guarantee: isSpanish ? "7–10 Días Envío Aéreo Express" : "7-10 Days Air Express",
+      guaranteeIcon: Plane,
+      icon: Cpu,
+      gradient: "from-cyan-500/20 via-blue-500/10 to-transparent",
+      iconBg: "bg-cyan-500/15 border-cyan-400/30 text-cyan-300",
+      iconColor: "text-cyan-400",
+      accentBorder: "hover:border-cyan-400/50",
+      accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(6,182,212,0.35)]",
+      badgeBg: "bg-cyan-500/10 border-cyan-500/30 text-cyan-300",
+      badgeText: isSpanish ? "PRIORIDAD AÉREA" : "AIR PRIORITY",
+      link: "/categories",
+    },
+    {
+      id: "ningbo",
+      code: "NGB • 02",
+      name: isSpanish ? "Maquinaria de Ningbo" : "Ningbo Machinery",
+      region: isSpanish ? "Clúster Costero de Zhejiang" : "Zhejiang Coastal Cluster",
+      description: isSpanish ? "Impresoras 3D CoreXY, Grabadores Láser, Herramientas Eléctricas Pesadas" : "CoreXY 3D Printers, Laser Engravers, Heavy Power Hardware",
+      guarantee: isSpanish ? "Inspeccionado en Fábrica" : "Inspected at Gate",
+      guaranteeIcon: ShieldCheck,
+      icon: Factory,
+      gradient: "from-amber-500/20 via-yellow-500/10 to-transparent",
+      iconBg: "bg-amber-500/15 border-amber-400/30 text-amber-300",
+      iconColor: "text-amber-400",
+      accentBorder: "hover:border-amber-400/50",
+      accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(245,158,11,0.35)]",
+      badgeBg: "bg-amber-500/10 border-amber-500/30 text-amber-300",
+      badgeText: isSpanish ? "CERTIFICADO QC" : "QC CERTIFIED",
+      link: "/categories",
+    },
+    {
+      id: "dongguan",
+      code: "DGG • 03",
+      name: isSpanish ? "Dongguan Acústica" : "Dongguan Audio",
+      region: isSpanish ? "Hub Acústico de Pearl River" : "Pearl River Acoustics Hub",
+      description: isSpanish ? "Altavoces Bluetooth 120W, Auriculares TWS, Tarjetas de Sonido" : "120W Bluetooth Boomboxes, TWS Earbuds, Studio Soundcards",
+      guarantee: isSpanish ? "Lote Verificado en Fábrica" : "Factory Batch Verified",
+      guaranteeIcon: CheckCircle2,
+      icon: Headphones,
+      gradient: "from-purple-500/20 via-indigo-500/10 to-transparent",
+      iconBg: "bg-purple-500/15 border-purple-400/30 text-purple-300",
+      iconColor: "text-purple-400",
+      accentBorder: "hover:border-purple-400/50",
+      accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(168,85,247,0.35)]",
+      badgeBg: "bg-purple-500/10 border-purple-500/30 text-purple-300",
+      badgeText: isSpanish ? "LOTE PROBADO" : "BATCH TESTED",
+      link: "/categories",
+    },
+    {
+      id: "guangzhou",
+      code: "CAN • 04",
+      name: isSpanish ? "Guangzhou Automotriz" : "Guangzhou Automotive",
+      region: isSpanish ? "Zona de Movilidad Greater Bay" : "Greater Bay Mobility Zone",
+      description: isSpanish ? "Escáneres de Diagnóstico OBD2, Arrancadores, Electrónica para Autos" : "OBD2 Diagnostic Tablets, Jump Starters, Car Electronics",
+      guarantee: isSpanish ? "Pedido Directo Fabricante" : "Direct Manufacturer PO",
+      guaranteeIcon: Boxes,
+      icon: Car,
+      gradient: "from-emerald-500/20 via-teal-500/10 to-transparent",
+      iconBg: "bg-emerald-500/15 border-emerald-400/30 text-emerald-300",
+      iconColor: "text-emerald-400",
+      accentBorder: "hover:border-emerald-400/50",
+      accentGlow: "group-hover:shadow-[0_0_28px_-6px_rgba(16,185,129,0.35)]",
+      badgeBg: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
+      badgeText: isSpanish ? "OC DIRECTA" : "DIRECT PO",
+      link: "/categories",
+    },
+  ];
+
   return (
-    <section className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#001033] via-[#001642] to-[#00081C] text-white p-5 sm:p-8 lg:p-10 border border-blue-900/50 shadow-2xl transition-all">
-      {/* ── Modern High-Tech SVG Grid Background ── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        {/* Subtle Tech Grid Pattern */}
-        <svg
-          className="absolute inset-0 h-full w-full stroke-white/[0.04] [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <pattern id="china-clusters-grid" width="36" height="36" patternUnits="userSpaceOnUse">
-              <path d="M 36 0 L 0 0 0 36" fill="none" strokeWidth="1" />
-              <circle cx="36" cy="36" r="1" fill="rgba(255,255,255,0.08)" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#china-clusters-grid)" />
-        </svg>
+    <section
+      aria-label={isSpanish ? "Clústeres de Fabricación de China" : "Direct China Manufacturing Clusters"}
+      className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#000F2E] via-[#00143D] to-[#00081C] border border-blue-950/80 p-5 sm:p-7 lg:p-8 shadow-xl"
+    >
+      {/* ── Background Cyber High-Tech Mesh / Grid ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Subtle grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:28px_28px]" />
 
         {/* Ambient Glowing Lighting Gradients */}
         <div className="absolute -top-24 -right-24 w-80 sm:w-96 h-80 sm:h-96 bg-blue-500/15 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-72 sm:w-80 h-72 sm:h-80 bg-red-600/10 rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
-
-        {/* Diagonal Tech Accent Strip */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-white/[0.03] to-transparent pointer-events-none" />
       </div>
 
       {/* ── Header Area ── */}
@@ -146,15 +138,15 @@ export function ChinaManufacturingClustersSection() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span>TRANSPARENT SOURCING PIPELINE</span>
+            <span>{t.home.directSourcingTitle}</span>
           </div>
 
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white font-heading tracking-tight">
-            Direct China Manufacturing Clusters
+            {t.home.manufacturingClusters}
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300/90 leading-relaxed max-w-xl">
-            China Mall bypasses intermediaries. Orders placed with USDT go directly from certified industrial clusters via expedited air cargo.
+            {t.home.manufacturingSubtitle}
           </p>
         </div>
 
@@ -162,22 +154,22 @@ export function ChinaManufacturingClustersSection() {
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-slate-300">
           <span className="px-2.5 py-1 rounded-md bg-white/[0.05] border border-white/10 flex items-center gap-1.5">
             <Zap className="w-3.5 h-3.5 text-amber-400" />
-            <span>0 Intermediaries</span>
+            <span>{t.home.zeroMiddleman}</span>
           </span>
           <span className="px-2.5 py-1 rounded-md bg-white/[0.05] border border-white/10 flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Gate QC Pass</span>
+            <span>{t.home.qcPassed}</span>
           </span>
           <span className="px-2.5 py-1 rounded-md bg-white/[0.05] border border-white/10 flex items-center gap-1.5">
             <Plane className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Air Cargo</span>
+            <span>{t.home.airCargoTitle}</span>
           </span>
         </div>
       </div>
 
       {/* ── 4 Cluster Cards Grid ── */}
       <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {CLUSTERS.map((cluster) => {
+        {clusters.map((cluster) => {
           const IconComponent = cluster.icon;
           const GuaranteeIcon = cluster.guaranteeIcon;
 

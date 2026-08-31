@@ -31,13 +31,10 @@ export const HOT_SEARCH_TAGS = [
   "Bluetooth Speakers",
 ];
 
-// ─── Languages ──────────────────────────────────────────────────────────────
+// ─── Languages (English & Spanish Only) ──────────────────────────────────────
 export const LANGUAGES = [
   { code: "EN", name: "English (US)", locale: "en" },
-  { code: "ES", name: "Español", locale: "es" },
-  { code: "FR", name: "Français", locale: "fr" },
-  { code: "DE", name: "Deutsch", locale: "de" },
-  { code: "AR", name: "العربية", locale: "ar" },
+  { code: "ES", name: "Español (ES)", locale: "es" },
 ];
 
 // ─── Currencies ─────────────────────────────────────────────────────────────

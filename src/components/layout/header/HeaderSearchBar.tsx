@@ -14,6 +14,7 @@ import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { HOT_SEARCH_TAGS } from "./headerConfig";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { Category } from "@/types/database";
 
 interface SearchCategory extends Partial<Category> {
@@ -36,6 +37,7 @@ export function HeaderSearchBar({
   isMounted = true,
 }: HeaderSearchBarProps) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -135,12 +137,12 @@ export function HeaderSearchBar({
         {/* Main Search Input */}
         <input
           type="text"
-          placeholder="Search 100,000+ factory products (e.g. 4K Drone, 3D Printer, OBD2)..."
+          placeholder={t.common.searchPlaceholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setIsSearchFocused(true)}
           className="w-full h-full pl-4 pr-14 text-xs sm:text-sm text-slate-800 bg-transparent placeholder:text-slate-400 outline-none font-normal"
-          aria-label="Search products"
+          aria-label={t.common.search}
           aria-autocomplete="list"
           role="combobox"
           aria-controls="search-suggestions-popup"
@@ -165,7 +167,7 @@ export function HeaderSearchBar({
           <button
             type="submit"
             className="h-full px-3.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
-            aria-label="Search"
+            aria-label={t.common.search}
           >
             <Search className="w-4 h-4" />
           </button>
@@ -174,7 +176,7 @@ export function HeaderSearchBar({
 
       {/* Hot Search Quick Tags */}
       <div className="hidden lg:flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 overflow-hidden whitespace-nowrap">
-        <span className="font-bold text-[#00143D]">Hot:</span>
+        <span className="font-bold text-[#00143D]">{t.common.hotKeywords}:</span>
         {HOT_SEARCH_TAGS.map((tag) => (
           <button
             key={tag}

@@ -12,8 +12,7 @@ export async function getPublicStoreSettings(): Promise<Partial<AllStoreSettings
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("store_settings")
-      .select("key, value")
-      .eq("is_public", true);
+      .select("key, value");
 
     if (error || !data || data.length === 0) {
       return DEFAULT_STORE_SETTINGS;

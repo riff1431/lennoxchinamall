@@ -31,6 +31,7 @@ import { useCompareStore } from "@/store/useCompareStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
 import { Modal } from "@/components/ui/Modal";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ProductCardProps {
   product: Product;
@@ -38,6 +39,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, priority = false }: ProductCardProps) {
+  const { t } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
@@ -345,11 +347,11 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             <div className="space-y-0.5 text-[9px] sm:text-[9.5px] text-slate-500 font-medium">
               <div className="flex items-center gap-1 text-slate-600 truncate">
                 <Plane className="w-2.5 h-2.5 text-blue-600 shrink-0" />
-                <span className="truncate">5-8 Days Direct Air Cargo</span>
+                <span className="truncate">{t.product.airLeadDays}</span>
               </div>
               <div className="flex items-center gap-1 text-[#10B981] font-semibold truncate">
                 <ShieldCheck className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
-                <span className="truncate">100% Factory Gate QC Pass</span>
+                <span className="truncate">{t.common.factoryQCPass}</span>
               </div>
             </div>
           </div>
@@ -370,16 +372,16 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             }`}
           >
             {isOutOfStock ? (
-              <span>Out of Stock</span>
+              <span>{t.common.outOfStock}</span>
             ) : justAdded ? (
               <>
                 <Check className="w-3.5 h-3.5" />
-                <span>Added!</span>
+                <span>{t.common.success}</span>
               </>
             ) : (
               <>
                 <ShoppingCart className="w-3.5 h-3.5" />
-                <span>Quick Add</span>
+                <span>{t.common.addToCart}</span>
               </>
             )}
           </motion.button>

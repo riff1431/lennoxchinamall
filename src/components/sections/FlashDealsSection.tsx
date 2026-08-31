@@ -6,12 +6,14 @@ import { Zap, ArrowRight, Flame } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { FlashDealCountdown } from "@/components/common/FlashDealCountdown";
 import { Product } from "@/types/database";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface FlashDealsSectionProps {
   flashDeals: Product[];
 }
 
 export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
+  const { t, isSpanish } = useTranslation();
   const deals = flashDeals.slice(0, 5);
 
   return (
@@ -45,14 +47,14 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
                 <Zap className="w-6 h-6 sm:w-7 sm:h-7 fill-amber-400 text-amber-400" />
               </div>
               <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white font-heading">
-                FLASH DEALS
+                {t.home.flashSourcingDrops}
               </h2>
             </div>
 
             {/* Separator + Countdown */}
             <div className="flex items-center gap-2.5 sm:gap-3">
               <span className="hidden sm:inline-block w-px h-6 bg-white/20" />
-              <FlashDealCountdown variant="premium" label="Ends In" />
+              <FlashDealCountdown variant="premium" label={t.home.dealEndsIn} />
             </div>
           </div>
 
@@ -61,7 +63,7 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
             href="/categories/flash-deals"
             className="flash-cta-glow text-xs font-black text-white flex items-center gap-1.5 bg-white/10 hover:bg-white/15 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-md transition-colors border border-white/15 backdrop-blur-xs"
           >
-            <span>View All Flash Deals</span>
+            <span>{t.home.viewAllDeals}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -88,7 +90,7 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
                       className="tabular-nums"
                       style={{ textShadow: "0 0 8px rgba(245, 158, 11, 0.4)" }}
                     >
-                      {75 + idx * 5}% Claimed
+                      {75 + idx * 5}% {t.home.claimed}
                     </span>
                   </span>
                   <span
@@ -98,7 +100,7 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
                         : "text-slate-400"
                     }`}
                   >
-                    {Math.max(4, 12 - idx * 2)} left
+                    {Math.max(4, 12 - idx * 2)} {isSpanish ? "restantes" : "units left"}
                   </span>
                 </div>
 

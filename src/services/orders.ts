@@ -156,10 +156,16 @@ export async function createOrder(
           user_id: finalUserId,
           status: "pending_payment",
           subtotal,
+          discount_amount: discount,
           discount,
+          shipping_fee: shippingCost,
           shipping_cost: shippingCost,
+          total_amount: total,
           total,
           currency: "USDT",
+          payment_method: "binance_pay_usdt",
+          payment_status: "initiated",
+          merchant_trade_no: merchantTradeNo,
           notes: notes ? String(notes).slice(0, 500) : null,
         })
         .select("id")
@@ -172,11 +178,15 @@ export async function createOrder(
       const orderItems = sanitizedItems.map((item) => ({
         order_id: orderId,
         variant_id: item.variantId || item.id,
+        title: item.title,
         product_title: item.title,
+        attributes: item.attributes || {},
         variant_attributes: item.attributes || {},
         quantity: item.quantity,
+        price: item.price,
         unit_price: item.price,
         total: item.price * item.quantity,
+        image_url: item.image || null,
       }));
 
       await supabase.from("order_items").insert(orderItems);
@@ -206,8 +216,7 @@ export async function createOrder(
         }
       }
 
-
-      // 5. Insert Shipping Address
+      // 7. Insert Shipping Address
       await supabase.from("order_addresses").insert({
         order_id: orderId,
         type: "shipping",
@@ -221,15 +230,17 @@ export async function createOrder(
         phone: shippingAddress.phone ? shippingAddress.phone.slice(0, 20) : null,
       });
 
-      // 6. Insert Status History
+      // 8. Insert Status History
       await supabase.from("order_status_history").insert({
         order_id: orderId,
-        from_status: null,
+        status: "pending_payment",
         to_status: "pending_payment",
+        from_status: null,
+        notes: "Order created. Awaiting USDT settlement via Binance Pay.",
         note: "Order created. Awaiting USDT settlement via Binance Pay.",
       });
 
-      // 7. Insert Payments record
+      // 9. Insert Payments record
       await supabase.from("payments").insert({
         order_id: orderId,
         merchant_trade_no: merchantTradeNo,
@@ -237,7 +248,8 @@ export async function createOrder(
         currency: "USDT",
         status: "initiated",
         idempotency_key: idempotencyKey,
-        expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 mins
+        qr_content: `binancepay://usdt?tradeNo=${merchantTradeNo}&amount=${total}`,
+        expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
       });
 
       return {
@@ -256,8 +268,8 @@ export async function createOrder(
       merchantTradeNo,
       totalAmount: total,
     };
-  } catch {
-    // Fallback simulation
+  } catch (err: any) {
+    console.error("Order creation database error:", err);
     return {
       success: true,
       orderNumber,
@@ -286,7 +298,11 @@ export async function getOrders(requestedUserId?: string): Promise<Order[]> {
       .eq("id", user.id)
       .single();
 
-    const isAdmin = profile?.is_active && ["super_admin", "catalogue_manager", "order_manager", "support_agent"].includes(profile.role);
+    const isAdmin =
+      profile?.is_active &&
+      ["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager", "finance_manager", "support_agent"].includes(
+        profile.role
+      );
 
     let query = supabase
       .from("orders")

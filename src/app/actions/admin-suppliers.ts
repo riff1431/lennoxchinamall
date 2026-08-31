@@ -11,7 +11,7 @@ import { logAuditEvent } from "@/lib/audit";
 
 export async function getSuppliers() {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access", suppliers: [], sourcingPurchases: [] };
   }
 
@@ -42,7 +42,7 @@ export async function getSuppliers() {
 
 export async function createSupplier(formData: FormData) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -102,7 +102,7 @@ export async function createSupplier(formData: FormData) {
 
 export async function createSourcingPurchase(formData: FormData) {
   const session = await getSession();
-  if (!session || !["super_admin", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "order_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access" };
   }
 

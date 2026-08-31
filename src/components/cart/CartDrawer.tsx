@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/utils/helpers";
 import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const PRESET_COUPONS = [
   { code: "LENNOX10", desc: "10% OFF Storewide" },
@@ -31,6 +32,7 @@ const PRESET_COUPONS = [
 ];
 
 export function CartDrawer() {
+  const { t, isSpanish } = useTranslation();
   const isOpen = useCartStore((state) => state.isOpen);
   const closeCart = useCartStore((state) => state.closeCart);
   const items = useCartStore((state) => state.items);
@@ -88,9 +90,9 @@ export function CartDrawer() {
             <ShoppingBag className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-black text-[#00143D] font-heading">Your Sourcing Cart</h3>
+            <h3 className="text-sm font-black text-[#00143D] font-heading">{t.cart.title}</h3>
             <span className="text-[10px] text-slate-400 font-medium block font-mono">
-              {items.length} item{items.length !== 1 ? "s" : ""} • {shippingBreakdown.totalGrossWeight.toFixed(2)} KG • {shippingBreakdown.totalCbm.toFixed(3)} m³
+              {items.length} {isSpanish ? "artículo(s)" : "item(s)"} • {shippingBreakdown.totalGrossWeight.toFixed(2)} KG • {shippingBreakdown.totalCbm.toFixed(3)} m³
             </span>
           </div>
         </div>
@@ -104,7 +106,7 @@ export function CartDrawer() {
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 px-0.5">
                 <span className="flex items-center gap-1.5 font-heading uppercase tracking-wider text-[10px]">
                   <Truck className="w-3.5 h-3.5 text-blue-600" />
-                  Freight Mode
+                  {t.checkout.shippingMethod}
                 </span>
                 <span className="font-mono text-[10px] text-slate-400 font-semibold">
                   {shippingBreakdown.totalGrossWeight.toFixed(2)} kg • {shippingBreakdown.totalCbm.toFixed(3)} m³
@@ -124,13 +126,13 @@ export function CartDrawer() {
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase flex items-center gap-1 font-heading">
                       <Zap className={`w-3 h-3 ${shippingMethod === "air" ? "fill-blue-500 text-blue-600" : "text-slate-400"}`} />
-                      Air Cargo
+                      {isSpanish ? "Aéreo Express" : "Air Cargo"}
                     </span>
                     <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
-                      {shippingBreakdown.air.totalCost === 0 ? "FREE" : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
+                      {shippingBreakdown.air.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
                     </span>
                   </div>
-                  <span className="text-[9px] text-slate-400 block mt-0.5">5–8 Days Express</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">{isSpanish ? "5–8 Días Express" : "5–8 Days Express"}</span>
                 </button>
 
                 <button
@@ -145,13 +147,13 @@ export function CartDrawer() {
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase flex items-center gap-1 font-heading">
                       <Ship className={`w-3 h-3 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
-                      Sea Cargo
+                      {isSpanish ? "Carga Marítima" : "Sea Cargo"}
                     </span>
                     <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
-                      {shippingBreakdown.sea.totalCost === 0 ? "FREE" : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
+                      {shippingBreakdown.sea.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
                     </span>
                   </div>
-                  <span className="text-[9px] text-slate-400 block mt-0.5">20–30 Days Bulk</span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5">{isSpanish ? "20–30 Días Granel" : "20–30 Days Bulk"}</span>
                 </button>
               </div>
             </div>
@@ -159,31 +161,31 @@ export function CartDrawer() {
             {/* Automatic Price Calculations */}
             <div className="space-y-1.5 text-xs bg-slate-50/80 p-3 rounded-2xl border border-slate-200/80">
               <div className="flex justify-between text-slate-600 font-medium">
-                <span>Items Subtotal</span>
+                <span>{t.cart.subtotal}</span>
                 <span className="font-bold text-slate-900 font-mono">{formatCurrency(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-[#FF1028] font-bold">
                   <span className="flex items-center gap-1">
-                    <Tag className="w-3 h-3" /> Voucher ({couponCode})
+                    <Tag className="w-3 h-3" /> {t.cart.discount} ({couponCode})
                   </span>
                   <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-slate-600 font-medium">
                 <span>
-                  Shipping ({shippingMethod === "sea" ? "Ocean Container" : "Priority Air"})
+                  {t.cart.estimatedShipping} ({shippingMethod === "sea" ? (isSpanish ? "Contenedor Marítimo" : "Ocean Container") : (isSpanish ? "Aéreo Prioritario" : "Priority Air")})
                 </span>
                 <span className="font-bold text-slate-900 font-mono">
                   {activeShippingCost === 0 ? (
-                    <span className="text-emerald-600 font-black uppercase">FREE</span>
+                    <span className="text-emerald-600 font-black uppercase">{isSpanish ? "GRATIS" : "FREE"}</span>
                   ) : (
                     formatCurrency(activeShippingCost)
                   )}
                 </span>
               </div>
               <div className="flex justify-between text-sm font-black text-[#00143D] pt-2 border-t border-slate-200">
-                <span className="font-heading uppercase text-xs tracking-wider">Total (USDT)</span>
+                <span className="font-heading uppercase text-xs tracking-wider">{t.cart.total} (USDT)</span>
                 <span className="text-base text-[#FF1028] price-tag font-mono font-black">
                   {formatCurrency(totalDue)}
                 </span>
@@ -197,7 +199,7 @@ export function CartDrawer() {
               className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 px-4 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98 font-heading uppercase tracking-wider"
             >
               <Lock className="w-4 h-4" />
-              <span>Checkout with Binance Pay USDT</span>
+              <span>{t.cart.proceedToCheckout}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -206,7 +208,7 @@ export function CartDrawer() {
               onClick={closeCart}
               className="w-full text-center text-xs font-bold text-slate-500 hover:text-[#00143D] transition-colors py-0.5"
             >
-              View Full Cart &amp; Edit Details →
+              {isSpanish ? "Ver Carrito Completo y Detalles →" : "View Full Cart & Edit Details →"}
             </Link>
           </div>
         ) : undefined
@@ -218,9 +220,9 @@ export function CartDrawer() {
             <ShoppingBag className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h4 className="text-base font-black text-[#00143D] font-heading">Your Cart is Empty</h4>
+            <h4 className="text-base font-black text-[#00143D] font-heading">{t.cart.emptyCartTitle}</h4>
             <p className="text-xs text-slate-500 max-w-xs">
-              Explore 100,000+ factory-direct China hardware products with USDT checkout.
+              {t.cart.emptyCartSubtitle}
             </p>
           </div>
           <Button
@@ -229,7 +231,7 @@ export function CartDrawer() {
             onClick={closeCart}
             className="mt-2 font-black font-heading"
           >
-            Start Sourcing Deals
+            {t.cart.continueShopping}
           </Button>
         </div>
       ) : (

@@ -47,6 +47,7 @@ import { useHistoryStore } from "@/store/useHistoryStore";
 import { useProductStore } from "@/store/useProductStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ProductDetailClientProps {
   product?: Product | null;
@@ -60,6 +61,7 @@ export function ProductDetailClient({
   slug: urlSlug,
 }: ProductDetailClientProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const searchSlug = urlSlug || initialProduct?.slug || initialProduct?.id || "";
 
   const isMounted = React.useSyncExternalStore(
@@ -905,7 +907,7 @@ export function ProductDetailClient({
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">
-                    <span className="text-slate-500 font-medium">5–8 Business Days</span>
+                    <span className="text-slate-500 font-medium">{t.product.airLeadDays}</span>
                     <span className="text-[9px] font-bold font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">Fastest</span>
                   </div>
                 </button>
@@ -929,7 +931,7 @@ export function ProductDetailClient({
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">
-                    <span className="text-slate-500 font-medium">20–30 Days Bulk</span>
+                    <span className="text-slate-500 font-medium">{t.product.seaLeadDays}</span>
                     <span className="text-[9px] font-bold font-mono text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded">Lowest Rate</span>
                   </div>
                 </button>
@@ -939,7 +941,7 @@ export function ProductDetailClient({
               <div className="flex items-center justify-between px-1 text-[11px] text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  Shenzhen Hub Departure • DDP Pre-Cleared
+                  {product.shipping_origin || "Shenzhen Hub Departure"} • {t.product.ddpPreCleared}
                 </span>
                 <span className="font-mono text-[10px] text-slate-400">
                   {shippingMethod === "sea"
@@ -1146,8 +1148,8 @@ export function ProductDetailClient({
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span className="sm:hidden">Specs</span>
-              <span className="hidden sm:inline">Technical Specifications</span>
+              <span className="sm:hidden">{t.product.specifications}</span>
+              <span className="hidden sm:inline">{t.product.specifications}</span>
             </button>
             <button
               onClick={() => setActiveTab("qc_report")}
@@ -1157,8 +1159,8 @@ export function ProductDetailClient({
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span className="sm:hidden">QC Report</span>
-              <span className="hidden sm:inline">Shenzhen QC &amp; Factory Report</span>
+              <span className="sm:hidden">{t.product.factoryVideos}</span>
+              <span className="hidden sm:inline">Shenzhen QC &amp; {t.product.factoryVideos}</span>
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
@@ -1168,8 +1170,8 @@ export function ProductDetailClient({
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span className="sm:hidden">Reviews</span>
-              <span className="hidden sm:inline">Customer Reviews ({product.review_count || 32})</span>
+              <span className="sm:hidden">{t.product.customerReviews}</span>
+              <span className="hidden sm:inline">{t.product.customerReviews} ({product.review_count || 32})</span>
             </button>
             <button
               onClick={() => setActiveTab("qa")}
@@ -1179,9 +1181,9 @@ export function ProductDetailClient({
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span className="sm:hidden">Q&amp;A</span>
+              <span className="sm:hidden">{t.product.sourcingQA}</span>
               <span className="hidden sm:inline flex items-center gap-1.5">
-                <span>Customer Q&amp;A</span>
+                <span>{t.product.sourcingQA}</span>
                 <span className="bg-slate-200 text-slate-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                   {qaCount}
                 </span>
@@ -1195,8 +1197,8 @@ export function ProductDetailClient({
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span className="sm:hidden">Shipping</span>
-              <span className="hidden sm:inline">Airfreight &amp; Warranty</span>
+              <span className="sm:hidden">{t.product.shippingCalculator}</span>
+              <span className="hidden sm:inline">{t.common.directChinaAirfreight}</span>
             </button>
           </div>
 

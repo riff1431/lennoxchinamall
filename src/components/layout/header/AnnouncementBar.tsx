@@ -9,6 +9,8 @@ import {
   ANNOUNCEMENT_CONFIG,
   HEADER_ICONS,
 } from "@/components/layout/header/headerConfig";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import type { SupportedLocale } from "@/lib/i18n/types";
 
 import type { User } from "@supabase/supabase-js";
 import type { UserRole } from "@/types/database";
@@ -24,7 +26,7 @@ export function AnnouncementBar({
   role,
   isAdminRole,
 }: AnnouncementBarProps) {
-  const [selectedLang, setSelectedLang] = useState(LANGUAGES[0]);
+  const { locale, setLocale, t } = useTranslation();
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
 
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
@@ -32,6 +34,8 @@ export function AnnouncementBar({
 
   const langMenuRef = useRef<HTMLDivElement>(null);
   const currencyMenuRef = useRef<HTMLDivElement>(null);
+
+  const currentLang = LANGUAGES.find((l) => l.locale === locale) || LANGUAGES[0];
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -68,10 +72,10 @@ export function AnnouncementBar({
       <div className="md:hidden flex items-center justify-between px-3 h-7 text-[10px] font-medium tracking-tight overflow-hidden">
         <div className="flex items-center gap-1.5 truncate text-amber-300 font-bold uppercase">
           <ValueIcon className="w-3 h-3 shrink-0" />
-          <span className="truncate">{ANNOUNCEMENT_CONFIG.valueProp}</span>
+          <span className="truncate">{t.common.directChinaAirfreight}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 text-slate-300">
-          <span className="hidden xs:inline">{ANNOUNCEMENT_CONFIG.couponText}:</span>
+          <span className="hidden xs:inline">{t.common.saveWithCoupon}:</span>
           <span className="inline xs:hidden">Use:</span>
           <span className="text-white bg-[#FF1028] px-1.5 py-0.5 rounded font-black text-[9px] shadow-[0_0_6px_rgba(255,16,40,0.4)]">
             {ANNOUNCEMENT_CONFIG.couponCode}
@@ -85,18 +89,18 @@ export function AnnouncementBar({
         <div className="flex items-center gap-4 text-[11px] font-medium tracking-wide">
           <span className="flex items-center gap-1.5 text-amber-300 font-bold uppercase tracking-wider">
             <ValueIcon className="w-3.5 h-3.5" />
-            {ANNOUNCEMENT_CONFIG.valueProp}
+            {t.common.directChinaAirfreight}
           </span>
           <span className="text-slate-600">•</span>
           <span className="text-slate-300">
-            {ANNOUNCEMENT_CONFIG.couponText}{" "}
+            {t.common.saveWithCoupon}{" "}
             <strong className="text-white bg-[#FF1028] px-1.5 py-0.5 rounded font-black animate-pulse shadow-[0_0_8px_rgba(255,16,40,0.5)]">
               {ANNOUNCEMENT_CONFIG.couponCode}
             </strong>
           </span>
           <span className="text-slate-600">•</span>
           <span className="text-emerald-400 font-semibold flex items-center gap-1">
-            <QcIcon className="w-3.5 h-3.5" /> {ANNOUNCEMENT_CONFIG.qcText}
+            <QcIcon className="w-3.5 h-3.5" /> {t.common.factoryQCPass}
           </span>
         </div>
 
@@ -107,12 +111,12 @@ export function AnnouncementBar({
             <button
               onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
               className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors cursor-pointer py-1 px-1.5 rounded hover:bg-white/10"
-              aria-label="Select Language"
+              aria-label={t.header.selectLanguage}
               aria-haspopup="true"
               aria-expanded={isLangMenuOpen}
             >
               <LangIcon className="w-3.5 h-3.5 text-slate-400" />
-              <span className="font-bold">{selectedLang.code}</span>
+              <span className="font-bold">{currentLang.code}</span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
 
@@ -131,13 +135,13 @@ export function AnnouncementBar({
                       key={lang.code}
                       role="menuitem"
                       onClick={() => {
-                        setSelectedLang(lang);
+                        setLocale((lang.locale === "es" ? "es" : "en") as SupportedLocale);
                         setIsLangMenuOpen(false);
                       }}
                       className="w-full text-left px-3 py-1.5 hover:bg-blue-900/60 flex items-center justify-between transition-colors cursor-pointer"
                     >
                       <span>{lang.name}</span>
-                      {selectedLang.code === lang.code && (
+                      {locale === lang.locale && (
                         <Check className="w-3.5 h-3.5 text-[#10B981]" />
                       )}
                     </button>
@@ -152,7 +156,7 @@ export function AnnouncementBar({
             <button
               onClick={() => setIsCurrencyMenuOpen(!isCurrencyMenuOpen)}
               className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors cursor-pointer py-1 px-1.5 rounded hover:bg-white/10"
-              aria-label="Select Currency"
+              aria-label={t.header.selectCurrency}
               aria-haspopup="true"
               aria-expanded={isCurrencyMenuOpen}
             >
@@ -203,7 +207,7 @@ export function AnnouncementBar({
             className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors py-1 cursor-pointer"
           >
             <TrackIcon className="w-3.5 h-3.5 text-blue-400" />
-            <span>Track Sourcing</span>
+            <span>{t.common.trackSourcing}</span>
           </Link>
 
           {/* Customer Support Desk */}
@@ -212,7 +216,7 @@ export function AnnouncementBar({
             className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors py-1 cursor-pointer"
           >
             <SupportIcon className="w-3.5 h-3.5 text-emerald-400" />
-            <span>24/7 Sourcing Desk</span>
+            <span>{t.common.sourcingDesk247}</span>
           </Link>
 
           {/* Admin Hub Direct Link if staff */}
@@ -221,7 +225,7 @@ export function AnnouncementBar({
               href="/admin/dashboard"
               className="bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-2 py-0.5 rounded font-black text-[10px] transition-all duration-200 uppercase tracking-wider cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
             >
-              Admin Hub
+              {t.common.adminHub}
             </Link>
           )}
         </div>
@@ -229,3 +233,4 @@ export function AnnouncementBar({
     </div>
   );
 }
+

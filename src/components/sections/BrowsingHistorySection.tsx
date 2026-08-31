@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useHistoryStore } from "@/store/useHistoryStore";
 import { formatCurrency } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 // Default fallback items resembling high-affinity catalog items if history is empty (matching user screenshot)
 const DEFAULT_FALLBACK_PRODUCTS = [
@@ -108,13 +109,13 @@ const DEFAULT_FALLBACK_PRODUCTS = [
 ];
 
 export function BrowsingHistorySection() {
+  const { t, isSpanish } = useTranslation();
   const historyItems = useHistoryStore((state) => state.items);
   const [isMounted, setIsMounted] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerView, setItemsPerView] = useState(6);
   const [isSliding, setIsSliding] = useState(false);
+  const [columnsPerPage, setColumnsPerPage] = useState(6);
 
-  // Touch gesture support
   const touchStartXRef = useRef<number | null>(null);
   const touchEndXRef = useRef<number | null>(null);
 
@@ -122,20 +123,25 @@ export function BrowsingHistorySection() {
     setIsMounted(true);
   }, []);
 
-  // Compute responsive itemsPerView dynamically
+  const displayList = isMounted && historyItems && historyItems.length > 0
+    ? historyItems
+    : DEFAULT_FALLBACK_PRODUCTS;
+
+  const totalItems = displayList.length;
+
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       if (width >= 1280) {
-        setItemsPerView(6); // Desktop: 6 items (exact matching screenshot)
+        setColumnsPerPage(6);
       } else if (width >= 1024) {
-        setItemsPerView(5); // Laptop: 5 items
+        setColumnsPerPage(5);
       } else if (width >= 768) {
-        setItemsPerView(4); // Tablet: 4 items
-      } else if (width >= 540) {
-        setItemsPerView(3); // Small Tablet: 3 items
+        setColumnsPerPage(4);
+      } else if (width >= 640) {
+        setColumnsPerPage(3);
       } else {
-        setItemsPerView(2); // Mobile: 2 items
+        setColumnsPerPage(2);
       }
     };
 
@@ -144,53 +150,36 @@ export function BrowsingHistorySection() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Combine actual history with fallback items so there is always a rich carousel
-  const displayItems =
-    isMounted && historyItems.length > 0
-      ? [
-          ...historyItems,
-          ...DEFAULT_FALLBACK_PRODUCTS.filter(
-            (def) => !historyItems.some((h) => h.productId === def.productId)
-          ),
-        ]
-      : DEFAULT_FALLBACK_PRODUCTS;
+  const totalPages = Math.ceil(totalItems / columnsPerPage);
+  const maxPageIndex = Math.max(0, totalPages - 1);
 
-  const totalPages = Math.max(1, Math.ceil(displayItems.length / itemsPerView));
-  const maxPageIndex = totalPages - 1;
-
-  // Pagination navigation with transition animation
-  const triggerPageChange = useCallback(
-    (newPageIndex: number) => {
-      setIsSliding(true);
-      setTimeout(() => {
-        setCurrentPage(newPageIndex);
-        setIsSliding(false);
-      }, 150);
-    },
-    []
-  );
+  const triggerPageChange = useCallback((newPage: number) => {
+    setIsSliding(true);
+    setCurrentPage(newPage);
+    setTimeout(() => {
+      setIsSliding(false);
+    }, 200);
+  }, []);
 
   const handlePrev = useCallback(() => {
-    const prevIndex = currentPage > 0 ? currentPage - 1 : maxPageIndex;
-    triggerPageChange(prevIndex);
+    if (currentPage > 0) {
+      triggerPageChange(currentPage - 1);
+    } else {
+      triggerPageChange(maxPageIndex);
+    }
   }, [currentPage, maxPageIndex, triggerPageChange]);
 
   const handleNext = useCallback(() => {
-    const nextIndex = currentPage < maxPageIndex ? currentPage + 1 : 0;
-    triggerPageChange(nextIndex);
+    if (currentPage < maxPageIndex) {
+      triggerPageChange(currentPage + 1);
+    } else {
+      triggerPageChange(0);
+    }
   }, [currentPage, maxPageIndex, triggerPageChange]);
 
-  const startIndex = currentPage * itemsPerView;
-  const visibleItems = displayItems.slice(startIndex, startIndex + itemsPerView);
+  const startIndex = currentPage * columnsPerPage;
+  const currentItems = displayList.slice(startIndex, startIndex + columnsPerPage);
 
-  // If page overflows when resizing, clamp it
-  useEffect(() => {
-    if (currentPage > maxPageIndex) {
-      setCurrentPage(0);
-    }
-  }, [currentPage, maxPageIndex]);
-
-  // Touch Swipe Event Handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.targetTouches[0].clientX;
   };
@@ -202,13 +191,11 @@ export function BrowsingHistorySection() {
   const handleTouchEnd = () => {
     if (!touchStartXRef.current || !touchEndXRef.current) return;
     const distance = touchStartXRef.current - touchEndXRef.current;
-    const minSwipeDistance = 45; // Minimum px distance to trigger swipe
+    const minSwipeDistance = 45;
 
     if (distance > minSwipeDistance) {
-      // Swiped Left -> Next
       handleNext();
     } else if (distance < -minSwipeDistance) {
-      // Swiped Right -> Prev
       handlePrev();
     }
 
@@ -227,13 +214,13 @@ export function BrowsingHistorySection() {
       <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
         <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
           <h2 className="text-base sm:text-lg lg:text-xl font-bold text-[#00143D] tracking-tight font-heading">
-            Tu historial
+            {isSpanish ? "Tu historial" : "Your Browsing History"}
           </h2>
           <Link
-            href="/account/history"
+            href="/history"
             className="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
           >
-            Ir a mi historial de navegación
+            {isSpanish ? "Ir a mi historial de navegación" : "View complete browsing history"}
           </Link>
         </div>
 
@@ -288,10 +275,10 @@ export function BrowsingHistorySection() {
             isSliding ? "opacity-40 scale-[0.99]" : "opacity-100 scale-100"
           }`}
           style={{
-            gridTemplateColumns: `repeat(${itemsPerView}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${columnsPerPage}, minmax(0, 1fr))`,
           }}
         >
-          {visibleItems.map((item) => (
+          {currentItems.map((item: any) => (
             <Link
               key={item.id}
               href={`/products/${item.slug}`}

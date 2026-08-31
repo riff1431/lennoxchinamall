@@ -16,7 +16,7 @@ export interface FetchUsersParams {
 
 export async function getUsersAndStaff(params?: FetchUsersParams) {
   const session = await getSession();
-  if (!session || !["super_admin", "support_agent"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "support_agent"].includes(session.role)) {
     return { success: false, error: "Unauthorized access", users: [] };
   }
 
@@ -64,8 +64,8 @@ export async function getUsersAndStaff(params?: FetchUsersParams) {
 
 export async function inviteStaffMember(formData: FormData) {
   const session = await getSession();
-  if (!session || session.role !== "super_admin") {
-    return { success: false, error: "Only Super Admins can invite staff members." };
+  if (!session || !["super_admin", "admin"].includes(session.role)) {
+    return { success: false, error: "Only Administrators can invite staff members." };
   }
 
   const email = formData.get("email") as string;
@@ -179,8 +179,8 @@ export async function inviteStaffMember(formData: FormData) {
 
 export async function updateUserRole(formData: FormData) {
   const session = await getSession();
-  if (!session || session.role !== "super_admin") {
-    return { success: false, error: "Only Super Admins can modify user roles." };
+  if (!session || !["super_admin", "admin"].includes(session.role)) {
+    return { success: false, error: "Only Administrators can modify user roles." };
   }
 
   const userId = formData.get("user_id") as string;
@@ -238,8 +238,8 @@ export async function updateUserRole(formData: FormData) {
 
 export async function toggleUserStatus(formData: FormData) {
   const session = await getSession();
-  if (!session || session.role !== "super_admin") {
-    return { success: false, error: "Only Super Admins can change account active status." };
+  if (!session || !["super_admin", "admin"].includes(session.role)) {
+    return { success: false, error: "Only Administrators can change account status." };
   }
 
   const userId = formData.get("user_id") as string;

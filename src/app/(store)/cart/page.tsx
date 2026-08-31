@@ -30,6 +30,7 @@ import { useWishlistStore } from "@/store/useWishlistStore";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { formatCurrency } from "@/utils/helpers";
 import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const PRESET_COUPONS = [
   { code: "LENNOX10", desc: "10% Off Sourcing Order" },
@@ -38,6 +39,7 @@ const PRESET_COUPONS = [
 ];
 
 export default function CartPage() {
+  const { t } = useTranslation();
   const items = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -104,7 +106,7 @@ export default function CartPage() {
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl font-black text-[#00143D] font-heading">
-              Your Sourcing Cart is Empty
+              {t.cart.emptyCartTitle}
             </h1>
             <p className="text-xs text-slate-500 leading-relaxed">
               Explore 100,000+ factory-direct China electronics and hardware items with zero Binance Pay USDT gateway fees.
@@ -115,7 +117,7 @@ export default function CartPage() {
             className="inline-flex items-center gap-2 bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3.5 rounded-2xl text-xs font-black font-heading transition-all shadow-md active:scale-95"
           >
             <Zap className="w-4 h-4" />
-            <span>Explore Factory Catalogue</span>
+            <span>{t.cart.continueShopping}</span>
           </Link>
         </div>
       </div>
@@ -307,7 +309,7 @@ export default function CartPage() {
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-6 sticky top-24">
               <h3 className="text-sm font-black text-[#00143D] uppercase tracking-wider pb-3 border-b border-slate-100 font-heading">
-                Order Sourcing Summary
+                {t.cart.orderSummary}
               </h3>
 
               {/* Dynamic Shipping Selection */}
@@ -315,7 +317,7 @@ export default function CartPage() {
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                   <span className="flex items-center gap-1.5 font-heading uppercase tracking-wider text-[11px]">
                     <Truck className="w-3.5 h-3.5 text-blue-600" />
-                    Freight Shipping Route
+                    {t.cart.estimatedShipping}
                   </span>
                   <span className="font-mono text-[10px] text-slate-400 font-semibold">
                     {shippingBreakdown.totalGrossWeight.toFixed(2)} kg • {shippingBreakdown.totalCbm.toFixed(3)} m³
@@ -341,7 +343,7 @@ export default function CartPage() {
                         {shippingBreakdown.air.totalCost === 0 ? "FREE" : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">5–8 Days Priority</span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">{t.product.airLeadDays}</span>
                   </button>
 
                   <button
@@ -362,7 +364,7 @@ export default function CartPage() {
                         {shippingBreakdown.sea.totalCost === 0 ? "FREE" : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">20–30 Days Bulk</span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">{t.product.seaLeadDays}</span>
                   </button>
                 </div>
               </div>
@@ -370,14 +372,14 @@ export default function CartPage() {
               {/* Price Computations */}
               <div className="space-y-2.5 text-xs pt-3 border-t border-slate-100 font-montserrat">
                 <div className="flex justify-between text-slate-600 font-medium">
-                  <span>Procurement Subtotal</span>
+                  <span>{t.cart.subtotal}</span>
                   <span className="font-bold text-slate-900 font-mono">{formatCurrency(subtotal)}</span>
                 </div>
 
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-[#FF1028] font-bold">
                     <span className="flex items-center gap-1">
-                      <Tag className="w-3.5 h-3.5" /> Voucher Discount ({couponCode})
+                      <Tag className="w-3.5 h-3.5" /> {t.cart.discount} ({couponCode})
                     </span>
                     <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                   </div>
@@ -397,7 +399,7 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex justify-between text-base font-black text-[#00143D] pt-3 border-t border-slate-200">
-                  <span className="font-heading uppercase text-xs tracking-wider">Total Due (USDT)</span>
+                  <span className="font-heading uppercase text-xs tracking-wider">{t.cart.total} (USDT)</span>
                   <span className="text-xl text-[#FF1028] font-mono font-black">
                     {formatCurrency(totalDue)}
                   </span>
@@ -407,7 +409,7 @@ export default function CartPage() {
               {/* Voucher Code Form */}
               <div className="pt-3 border-t border-slate-100 space-y-2.5">
                 <label className="text-xs font-black text-[#00143D] uppercase tracking-wider block font-heading">
-                  Apply Sourcing Voucher
+                  {t.cart.applyCoupon}
                 </label>
 
                 {couponCode ? (
@@ -420,7 +422,7 @@ export default function CartPage() {
                       onClick={removeCoupon}
                       className="text-xs text-red-500 font-bold hover:underline cursor-pointer"
                     >
-                      Remove
+                      {t.common.remove}
                     </button>
                   </div>
                 ) : (
@@ -437,7 +439,7 @@ export default function CartPage() {
                         type="submit"
                         className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2.5 rounded-xl text-xs font-black transition-colors shrink-0 cursor-pointer font-heading"
                       >
-                        Apply
+                        {t.common.apply}
                       </button>
                     </form>
 
@@ -470,7 +472,7 @@ export default function CartPage() {
                 className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-4 px-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all cursor-pointer font-heading active:scale-98"
               >
                 <Lock className="w-4 h-4" />
-                <span>Proceed to USDT Checkout</span>
+                <span>{t.cart.proceedToCheckout}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
 

@@ -108,35 +108,19 @@ export async function getProducts(
 
     const { data, error, count } = await query;
 
-    if (error) {
-      console.warn("Supabase products query error, falling back to mock data:", error.message);
+    if (error || !data || data.length === 0) {
+      if (error) console.warn("Supabase products query error, falling back to mock data:", error.message);
       return getFallbackProducts(options);
     }
 
-    // Merge Supabase database products with base catalogue
-    const productMap = new Map<string, Product>();
-    MOCK_PRODUCTS.forEach((p) => {
-      if (options.isAdmin || p.status === "published") {
-        productMap.set(p.id, p);
-      }
-    });
-
-    if (data && data.length > 0) {
-      (data as unknown as Product[]).forEach((p) => {
-        if (options.isAdmin || p.status === "published") {
-          productMap.set(p.id, p);
-        }
-      });
-    }
-
-    const rawProducts = Array.from(productMap.values());
+    const rawProducts = data as unknown as Product[];
     const products = options.isAdmin
       ? rawProducts
       : rawProducts.map(sanitizePublicProduct);
 
     return {
       products,
-      total: count || products.length,
+      total: count ?? products.length,
     };
   } catch {
     return getFallbackProducts(options);

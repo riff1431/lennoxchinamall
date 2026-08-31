@@ -19,7 +19,7 @@ export interface FetchAdminOrdersParams {
 
 export async function getAdminOrders(params?: FetchAdminOrdersParams) {
   const session = await getSession();
-  if (!session || !["super_admin", "order_manager", "support_agent"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "finance_manager", "order_manager", "support_agent"].includes(session.role)) {
     return { success: false, error: "Unauthorized access", orders: [] };
   }
 
@@ -67,7 +67,7 @@ export async function getAdminOrders(params?: FetchAdminOrdersParams) {
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus, notes?: string) {
   const session = await getSession();
-  if (!session || !["super_admin", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "finance_manager", "order_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -115,7 +115,7 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, no
 
 export async function updateTrackingInfo(orderId: string, trackingNumber: string, courierCode = "YunExpress Air Freight") {
   const session = await getSession();
-  if (!session || !["super_admin", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "order_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access" };
   }
 

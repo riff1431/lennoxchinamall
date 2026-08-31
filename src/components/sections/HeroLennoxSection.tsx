@@ -23,6 +23,7 @@ import {
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { formatCurrency } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 import { ReelsVideoData } from "@/components/common/ReelsVideoModal";
 
@@ -92,6 +93,7 @@ const FOUR_DEAL_ITEMS = [
 export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) {
   const addItem = useCartStore((state) => state.addItem);
   const { toggleItem, isInWishlist } = useWishlistStore();
+  const { t, isSpanish } = useTranslation();
   const [addedItemIds, setAddedItemIds] = useState<Record<string, boolean>>({});
   const [isMutedTop, setIsMutedTop] = useState(true);
   const [isMutedBottom, setIsMutedBottom] = useState(true);
@@ -153,7 +155,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               <div className="flex items-center gap-1.5">
                 <Flame className="w-4 h-4 text-[#FF1028] animate-bounce" />
                 <h2 className="font-black text-sm sm:text-base text-[#00143D] tracking-wider uppercase font-heading">
-                  DEAL OF THE DAY
+                  {t.home.dealOfTheDay}
                 </h2>
               </div>
               <span className="text-[10px] font-mono font-bold text-[#FF1028] bg-red-50 px-2 py-0.5 rounded-md border border-red-100 flex items-center gap-1">
@@ -173,7 +175,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               <div className="relative w-full aspect-square max-w-[210px] sm:max-w-[230px] mx-auto rounded-lg overflow-hidden bg-white border border-slate-100 shadow-2xs flex items-center justify-center p-3 group-hover:shadow-md transition-shadow">
                 {/* Discount Tag */}
                 <span className="absolute top-2.5 left-2.5 z-10 bg-[#FF1028] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-xs font-heading shadow-xs">
-                  -45% OFF
+                  -45% {t.common.off}
                 </span>
 
                 <Image
@@ -192,7 +194,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-3 h-3 fill-current" />
                   ))}
-                  <span className="text-[10px] font-bold text-slate-500 ml-1 font-mono">(4.9 • 380+ Sold)</span>
+                  <span className="text-[10px] font-bold text-slate-500 ml-1 font-mono">(4.9 • 380+ {t.common.soldCount})</span>
                 </div>
 
                 <h3 className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-[#FF1028] transition-colors leading-snug line-clamp-2">
@@ -211,8 +213,8 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 {/* Stock Progress Bar */}
                 <div className="pt-2 max-w-[200px] mx-auto">
                   <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 mb-1">
-                    <span className="text-[#FF1028] font-mono">Only 8 Units Left</span>
-                    <span className="font-mono">82% Claimed</span>
+                    <span className="text-[#FF1028] font-mono">{t.home.unitsLeft}</span>
+                    <span className="font-mono">82% {t.home.claimed}</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div className="w-[82%] h-full bg-gradient-to-r from-amber-500 to-[#FF1028] rounded-full" />
@@ -228,7 +230,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               href="/products/blitzwolf-bw-wa3-pro-120w-bluetooth-speaker"
               className="w-full block bg-[#00143D] hover:bg-[#FF1028] text-white text-center py-2.5 sm:py-3 px-4 rounded-md font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 shadow-sm hover:shadow-[0_0_18px_rgba(255,16,40,0.35)] active:scale-97 font-heading"
             >
-              Grab This Deal →
+              {t.home.grabDeal}
             </Link>
           </div>
         </div>
@@ -263,19 +265,19 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="bg-[#FF1028] text-white text-[8px] sm:text-[9px] font-black uppercase px-2 py-0.5 rounded-md font-heading shadow-xs">
-                    DIRECT CHINA FACTORY
+                    {t.home.directChinaFactory}
                   </span>
                   <span className="bg-white/20 backdrop-blur-xs text-amber-300 text-[8px] sm:text-[9px] font-mono font-bold px-2 py-0.5 rounded-md border border-white/20 hidden xs:inline-block">
-                    0% Middleman
+                    {t.home.zeroMiddleman}
                   </span>
                 </div>
                 <h3 className="text-white text-sm sm:text-lg md:text-xl font-black font-heading leading-tight drop-shadow-md">
-                  Direct Factory Gate Hardware &amp; Electronics
+                  {t.home.factoryGateHardware}
                 </h3>
               </div>
 
               <span className="shrink-0 inline-flex items-center gap-1 bg-white/95 hover:bg-white text-[#00143D] text-[11px] sm:text-xs font-black px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-md font-heading shadow-sm group-hover:translate-x-0.5 transition-transform">
-                <span>Explore</span>
+                <span>{t.home.exploreCluster}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -365,14 +367,26 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     {/* Perks / Installments Note */}
                     <div className="mt-1 space-y-0.5 text-[8px] sm:text-[8.5px] leading-tight font-medium text-[#10B981]">
                       {item.discountNote && (
-                        <div className="truncate">{item.discountNote}</div>
+                        <div className="truncate">
+                          {isSpanish
+                            ? item.discountNote.replace("Discount off", "de descuento").replace("Direct Factory Price", "Precio Directo de Fábrica")
+                            : item.discountNote}
+                        </div>
                       )}
                       {item.installments && (
-                        <div className="text-slate-500 truncate">{item.installments}</div>
+                        <div className="text-slate-500 truncate">
+                          {isSpanish
+                            ? item.installments.replace("Interest free", "sin interés")
+                            : item.installments}
+                        </div>
                       )}
                       {item.freeShipping && (
                         <div className="font-bold flex items-center gap-0.5 truncate">
-                          <span>{item.freeShipping}</span>
+                          <span>
+                            {isSpanish
+                              ? item.freeShipping.replace("Free shipping", "Envío gratis")
+                              : item.freeShipping}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -391,12 +405,12 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     {isAdded ? (
                       <>
                         <Check className="w-3 h-3 animate-in zoom-in" />
-                        <span>Added</span>
+                        <span>{t.common.success}</span>
                       </>
                     ) : (
                       <>
                         <ShoppingCart className="w-3 h-3 sm:hidden" />
-                        <span>Add to cart</span>
+                        <span>{t.common.addToCart}</span>
                       </>
                     )}
                   </button>
@@ -416,27 +430,28 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
           <div
             onClick={() =>
               onOpenVideoModal({
-                title: "Canton Fair Global Sourcing Live Stream",
+                title: t.home.cantonFairLive,
                 subtitle: "Guangzhou Complex • Verified Hardware & Robotics Suppliers",
                 productLink: "/products/eachine-ex5-4k-gps-fpv-drone",
                 productPrice: 189.0,
                 hub: "Guangzhou Canton Hub",
                 tag: "LIVE EXPORT FAIR",
-                videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
-                poster: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+                videoUrl: "/videos/hero/hero_ad_1.mov",
+                poster: "/videos/hero/hero_ad_1_thumb.jpg",
               })
             }
             className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_rgba(255,16,40,0.25)] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
             {/* Host Video Stream */}
             <video
-              src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov"
-              poster="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"
+              src="/videos/hero/hero_ad_1.mov"
+              poster="/videos/hero/hero_ad_1_thumb.jpg"
               playsInline
               autoPlay
               muted={isMutedTop}
               loop
-              className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40 pointer-events-none" />
 
@@ -463,14 +478,14 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                   onClick={(e) => {
                     e.stopPropagation();
                     onOpenVideoModal({
-                      title: "Canton Fair Global Sourcing Live Stream",
+                      title: t.home.cantonFairLive,
                       subtitle: "Guangzhou Complex • Verified Hardware & Robotics Suppliers",
                       productLink: "/products/eachine-ex5-4k-gps-fpv-drone",
                       productPrice: 189.0,
                       hub: "Guangzhou Canton Hub",
                       tag: "LIVE EXPORT FAIR",
-                      videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov",
-                      poster: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+                      videoUrl: "/videos/hero/hero_ad_1.mov",
+                      poster: "/videos/hero/hero_ad_1_thumb.jpg",
                     });
                   }}
                   className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"
@@ -493,11 +508,11 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" />
                 <span className="text-[10px] sm:text-[11px] font-black drop-shadow-md font-heading truncate">
-                  Canton Fair Sourcing Booth
+                  {t.home.cantonFairLive}
                 </span>
               </div>
               <span className="text-[9px] font-mono text-amber-300 font-bold hidden sm:inline-block shrink-0">
-                LIVE QC
+                {t.home.liveQC}
               </span>
             </div>
           </div>
@@ -506,27 +521,28 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
           <div
             onClick={() =>
               onOpenVideoModal({
-                title: "Shenzhen High-Tech Factory Lab Inspection",
+                title: t.home.shenzhenLabInspection,
                 subtitle: "Direct Bench Quality Control • Circuitry & Load Verification",
                 productLink: "/products/creality-ender-3-v3-se-3d-printer",
                 productPrice: 219.0,
                 hub: "Shenzhen SZX Hub",
                 tag: "LAB BENCHMARK",
-                videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
-                poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                videoUrl: "/videos/hero/hero_ad_2.mov",
+                poster: "/videos/hero/hero_ad_2_thumb.jpg",
               })
             }
             className="group relative min-h-[170px] sm:min-h-[195px] lg:min-h-0 lg:flex-1 rounded-xl overflow-hidden border border-slate-200/90 bg-slate-950 shadow-xs cursor-pointer hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_rgba(255,16,40,0.25)] transition-all duration-300 flex flex-col justify-between p-3 sm:p-3.5"
           >
             {/* Host Video Stream */}
             <video
-              src="https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov"
-              poster="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80"
+              src="/videos/hero/hero_ad_2.mov"
+              poster="/videos/hero/hero_ad_2_thumb.jpg"
               playsInline
               autoPlay
               muted={isMutedBottom}
               loop
-              className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-transparent to-black/40 pointer-events-none" />
 
@@ -553,14 +569,14 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                   onClick={(e) => {
                     e.stopPropagation();
                     onOpenVideoModal({
-                      title: "Shenzhen High-Tech Factory Lab Inspection",
+                      title: t.home.shenzhenLabInspection,
                       subtitle: "Direct Bench Quality Control • Circuitry & Load Verification",
                       productLink: "/products/creality-ender-3-v3-se-3d-printer",
                       productPrice: 219.0,
                       hub: "Shenzhen SZX Hub",
                       tag: "LAB BENCHMARK",
-                      videoUrl: "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov",
-                      poster: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                      videoUrl: "/videos/hero/hero_ad_2.mov",
+                      poster: "/videos/hero/hero_ad_2_thumb.jpg",
                     });
                   }}
                   className="w-6 h-6 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-xs border border-white/20 transition-colors cursor-pointer"
@@ -583,11 +599,11 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" />
                 <span className="text-[10px] sm:text-[11px] font-black drop-shadow-md font-heading truncate">
-                  Shenzhen Inspection Host
+                  {t.home.shenzhenLabInspection}
                 </span>
               </div>
               <span className="text-[9px] font-mono text-amber-300 font-bold hidden sm:inline-block shrink-0">
-                QC PASSED
+                {t.home.qcPassed}
               </span>
             </div>
           </div>

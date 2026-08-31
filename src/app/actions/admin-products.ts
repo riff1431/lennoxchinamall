@@ -65,12 +65,12 @@ export async function getAdminProducts(params?: FetchAdminProductsParams) {
     const categories = categoriesData && categoriesData.length > 0 ? categoriesData : MOCK_CATEGORIES;
     const brands = brandsData && brandsData.length > 0 ? brandsData : MOCK_BRANDS;
 
-    const productMap = new Map<string, Product>();
-    MOCK_PRODUCTS.forEach((p) => productMap.set(p.id, p));
+    let allProducts: Product[] = [];
     if (productsData && productsData.length > 0) {
-      (productsData as Product[]).forEach((p) => productMap.set(p.id, p));
+      allProducts = productsData as Product[];
+    } else {
+      allProducts = [...MOCK_PRODUCTS];
     }
-    let allProducts = Array.from(productMap.values());
 
     if (params?.categoryId && params.categoryId !== "all") {
       allProducts = allProducts.filter((p) => p.category_id === params.categoryId);
@@ -94,7 +94,7 @@ export async function getAdminProducts(params?: FetchAdminProductsParams) {
 
 export async function getAdminProductById(id: string) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
+  const isAdmin = session ? checkProductAdmin(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access", product: null, categories: [], brands: [] };
   }
@@ -140,7 +140,7 @@ export async function getAdminProductById(id: string) {
 
 export async function createProduct(formData: FormData) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
+  const isAdmin = session ? checkProductAdmin(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access" };
   }
@@ -476,7 +476,7 @@ export async function createProduct(formData: FormData) {
 
 export async function updateProduct(id: string, formData: FormData) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
+  const isAdmin = session ? checkProductAdmin(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access" };
   }
@@ -780,7 +780,7 @@ export async function bulkDeleteProducts(ids: string[]) {
 
 export async function bulkUpdateProductStatus(ids: string[], status: string) {
   const session = await getSession();
-  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
+  const isAdmin = session ? checkProductAdmin(session.role) : false;
   if (!isAdmin) {
     return { success: false, error: "Unauthorized access" };
   }

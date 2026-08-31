@@ -47,28 +47,37 @@ export const metadata: Metadata = {
 };
 
 import React, { Suspense } from "react";
+import { cookies } from "next/headers";
 import { RouteProgressBar } from "@/components/common/RouteProgressBar";
 import { SitePreloader } from "@/components/common/SitePreloader";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
+import { LanguageProvider } from "@/components/providers/LanguageProvider";
+import { LOCALE_COOKIE_KEY, DEFAULT_LOCALE } from "@/lib/i18n";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const rawLocale = cookieStore.get(LOCALE_COOKIE_KEY)?.value;
+  const initialLocale = rawLocale === "en" ? "en" : DEFAULT_LOCALE;
+
   return (
     <html
-      lang="en"
+      lang={initialLocale}
       className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} min-h-full antialiased`}
     >
       <body className="font-sans text-slate-800 bg-[#F8FAFC] min-h-screen antialiased selection:bg-[#FF1028] selection:text-white">
-        <SitePreloader />
-        <Suspense fallback={null}>
-          <RouteProgressBar />
-        </Suspense>
-        <AuthProvider>
-          <SmoothScrollProvider>{children}</SmoothScrollProvider>
-        </AuthProvider>
+        <LanguageProvider defaultLocale={initialLocale}>
+          <SitePreloader />
+          <Suspense fallback={null}>
+            <RouteProgressBar />
+          </Suspense>
+          <AuthProvider>
+            <SmoothScrollProvider>{children}</SmoothScrollProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

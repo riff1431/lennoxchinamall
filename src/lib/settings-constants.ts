@@ -38,8 +38,8 @@ export const DEFAULT_STORE_SETTINGS: AllStoreSettings = {
     decimal_places: 2,
   },
   localization: {
-    default_locale: "en-US",
-    supported_locales: ["en-US", "es-ES", "ar-SA", "fr-FR", "de-DE", "zh-CN"],
+    default_locale: "es",
+    supported_locales: ["en", "es"],
     date_format: "MMM DD, YYYY",
     time_format: "24h",
     weight_unit: "kg",

@@ -46,11 +46,13 @@ import {
 import { submitCheckoutOrder } from "@/app/actions/store-checkout";
 import { CourierSelector } from "@/components/checkout/CourierSelector";
 import { CourierLogo } from "@/components/checkout/CourierLogo";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 type CheckoutStep = 1 | 2 | 3 | 4; // 4 = Order Success / Invoice
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const items = useCartStore((state) => state.items);
   const subtotal = useCartStore((state) => state.getSubtotal());
   const discountAmount = useCartStore((state) => state.discountAmount);
@@ -225,7 +227,7 @@ export default function CheckoutPage() {
                   <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
                     1
                   </span>
-                  <span>Shipping Address</span>
+                  <span>{t.checkout.shippingAddress}</span>
                 </div>
 
                 <ChevronRight className="w-4 h-4 text-slate-300" />
@@ -240,7 +242,7 @@ export default function CheckoutPage() {
                   <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
                     2
                   </span>
-                  <span>Freight Mode</span>
+                  <span>{t.checkout.shippingMethod}</span>
                 </div>
 
                 <ChevronRight className="w-4 h-4 text-slate-300" />
@@ -255,7 +257,7 @@ export default function CheckoutPage() {
                   <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">
                     3
                   </span>
-                  <span>Binance USDT</span>
+                  <span>{t.checkout.paymentMethod}</span>
                 </div>
               </div>
             )}

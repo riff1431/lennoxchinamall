@@ -14,6 +14,7 @@ import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { NAV_LINKS } from "@/components/layout/header/headerConfig";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { useMounted } from "@/hooks/useMounted";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { Category } from "@/types/database";
 
 interface DrawerCategory extends Partial<Category> {
@@ -37,11 +38,31 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
   const router = useRouter();
   const { user, role, displayName } = useAuth();
   const { getRootCategories } = useCategoryStore();
+  const { locale, setLocale, t } = useTranslation();
   
   const isMounted = useMounted();
   const unreadNotificationsCount = useNotificationStore((state) => state.unreadCount);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const getLocalizedNavLabel = (href: string, fallback: string) => {
+    switch (href) {
+      case "/":
+        return t.common.home;
+      case "/flash-deals":
+        return t.common.flashDeals;
+      case "/new-arrivals":
+        return t.common.newArrivals;
+      case "/brands":
+        return t.common.brands;
+      case "/account/orders":
+        return t.common.trackOrder;
+      case "/factory-hubs":
+        return t.common.factoryHubs;
+      default:
+        return fallback;
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -116,6 +137,35 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                 </button>
               </div>
 
+              {/* Language Selector Pill */}
+              <div className="flex items-center justify-between p-2.5 bg-slate-100 rounded-xl">
+                <span className="text-xs font-bold text-slate-600">{t.header.selectLanguage}</span>
+                <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => setLocale("en")}
+                    className={`px-3 py-1 rounded-md text-xs font-black transition-all ${
+                      locale === "en"
+                        ? "bg-[#00143D] text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLocale("es")}
+                    className={`px-3 py-1 rounded-md text-xs font-black transition-all ${
+                      locale === "es"
+                        ? "bg-[#FF1028] text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    ES
+                  </button>
+                </div>
+              </div>
+
               {/* User Account Quick Card */}
               <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between shadow-xs">
                 {isMounted && user ? (
@@ -131,7 +181,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                 )}
                 {isMounted && user ? (
                   <button onClick={handleSignOut} className="text-xs font-bold text-slate-500 hover:text-[#FF1028] transition-colors cursor-pointer">
-                    Sign Out
+                    {t.header.logout}
                   </button>
                 ) : (
                   <Link
@@ -139,7 +189,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                     onClick={onClose}
                     className="bg-[#00143D] hover:bg-[#001F5C] text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md"
                   >
-                    Sign In
+                    {t.header.login}
                   </Link>
                 )}
               </div>
@@ -153,9 +203,10 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                   {NAV_LINKS.map((link) => {
                     const isActive = pathname === link.href;
                     const IconComponent = link.icon;
+                    const label = getLocalizedNavLabel(link.href, link.label);
                     return (
                       <Link
-                        key={link.label}
+                        key={link.href}
                         href={link.href}
                         onClick={onClose}
                         className={`flex items-center justify-between p-3 rounded-xl transition-colors cursor-pointer ${
@@ -164,7 +215,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                       >
                         <div className="flex items-center gap-3">
                           {IconComponent && <IconComponent className={`w-4 h-4 ${isActive ? "text-[#FF1028]" : "text-slate-400"}`} />}
-                          <span className={`text-sm ${isActive ? "font-black" : "font-bold"}`}>{link.label}</span>
+                          <span className={`text-sm ${isActive ? "font-black" : "font-bold"}`}>{label}</span>
                         </div>
                         {link.badge && (
                           <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase ${link.badgeColor || "bg-amber-100 text-amber-700"}`}>
@@ -203,7 +254,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
               {/* Accordion Categories */}
               <div className="space-y-1.5 pb-4">
                 <span className="text-[10px] font-black uppercase text-slate-400 font-mono tracking-wider ml-2">
-                  Departments
+                  {t.common.allDepartments}
                 </span>
                 <div className="space-y-1">
                   {rootCategories.map((cat) => (
@@ -262,7 +313,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
             {/* Mobile Drawer Footer */}
             <div className="p-5 border-t border-slate-200 bg-slate-50 space-y-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               <div className="flex items-center justify-between text-slate-600 text-xs font-medium">
-                <span>Direct Sourcing</span>
+                <span>{t.common.directChinaAirfreight}</span>
                 <span className="font-bold text-[#00143D] flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   USDT (Binance Pay)
@@ -270,15 +321,15 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
               </div>
               <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
                 <Link href="/account/orders" onClick={onClose} className="hover:text-[#FF1028] font-bold">
-                  Track Order
+                  {t.common.trackOrder}
                 </Link>
                 <span>•</span>
                 <Link href="/account/support" onClick={onClose} className="hover:text-[#FF1028] font-bold">
-                  24/7 Sourcing Support
+                  {t.common.sourcingDesk247}
                 </Link>
               </div>
               <p className="text-[10px] text-slate-400 text-center font-medium">
-                © {new Date().getFullYear()} Lennox ChinaMall Inc. All Rights Reserved.
+                © {new Date().getFullYear()} Lennox ChinaMall Inc. {t.footer.allRightsReserved}
               </p>
             </div>
           </motion.div>

@@ -9,6 +9,7 @@ import { NAV_LINKS } from "@/components/layout/header/headerConfig";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { useMounted } from "@/hooks/useMounted";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function NavigationBar() {
   const pathname = usePathname();
@@ -16,9 +17,29 @@ export function NavigationBar() {
   const isMounted = useMounted();
   const megaMenuRef = useRef<HTMLDivElement>(null);
   const { getRootCategories } = useCategoryStore();
+  const { t } = useTranslation();
 
   const storeCategories = isMounted ? getRootCategories() : [];
   const rootCategories = storeCategories.length > 0 ? storeCategories : MOCK_CATEGORIES;
+
+  const getLocalizedNavLabel = (href: string, fallback: string) => {
+    switch (href) {
+      case "/":
+        return t.common.home;
+      case "/flash-deals":
+        return t.common.flashDeals;
+      case "/new-arrivals":
+        return t.common.newArrivals;
+      case "/brands":
+        return t.common.brands;
+      case "/account/orders":
+        return t.common.trackOrder;
+      case "/factory-hubs":
+        return t.common.factoryHubs;
+      default:
+        return fallback;
+    }
+  };
 
   // Click outside to close
   useEffect(() => {
@@ -65,10 +86,10 @@ export function NavigationBar() {
               className="flex items-center gap-2.5 bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-5 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               aria-expanded={isMegaMenuOpen}
               aria-haspopup="true"
-              aria-label="Toggle All Departments and Categories Menu"
+              aria-label={t.common.allDepartments}
             >
               <LayoutGrid className="w-4 h-4" />
-              <span>All Departments</span>
+              <span>{t.common.allDepartments}</span>
               <ChevronDown
                 className={`w-3.5 h-3.5 transition-transform duration-200 ${
                   isMegaMenuOpen ? "rotate-180" : ""
@@ -88,16 +109,17 @@ export function NavigationBar() {
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
               const IconComponent = link.icon;
+              const label = getLocalizedNavLabel(link.href, link.label);
               return (
                 <Link
-                  key={link.label}
+                  key={link.href}
                   href={link.href}
                   className={`relative h-full flex items-center gap-1.5 transition-colors group px-1 cursor-pointer ${
                     isActive ? "text-[#FF1028] font-black" : "hover:text-[#FF1028]"
                   }`}
                 >
                   {IconComponent && <IconComponent className="w-3.5 h-3.5" />}
-                  <span>{link.label}</span>
+                  <span>{label}</span>
                   {link.badge && (
                     <span
                       className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase ${

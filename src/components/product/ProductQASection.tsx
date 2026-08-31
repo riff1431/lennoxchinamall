@@ -36,6 +36,7 @@ import {
 import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { formatDate, cn } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ProductQASectionProps {
   productId: string;
@@ -63,6 +64,7 @@ export function ProductQASection({
   initialQuestions,
   onQuestionCountChange,
 }: ProductQASectionProps) {
+  const { t } = useTranslation();
   const { user, displayName, role } = useAuth();
   const isStaffOrAdmin = Boolean(role && role !== "customer");
 
@@ -346,7 +348,7 @@ export function ProductQASection({
               className="bg-[#FF1028] hover:bg-[#D90017] text-white font-heading font-black text-xs uppercase tracking-wider px-6 py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
             >
               <Plus className="w-4 h-4" />
-              <span>Ask Factory Sourcing Desk</span>
+              <span>{t.product.askQuestion}</span>
             </button>
           </div>
         </div>

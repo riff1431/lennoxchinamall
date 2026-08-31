@@ -10,6 +10,7 @@ import {
   Layers,
   Sparkles,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export interface DepartmentCluster {
   name: string;
@@ -82,7 +83,7 @@ export const DIRECT_SOURCING_DEPARTMENTS: DepartmentCluster[] = [
     slug: "consumer-electronics",
     count: "980+",
     hub: "Shenzhen Lab",
-    image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1508655096489-7aacd43bd3b1?w=600&auto=format&fit=crop&q=80",
     tag: "WEARABLES",
   },
   {
@@ -109,9 +110,33 @@ interface DirectSourcingDepartmentsSectionProps {
 }
 
 export function DirectSourcingDepartmentsSection({
-  departments = DIRECT_SOURCING_DEPARTMENTS,
+  departments,
   autoPlayInterval = 3000,
 }: DirectSourcingDepartmentsSectionProps) {
+  const { t, isSpanish } = useTranslation();
+  const rawList = departments && departments.length > 0 ? departments : DIRECT_SOURCING_DEPARTMENTS;
+  const displayDepartments = rawList.map((dep) => {
+    if (!isSpanish) return dep;
+    // Spanish mapping for department names
+    const spanishNames: Record<string, string> = {
+      "4K Aerial Drones & FPV": "Drones Aéreos 4K y FPV",
+      "3D Printers & CNC": "Impresoras 3D y CNC",
+      "High-Fidelity Audio": "Audio de Alta Fidelidad",
+      "Car OBD2 & Diagnostic": "OBD2 y Diagnóstico Automotriz",
+      "Tactical & Outdoor Gear": "Equipo Táctico y Exterior",
+      "Smart Robotics & IoT": "Robótica Inteligente e IoT",
+      "Thermal & Laser Optics": "Óptica Térmica y Láser",
+      "Smart Wearables & AR": "Wearables Inteligentes y RA",
+      "Portable Power & Solar": "Energía Portátil y Solar",
+      "Pro Camera & Rigging": "Cámaras Profesionales y Soportes",
+    };
+    return {
+      ...dep,
+      name: spanishNames[dep.name] || dep.name,
+      hub: dep.hub.replace("Hub", "Centro").replace("Cluster", "Clúster").replace("Lab", "Laboratorio").replace("Line", "Línea"),
+    };
+  });
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [withTransition, setWithTransition] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
@@ -144,9 +169,9 @@ export function DirectSourcingDepartmentsSection({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const totalItems = departments.length;
+  const totalItems = displayDepartments.length;
   // Extended array for seamless infinite looping
-  const extendedDepartments = [...departments, ...departments];
+  const extendedDepartments = [...displayDepartments, ...displayDepartments];
 
   // Navigation handlers with seamless infinite wrapping
   const nextSlide = useCallback(() => {
@@ -228,15 +253,15 @@ export function DirectSourcingDepartmentsSection({
         <div>
           <div className="flex items-center gap-2">
             <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-              CHINA MANUFACTURING CLUSTERS
+              {t.home.manufacturingClusters}
             </span>
           </div>
 
           <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading mt-1">
-            Direct Sourcing Departments
+            {t.home.sourcingDepartments}
           </h3>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Explore specialized manufacturing lines and verified factory clusters across China
+            {t.home.sourcingDepSubtitle}
           </p>
         </div>
 
@@ -247,14 +272,14 @@ export function DirectSourcingDepartmentsSection({
             <button
               onClick={prevSlide}
               className="w-8 h-8 rounded-md bg-white hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
-              aria-label="Previous Departments"
+              aria-label={isSpanish ? "Departamentos anteriores" : "Previous Departments"}
             >
               <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             </button>
             <button
               onClick={nextSlide}
               className="w-8 h-8 rounded-md bg-white hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/80 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 group"
-              aria-label="Next Departments"
+              aria-label={isSpanish ? "Siguientes departamentos" : "Next Departments"}
             >
               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
@@ -264,7 +289,7 @@ export function DirectSourcingDepartmentsSection({
             href="/categories"
             className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-md bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group btn-smooth"
           >
-            <span>All Departments</span>
+            <span>{isSpanish ? "Todos los Departamentos" : "All Departments"}</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
@@ -324,7 +349,7 @@ export function DirectSourcingDepartmentsSection({
                     {cat.name}
                   </h4>
                   <div className="flex items-center justify-between text-[10px] text-slate-500">
-                    <span className="font-semibold text-emerald-600 font-mono">{cat.count} Items</span>
+                    <span className="font-semibold text-emerald-600 font-mono">{cat.count} {isSpanish ? "Artículos" : "Items"}</span>
                     <span className="text-[9px] text-slate-400 font-mono hidden sm:inline">{cat.hub}</span>
                   </div>
                 </div>
@@ -337,7 +362,7 @@ export function DirectSourcingDepartmentsSection({
       {/* ── Carousel Dot Indicators ── */}
       {totalItems > 0 && (
         <div className="flex items-center justify-center gap-1.5 pt-1">
-          {departments.map((_, dotIdx) => (
+          {displayDepartments.map((_, dotIdx) => (
             <button
               key={dotIdx}
               onClick={() => {

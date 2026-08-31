@@ -9,11 +9,12 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { signout } from "@/app/actions/auth";
 import { isAdminRole, ROLE_LABELS } from "@/lib/auth/roles";
 import { useWishlistStore } from "@/store/useWishlistStore";
-
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useMounted } from "@/hooks/useMounted";
 
 export function AccountDropdown() {
   const { user, role, displayName, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -42,7 +43,7 @@ export function AccountDropdown() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-lg text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
-        aria-label="Account Menu"
+        aria-label={t.header.myAccount}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -55,10 +56,10 @@ export function AccountDropdown() {
         </div>
         <div className="hidden xl:flex flex-col text-left">
           <span className="text-[10px] text-slate-400 font-semibold leading-tight">
-            {isAuthenticated ? "Signed in as" : "Welcome"}
+            {isAuthenticated ? t.common.signedInAs : t.header.myAccount}
           </span>
           <span className="text-xs font-black text-[#00143D] leading-tight flex items-center gap-1">
-            {isAuthenticated ? displayName || "My Account" : "Account"}
+            {isAuthenticated ? displayName || t.header.myAccount : t.header.myAccount}
             <ChevronDown className="w-3 h-3 text-slate-400" />
           </span>
         </div>
@@ -91,7 +92,7 @@ export function AccountDropdown() {
                     className="flex items-center gap-2.5 p-2 rounded-md bg-[#FF1028]/10 text-[#FF1028] font-bold hover:bg-[#FF1028]/20 transition-colors"
                   >
                     <ShieldCheck className="w-4 h-4" />
-                    <span>Executive Admin Panel</span>
+                    <span>{t.common.adminHub}</span>
                   </Link>
                 )}
 
@@ -102,7 +103,7 @@ export function AccountDropdown() {
                   className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                 >
                   <UserCircle className="w-4 h-4 text-slate-500" />
-                  <span>My Profile</span>
+                  <span>{t.header.profile}</span>
                 </Link>
 
                 <Link
@@ -112,7 +113,7 @@ export function AccountDropdown() {
                   className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                 >
                   <Package className="w-4 h-4 text-slate-500" />
-                  <span>My Orders & Air Cargo</span>
+                  <span>{t.header.myOrders}</span>
                 </Link>
 
                 <Link
@@ -122,7 +123,7 @@ export function AccountDropdown() {
                   className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                 >
                   <Heart className="w-4 h-4 text-slate-500" />
-                  <span suppressHydrationWarning>Wishlist ({isMounted ? wishlistTotalItems : 0})</span>
+                  <span suppressHydrationWarning>{t.header.wishlist} ({isMounted ? wishlistTotalItems : 0})</span>
                 </Link>
 
                 <Link
@@ -132,7 +133,7 @@ export function AccountDropdown() {
                   className="flex items-center gap-2.5 p-2 rounded-md hover:bg-slate-100 text-slate-700 font-semibold transition-colors"
                 >
                   <MessageCircleMore className="w-4 h-4 text-slate-500" />
-                  <span>Support Tickets</span>
+                  <span>{t.header.supportTickets}</span>
                 </Link>
 
                 <div className="pt-2 border-t border-slate-100 mt-1">
@@ -142,7 +143,7 @@ export function AccountDropdown() {
                     className="w-full flex items-center gap-2.5 p-2 rounded-md hover:bg-red-50 text-red-600 font-bold transition-colors cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
+                    <span>{t.header.logout}</span>
                   </button>
                 </div>
               </div>
@@ -164,7 +165,7 @@ export function AccountDropdown() {
                     role="menuitem"
                     className="w-full bg-[#00143D] hover:bg-[#002366] text-white text-center py-2 rounded-xl text-xs font-black transition-colors cursor-pointer"
                   >
-                    Sign In
+                    {t.header.login}
                   </Link>
                   <Link
                     href="/auth/register"
@@ -172,7 +173,7 @@ export function AccountDropdown() {
                     role="menuitem"
                     className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-center py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                   >
-                    Join Free / Register
+                    {t.header.register}
                   </Link>
                 </div>
               </div>

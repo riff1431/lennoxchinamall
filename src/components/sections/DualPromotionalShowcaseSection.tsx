@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ChevronRight, Award } from "lucide-react";
 import { Product } from "@/types/database";
 import { formatCurrency } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface DualPromotionalShowcaseSectionProps {
   bestSellers?: Product[];
@@ -58,6 +59,7 @@ export function DualPromotionalShowcaseSection({
   bestSellers,
   topRated,
 }: DualPromotionalShowcaseSectionProps) {
+  const { t, isSpanish } = useTranslation();
   const bestSellerItems =
     bestSellers && bestSellers.length > 0
       ? bestSellers.slice(0, 2).map((p) => ({
@@ -108,14 +110,14 @@ export function DualPromotionalShowcaseSection({
               <div className="flex items-center gap-2">
                 <span className="text-lg sm:text-xl">🏆</span>
                 <h3 className="font-heading font-black text-base sm:text-lg text-[#00143D]">
-                  Best sellings
+                  {isSpanish ? "Más Vendidos" : "Best Sellers"}
                 </h3>
               </div>
               <Link
                 href="/categories/best-sellers"
                 className="text-xs font-bold text-slate-600 hover:text-[#FF1028] flex items-center gap-0.5 transition-colors group"
               >
-                <span>View All</span>
+                <span>{t.home.viewAllDeals}</span>
                 <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
@@ -174,14 +176,14 @@ export function DualPromotionalShowcaseSection({
                   <Award className="w-4 h-4" />
                 </div>
                 <h3 className="font-heading font-black text-base sm:text-lg text-[#00143D]">
-                  Top rated
+                  {isSpanish ? "Mejor Calificados" : "Top Rated"}
                 </h3>
               </div>
               <Link
                 href="/categories/top-rated"
                 className="text-xs font-bold text-slate-600 hover:text-[#FF1028] flex items-center gap-0.5 transition-colors group"
               >
-                <span>View All</span>
+                <span>{t.home.viewAllDeals}</span>
                 <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>

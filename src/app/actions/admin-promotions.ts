@@ -7,8 +7,7 @@ import { Coupon, FlashDeal, PromotionAuditLog } from "@/types/database";
 import { MOCK_COUPONS } from "@/lib/mockData";
 import { logAuditEvent } from "@/lib/audit";
 
-export const createCoupon = createPromotion;
-export const toggleCouponStatus = togglePromotionStatus;
+
 
 export interface PromotionFilters {
   search?: string;
@@ -55,7 +54,7 @@ export interface PromotionPayload {
 
 export async function getPromotionsData(filters: PromotionFilters = {}) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager", "order_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "order_manager", "finance_manager"].includes(session.role)) {
     return {
       success: false,
       error: "Unauthorized access to promotions module.",
@@ -305,7 +304,7 @@ export async function createPromotion(rawPayload: PromotionPayload | FormData) {
 
 export async function updatePromotion(id: string, payload: Partial<PromotionPayload>) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "finance_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access." };
   }
 
@@ -372,6 +371,8 @@ export async function updatePromotion(id: string, payload: Partial<PromotionPayl
   }
 }
 
+export const updateCoupon = updatePromotion;
+
 // ─── 4. Duplicate Promotion ───────────────────────────────────────────────────
 
 export async function duplicatePromotion(id: string) {
@@ -427,7 +428,7 @@ export async function duplicatePromotion(id: string) {
 
 export async function togglePromotionStatus(id: string, isActive: boolean) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager", "finance_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized." };
   }
 
@@ -463,7 +464,11 @@ export async function togglePromotionStatus(id: string, isActive: boolean) {
   }
 }
 
+export const toggleCouponStatus = togglePromotionStatus;
+
 // ─── 6. Delete Promotion ──────────────────────────────────────────────────────
+
+export const createCoupon = createPromotion;
 
 export async function deletePromotion(id: string) {
   const session = await getSession();
@@ -542,7 +547,7 @@ export async function createFlashDeal(payload: {
 
 export async function deleteFlashDeal(id: string) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized." };
   }
 

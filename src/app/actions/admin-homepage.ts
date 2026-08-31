@@ -14,7 +14,7 @@ export async function getAdminHomepageSections(): Promise<{
   error?: string;
 }> {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager"].includes(session.role)) {
     return { success: false, sections: DEFAULT_HOMEPAGE_SECTIONS, error: "Unauthorized." };
   }
 
@@ -39,7 +39,7 @@ export async function getAdminHomepageSections(): Promise<{
 
 export async function createHomepageSection(payload: Partial<HomepageSection>) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access." };
   }
 
@@ -98,7 +98,7 @@ export async function createHomepageSection(payload: Partial<HomepageSection>) {
 
 export async function updateHomepageSection(id: string, payload: Partial<HomepageSection>) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access." };
   }
 
@@ -167,7 +167,7 @@ export async function deleteHomepageSection(id: string) {
 
 export async function reorderHomepageSections(reorderedIds: string[]) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access." };
   }
 
@@ -195,7 +195,7 @@ export async function reorderHomepageSections(reorderedIds: string[]) {
 
 export async function toggleSectionStatus(id: string, isActive: boolean) {
   const session = await getSession();
-  if (!session || !["super_admin", "catalogue_manager"].includes(session.role)) {
+  if (!session || !["super_admin", "admin", "catalogue_manager", "product_manager"].includes(session.role)) {
     return { success: false, error: "Unauthorized access." };
   }
 

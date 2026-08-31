@@ -11,6 +11,7 @@ import {
   getEstimatedFreightDeliveryDate,
   normalizeFreightMethod,
 } from "@/utils/shipping";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface CourierSelectorProps {
   selectedCourier: "air" | "sea" | string;
@@ -29,6 +30,7 @@ export function CourierSelector({
   isFreeShipping = false,
   orderSubtotal = 0,
 }: CourierSelectorProps) {
+  const { t, isSpanish } = useTranslation();
   const [showFormulaBreakdown, setShowFormulaBreakdown] = useState(false);
   const activeMethod = normalizeFreightMethod(selectedCourier);
 
@@ -70,10 +72,10 @@ export function CourierSelector({
             </div>
             <div>
               <span className="text-xs font-black font-heading text-slate-900 uppercase tracking-wider block">
-                Consolidated Cargo Summary
+                {isSpanish ? "Resumen de Carga Consolidada" : "Consolidated Cargo Summary"}
               </span>
               <span className="text-[10px] text-slate-400 font-medium">
-                {shippingResult.totalUnits} {shippingResult.totalUnits === 1 ? "Item" : "Items"} in Procurement Batch
+                {shippingResult.totalUnits} {shippingResult.totalUnits === 1 ? (isSpanish ? "Artículo en Lote" : "Item in Batch") : (isSpanish ? "Artículos en Lote de Adquisición" : "Items in Procurement Batch")}
               </span>
             </div>
           </div>
@@ -83,28 +85,28 @@ export function CourierSelector({
             onClick={() => setShowFormulaBreakdown((prev) => !prev)}
             className="text-[11px] font-mono font-bold text-blue-600 hover:text-blue-700 bg-blue-50/70 hover:bg-blue-100/70 px-2.5 py-1 rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
           >
-            <span>{showFormulaBreakdown ? "Hide Specs" : "View Sizing Specs"}</span>
+            <span>{showFormulaBreakdown ? (isSpanish ? "Ocultar Detalles" : "Hide Specs") : (isSpanish ? "Ver Dimensiones y Peso" : "View Sizing Specs")}</span>
             {showFormulaBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
           <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="text-[10px] text-slate-400 block font-sans font-medium">Total Gross Wt</span>
+            <span className="text-[10px] text-slate-400 block font-sans font-medium">{isSpanish ? "Peso Bruto Total" : "Total Gross Wt"}</span>
             <span className="font-bold text-slate-900 text-xs sm:text-sm">{shippingResult.totalGrossWeight.toFixed(2)} KG</span>
           </div>
           <div className="p-2.5 rounded-2xl bg-amber-50/50 border border-amber-100/80">
-            <span className="text-[10px] text-amber-700 block font-sans font-medium">Air Volumetric Wt</span>
+            <span className="text-[10px] text-amber-700 block font-sans font-medium">{isSpanish ? "Peso Volumétrico Aéreo" : "Air Volumetric Wt"}</span>
             <span className="font-bold text-amber-800 text-xs sm:text-sm">{shippingResult.totalVolumetricWeight.toFixed(2)} KG</span>
           </div>
           <div className="p-2.5 rounded-2xl bg-blue-50/50 border border-blue-100/80">
-            <span className="text-[10px] text-blue-700 block font-sans font-medium">Total Volume (CBM)</span>
+            <span className="text-[10px] text-blue-700 block font-sans font-medium">{isSpanish ? "Volumen Total (CBM)" : "Total Volume (CBM)"}</span>
             <span className="font-bold text-blue-800 text-xs sm:text-sm">{shippingResult.totalCbm.toFixed(4)} m³</span>
           </div>
           <div className="p-2.5 rounded-2xl bg-emerald-50/50 border border-emerald-100/80">
-            <span className="text-[10px] text-emerald-700 block font-sans font-medium">Dangerous Goods</span>
+            <span className="text-[10px] text-emerald-700 block font-sans font-medium">{isSpanish ? "Mercancías Peligrosas" : "Dangerous Goods"}</span>
             <span className="font-bold text-emerald-800 text-xs sm:text-sm truncate block">
-              {shippingResult.hasBatteryOrDG ? "Lithium Battery Pass" : "General Non-DG"}
+              {shippingResult.hasBatteryOrDG ? (isSpanish ? "Batería Litio Aprobada" : "Lithium Battery Pass") : (isSpanish ? "Carga General Estándar" : "General Non-DG")}
             </span>
           </div>
         </div>
@@ -113,7 +115,7 @@ export function CourierSelector({
         {showFormulaBreakdown && shippingResult.items.length > 0 && (
           <div className="mt-2 pt-3 border-t border-slate-100 space-y-2 text-[11px] animate-in fade-in duration-200">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-heading">
-              Item-by-Item Physical Sizing Breakdown
+              {isSpanish ? "Desglose Físico por Artículo" : "Item-by-Item Physical Sizing Breakdown"}
             </span>
             <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1 font-mono text-slate-600 text-[10px]">
               {shippingResult.items.map((item, idx) => (
@@ -183,7 +185,9 @@ export function CourierSelector({
                         ) : (
                           <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
                         )}
-                        {freight.badge}
+                        {isSpanish
+                          ? (freight.badge === "Fastest Air Dispatch" ? "Despacho Aéreo Más Rápido" : "Tarifa Más Económica")
+                          : freight.badge}
                       </span>
                     )}
                   </div>
@@ -192,11 +196,11 @@ export function CourierSelector({
                   <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500">
                     <span className="flex items-center gap-1 font-semibold text-slate-700">
                       <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      {freight.deliveryTime}
+                      {isSpanish ? (freight.id === "air" ? "5–8 Días Tránsito Express" : "20–30 Días Contenedor Marítimo") : freight.deliveryTime}
                     </span>
                     <span className="hidden sm:inline text-slate-300">•</span>
                     <span className="text-[11px] sm:text-xs text-slate-500">
-                      Est. Arrival: <strong className="text-slate-800 font-bold">{estDelivery}</strong>
+                      {isSpanish ? "Llegada Est.:" : "Est. Arrival:"} <strong className="text-slate-800 font-bold">{estDelivery}</strong>
                     </span>
                   </div>
 
@@ -204,12 +208,12 @@ export function CourierSelector({
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
                     <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
                       {freight.id === "air"
-                        ? `Chargeable: ${b.chargeableMetric} KG (${b.chargeType})`
-                        : `Chargeable: ${b.chargeableMetric} CBM (${b.chargeType})`}
+                        ? `${isSpanish ? "Facturable" : "Chargeable"}: ${b.chargeableMetric} KG`
+                        : `${isSpanish ? "Facturable" : "Chargeable"}: ${b.chargeableMetric} CBM`}
                     </span>
                     <span className="text-slate-400">
-                      Formula: ${b.baseFee.toFixed(2)} Base + ({b.chargeableMetric} × ${b.ratePerUnit.toFixed(2)}/{b.chargeableMetricLabel})
-                      {b.surcharges > 0 ? ` + $${b.surcharges.toFixed(2)} DG Surcharge` : ""}
+                      {isSpanish ? "Fórmula:" : "Formula:"} ${b.baseFee.toFixed(2)} Base + ({b.chargeableMetric} × ${b.ratePerUnit.toFixed(2)}/{b.chargeableMetricLabel})
+                      {b.surcharges > 0 ? (isSpanish ? " + Recargo Mercancía Especial" : ` + $${b.surcharges.toFixed(2)} DG Surcharge`) : ""}
                     </span>
                   </div>
                 </div>
@@ -226,7 +230,7 @@ export function CourierSelector({
                     )}
                     {freight.cost === 0 ? (
                       <span className="px-2.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 font-mono font-black text-sm border border-emerald-200/80">
-                        FREE
+                        {isSpanish ? "GRATIS" : "FREE"}
                       </span>
                     ) : (
                       <span className="font-mono font-black text-base sm:text-lg text-slate-900">
@@ -235,7 +239,7 @@ export function CourierSelector({
                     )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-mono block">
-                    USDT ({shippingResult.totalUnits} {shippingResult.totalUnits === 1 ? "unit" : "units"} calculated)
+                    USDT ({shippingResult.totalUnits} {shippingResult.totalUnits === 1 ? (isSpanish ? "unidad" : "unit") : (isSpanish ? "unidades" : "units")})
                   </span>
                 </div>
 

@@ -5,9 +5,11 @@ import { ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { formatCurrency } from "@/utils/helpers";
 import { useMounted } from "@/hooks/useMounted";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function CartButton() {
   const isMounted = useMounted();
+  const { t } = useTranslation();
 
   const cartTotalItems = useCartStore((state) => state.getTotalItems());
   const cartSubtotal = useCartStore((state) => state.getSubtotal());
@@ -39,7 +41,7 @@ export function CartButton() {
       </div>
       <div className="hidden sm:flex flex-col text-left leading-tight">
         <span className="text-[9px] text-amber-300 font-extrabold uppercase tracking-wider">
-          MY CART
+          {t.common.myCart}
         </span>
         <span
           suppressHydrationWarning

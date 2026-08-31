@@ -8,6 +8,7 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { Category } from "@/types/database";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const PASTEL_PALETTES = [
   "#EBF4FB", // Soft Ice Blue (Men's Fashion)
@@ -35,10 +36,11 @@ export interface CategoryShowcaseBannerSectionProps {
 export function CategoryShowcaseBannerSection({
   initialCategories,
   bannerImage = "/banners/banner-your-world-lifestyle.jpg",
-  bannerTitle = "Your World. All in One Place.",
+  bannerTitle,
   bannerCtaLink = "/categories",
   viewAllLink = "/categories",
 }: CategoryShowcaseBannerSectionProps) {
+  const { t, isSpanish } = useTranslation();
   const storeCategories = useCategoryStore((state) => state.categories);
   const isLoaded = useCategoryStore((state) => state.isLoaded);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -86,7 +88,7 @@ export function CategoryShowcaseBannerSection({
         <div className="flex items-center justify-between pb-3 sm:pb-4 mb-2">
           <div className="flex items-center gap-2">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-[#00143D] font-heading tracking-tight">
-              Categories
+              {isSpanish ? "Categorías Destacadas" : "Categories"}
             </h2>
           </div>
 
@@ -94,7 +96,7 @@ export function CategoryShowcaseBannerSection({
             href={viewAllLink}
             className="text-xs sm:text-sm font-bold text-slate-600 hover:text-[#00B4D8] flex items-center gap-0.5 transition-colors group py-1 px-2.5 -mr-2 rounded-xl hover:bg-slate-50"
           >
-            <span>View All</span>
+            <span>{t.home.viewAllDeals}</span>
             <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
@@ -198,20 +200,30 @@ export function CategoryShowcaseBannerSection({
         <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 sm:px-8 md:px-12 lg:px-14 max-w-xl text-white">
           {/* Main Headline */}
           <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black font-heading leading-tight tracking-tight text-white drop-shadow-sm">
-            Your World.<br />
-            <span>All in </span>
-            <span className="text-[#00C2FF] drop-shadow-md">One Place.</span>
+            {isSpanish ? (
+              <>
+                Tu Mundo.<br />
+                <span>Todo en </span>
+                <span className="text-[#00C2FF] drop-shadow-md">Un Solo Lugar.</span>
+              </>
+            ) : (
+              <>
+                Your World.<br />
+                <span>All in </span>
+                <span className="text-[#00C2FF] drop-shadow-md">One Place.</span>
+              </>
+            )}
           </h3>
 
           {/* Subtitle */}
           <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200 font-medium mt-1 sm:mt-2 drop-shadow-xs max-w-xs sm:max-w-sm">
-            Everything for every lifestyle.
+            {isSpanish ? "Todo para cada estilo de vida con abastecimiento directo." : "Everything for every lifestyle."}
           </p>
 
           {/* Cyan CTA Button */}
           <div className="mt-3 sm:mt-5 md:mt-6">
             <span className="inline-flex items-center gap-2 bg-[#00C2FF] hover:bg-[#00A3D9] text-white font-heading font-black text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-md transition-all duration-300 group-hover:shadow-cyan-500/30 group-hover:translate-x-1">
-              <span>Shop Now</span>
+              <span>{isSpanish ? "Comprar Ahora" : "Shop Now"}</span>
               <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
             </span>
           </div>
