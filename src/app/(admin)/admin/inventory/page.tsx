@@ -217,6 +217,42 @@ export default function AdminInventoryPage() {
       if (res.success) {
         toast.success(res.message || "Inventory SKU registered!");
         setIsItemSlideOverOpen(false);
+        // Optimistic UI state update immediately
+        setItems((prev) => {
+          const total = (payload.shenzhen_stock || 0) + (payload.guangzhou_stock || 0) + (payload.hk_air_stock || 0);
+          const existingIdx = prev.findIndex((i) => (payload.id && i.id === payload.id) || i.sku === payload.sku);
+          if (existingIdx >= 0) {
+            const updated = [...prev];
+            updated[existingIdx] = {
+              ...updated[existingIdx],
+              ...payload,
+              total_stock: total,
+              available_stock: Math.max(0, total - (updated[existingIdx].reserved_stock || 0)),
+            } as InventoryItemRecord;
+            return updated;
+          } else {
+            const newItem: InventoryItemRecord = {
+              id: payload.id || `inv-${Date.now()}`,
+              sku: payload.sku || "LCM-SKU",
+              product_name: payload.product_name || "",
+              variant_name: payload.variant_name || "Standard",
+              category_name: payload.category_name || "Consumer Electronics",
+              supplier_code: payload.supplier_code || "SUP-SZ-9021",
+              sourcing_cost_usdt: payload.sourcing_cost_usdt || 0,
+              shenzhen_stock: payload.shenzhen_stock || 0,
+              guangzhou_stock: payload.guangzhou_stock || 0,
+              hk_air_stock: payload.hk_air_stock || 0,
+              reserved_stock: 0,
+              total_stock: total,
+              available_stock: total,
+              low_stock_threshold: payload.low_stock_threshold || 10,
+              reorder_point: payload.reorder_point || 20,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+            return [newItem, ...prev];
+          }
+        });
         loadData();
       } else {
         toast.error(res.error || "Save failed");
@@ -231,6 +267,7 @@ export default function AdminInventoryPage() {
       const res = await deleteInventoryItem(item.id);
       if (res.success) {
         toast.success(`Deleted SKU ${item.sku}.`);
+        setItems((prev) => prev.filter((i) => i.id !== item.id));
         loadData();
       } else {
         toast.error(res.message || "Deletion failed.");

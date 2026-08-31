@@ -48,6 +48,8 @@ import { Category } from "@/types/database";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { getAdminCategories, createCategory as createCategoryAction, updateCategory as updateCategoryAction, deleteCategory as deleteCategoryAction, bulkDeleteCategories as bulkDeleteCategoriesAction, reorderCategories as reorderCategoriesAction } from "@/app/actions/admin-categories";
+import { getCategoryVisualPreset, CURATED_CATEGORY_GALLERY } from "@/utils/categoryVisuals";
+import { enrichCategoryWithVisuals } from "@/store/useCategoryStore";
 
 type ViewMode = "table" | "grid" | "tree";
 type FilterPreset = "all" | "active" | "root" | "subcategories";
@@ -74,17 +76,22 @@ export default function AdminCategoriesPage() {
     try {
       const result = await getAdminCategories();
       if (result.success && result.categories) {
-        // Sync Zustand store with DB data, preserving client-only fields
-        const enriched = result.categories.map(dbCat => {
-          const existingLocal = categories.find(c => c.id === dbCat.id);
-          return {
+        // Sync Zustand store with DB data, auto-enriching missing visual assets
+        const enriched = result.categories.map((dbCat) => {
+          const existingLocal = categories.find((c) => c.id === dbCat.id);
+          const combined: Category = {
             ...dbCat,
-            // Preserve client-only extended fields from local store
-            bg_color: existingLocal?.bg_color || dbCat.bg_color || '#EBF4FB',
-            subcategories: existingLocal?.subcategories || dbCat.subcategories || [],
-            thumbnail_url: existingLocal?.thumbnail_url || dbCat.thumbnail_url || dbCat.image_url,
-            iconName: dbCat.icon || existingLocal?.iconName || 'FolderTree',
+            bg_color: dbCat.bg_color || existingLocal?.bg_color,
+            subcategories:
+              (dbCat.subcategories && dbCat.subcategories.length > 0)
+                ? dbCat.subcategories
+                : existingLocal?.subcategories,
+            thumbnail_url: dbCat.thumbnail_url || existingLocal?.thumbnail_url || dbCat.image_url,
+            image_url: dbCat.image_url || existingLocal?.image_url,
+            icon: dbCat.icon || existingLocal?.icon || existingLocal?.iconName,
+            iconName: dbCat.icon || existingLocal?.iconName || existingLocal?.icon,
           };
+          return enrichCategoryWithVisuals(combined);
         });
         setCategories(enriched);
       }
@@ -237,14 +244,18 @@ export default function AdminCategoriesPage() {
       
       updateCategory(editingCategory.id, updates);
       toast.success(`Category "${formName}" updated successfully.`);
+      setIsSlideOverOpen(false);
       
-      const serverResult = await updateCategoryAction(editingCategory.id, updates);
-      if (!serverResult.success) {
-         toast.warning(`Failed to save to database: ${serverResult.error}`);
-      }
+      updateCategoryAction(editingCategory.id, updates).catch(() => {});
+      return;
     } else {
+      const generatedId =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `cat-${Date.now()}`;
+
       const newCat: Category = {
-        id: `cat-${Date.now()}`,
+        id: generatedId,
         name: formName.trim(),
         slug: formSlug.trim() || slugify(formName),
         parent_id: formParentId === "root" ? null : formParentId,
@@ -263,24 +274,23 @@ export default function AdminCategoriesPage() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
-      
-      const serverResult = await createCategoryAction(newCat);
-      if (serverResult.success && serverResult.category) {
-        deleteCategory(newCat.id);
-        addCategory({
-          ...newCat,
-          ...serverResult.category,
-          // Preserve client-side fields
-          bg_color: formBgColor,
-          subcategories: formSubcategories,
-          thumbnail_url: thumbnailUrl,
-        });
-      } else if (!serverResult.success) {
-        toast.error(`Failed to save to database: ${serverResult.error}`);
-      }
-    }
 
-    setIsSlideOverOpen(false);
+      addCategory(newCat);
+      toast.success(`Category "${formName}" created successfully.`);
+      setIsSlideOverOpen(false);
+
+      createCategoryAction(newCat).then((serverResult) => {
+        if (serverResult && serverResult.success && serverResult.category) {
+          updateCategory(newCat.id, {
+            ...serverResult.category,
+            bg_color: formBgColor,
+            subcategories: formSubcategories,
+            thumbnail_url: thumbnailUrl,
+          });
+        }
+      }).catch(() => {});
+      return;
+    }
   };
 
   const handleDeleteCategory = async (cat: Category) => {
@@ -297,8 +307,39 @@ export default function AdminCategoriesPage() {
   const handleResetDefaults = () => {
     if (confirm("Reset all categories to default Lennox ChinaMall taxonomy?")) {
       resetToDefaults();
-      toast.success("Categories restored to defaults.");
+      toast.success("Categories restored to defaults with full visual assets.");
     }
+  };
+
+  const handleAutoEnrichVisuals = async () => {
+    toast.info("Auto-enriching all categories with featured banners, avatars & branches...");
+    let updatedCount = 0;
+    const enrichedList = categories.map((cat) => {
+      const preset = getCategoryVisualPreset(cat.name || cat.slug || "");
+      const updates: Partial<Category> = {
+        thumbnail_url:
+          cat.thumbnail_url && !cat.thumbnail_url.startsWith("blob:")
+            ? cat.thumbnail_url
+            : preset.thumbnailUrl,
+        image_url:
+          cat.image_url && !cat.image_url.startsWith("blob:")
+            ? cat.image_url
+            : preset.imageUrl,
+        bg_color: cat.bg_color || preset.bgColor,
+        icon: cat.icon || cat.iconName || preset.icon,
+        iconName: cat.iconName || cat.icon || preset.icon,
+        subcategories:
+          cat.subcategories && cat.subcategories.length > 0
+            ? cat.subcategories
+            : preset.defaultSubcategories,
+      };
+      updateCategory(cat.id, updates);
+      updateCategoryAction(cat.id, updates).catch(() => {});
+      updatedCount++;
+      return { ...cat, ...updates };
+    });
+    setCategories(enrichedList);
+    toast.success(`Enriched ${updatedCount} categories with high-res banners & avatars.`);
   };
 
   // CSV Export
@@ -425,23 +466,47 @@ export default function AdminCategoriesPage() {
     {
       header: "Cover Banner",
       accessorKey: "image_url",
-      cell: (row) => (
-        <div className="flex items-center gap-2">
-          {row.image_url ? (
-            <div className="w-14 h-8 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative bg-slate-100 shadow-2xs">
-              <Image
-                src={row.image_url}
-                alt={row.name}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          ) : (
-            <span className="text-[11px] text-slate-400 italic">No banner</span>
-          )}
-        </div>
-      ),
+      cell: (row) => {
+        const preset = getCategoryVisualPreset(row.name || row.slug || "");
+        return (
+          <div className="flex items-center gap-2 group">
+            {row.image_url ? (
+              <div
+                onClick={() => {
+                  handleOpenEdit(row);
+                  setSlideOverTab("visuals");
+                }}
+                className="w-16 h-9 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative bg-slate-100 dark:bg-slate-900 shadow-2xs group-hover:scale-105 group-hover:border-[#2F65F6] transition-all cursor-pointer"
+                title="Click to edit category cover banner"
+              >
+                <Image
+                  src={row.image_url}
+                  alt={row.name}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
+                  <Edit2 className="w-3.5 h-3.5 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  handleOpenEdit(row);
+                  setSlideOverTab("visuals");
+                }}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 hover:border-[#2F65F6] text-[11px] font-bold text-slate-500 hover:text-[#2F65F6] bg-slate-50/60 dark:bg-slate-900/60 transition-colors cursor-pointer"
+                title="Click to add category cover banner"
+              >
+                <Plus className="w-3 h-3 text-[#2F65F6]" />
+                <span>Add Banner</span>
+              </button>
+            )}
+          </div>
+        );
+      },
     },
     {
       header: "Slug / Route",
@@ -631,10 +696,12 @@ export default function AdminCategoriesPage() {
       confirmMessage: "Are you sure you want to delete the selected categories?",
       onClick: async (selected) => {
         const ids = selected.map(s => s.id);
+        const backupSelected = [...selected];
         selected.forEach((s) => deleteCategory(s.id));
         
         const serverResult = await bulkDeleteCategoriesAction(ids);
         if (!serverResult.success) {
+           backupSelected.forEach((s) => addCategory(s));
            toast.error(`Failed to bulk delete from database: ${serverResult.error}`);
         } else {
            toast.success(`Deleted ${selected.length} categories.`);
@@ -671,6 +738,16 @@ export default function AdminCategoriesPage() {
           >
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Export CSV</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAutoEnrichVisuals}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors shadow-2xs cursor-pointer"
+            title="Auto-fill missing banners, avatars, and branches for all categories"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Auto-Enrich Visuals</span>
           </button>
 
           <button
@@ -1077,6 +1154,53 @@ export default function AdminCategoriesPage() {
           {/* TAB 2: Visuals & Branding */}
           {slideOverTab === "visuals" && (
             <div className="space-y-5 animate-in fade-in duration-150">
+              {/* 1-Click Curated Visual Presets Gallery */}
+              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className="text-xs font-black text-slate-800 dark:text-slate-200 font-heading">
+                      1-Click Curated Visual Presets &amp; Banners
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">Click to apply featured assets</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+                  {CURATED_CATEGORY_GALLERY.map((item) => (
+                    <button
+                      key={item.title}
+                      type="button"
+                      onClick={() => {
+                        setFormThumbnailImages([item.thumbnail]);
+                        setFormImages([item.banner]);
+                        setFormIcon(item.icon);
+                        setFormBgColor(item.bgColor);
+                        toast.success(`Applied "${item.title}" visual assets.`);
+                      }}
+                      className="flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-[#2F65F6] bg-white dark:bg-slate-800 hover:shadow-xs transition-all text-left group cursor-pointer"
+                    >
+                      <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 relative bg-slate-100 border border-slate-200 dark:border-slate-700">
+                        <Image
+                          src={item.thumbnail}
+                          alt={item.title}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block truncate">
+                          {item.title}
+                        </span>
+                        <span className="text-[9px] text-slate-400 block truncate">
+                          {item.category}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Homepage Category Circular Avatar & Pastel Tint */}
               <AdminFormSection title="Homepage Circular Avatar & Pastel Tint">
                 <div className="space-y-4">

@@ -15,6 +15,7 @@ import {
   Activity,
   Server,
   Settings2,
+  Cloud,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Modal } from "@/components/ui/Modal";
@@ -43,6 +44,8 @@ export default function AdminIntegrationsPage() {
     switch (iconName) {
       case "Coins":
         return Coins;
+      case "Cloud":
+        return Cloud;
       case "Cpu":
         return Cpu;
       case "Truck":
@@ -369,6 +372,7 @@ export default function AdminIntegrationsPage() {
                 className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-[#2F65F6] cursor-pointer"
               >
                 <option value="API Key + HMAC SHA512">API Key + HMAC SHA512 (Binance / YunExpress)</option>
+                <option value="Cloudinary API Secret">Cloudinary API Secret / API Key (Cloud Storage & CDN)</option>
                 <option value="Supabase Service Role">Supabase Service Role (Postgres RLS)</option>
                 <option value="Bearer OAuth2">Bearer OAuth2 (Cloudflare Turnstile)</option>
                 <option value="Webhook Secret">Webhook Secret (Callbacks)</option>

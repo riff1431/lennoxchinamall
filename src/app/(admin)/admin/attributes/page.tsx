@@ -40,6 +40,48 @@ import {
   ExtendedAttributeGroup,
 } from "@/store/useAttributeStore";
 
+const COLOR_NAME_MAP: Record<string, string> = {
+  "#000000": "Jet Black",
+  "#FFFFFF": "Pure White",
+  "#2F65F6": "ChinaMall Blue",
+  "#FF1028": "Crimson Red",
+  "#10B981": "Emerald Green",
+  "#F59E0B": "Amber Gold",
+  "#8B5CF6": "Purple Violet",
+  "#EC4899": "Hot Pink",
+  "#64748B": "Slate Gray",
+  "#1E293B": "Midnight Dark",
+  "#F97316": "Cyberpunk Orange",
+  "#FF5722": "Neon Orange",
+  "#06B6D4": "Cyan Teal",
+  "#84CC16": "Lime Green",
+  "#D97706": "Bronze Gold",
+  "#9333EA": "Deep Purple",
+  "#94A3B8": "Titanium Silver",
+  "#4D5D3B": "Military Olive",
+  "#E0F2FE": "Ice Blue",
+  "#FEF3C7": "Warm Amber",
+};
+
+export function getColorNameFromHex(hex: string): string {
+  const upper = hex.toUpperCase();
+  if (COLOR_NAME_MAP[upper]) return COLOR_NAME_MAP[upper];
+  return upper;
+}
+
+const POPULAR_COLOR_PRESETS = [
+  { label: "Jet Black", color: "#000000" },
+  { label: "Pure White", color: "#FFFFFF" },
+  { label: "ChinaMall Blue", color: "#2F65F6" },
+  { label: "Crimson Red", color: "#FF1028" },
+  { label: "Emerald Green", color: "#10B981" },
+  { label: "Amber Gold", color: "#F59E0B" },
+  { label: "Purple Violet", color: "#8B5CF6" },
+  { label: "Cyberpunk Orange", color: "#FF5722" },
+  { label: "Titanium Silver", color: "#94A3B8" },
+  { label: "Midnight Dark", color: "#1E293B" },
+];
+
 export default function AdminAttributesPage() {
   const toast = useAdminToast();
   const {
@@ -88,7 +130,7 @@ export default function AdminAttributesPage() {
   const [formRequired, setFormRequired] = useState(false);
   const [formProductCount, setFormProductCount] = useState(0);
 
-  // Option Values in builder: array of { label: string, color?: string }
+  // Option Values in builder: array of { label: string, color: string }
   const [optionItems, setOptionItems] = useState<Array<{ label: string; color: string }>>([]);
   const [newOptionInput, setNewOptionInput] = useState("");
   const [newOptionColor, setNewOptionColor] = useState("#2F65F6");
@@ -104,6 +146,41 @@ export default function AdminAttributesPage() {
     setCopiedCode(code);
     toast.info("Copied to clipboard", `System code "${code}" copied.`);
     setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const handleSelectFormType = (type: "button" | "select" | "color" | "radio") => {
+    setFormType(type);
+    if (type === "color") {
+      const hasGenericOptions =
+        optionItems.length === 0 ||
+        optionItems.every((item) => item.label.startsWith("Option "));
+      if (hasGenericOptions) {
+        const defaultColors = [
+          { label: "Stealth Matte Black", color: "#18181B" },
+          { label: "ChinaMall Blue", color: "#2F65F6" },
+          { label: "Cyberpunk Orange", color: "#FF5722" },
+        ];
+        setOptionItems(defaultColors);
+        setPreviewSelectedValue("Stealth Matte Black");
+      }
+    }
+  };
+
+  const handleAddPresetColor = (preset: { label: string; color: string }) => {
+    let finalLabel = preset.label;
+    let counter = 2;
+    while (
+      optionItems.some(
+        (item) => item.label.toLowerCase() === finalLabel.toLowerCase()
+      )
+    ) {
+      finalLabel = `${preset.label} (${counter})`;
+      counter++;
+    }
+    const updated = [...optionItems, { label: finalLabel, color: preset.color }];
+    setOptionItems(updated);
+    setPreviewSelectedValue(finalLabel);
+    toast.success("Color Added", `Added "${finalLabel}" swatch.`);
   };
 
   const handleOpenCreate = () => {
@@ -164,18 +241,31 @@ export default function AdminAttributesPage() {
   };
 
   const handleAddOptionItem = () => {
-    const trimmed = newOptionInput.trim();
-    if (!trimmed) return;
-
-    if (optionItems.some((item) => item.label.toLowerCase() === trimmed.toLowerCase())) {
-      toast.warning("Option already exists", `"${trimmed}" is already in the list.`);
-      return;
+    let trimmed = newOptionInput.trim();
+    if (!trimmed) {
+      trimmed =
+        formType === "color"
+          ? getColorNameFromHex(newOptionColor)
+          : `Option ${optionItems.length + 1}`;
     }
 
-    const updated = [...optionItems, { label: trimmed, color: newOptionColor }];
+    // If duplicate label exists, append a counter suffix
+    let finalLabel = trimmed;
+    let counter = 2;
+    while (
+      optionItems.some(
+        (item) => item.label.toLowerCase() === finalLabel.toLowerCase()
+      )
+    ) {
+      finalLabel = `${trimmed} (${counter})`;
+      counter++;
+    }
+
+    const updated = [...optionItems, { label: finalLabel, color: newOptionColor }];
     setOptionItems(updated);
     setNewOptionInput("");
-    if (!previewSelectedValue) setPreviewSelectedValue(trimmed);
+    if (!previewSelectedValue) setPreviewSelectedValue(finalLabel);
+    toast.success("Option Added", `Added "${finalLabel}"`);
   };
 
   const handleRemoveOptionItem = (index: number) => {
@@ -929,7 +1019,7 @@ export default function AdminAttributesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Button Pill Option */}
               <div
-                onClick={() => setFormType("button")}
+                onClick={() => handleSelectFormType("button")}
                 className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
                   formType === "button"
                     ? "bg-blue-50/80 border-blue-500 dark:bg-blue-950/40 dark:border-blue-600 shadow-xs"
@@ -952,7 +1042,7 @@ export default function AdminAttributesPage() {
 
               {/* Color Swatch Option */}
               <div
-                onClick={() => setFormType("color")}
+                onClick={() => handleSelectFormType("color")}
                 className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
                   formType === "color"
                     ? "bg-purple-50/80 border-purple-500 dark:bg-purple-950/40 dark:border-purple-600 shadow-xs"
@@ -975,7 +1065,7 @@ export default function AdminAttributesPage() {
 
               {/* Dropdown Select Option */}
               <div
-                onClick={() => setFormType("select")}
+                onClick={() => handleSelectFormType("select")}
                 className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
                   formType === "select"
                     ? "bg-amber-50/80 border-amber-500 dark:bg-amber-950/40 dark:border-amber-600 shadow-xs"
@@ -998,7 +1088,7 @@ export default function AdminAttributesPage() {
 
               {/* Radio Option */}
               <div
-                onClick={() => setFormType("radio")}
+                onClick={() => handleSelectFormType("radio")}
                 className={`p-3 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
                   formType === "radio"
                     ? "bg-emerald-50/80 border-emerald-500 dark:bg-emerald-950/40 dark:border-emerald-600 shadow-xs"
@@ -1076,7 +1166,13 @@ export default function AdminAttributesPage() {
                   <input
                     type="color"
                     value={newOptionColor}
-                    onChange={(e) => setNewOptionColor(e.target.value)}
+                    onChange={(e) => {
+                      const col = e.target.value;
+                      setNewOptionColor(col);
+                      if (!newOptionInput.trim()) {
+                        setNewOptionInput(getColorNameFromHex(col));
+                      }
+                    }}
                     className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 bg-white dark:bg-slate-800"
                     title="Select hex color"
                   />
@@ -1089,6 +1185,7 @@ export default function AdminAttributesPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
+                    e.stopPropagation();
                     handleAddOptionItem();
                   }
                 }}
@@ -1108,6 +1205,30 @@ export default function AdminAttributesPage() {
                 Add Value
               </button>
             </div>
+
+            {/* Quick Swatches Bar for Color Mode */}
+            {formType === "color" && (
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+                  Quick Colors:
+                </span>
+                {POPULAR_COLOR_PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => handleAddPresetColor(p)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-500 text-[10px] font-semibold text-slate-700 dark:text-slate-200 hover:shadow-2xs transition-all cursor-pointer"
+                    title={`Click to add ${p.label}`}
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full border border-slate-300 dark:border-slate-600 shrink-0"
+                      style={{ backgroundColor: p.color }}
+                    />
+                    <span>{p.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Option Items List */}
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
@@ -1131,9 +1252,12 @@ export default function AdminAttributesPage() {
                             type="color"
                             value={item.color}
                             onChange={(e) => {
-                              const updated = [...optionItems];
-                              updated[idx].color = e.target.value;
-                              setOptionItems(updated);
+                              const newCol = e.target.value;
+                              setOptionItems((prev) =>
+                                prev.map((opt, i) =>
+                                  i === idx ? { ...opt, color: newCol } : opt
+                                )
+                              );
                             }}
                             className="w-6 h-6 rounded-md border border-slate-200 cursor-pointer p-0"
                             title="Edit color swatch"
@@ -1147,9 +1271,12 @@ export default function AdminAttributesPage() {
                         type="text"
                         value={item.label}
                         onChange={(e) => {
-                          const updated = [...optionItems];
-                          updated[idx].label = e.target.value;
-                          setOptionItems(updated);
+                          const newLabel = e.target.value;
+                          setOptionItems((prev) =>
+                            prev.map((opt, i) =>
+                              i === idx ? { ...opt, label: newLabel } : opt
+                            )
+                          );
                         }}
                         className="flex-1 bg-transparent text-xs font-semibold text-slate-800 dark:text-slate-200 outline-none border-b border-transparent focus:border-blue-500 py-0.5"
                       />
@@ -1344,7 +1471,13 @@ export default function AdminAttributesPage() {
                 <input
                   type="color"
                   value={quickNewColor}
-                  onChange={(e) => setQuickNewColor(e.target.value)}
+                  onChange={(e) => {
+                    const col = e.target.value;
+                    setQuickNewColor(col);
+                    if (!quickNewValue.trim()) {
+                      setQuickNewValue(getColorNameFromHex(col));
+                    }
+                  }}
                   className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 bg-white dark:bg-slate-800 shrink-0"
                 />
               )}
@@ -1355,24 +1488,36 @@ export default function AdminAttributesPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    if (quickNewValue.trim()) {
-                      addValueToAttribute(
-                        quickValuesAttr.id,
-                        quickNewValue.trim(),
-                        quickValuesAttr.type === "color" ? quickNewColor : undefined
-                      );
-                      setQuickNewValue("");
-                      toast.success("Option Added", `Added "${quickNewValue.trim()}"`);
-                      // refresh local state
-                      setQuickValuesAttr((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              values: [...prev.values, quickNewValue.trim()],
-                            }
-                          : null
-                      );
+                    let val = quickNewValue.trim();
+                    if (!val) {
+                      val =
+                        quickValuesAttr.type === "color"
+                          ? getColorNameFromHex(quickNewColor)
+                          : `Option ${quickValuesAttr.values.length + 1}`;
                     }
+                    addValueToAttribute(
+                      quickValuesAttr.id,
+                      val,
+                      quickValuesAttr.type === "color" ? quickNewColor : undefined
+                    );
+                    setQuickNewValue("");
+                    toast.success("Option Added", `Added "${val}"`);
+                    setQuickValuesAttr((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            values: prev.values.includes(val)
+                              ? prev.values
+                              : [...prev.values, val],
+                            colorMap: {
+                              ...(prev.colorMap || {}),
+                              ...(quickValuesAttr.type === "color"
+                                ? { [val]: quickNewColor }
+                                : {}),
+                            },
+                          }
+                        : null
+                    );
                   }
                 }}
                 placeholder="Type new option name & press Enter..."
@@ -1381,23 +1526,36 @@ export default function AdminAttributesPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (quickNewValue.trim()) {
-                    addValueToAttribute(
-                      quickValuesAttr.id,
-                      quickNewValue.trim(),
-                      quickValuesAttr.type === "color" ? quickNewColor : undefined
-                    );
-                    setQuickNewValue("");
-                    toast.success("Option Added", `Added "${quickNewValue.trim()}"`);
-                    setQuickValuesAttr((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            values: [...prev.values, quickNewValue.trim()],
-                          }
-                        : null
-                    );
+                  let val = quickNewValue.trim();
+                  if (!val) {
+                    val =
+                      quickValuesAttr.type === "color"
+                        ? getColorNameFromHex(quickNewColor)
+                        : `Option ${quickValuesAttr.values.length + 1}`;
                   }
+                  addValueToAttribute(
+                    quickValuesAttr.id,
+                    val,
+                    quickValuesAttr.type === "color" ? quickNewColor : undefined
+                  );
+                  setQuickNewValue("");
+                  toast.success("Option Added", `Added "${val}"`);
+                  setQuickValuesAttr((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          values: prev.values.includes(val)
+                            ? prev.values
+                            : [...prev.values, val],
+                          colorMap: {
+                            ...(prev.colorMap || {}),
+                            ...(quickValuesAttr.type === "color"
+                              ? { [val]: quickNewColor }
+                              : {}),
+                          },
+                        }
+                      : null
+                  );
                 }}
                 className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-colors shrink-0"
               >

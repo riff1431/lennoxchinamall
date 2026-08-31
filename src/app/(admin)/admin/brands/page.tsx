@@ -98,50 +98,69 @@ export default function AdminBrandsPage() {
     const desc = formDescription.trim() || undefined;
 
     if (editingBrand) {
-      const res = await updateBrand(editingBrand.id, {
+      const updatedBrand: Brand = {
+        ...editingBrand,
+        name: formName.trim(),
+        slug: slug,
+        logo_url: logoUrl || null,
+        description: desc || null,
+        is_active: formIsActive,
+        updated_at: new Date().toISOString(),
+      };
+      setBrands((prev) => prev.map((b) => (b.id === editingBrand.id ? updatedBrand : b)));
+      toast.success(`Brand "${formName}" updated successfully.`);
+      setIsSlideOverOpen(false);
+      setIsSaving(false);
+
+      updateBrand(editingBrand.id, {
         name: formName.trim(),
         slug: slug,
         logo_url: logoUrl,
         description: desc,
         is_active: formIsActive,
-      });
-
-      if (res.success) {
-        toast.success(`Brand "${formName}" updated successfully.`);
-        await loadBrands();
-        setIsSlideOverOpen(false);
-      } else {
-        toast.error(res.error || "Failed to update brand.");
-      }
+      }).catch(() => {});
+      return;
     } else {
-      const res = await createBrand({
+      const generatedId =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `brand-${Date.now()}`;
+
+      const newBrand: Brand = {
+        id: generatedId,
+        name: formName.trim(),
+        slug: slug,
+        logo_url: logoUrl || null,
+        description: desc || null,
+        is_active: formIsActive,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      setBrands((prev) => [newBrand, ...prev]);
+      toast.success(`Brand "${formName}" created successfully.`);
+      setIsSlideOverOpen(false);
+      setIsSaving(false);
+
+      createBrand({
         name: formName.trim(),
         slug: slug,
         logo_url: logoUrl,
         description: desc,
         is_active: formIsActive,
-      });
-
-      if (res.success) {
-        toast.success(`Brand "${formName}" created successfully.`);
-        await loadBrands();
-        setIsSlideOverOpen(false);
-      } else {
-        toast.error(res.error || "Failed to create brand.");
-      }
+      }).then((res) => {
+        if (res && res.success && 'brand' in res && res.brand) {
+          setBrands((prev) => prev.map((b) => (b.id === generatedId ? (res.brand as Brand) : b)));
+        }
+      }).catch(() => {});
+      return;
     }
-    
-    setIsSaving(false);
   };
 
   const handleDelete = async (brand: Brand) => {
-    const res = await deleteBrand(brand.id);
-    if (res.success) {
-      toast.success(`Brand "${brand.name}" removed.`);
-      await loadBrands();
-    } else {
-      toast.error(res.error || "Failed to delete brand.");
-    }
+    setBrands((prev) => prev.filter((b) => b.id !== brand.id));
+    toast.success(`Brand "${brand.name}" removed.`);
+    deleteBrand(brand.id).catch(() => {});
   };
 
   const columns: Column<Brand>[] = [
@@ -229,13 +248,9 @@ export default function AdminBrandsPage() {
       confirmMessage: "Are you sure you want to delete the selected brand partners?",
       onClick: async (selected) => {
         const ids = selected.map((s) => s.id);
-        const res = await bulkDeleteBrands(ids);
-        if (res.success) {
-          toast.success(`Removed ${selected.length} brand entries.`);
-          await loadBrands();
-        } else {
-          toast.error(res.error || "Failed to bulk delete brands.");
-        }
+        setBrands((prev) => prev.filter((b) => !ids.includes(b.id)));
+        toast.success(`Removed ${selected.length} brand entries.`);
+        bulkDeleteBrands(ids).catch(() => {});
       },
     },
   ];

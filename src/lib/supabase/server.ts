@@ -48,8 +48,16 @@ export function createServiceClient() {
     throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
   }
 
-  // If service role key is not configured (e.g. initial dev setup), warn and fall back safely
-  const key = serviceKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  // If service role key is not configured or is placeholder, fall back to anon key safely
+  const hasValidServiceKey =
+    serviceKey &&
+    serviceKey.trim() !== "" &&
+    !serviceKey.includes("your-supabase-service-role-key") &&
+    serviceKey.length > 20;
+
+  const key = hasValidServiceKey
+    ? serviceKey
+    : (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 
   if (!key) {
     throw new Error("Supabase API key is not configured");
