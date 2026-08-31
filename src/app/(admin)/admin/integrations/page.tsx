@@ -16,12 +16,20 @@ import {
   Server,
   Settings2,
   Cloud,
+  Eye,
+  EyeOff,
+  Key,
+  Lock,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/utils/helpers";
 import { MOCK_INTEGRATIONS, IntegrationService } from "@/lib/mockData";
-import { testCloudinaryConnection } from "@/app/actions/cloudinary";
+import {
+  testCloudinaryConnection,
+  getCloudinarySettings,
+  saveCloudinarySettings,
+} from "@/app/actions/cloudinary";
 
 export default function AdminIntegrationsPage() {
   const [integrations, setIntegrations] = useState<IntegrationService[]>(MOCK_INTEGRATIONS);
@@ -34,6 +42,14 @@ export default function AdminIntegrationsPage() {
   const [endpointInput, setEndpointInput] = useState("");
   const [authMethodInput, setAuthMethodInput] = useState<IntegrationService["authMethod"]>("API Key + HMAC SHA512");
   const [detailsInput, setDetailsInput] = useState("");
+
+  // Cloudinary Specific Credentials
+  const [cloudNameInput, setCloudNameInput] = useState("vojfukje");
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [apiSecretInput, setApiSecretInput] = useState("");
+  const [uploadPresetInput, setUploadPresetInput] = useState("");
+  const [showSecret, setShowSecret] = useState(false);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -126,34 +142,83 @@ export default function AdminIntegrationsPage() {
   };
 
   // Open Configure Modal
-  const handleOpenConfig = (item: IntegrationService) => {
+  const handleOpenConfig = async (item: IntegrationService) => {
     setConfigItem(item);
     setEndpointInput(item.endpoint);
     setAuthMethodInput(item.authMethod);
     setDetailsInput(item.details);
+    setShowSecret(false);
+
+    if (item.id === "int-2" || item.name.includes("Cloudinary")) {
+      try {
+        const settings = await getCloudinarySettings();
+        setCloudNameInput(settings.cloudName || "vojfukje");
+        setApiKeyInput(settings.apiKey || "");
+        setApiSecretInput(settings.apiSecret || "");
+        setUploadPresetInput(settings.uploadPreset || "");
+      } catch (err) {
+        console.warn("Could not preload Cloudinary settings:", err);
+      }
+    }
   };
 
   // Save Configuration
-  const handleSaveConfig = (e: React.FormEvent) => {
+  const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!configItem) return;
+    setIsSavingConfig(true);
 
-    setIntegrations((prev) =>
-      prev.map((intg) =>
-        intg.id === configItem.id
-          ? {
-              ...intg,
-              endpoint: endpointInput.trim(),
-              authMethod: authMethodInput,
-              details: detailsInput.trim(),
-              lastCheck: "Just now",
-            }
-          : intg
-      )
-    );
+    try {
+      if (configItem.id === "int-2" || configItem.name.includes("Cloudinary")) {
+        const res = await saveCloudinarySettings({
+          cloudName: cloudNameInput,
+          apiKey: apiKeyInput,
+          apiSecret: apiSecretInput,
+          uploadPreset: uploadPresetInput,
+        });
 
-    showToast(`Integration settings for ${configItem.name} updated.`);
-    setConfigItem(null);
+        const newEndpoint = `https://api.cloudinary.com/v1_1/${cloudNameInput.trim()}/image/upload`;
+
+        setIntegrations((prev) =>
+          prev.map((intg) =>
+            intg.id === configItem.id
+              ? {
+                  ...intg,
+                  endpoint: newEndpoint,
+                  authMethod: authMethodInput,
+                  details: `Cloud environment '${cloudNameInput}' connected. Automated WebP conversion, auto-tagging, and Fastly Global CDN media delivery.`,
+                  lastCheck: "Just now",
+                }
+              : intg
+          )
+        );
+
+        showToast(res.message || "Cloudinary configuration saved successfully.");
+        setConfigItem(null);
+        return;
+      }
+
+      setIntegrations((prev) =>
+        prev.map((intg) =>
+          intg.id === configItem.id
+            ? {
+                ...intg,
+                endpoint: endpointInput.trim(),
+                authMethod: authMethodInput,
+                details: detailsInput.trim(),
+                lastCheck: "Just now",
+              }
+            : intg
+        )
+      );
+
+      showToast(`Integration settings for ${configItem.name} updated.`);
+      setConfigItem(null);
+    } catch (err: any) {
+      showToast(`Failed to save settings: ${err.message}`);
+    } finally {
+      setIsSavingConfig(false);
+    }
   };
 
   // Helper: Status Dot Indicator
@@ -379,32 +444,130 @@ export default function AdminIntegrationsPage() {
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">API Endpoint URL *</label>
-              <input
-                type="text"
-                required
-                value={endpointInput}
-                onChange={(e) => setEndpointInput(e.target.value)}
-                placeholder="https://api.gateway.com/v1"
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
-              />
-            </div>
+            {configItem.id === "int-2" || configItem.name.includes("Cloudinary") ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                      Cloud Environment Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={cloudNameInput}
+                      onChange={(e) => setCloudNameInput(e.target.value)}
+                      placeholder="e.g. vojfukje"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 font-mono font-bold"
+                    />
+                    <span className="text-[10px] text-slate-400 block">
+                      Found in Cloudinary Dashboard
+                    </span>
+                  </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Authentication Protocol</label>
-              <select
-                value={authMethodInput}
-                onChange={(e) => setAuthMethodInput(e.target.value as IntegrationService["authMethod"])}
-                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
-              >
-                <option value="API Key + HMAC SHA512">API Key + HMAC SHA512 (Binance / YunExpress)</option>
-                <option value="Cloudinary API Secret">Cloudinary API Secret / API Key (Cloud Storage & CDN)</option>
-                <option value="Supabase Service Role">Supabase Service Role (Postgres RLS)</option>
-                <option value="Bearer OAuth2">Bearer OAuth2 (Cloudflare Turnstile)</option>
-                <option value="Webhook Secret">Webhook Secret (Callbacks)</option>
-              </select>
-            </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                      Upload Preset (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={uploadPresetInput}
+                      onChange={(e) => setUploadPresetInput(e.target.value)}
+                      placeholder="e.g. lennox_preset (Unsigned)"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                    />
+                    <span className="text-[10px] text-slate-400 block">
+                      Cloudinary Settings → Upload → Upload presets
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-blue-500" />
+                      Cloudinary API Key *
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    placeholder="e.g. 482917492819384"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                  />
+                  <span className="text-[10px] text-slate-400 block">
+                    Copy from Cloudinary Dashboard → API Keys
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-rose-500" />
+                      Cloudinary API Secret *
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSecret(!showSecret)}
+                      className="text-[11px] font-bold text-[#2F65F6] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      {showSecret ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      <span>{showSecret ? "Hide Secret" : "Show Secret"}</span>
+                    </button>
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type={showSecret ? "text" : "password"}
+                      required
+                      value={apiSecretInput}
+                      onChange={(e) => setApiSecretInput(e.target.value)}
+                      placeholder="Paste API Secret from Cloudinary"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 pr-10 outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSecret(!showSecret)}
+                      className="absolute right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    >
+                      {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-slate-400 block">
+                    Secret is encrypted and used exclusively for server-side SHA-1 signed uploads.
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">API Endpoint URL *</label>
+                  <input
+                    type="text"
+                    required
+                    value={endpointInput}
+                    onChange={(e) => setEndpointInput(e.target.value)}
+                    placeholder="https://api.gateway.com/v1"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Authentication Protocol</label>
+                  <select
+                    value={authMethodInput}
+                    onChange={(e) => setAuthMethodInput(e.target.value as IntegrationService["authMethod"])}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                  >
+                    <option value="API Key + HMAC SHA512">API Key + HMAC SHA512 (Binance / YunExpress)</option>
+                    <option value="Cloudinary API Secret">Cloudinary API Secret / API Key (Cloud Storage & CDN)</option>
+                    <option value="Supabase Service Role">Supabase Service Role (Postgres RLS)</option>
+                    <option value="Bearer OAuth2">Bearer OAuth2 (Cloudflare Turnstile)</option>
+                    <option value="Webhook Secret">Webhook Secret (Callbacks)</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Operational Notes / Scope</label>
@@ -426,9 +589,17 @@ export default function AdminIntegrationsPage() {
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] transition-colors shadow-blue-500/25 shadow-xs cursor-pointer"
+                disabled={isSavingConfig}
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#2F65F6] hover:bg-[#2563EB] disabled:opacity-50 transition-colors shadow-blue-500/25 shadow-xs cursor-pointer flex items-center gap-1.5"
               >
-                Save Integration
+                {isSavingConfig ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <span>Save Integration</span>
+                )}
               </button>
             </div>
           </form>

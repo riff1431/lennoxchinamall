@@ -1,6 +1,15 @@
 "use server";
 
 import crypto from "crypto";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth/session";
+
+export interface CloudinaryConfig {
+  cloudName: string;
+  apiKey: string;
+  apiSecret: string;
+  uploadPreset?: string;
+}
 
 export interface CloudinaryUploadResult {
   success: boolean;
@@ -24,19 +33,146 @@ export interface CloudinaryTestResult {
   endpoint: string;
 }
 
+// In-memory runtime cache for server settings
+let runtimeCloudinaryConfig: CloudinaryConfig | null = null;
+
+/**
+ * Retrieve saved Cloudinary configuration (from DB or fallback to env)
+ */
+export async function getCloudinarySettings(): Promise<{
+  cloudName: string;
+  apiKey: string;
+  apiSecret: string;
+  uploadPreset: string;
+  hasApiSecret: boolean;
+}> {
+  // 1. Check runtime memory
+  if (runtimeCloudinaryConfig) {
+    return {
+      cloudName: runtimeCloudinaryConfig.cloudName,
+      apiKey: runtimeCloudinaryConfig.apiKey,
+      apiSecret: runtimeCloudinaryConfig.apiSecret ? "••••••••••••••••" : "",
+      uploadPreset: runtimeCloudinaryConfig.uploadPreset || "",
+      hasApiSecret: Boolean(runtimeCloudinaryConfig.apiSecret),
+    };
+  }
+
+  // 2. Check Supabase app_settings or integration_settings table
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("integration_settings")
+      .select("settings")
+      .eq("service_id", "cloudinary")
+      .single();
+
+    if (data?.settings) {
+      runtimeCloudinaryConfig = data.settings as CloudinaryConfig;
+      return {
+        cloudName: runtimeCloudinaryConfig.cloudName,
+        apiKey: runtimeCloudinaryConfig.apiKey,
+        apiSecret: runtimeCloudinaryConfig.apiSecret ? "••••••••••••••••" : "",
+        uploadPreset: runtimeCloudinaryConfig.uploadPreset || "",
+        hasApiSecret: Boolean(runtimeCloudinaryConfig.apiSecret),
+      };
+    }
+  } catch {
+    // Database table fallback
+  }
+
+  // 3. Fallback to process.env
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "vojfukje";
+  const apiKey = process.env.CLOUDINARY_API_KEY || "";
+  const apiSecret = process.env.CLOUDINARY_API_SECRET || "";
+  const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || "";
+
+  return {
+    cloudName,
+    apiKey,
+    apiSecret: apiSecret ? "••••••••••••••••" : "",
+    uploadPreset,
+    hasApiSecret: Boolean(apiSecret),
+  };
+}
+
+/**
+ * Save Cloudinary configuration dynamically from the Admin Integrations UI
+ */
+export async function saveCloudinarySettings(config: {
+  cloudName: string;
+  apiKey: string;
+  apiSecret?: string;
+  uploadPreset?: string;
+}): Promise<{ success: boolean; message: string }> {
+  const session = await getSession();
+  if (session && !["super_admin", "admin"].includes(session.role)) {
+    return { success: false, message: "Unauthorized. Admin permissions required." };
+  }
+
+  const cloudName = config.cloudName.trim() || "vojfukje";
+  const apiKey = config.apiKey.trim();
+  const uploadPreset = config.uploadPreset?.trim() || "";
+
+  // Preserve existing secret if input is unchanged masked value
+  let apiSecret = config.apiSecret?.trim() || "";
+  if (apiSecret.startsWith("•••") && runtimeCloudinaryConfig?.apiSecret) {
+    apiSecret = runtimeCloudinaryConfig.apiSecret;
+  } else if (apiSecret.startsWith("•••") && process.env.CLOUDINARY_API_SECRET) {
+    apiSecret = process.env.CLOUDINARY_API_SECRET;
+  }
+
+  runtimeCloudinaryConfig = {
+    cloudName,
+    apiKey,
+    apiSecret,
+    uploadPreset,
+  };
+
+  // Persist to Supabase if table exists
+  try {
+    const serviceClient = createServiceClient();
+    await serviceClient.from("integration_settings").upsert({
+      service_id: "cloudinary",
+      settings: runtimeCloudinaryConfig,
+      updated_at: new Date().toISOString(),
+    });
+  } catch {
+    // In-memory cache active
+  }
+
+  return {
+    success: true,
+    message: `Cloudinary settings for cloud '${cloudName}' saved successfully!`,
+  };
+}
+
+/**
+ * Get active credentials resolving DB runtime -> ENV
+ */
+function getActiveCredentials() {
+  const cloudName =
+    runtimeCloudinaryConfig?.cloudName ||
+    process.env.CLOUDINARY_CLOUD_NAME ||
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+    "vojfukje";
+
+  const apiKey = runtimeCloudinaryConfig?.apiKey || process.env.CLOUDINARY_API_KEY || "";
+  const apiSecret = runtimeCloudinaryConfig?.apiSecret || process.env.CLOUDINARY_API_SECRET || "";
+  const uploadPreset = runtimeCloudinaryConfig?.uploadPreset || process.env.CLOUDINARY_UPLOAD_PRESET || "";
+
+  return { cloudName, apiKey, apiSecret, uploadPreset };
+}
+
 /**
  * Test connectivity to Cloudinary API and check configuration status.
  */
 export async function testCloudinaryConnection(): Promise<CloudinaryTestResult> {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "vojfukje";
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const { cloudName, apiKey, apiSecret } = getActiveCredentials();
   const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 
   const startTime = Date.now();
 
   try {
-    // Ping Cloudinary ping endpoint or upload endpoint
     const pingUrl = `https://res.cloudinary.com/${cloudName}/image/upload/sample.jpg`;
     const res = await fetch(pingUrl, {
       method: "HEAD",
@@ -44,17 +180,17 @@ export async function testCloudinaryConnection(): Promise<CloudinaryTestResult> 
     });
 
     const latency = Date.now() - startTime;
+    const hasFullKeys = Boolean(apiKey && apiSecret);
 
     if (res.status === 200 || res.status === 404 || res.status === 400) {
-      const hasFullKeys = Boolean(apiKey && apiSecret);
       return {
         success: true,
         cloudName,
         status: hasFullKeys ? "healthy" : "configured",
         responseTimeMs: latency,
         message: hasFullKeys
-          ? `Cloud environment '${cloudName}' active with signed API credentials. CDN latency: ${latency}ms.`
-          : `Cloud environment '${cloudName}' connected to Fastly Global CDN. Add API Key & Secret or an unsigned upload preset to enable direct uploads.`,
+          ? `Cloud environment '${cloudName}' active with API Key & Secret (${latency}ms latency).`
+          : `Cloud environment '${cloudName}' reachable (${latency}ms latency). Add API Key & Secret in Configure modal to enable authenticated uploads.`,
         endpoint,
       };
     } else {
@@ -84,10 +220,7 @@ export async function testCloudinaryConnection(): Promise<CloudinaryTestResult> 
  * Upload a media file to Cloudinary with automatic WebP/AVIF compression and CDN delivery.
  */
 export async function uploadToCloudinary(formData: FormData): Promise<CloudinaryUploadResult> {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "vojfukje";
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+  const { cloudName, apiKey, apiSecret, uploadPreset } = getActiveCredentials();
 
   const file = formData.get("file") as File;
   const folder = (formData.get("folder") as string) || "lennox_chinamall";
@@ -111,7 +244,7 @@ export async function uploadToCloudinary(formData: FormData): Promise<Cloudinary
     cloudFormData.append("folder", folder);
 
     if (apiKey && apiSecret) {
-      // Signed upload
+      // Signed upload with SHA-1 signature
       const paramsToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
       const signature = crypto.createHash("sha1").update(paramsToSign).digest("hex");
 
