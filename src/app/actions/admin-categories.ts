@@ -30,11 +30,7 @@ export async function getAdminCategories() {
       return { success: true, categories: MOCK_CATEGORIES as Category[] };
     }
 
-    if (!data || data.length === 0) {
-      return { success: true, categories: MOCK_CATEGORIES as Category[] };
-    }
-
-    return { success: true, categories: data as Category[] };
+    return { success: true, categories: (data || []) as Category[] };
   } catch (error) {
     console.error("Error in getAdminCategories:", error);
     return { success: true, categories: MOCK_CATEGORIES as Category[] };

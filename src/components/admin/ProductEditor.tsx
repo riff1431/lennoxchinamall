@@ -505,7 +505,7 @@ export function ProductEditor({
           toast.success(res.message || `Updated "${title}" successfully!`);
           router.push("/admin/products");
         } else {
-          toast.error(res.message || "Failed to update product.");
+          toast.error(res.message || res.error || "Failed to update product.");
         }
       } else {
         const res = await createProduct(formData);
@@ -610,7 +610,7 @@ export function ProductEditor({
           toast.success(res.message || `Created "${title}" successfully!`);
           router.push("/admin/products");
         } else {
-          toast.error(res.message || "Failed to create product.");
+          toast.error(res.message || res.error || "Failed to create product.");
         }
       }
     } catch (err: any) {

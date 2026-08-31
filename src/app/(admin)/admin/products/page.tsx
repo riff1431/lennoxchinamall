@@ -51,35 +51,21 @@ export default function AdminProductsPage() {
   const duplicateProductInStore = useProductStore((state) => state.duplicateProduct);
   const resetToDefaults = useProductStore((state) => state.resetToDefaults);
 
-  const [products, setProducts] = useState<Product[]>(storeProducts.length > 0 ? storeProducts : MOCK_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(storeCategories.length > 0 ? storeCategories : []);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
 
-  // Keep state in sync with store
-  useEffect(() => {
-    if (storeProducts) {
-      setProducts(storeProducts);
-    }
-  }, [storeProducts]);
-
   const loadProducts = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await getAdminProducts();
       if (res.success && res.products) {
-        // Merge with locally created products in store
-        const currentStore = useProductStore.getState().products;
-        const merged = [...currentStore];
-        res.products.forEach((p) => {
-          if (!merged.some((m) => m.id === p.id)) {
-            merged.push(p);
-          }
-        });
-        setProducts(merged);
+        setProducts(res.products);
+        useProductStore.getState().setProducts(res.products);
         if (res.categories?.length) setCategories(res.categories);
         if (res.brands?.length) setBrands(res.brands);
       }

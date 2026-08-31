@@ -264,12 +264,19 @@ export default function AdminCategoriesPage() {
         updated_at: new Date().toISOString(),
       };
       
-      addCategory(newCat);
-      toast.success(`Category "${formName}" created successfully.`);
-      
       const serverResult = await createCategoryAction(newCat);
-      if (!serverResult.success) {
-         toast.error(`Failed to save to database: ${serverResult.error}`);
+      if (serverResult.success && serverResult.category) {
+        deleteCategory(newCat.id);
+        addCategory({
+          ...newCat,
+          ...serverResult.category,
+          // Preserve client-side fields
+          bg_color: formBgColor,
+          subcategories: formSubcategories,
+          thumbnail_url: thumbnailUrl,
+        });
+      } else if (!serverResult.success) {
+        toast.error(`Failed to save to database: ${serverResult.error}`);
       }
     }
 
@@ -280,8 +287,8 @@ export default function AdminCategoriesPage() {
     deleteCategory(cat.id);
     const serverResult = await deleteCategoryAction(cat.id);
     if (!serverResult.success) {
+      addCategory(cat); // Rollback optimistic delete
       toast.error(`Failed to delete from database: ${serverResult.error}`);
-      // Ideally we would revert the optimistic delete here, but for now just show error
     } else {
       toast.success(`Category "${cat.name}" deleted.`);
     }

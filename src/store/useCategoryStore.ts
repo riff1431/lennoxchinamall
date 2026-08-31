@@ -23,7 +23,7 @@ interface CategoryState {
 export const useCategoryStore = create<CategoryState>()(
   persist(
     (set, get) => ({
-      categories: MOCK_CATEGORIES as Category[],
+      categories: [],
       isLoaded: true,
 
       setCategories: (newCategories: Category[]) => {

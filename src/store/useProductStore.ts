@@ -25,7 +25,7 @@ interface ProductState {
 export const useProductStore = create<ProductState>()(
   persist(
     (set, get) => ({
-      products: MOCK_PRODUCTS,
+      products: [],
       isLoaded: true,
 
       addProduct: (newProduct: Product) => {

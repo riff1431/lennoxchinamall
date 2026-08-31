@@ -51,8 +51,8 @@ export async function getAdminProducts(params?: FetchAdminProductsParams) {
     const categories = categoriesData && categoriesData.length > 0 ? categoriesData : MOCK_CATEGORIES;
     const brands = brandsData && brandsData.length > 0 ? brandsData : MOCK_BRANDS;
 
-    if (error || !productsData || productsData.length === 0) {
-      // Return fallback products with search filtering applied
+    if (error) {
+      console.error("Error fetching admin products from Supabase:", error);
       let filtered = [...MOCK_PRODUCTS];
       if (params?.categoryId && params.categoryId !== "all") {
         filtered = filtered.filter((p) => p.category_id === params.categoryId);
@@ -64,7 +64,7 @@ export async function getAdminProducts(params?: FetchAdminProductsParams) {
       return { success: true, products: filtered, categories, brands };
     }
 
-    return { success: true, products: productsData as Product[], categories, brands };
+    return { success: true, products: (productsData || []) as Product[], categories, brands };
   } catch (err) {
     console.error("Fetch admin products error:", err);
     return { success: true, products: MOCK_PRODUCTS, categories: MOCK_CATEGORIES, brands: MOCK_BRANDS };
@@ -343,64 +343,70 @@ export async function createProduct(formData: FormData) {
       .select()
       .single();
 
-    if (!prodErr && newProd) {
-      createdProduct.id = newProd.id;
+    if (prodErr || !newProd) {
+      console.error("Supabase insert product error:", prodErr);
+      return {
+        success: false,
+        error: prodErr?.message || "Failed to create product in database.",
+      };
+    }
 
-      if (imageUrls && imageUrls.length > 0) {
-        const mediaInserts = imageUrls.filter(Boolean).map((url, idx) => ({
-          product_id: newProd.id,
-          url,
-          position: idx + 1,
-        }));
-        if (mediaInserts.length > 0) {
-          await supabase.from("product_media").insert(mediaInserts);
-        }
-      }
+    createdProduct.id = newProd.id;
 
-      const videoInserts = [];
-      if (video1Url) {
-        videoInserts.push({
-          product_id: newProd.id,
-          url: video1Url,
-          position: 1,
-          title: video1Title,
-          type: "embed",
-        });
-      }
-      if (video2Url) {
-        videoInserts.push({
-          product_id: newProd.id,
-          url: video2Url,
-          position: 2,
-          title: video2Title,
-          type: "embed",
-        });
-      }
-      if (videoInserts.length > 0) {
-        await supabase.from("product_videos").insert(videoInserts);
-      }
-
-      await supabase.from("variants").insert({
+    if (imageUrls && imageUrls.length > 0) {
+      const mediaInserts = imageUrls.filter(Boolean).map((url, idx) => ({
         product_id: newProd.id,
-        sku: `${sku}-STD`,
-        title: "Standard Edition",
-        price: basePrice,
-        compare_at_price: compareAtPrice,
-        cost,
-        stock: stock,
-        is_active: true,
-      });
-
-      if (session) {
-        await logAuditEvent({
-          adminId: session.id,
-          adminEmail: session.email,
-          action: "PRODUCT_CREATED",
-          entityType: "product",
-          entityId: newProd.id,
-          changes: { title, sku, basePrice, supplierCode },
-        });
+        url,
+        position: idx + 1,
+      }));
+      if (mediaInserts.length > 0) {
+        await supabase.from("product_media").insert(mediaInserts);
       }
+    }
+
+    const videoInserts = [];
+    if (video1Url) {
+      videoInserts.push({
+        product_id: newProd.id,
+        url: video1Url,
+        position: 1,
+        title: video1Title,
+        type: "embed",
+      });
+    }
+    if (video2Url) {
+      videoInserts.push({
+        product_id: newProd.id,
+        url: video2Url,
+        position: 2,
+        title: video2Title,
+        type: "embed",
+      });
+    }
+    if (videoInserts.length > 0) {
+      await supabase.from("product_videos").insert(videoInserts);
+    }
+
+    await supabase.from("variants").insert({
+      product_id: newProd.id,
+      sku: `${sku}-STD`,
+      title: "Standard Edition",
+      price: basePrice,
+      compare_at_price: compareAtPrice,
+      cost,
+      stock: stock,
+      is_active: true,
+    });
+
+    if (session) {
+      await logAuditEvent({
+        adminId: session.id,
+        adminEmail: session.email,
+        action: "PRODUCT_CREATED",
+        entityType: "product",
+        entityId: newProd.id,
+        changes: { title, sku, basePrice, supplierCode },
+      });
     }
 
     registerCachedProduct(createdProduct);
@@ -534,7 +540,8 @@ export async function updateProduct(id: string, formData: FormData) {
       .eq("id", id);
 
     if (updateErr) {
-      console.warn("Supabase update product error:", updateErr);
+      console.error("Supabase update product error:", updateErr);
+      return { success: false, error: updateErr.message };
     }
 
     // Refresh media if provided
@@ -603,8 +610,9 @@ export async function updateProduct(id: string, formData: FormData) {
 
 export async function deleteProduct(id: string) {
   const session = await getSession();
-  if (!session || session.role !== "super_admin") {
-    return { success: false, error: "Only Super Admins can permanently delete products." };
+  const isAdmin = session ? ["super_admin", "catalogue_manager"].includes(session.role) : false;
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized to delete products." };
   }
 
   try {
@@ -612,17 +620,20 @@ export async function deleteProduct(id: string) {
     const { error } = await supabase.from("products").delete().eq("id", id);
 
     if (error) {
-      console.warn("Supabase delete product error:", error);
+      console.error("Supabase delete product error:", error);
+      return { success: false, error: error.message };
     }
 
-    await logAuditEvent({
-      adminId: session.id,
-      adminEmail: session.email,
-      action: "PRODUCT_DELETED",
-      entityType: "product",
-      entityId: id,
-      changes: { action: "DELETED" },
-    });
+    if (session) {
+      await logAuditEvent({
+        adminId: session.id,
+        adminEmail: session.email,
+        action: "PRODUCT_DELETED",
+        entityType: "product",
+        entityId: id,
+        changes: { action: "DELETED" },
+      });
+    }
 
     revalidatePath("/admin/products");
     revalidatePath("/", "page");
@@ -646,7 +657,8 @@ export async function bulkDeleteProducts(ids: string[]) {
     const { error } = await supabase.from("products").delete().in("id", ids);
 
     if (error) {
-      console.warn("Supabase bulk delete error:", error);
+      console.error("Supabase bulk delete error:", error);
+      return { success: false, error: error.message };
     }
 
     if (session) {
@@ -684,7 +696,8 @@ export async function bulkUpdateProductStatus(ids: string[], status: string) {
       .in("id", ids);
 
     if (error) {
-      console.warn("Supabase bulk update error:", error);
+      console.error("Supabase bulk update error:", error);
+      return { success: false, error: error.message };
     }
 
     if (session) {
