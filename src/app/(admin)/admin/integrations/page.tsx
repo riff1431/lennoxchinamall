@@ -21,6 +21,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Modal } from "@/components/ui/Modal";
 import { cn } from "@/utils/helpers";
 import { MOCK_INTEGRATIONS, IntegrationService } from "@/lib/mockData";
+import { testCloudinaryConnection } from "@/app/actions/cloudinary";
 
 export default function AdminIntegrationsPage() {
   const [integrations, setIntegrations] = useState<IntegrationService[]>(MOCK_INTEGRATIONS);
@@ -60,8 +61,34 @@ export default function AdminIntegrationsPage() {
   };
 
   // Test Single Connection
-  const handleTestConnection = (item: IntegrationService) => {
+  const handleTestConnection = async (item: IntegrationService) => {
     setTestingId(item.id);
+
+    if (item.id === "int-2" || item.name.includes("Cloudinary")) {
+      try {
+        const result = await testCloudinaryConnection();
+        setIntegrations((prev) =>
+          prev.map((intg) =>
+            intg.id === item.id
+              ? {
+                  ...intg,
+                  status: result.status,
+                  responseTimeMs: result.responseTimeMs,
+                  lastCheck: "Just now",
+                  endpoint: result.endpoint,
+                }
+              : intg
+          )
+        );
+        showToast(result.message);
+      } catch (err: any) {
+        showToast(`Cloudinary ping failed: ${err.message}`);
+      } finally {
+        setTestingId(null);
+      }
+      return;
+    }
+
     setTimeout(() => {
       const newResponseTime = Math.floor(20 + Math.random() * 80);
       setIntegrations((prev) =>

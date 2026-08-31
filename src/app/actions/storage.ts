@@ -75,6 +75,29 @@ export async function uploadMediaFile(formData: FormData): Promise<{
       }
     };
 
+    // Attempt Cloudinary upload first if API credentials or cloud name preset is present
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const hasCloudinaryKeys = Boolean(process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) || Boolean(process.env.CLOUDINARY_UPLOAD_PRESET);
+    
+    if (cloudName && hasCloudinaryKeys) {
+      try {
+        const { uploadToCloudinary } = await import("@/app/actions/cloudinary");
+        const cloudResult = await uploadToCloudinary(formData);
+        if (cloudResult.success && cloudResult.url) {
+          return {
+            success: true,
+            url: cloudResult.secure_url || cloudResult.url,
+            name: file.name,
+            size: sizeFormatted,
+            format: (cloudResult.format || fileExt).toUpperCase(),
+            type: mediaType,
+          };
+        }
+      } catch (cloudErr) {
+        console.warn("Cloudinary direct upload attempt skipped/failed, falling back to Supabase Storage:", cloudErr);
+      }
+    }
+
     const supabase = await createClient();
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
 
