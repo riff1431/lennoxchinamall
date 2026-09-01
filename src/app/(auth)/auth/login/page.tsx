@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, CheckCircle2, ShieldAlert } from "lucide-react";
 import { login } from "@/app/actions/auth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 function LoginForm() {
+  const { isSpanish } = useTranslation();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/account/profile";
   const successMessage = searchParams.get("message");
@@ -45,17 +47,23 @@ function LoginForm() {
     <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
       <div className="space-y-1">
         <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-          Sign In to Your Account
+          {isSpanish ? "Iniciar Sesión en Tu Cuenta" : "Sign In to Your Account"}
         </h1>
         <p className="text-xs text-slate-400">
-          Access your sourcing orders, live air tracking, and saved USDT preferences.
+          {isSpanish
+            ? "Accede a tus órdenes de compra, rastreo aéreo en vivo y preferencias USDT guardadas."
+            : "Access your sourcing orders, live air tracking, and saved USDT preferences."}
         </p>
       </div>
 
       {successMessage === "password_reset_success" && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-          <span>Password reset successful! Sign in with your new credentials.</span>
+          <span>
+            {isSpanish
+              ? "¡Contraseña restablecida exitosamente! Inicia sesión con tus nuevas credenciales."
+              : "Password reset successful! Sign in with your new credentials."}
+          </span>
         </div>
       )}
 
@@ -66,7 +74,9 @@ function LoginForm() {
             <span>{error}</span>
             {attemptsLeft !== null && attemptsLeft > 0 && attemptsLeft < 5 && (
               <span className="block text-[10px] text-amber-400 mt-0.5">
-                {attemptsLeft} attempt{attemptsLeft === 1 ? "" : "s"} remaining before temporary lockout.
+                {isSpanish
+                  ? `Quedan ${attemptsLeft} intento(s) antes del bloqueo temporal.`
+                  : `${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} remaining before temporary lockout.`}
               </span>
             )}
           </div>
@@ -76,7 +86,7 @@ function LoginForm() {
       <form onSubmit={handleLogin} className="space-y-4 text-xs">
         <div className="space-y-1.5">
           <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-            Email Address
+            {isSpanish ? "Correo Electrónico" : "Email Address"}
           </label>
           <div className="relative">
             <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -95,13 +105,13 @@ function LoginForm() {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-              Password
+              {isSpanish ? "Contraseña" : "Password"}
             </label>
             <Link
               href="/auth/forgot-password"
               className="text-[11px] text-slate-400 hover:text-[#FF1028] transition-colors"
             >
-              Forgot password?
+              {isSpanish ? "¿Olvidaste tu contraseña?" : "Forgot password?"}
             </Link>
           </div>
           <div className="relative">
@@ -127,7 +137,7 @@ function LoginForm() {
             className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-[#FF1028] focus:ring-0 focus:ring-offset-0 cursor-pointer accent-[#FF1028]"
           />
           <label htmlFor="rememberMe" className="text-[11px] text-slate-400 select-none cursor-pointer">
-            Trust this device for 30 days
+            {isSpanish ? "Recordar este dispositivo por 30 días" : "Trust this device for 30 days"}
           </label>
         </div>
 
@@ -137,26 +147,30 @@ function LoginForm() {
           className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 rounded-xl text-xs font-black font-heading uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-red-600/25 active:scale-98 disabled:opacity-50"
         >
           {isLoading ? (
-            <span>Signing In...</span>
+            <span>{isSpanish ? "Iniciando Sesión..." : "Signing In..."}</span>
           ) : (
             <>
-              <span>Sign In with USDT Escrow</span>
+              <span>{isSpanish ? "Iniciar Sesión con Garantía USDT" : "Sign In with USDT Escrow"}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
 
         <div className="pt-2 text-center text-xs text-slate-400">
-          Don&apos;t have an account?{" "}
+          {isSpanish ? "¿No tienes una cuenta? " : "Don't have an account? "}
           <Link href="/auth/register" className="text-white hover:text-[#FF1028] font-bold">
-            Create Free Account
+            {isSpanish ? "Crear Cuenta Gratis" : "Create Free Account"}
           </Link>
         </div>
       </form>
 
       <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center gap-2.5 text-[11px] text-slate-400">
         <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
-        <span>Protected with cryptographic password hashing, brute-force defense, and Supabase SSR.</span>
+        <span>
+          {isSpanish
+            ? "Protegido con encriptación criptográfica de contraseñas, defensa contra fuerza bruta y Supabase SSR."
+            : "Protected with cryptographic password hashing, brute-force defense, and Supabase SSR."}
+        </span>
       </div>
     </div>
   );

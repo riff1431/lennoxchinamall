@@ -17,6 +17,7 @@ const DEFAULT_BEST_SELLERS = [
   {
     id: "promo-bs-1",
     title: "Elegant Floral Embroidered Handbag",
+    titleEs: "Bolso Elegante con Bordado Floral",
     slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
     discountBadge: "-$10.00",
     comparePrice: 100.0,
@@ -26,6 +27,7 @@ const DEFAULT_BEST_SELLERS = [
   {
     id: "promo-bs-2",
     title: "iPhone 17 Pro Max 256GB Titanium",
+    titleEs: "iPhone 17 Pro Max 256GB Titanio",
     slug: "eachine-ex5-4k-gps-fpv-drone",
     discountBadge: "-$10.00",
     comparePrice: 950.0,
@@ -38,6 +40,7 @@ const DEFAULT_TOP_RATED = [
   {
     id: "promo-tr-1",
     title: "Elegant Floral Embroidered Handbag",
+    titleEs: "Bolso Elegante con Bordado Floral",
     slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
     discountBadge: "-$10.00",
     comparePrice: 100.0,
@@ -47,6 +50,7 @@ const DEFAULT_TOP_RATED = [
   {
     id: "promo-tr-2",
     title: "iPhone 17 Pro Max 256GB Titanium",
+    titleEs: "iPhone 17 Pro Max 256GB Titanio",
     slug: "eachine-ex5-4k-gps-fpv-drone",
     discountBadge: "-$10.00",
     comparePrice: 950.0,
@@ -149,7 +153,7 @@ export function DualPromotionalShowcaseSection({
                   {/* Details */}
                   <div className="min-w-0 flex-1 space-y-1">
                     <h4 className="text-xs font-bold text-slate-800 group-hover:text-[#FF1028] transition-colors truncate">
-                      {item.title}
+                      {isSpanish && "titleEs" in item ? (item as any).titleEs : item.title}
                     </h4>
                     <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="text-[10px] text-slate-400 line-through font-mono">
@@ -215,7 +219,7 @@ export function DualPromotionalShowcaseSection({
                   {/* Details */}
                   <div className="min-w-0 flex-1 space-y-1">
                     <h4 className="text-xs font-bold text-slate-800 group-hover:text-[#FF1028] transition-colors truncate">
-                      {item.title}
+                      {isSpanish && "titleEs" in item ? (item as any).titleEs : item.title}
                     </h4>
                     <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="text-[10px] text-slate-400 line-through font-mono">

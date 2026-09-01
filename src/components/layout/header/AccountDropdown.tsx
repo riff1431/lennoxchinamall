@@ -14,7 +14,7 @@ import { useMounted } from "@/hooks/useMounted";
 
 export function AccountDropdown() {
   const { user, role, displayName, isAuthenticated } = useAuth();
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -80,7 +80,7 @@ export function AccountDropdown() {
                 <div className="p-3 bg-slate-50 rounded-lg mb-2">
                   <span className="text-xs font-black text-[#00143D] block">{displayName || user?.email}</span>
                   <span className="text-[10px] font-mono font-bold text-[#FF1028] uppercase">
-                    Role: {role ? ROLE_LABELS[role] || role : "Customer"}
+                    {t.header.role}: {role ? ROLE_LABELS[role] || role : "Customer"}
                   </span>
                 </div>
 
@@ -151,10 +151,10 @@ export function AccountDropdown() {
               <div className="p-2 space-y-3">
                 <div className="text-center pb-2 border-b border-slate-100">
                   <span className="text-xs font-bold text-slate-800 block">
-                    Direct Factory Sourcing Gateway
+                    {isSpanish ? "Pasarela Directa de Fábrica" : "Direct Factory Sourcing Gateway"}
                   </span>
                   <span className="text-[10px] text-slate-400">
-                    Zero fees, fast USDT settlement & factory tracking
+                    {isSpanish ? "Sin comisiones, liquidación rápida en USDT y seguimiento" : "Zero fees, fast USDT settlement & factory tracking"}
                   </span>
                 </div>
 

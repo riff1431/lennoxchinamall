@@ -20,7 +20,9 @@ import { SITE_NAME } from "@/lib/constants";
 import { useMounted } from "@/hooks/useMounted";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { formatCurrency } from "@/utils/helpers";
-import { HOT_SEARCH_TAGS } from "./headerConfig";
+import { HOT_SEARCH_TAGS, getLocalizedHotSearchTags } from "./headerConfig";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
 
 import { AnnouncementBar } from "./AnnouncementBar";
 import { HeaderSearchBar } from "./HeaderSearchBar";
@@ -40,6 +42,8 @@ export function Header({
 }: HeaderProps) {
   const router = useRouter();
   const { user, role } = useAuth();
+  const { t, isSpanish } = useTranslation();
+  const hotTags = getLocalizedHotSearchTags(isSpanish);
 
   // Scroll state for sticky glassmorphism
   const [isScrolled, setIsScrolled] = useState(false);
@@ -186,7 +190,7 @@ export function Header({
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="lg:hidden p-1.5 sm:p-2 text-slate-700 hover:text-[#FF1028] rounded-xl hover:bg-slate-100 transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
-              aria-label="Open Navigation Drawer"
+              aria-label={t.header.openMenu}
             >
               <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
@@ -227,13 +231,13 @@ export function Header({
             <form onSubmit={handleMobileSearch} className="relative flex items-center bg-white rounded-lg border border-slate-200 focus-within:border-slate-300 shadow-xs h-10 overflow-hidden">
               <input
                 type="text"
-                placeholder="Search 100,000+ factory products..."
+                placeholder={t.common.searchPlaceholder}
                 value={mobileSearchQuery}
                 onChange={(e) => setMobileSearchQuery(e.target.value)}
                 onFocus={() => setIsMobileSearchFocused(true)}
                 className="w-full h-full pl-3.5 pr-12 text-xs text-slate-800 bg-transparent placeholder:text-slate-400 outline-none font-normal"
                 style={{ fontSize: "16px" }}
-                aria-label="Search products"
+                aria-label={t.common.search}
                 role="combobox"
                 aria-expanded={hasMobileSuggestions || (isMobileSearchFocused && !mobileSearchQuery)}
               />
@@ -242,7 +246,7 @@ export function Header({
                   type="button"
                   onClick={() => setMobileSearchQuery("")}
                   className="absolute right-11 text-slate-400 p-1 flex items-center cursor-pointer hover:text-slate-600"
-                  aria-label="Clear search"
+                  aria-label={t.common.clear}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -252,7 +256,7 @@ export function Header({
                 <button
                   type="submit"
                   className="h-full px-3 text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
-                  aria-label="Search"
+                  aria-label={t.common.searchButton}
                 >
                   <Search className="w-4 h-4" />
                 </button>
@@ -273,10 +277,10 @@ export function Header({
                   {(!mobileSearchQuery || mobileSearchQuery.trim().length < 2) && (
                     <div className="p-3 bg-slate-50">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2 font-mono">
-                        Popular Sourcing Searches
+                        {t.header.popularSearches}
                       </span>
                       <div className="flex flex-wrap gap-1.5">
-                        {HOT_SEARCH_TAGS.map((tag) => (
+                        {hotTags.map((tag) => (
                           <button
                             key={tag}
                             type="button"
@@ -298,7 +302,7 @@ export function Header({
                   {hasMobileSuggestions && mobileSuggestions.categories.length > 0 && (
                     <div className="p-2.5 bg-slate-50/80 border-b border-slate-100">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1 font-mono">
-                        Categories
+                        {t.header.suggestedCategories}
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {mobileSuggestions.categories.map((cat) => (
@@ -313,7 +317,7 @@ export function Header({
                               name={cat.name}
                               className="w-3.5 h-3.5 text-[#FF1028]"
                             />
-                            <span>{cat.name}</span>
+                            <span>{getLocalizedCategoryName(cat.name, isSpanish)}</span>
                           </button>
                         ))}
                       </div>
@@ -325,7 +329,7 @@ export function Header({
                     <div className="p-2 space-y-1 overflow-y-auto max-h-64">
                       {mobileSuggestions.products.length === 0 ? (
                         <div className="p-4 text-center text-slate-500 text-xs">
-                          No direct matches for &quot;{mobileSearchQuery}&quot;. Tap Go to search all.
+                          {t.header.noMatchingProducts}
                         </div>
                       ) : (
                         mobileSuggestions.products.map((prod) => (
@@ -364,7 +368,7 @@ export function Header({
                         onClick={() => handleMobileSearch()}
                         className="text-xs font-black text-[#FF1028] hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer py-0.5"
                       >
-                        <span>View all results for &quot;{mobileSearchQuery}&quot;</span>
+                        <span>{t.header.viewAllResults} &quot;{mobileSearchQuery}&quot;</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>

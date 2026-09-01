@@ -71,10 +71,10 @@ export const getLocalizedFooterSections = (isSpanish: boolean): FooterSection[] 
     title: isSpanish ? "Departamentos" : "Shop Departments",
     links: [
       { label: isSpanish ? "Electrónica de Consumo" : "Consumer Electronics", href: "/categories/consumer-electronics" },
-      { label: isSpanish ? "Drones 4K y Sistemas FPV" : "4K Drones & FPV Systems", href: "/categories/rc-drones-toys", badge: "HOT" },
+      { label: isSpanish ? "Drones 4K y Sistemas FPV" : "4K Drones & FPV Systems", href: "/categories/rc-drones-toys", badge: isSpanish ? "POPULAR" : "HOT" },
       { label: isSpanish ? "Impresoras 3D y Herramientas CNC" : "3D Printers & CNC Tools", href: "/categories/tools-diy-hardware" },
       { label: isSpanish ? "Hogar Inteligente y Robótica" : "Smart Home & IoT Robotics", href: "/categories/smart-home-living" },
-      { label: isSpanish ? "Ofertas Flash y Descuentos" : "Flash Deals & Daily Drops", href: "/categories/flash-deals", badge: "DEALS" },
+      { label: isSpanish ? "Ofertas Flash y Descuentos" : "Flash Deals & Daily Drops", href: "/categories/flash-deals", badge: isSpanish ? "OFERTAS" : "DEALS" },
       { label: isSpanish ? "Nuevas Llegadas de Fábrica" : "New Factory Arrivals", href: "/categories/new-arrivals" },
     ],
   },
@@ -117,24 +117,27 @@ export const getLocalizedFooterSections = (isSpanish: boolean): FooterSection[] 
 export const FOOTER_TRUST_ITEMS: TrustItem[] = getLocalizedFooterTrustItems(false);
 export const FOOTER_SECTIONS: FooterSection[] = getLocalizedFooterSections(false);
 
-export const FOOTER_CONTACTS: ContactInfo[] = [
+export const getLocalizedFooterContacts = (isSpanish: boolean): ContactInfo[] => [
   {
     type: "email",
-    label: "VIP Support Email",
+    label: isSpanish ? "Correo de Soporte VIP" : "VIP Support Email",
     value: "support@lennoxchinamall.com",
     copyable: true,
     href: "mailto:support@lennoxchinamall.com",
   },
   {
     type: "phone",
-    label: "Global WhatsApp / Phone",
+    label: isSpanish ? "WhatsApp / Teléfono Global" : "Global WhatsApp / Phone",
     value: "+86 755 8329 1800",
     copyable: true,
     href: "https://wa.me/8675583291800",
   },
   {
     type: "address",
-    label: "Logistics Hub",
-    value: "Bao'an Logistics Park, Shenzhen, China",
+    label: isSpanish ? "Centro Logístico" : "Logistics Hub",
+    value: isSpanish ? "Parque Logístico Bao'an, Shenzhen, China" : "Bao'an Logistics Park, Shenzhen, China",
   },
 ];
+
+export const FOOTER_CONTACTS: ContactInfo[] = getLocalizedFooterContacts(false);
+

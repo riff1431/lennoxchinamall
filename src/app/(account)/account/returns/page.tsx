@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency, formatDate } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface ReturnClaim {
   id: string;
@@ -31,6 +32,7 @@ interface ReturnClaim {
 }
 
 export default function ReturnsPage() {
+  const { isSpanish } = useTranslation();
   const [claims, setClaims] = useState<ReturnClaim[]>([
     {
       id: "ret-1",
@@ -70,7 +72,11 @@ export default function ReturnsPage() {
     setClaims([newClaim, ...claims]);
     setIsClaimModalOpen(false);
     setDescription("");
-    setToastMsg(`Return Claim #${newClaim.claimNumber} registered for QA inspection!`);
+    setToastMsg(
+      isSpanish
+        ? `¡Reclamo de Devolución #${newClaim.claimNumber} registrado para inspección QA!`
+        : `Return Claim #${newClaim.claimNumber} registered for QA inspection!`
+    );
     setTimeout(() => setToastMsg(null), 4000);
   };
 
@@ -79,25 +85,29 @@ export default function ReturnsPage() {
       case "submitted":
         return (
           <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 font-heading">
-            <Clock className="w-3 h-3 text-amber-600" /> Sourcing QA Review
+            <Clock className="w-3 h-3 text-amber-600" />
+            {isSpanish ? "Revisión QA en Fábrica" : "Sourcing QA Review"}
           </span>
         );
       case "inspecting":
         return (
           <span className="bg-blue-100 text-blue-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 font-heading">
-            <Clock className="w-3 h-3 text-blue-600" /> Under Inspection
+            <Clock className="w-3 h-3 text-blue-600" />
+            {isSpanish ? "Bajo Inspección" : "Under Inspection"}
           </span>
         );
       case "approved":
         return (
           <span className="bg-emerald-100 text-[#10B981] text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 font-heading">
-            <CheckCircle2 className="w-3 h-3 text-[#10B981]" /> Approved for USDT Refund
+            <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+            {isSpanish ? "Aprobado para Reembolso USDT" : "Approved for USDT Refund"}
           </span>
         );
       case "refunded":
         return (
           <span className="bg-slate-900 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 font-heading">
-            <Coins className="w-3 h-3 text-[#10B981]" /> USDT Settled
+            <Coins className="w-3 h-3 text-[#10B981]" />
+            {isSpanish ? "Liquidado en USDT" : "USDT Settled"}
           </span>
         );
     }
@@ -110,10 +120,12 @@ export default function ReturnsPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#00143D] flex items-center gap-2 font-heading">
             <RotateCcw className="w-6 h-6 text-[#FF1028]" />
-            <span>Returns & USDT Refund Claims</span>
+            <span>{isSpanish ? "Devoluciones y Reclamos de Reembolso USDT" : "Returns & USDT Refund Claims"}</span>
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Submit return claims, upload factory defect evidence, and track direct Binance Pay USDT refund credits.
+            {isSpanish
+              ? "Envía reclamos de devolución, sube evidencia de defectos y monitorea reembolsos directos con Binance Pay USDT."
+              : "Submit return claims, upload factory defect evidence, and track direct Binance Pay USDT refund credits."}
           </p>
         </div>
 
@@ -122,24 +134,29 @@ export default function ReturnsPage() {
           className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2.5 rounded-xl text-xs font-black font-heading transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>File Return Claim</span>
+          <span>{isSpanish ? "Iniciar Reclamo de Devolución" : "File Return Claim"}</span>
         </button>
       </div>
 
       {toastMsg && (
         <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-2xl text-xs font-black shadow-md flex items-center justify-between animate-in fade-in">
           <span>✓ {toastMsg}</span>
-          <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
+          <button onClick={() => setToastMsg(null)} className="font-bold text-sm cursor-pointer">×</button>
         </div>
       )}
 
       {/* Guarantee Notice */}
       <div className="p-5 bg-red-50/60 rounded-2xl border border-red-200 text-xs text-red-950 space-y-1.5">
         <span className="font-black text-[#FF1028] flex items-center gap-1.5 font-heading">
-          <ShieldCheck className="w-4 h-4" /> 30-Day Single-Vendor Guarantee & Direct USDT Refund
+          <ShieldCheck className="w-4 h-4" />
+          {isSpanish
+            ? "Garantía de Proveedor Único de 30 Días y Reembolso Directo en USDT"
+            : "30-Day Single-Vendor Guarantee & Direct USDT Refund"}
         </span>
         <p className="text-[11px] text-slate-600 leading-relaxed">
-          If your hardware arrives with manufacturing defects or transit damage, submit photos or videos. Our QA team in Shenzhen inspects the claim and releases a direct USDT refund or replacement within 24 hours.
+          {isSpanish
+            ? "Si tu producto llega con defectos de fábrica o daños durante el transporte, envía fotos o videos. Nuestro equipo de control de calidad en Shenzhen inspecciona el reclamo y emite un reembolso directo en USDT o reemplazo en menos de 24 horas."
+            : "If your hardware arrives with manufacturing defects or transit damage, submit photos or videos. Our QA team in Shenzhen inspects the claim and releases a direct USDT refund or replacement within 24 hours."}
         </p>
       </div>
 
@@ -147,16 +164,22 @@ export default function ReturnsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-heading text-sm font-black text-slate-900 uppercase tracking-wider">
-            Your Sourcing Claim Records ({claims.length})
+            {isSpanish ? `Tus Registros de Reclamos (${claims.length})` : `Your Sourcing Claim Records (${claims.length})`}
           </h3>
-          <span className="text-xs text-slate-500 font-medium">Auto-synced with Binance Escrow</span>
+          <span className="text-xs text-slate-500 font-medium">
+            {isSpanish ? "Sincronizado automáticamente con Binance Escrow" : "Auto-synced with Binance Escrow"}
+          </span>
         </div>
 
         {claims.length === 0 ? (
           <div className="text-center py-12 text-xs text-slate-400 space-y-2 bg-slate-50 rounded-2xl border border-slate-200">
             <CheckCircle2 className="w-8 h-8 mx-auto text-[#10B981]" />
-            <p className="font-bold text-slate-800 text-sm font-heading">No active return requests</p>
-            <p className="text-[11px] text-slate-500">All your delivered orders are in good standing.</p>
+            <p className="font-bold text-slate-800 text-sm font-heading">
+              {isSpanish ? "No hay solicitudes de devolución activas" : "No active return requests"}
+            </p>
+            <p className="text-[11px] text-slate-500">
+              {isSpanish ? "Todos tus pedidos entregados están en buen estado." : "All your delivered orders are in good standing."}
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -168,7 +191,7 @@ export default function ReturnsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="space-y-0.5">
                     <span className="font-mono text-xs font-bold text-slate-500 block">
-                      Claim #{claim.claimNumber} • Order #{claim.orderNumber}
+                      {isSpanish ? `Reclamo #${claim.claimNumber} • Pedido #${claim.orderNumber}` : `Claim #${claim.claimNumber} • Order #${claim.orderNumber}`}
                     </span>
                     <h4 className="font-heading text-sm font-black text-slate-900">
                       {claim.itemTitle}
@@ -179,12 +202,12 @@ export default function ReturnsPage() {
 
                 <div className="flex flex-wrap items-center justify-between gap-3 text-xs pt-2 border-t border-slate-200/80">
                   <div className="space-y-0.5">
-                    <span className="text-slate-500 text-[11px]">Claim Reason:</span>
+                    <span className="text-slate-500 text-[11px]">{isSpanish ? "Motivo del Reclamo:" : "Claim Reason:"}</span>
                     <span className="font-semibold text-slate-800 block">{claim.reason}</span>
                   </div>
 
                   <div className="space-y-0.5 text-right">
-                    <span className="text-slate-500 text-[11px]">USDT Refund Credit:</span>
+                    <span className="text-slate-500 text-[11px]">{isSpanish ? "Crédito Reembolso USDT:" : "USDT Refund Credit:"}</span>
                     <span className="font-black text-[#FF1028] text-sm price-tag block">
                       {formatCurrency(claim.amount)} USDT
                     </span>
@@ -192,12 +215,12 @@ export default function ReturnsPage() {
                 </div>
 
                 <div className="pt-2 text-[11px] text-slate-500 flex items-center justify-between">
-                  <span>Filed on {formatDate(claim.createdAt)}</span>
+                  <span>{isSpanish ? `Registrado el ${formatDate(claim.createdAt)}` : `Filed on ${formatDate(claim.createdAt)}`}</span>
                   <Link
                     href="/account/support"
-                    className="text-[#00143D] hover:text-[#FF1028] font-bold flex items-center gap-1"
+                    className="text-[#00143D] hover:text-[#FF1028] font-bold flex items-center gap-1 cursor-pointer"
                   >
-                    <span>Contact Assigned Sourcing Officer</span>
+                    <span>{isSpanish ? "Contactar al Oficial Asignado" : "Contact Assigned Sourcing Officer"}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -211,12 +234,12 @@ export default function ReturnsPage() {
       <Modal
         isOpen={isClaimModalOpen}
         onClose={() => setIsClaimModalOpen(false)}
-        title="Submit 30-Day Return & Warranty Claim"
+        title={isSpanish ? "Enviar Reclamo de Devolución y Garantía de 30 Días" : "Submit 30-Day Return & Warranty Claim"}
         size="md"
       >
         <form onSubmit={handleSubmitClaim} className="p-4 sm:p-6 space-y-4 text-xs font-sans text-slate-800">
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Order Number *</label>
+            <label className="font-bold text-slate-700">{isSpanish ? "Número de Pedido *" : "Order Number *"}</label>
             <input
               type="text"
               required
@@ -227,7 +250,7 @@ export default function ReturnsPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Hardware Item *</label>
+            <label className="font-bold text-slate-700">{isSpanish ? "Artículo de Hardware *" : "Hardware Item *"}</label>
             <input
               type="text"
               required
@@ -238,25 +261,25 @@ export default function ReturnsPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Return Reason *</label>
+            <label className="font-bold text-slate-700">{isSpanish ? "Motivo de la Devolución *" : "Return Reason *"}</label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none bg-white"
             >
-              <option value="Damaged in transit">Damaged in transit / broken casing</option>
-              <option value="Factory defect">Factory defect / won't power on</option>
-              <option value="Incorrect variant">Incorrect variant received</option>
-              <option value="Missing accessory">Missing hardware accessory / cables</option>
+              <option value="Damaged in transit">{isSpanish ? "Dañado en tránsito / carcasa rota" : "Damaged in transit / broken casing"}</option>
+              <option value="Factory defect">{isSpanish ? "Defecto de fábrica / no enciende" : "Factory defect / won't power on"}</option>
+              <option value="Incorrect variant">{isSpanish ? "Variante incorrecta recibida" : "Incorrect variant received"}</option>
+              <option value="Missing accessory">{isSpanish ? "Accesorio de hardware faltante / cables" : "Missing hardware accessory / cables"}</option>
             </select>
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Explain the Defect (QA Team Review) *</label>
+            <label className="font-bold text-slate-700">{isSpanish ? "Explica el Defecto (Revisión del Equipo QA) *" : "Explain the Defect (QA Team Review) *"}</label>
             <textarea
               rows={3}
               required
-              placeholder="Describe the issue with photos/videos so our Shenzhen QA team can inspect and approve the claim..."
+              placeholder={isSpanish ? "Describe el problema con fotos/videos para que nuestro equipo de QA en Shenzhen inspeccione y apruebe el reclamo..." : "Describe the issue with photos/videos so our Shenzhen QA team can inspect and approve the claim..."}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-medium focus:outline-none focus:border-[#00143D]"
@@ -265,23 +288,27 @@ export default function ReturnsPage() {
 
           <div className="p-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 text-center space-y-1 cursor-pointer hover:border-slate-400">
             <Upload className="w-6 h-6 mx-auto text-slate-400" />
-            <span className="font-bold text-slate-700 block">Attach Defect Evidence (Photos / MP4)</span>
-            <span className="text-[10px] text-slate-500">Max 100MB direct upload</span>
+            <span className="font-bold text-slate-700 block">
+              {isSpanish ? "Adjuntar Evidencia del Defecto (Fotos / MP4)" : "Attach Defect Evidence (Photos / MP4)"}
+            </span>
+            <span className="text-[10px] text-slate-500">
+              {isSpanish ? "Carga directa máx. 100MB" : "Max 100MB direct upload"}
+            </span>
           </div>
 
           <div className="pt-2 flex gap-3">
             <button
               type="submit"
-              className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl font-black font-heading transition-colors shadow-md"
+              className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl font-black font-heading transition-colors shadow-md cursor-pointer"
             >
-              Submit Return Claim
+              {isSpanish ? "Enviar Reclamo de Devolución" : "Submit Return Claim"}
             </button>
             <button
               type="button"
               onClick={() => setIsClaimModalOpen(false)}
-              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold font-heading"
+              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold font-heading cursor-pointer"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
           </div>
         </form>

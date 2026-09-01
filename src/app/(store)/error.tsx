@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function StorefrontError({
   error,
@@ -11,6 +12,8 @@ export default function StorefrontError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { isSpanish } = useTranslation();
+
   useEffect(() => {
     console.error("Storefront Error Caught:", error);
   }, [error]);
@@ -24,10 +27,12 @@ export default function StorefrontError({
 
         <div className="space-y-2">
           <h2 className="text-xl font-black text-[#00143D] font-heading">
-            Unexpected Loading Interruption
+            {isSpanish ? "Interrupción Inesperada de Carga" : "Unexpected Loading Interruption"}
           </h2>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Our global sourcing network encountered a temporary connectivity issue. Please retry or return to the main catalog.
+            {isSpanish
+              ? "Nuestra red global de abastecimiento encontró un problema temporal de conectividad. Por favor reintenta o regresa al catálogo principal."
+              : "Our global sourcing network encountered a temporary connectivity issue. Please retry or return to the main catalog."}
           </p>
         </div>
 
@@ -37,15 +42,15 @@ export default function StorefrontError({
             className="px-5 py-2.5 rounded-xl bg-[#00143D] hover:bg-[#FF1028] text-white font-black font-heading text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Try Again</span>
+            <span>{isSpanish ? "Reintentar" : "Try Again"}</span>
           </button>
 
           <Link
             href="/"
-            className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Home className="w-3.5 h-3.5" />
-            <span>Homepage</span>
+            <span>{isSpanish ? "Página Principal" : "Homepage"}</span>
           </Link>
         </div>
       </div>

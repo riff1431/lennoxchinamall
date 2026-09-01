@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronRight, ArrowRight } from "lucide-react";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName, getLocalizedSubcategory } from "@/lib/i18n/categoryI18n";
 import type { Category } from "@/types/database";
 
 interface MegaMenuCategory extends Partial<Category> {
@@ -25,6 +27,7 @@ interface MegaMenuProps {
 
 export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
   const router = useRouter();
+  const { t, isSpanish } = useTranslation();
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
   const selectedId = hoveredCategory || rootCategories?.[0]?.id;
@@ -56,6 +59,7 @@ export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
             ) : (
               rootCategories.map((cat) => {
                 const isHovered = selectedId === cat.id;
+                const localizedCatName = getLocalizedCategoryName(cat.name, isSpanish);
                 return (
                   <button
                     key={cat.id}
@@ -79,7 +83,7 @@ export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
                           className="w-3.5 h-3.5 text-[#FF1028]"
                         />
                       </div>
-                      <span className="truncate">{cat.name}</span>
+                      <span className="truncate">{localizedCatName}</span>
                     </div>
                     <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-colors ${isHovered ? "text-[#FF1028]" : "text-slate-400"}`} />
                   </button>
@@ -93,7 +97,7 @@ export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
             <div>
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
                 <h4 className="font-heading font-black text-sm text-[#00143D]">
-                  {activeCategory?.name || "Subcategories"}
+                  {getLocalizedCategoryName(activeCategory?.name, isSpanish) || t.header.subcategories}
                 </h4>
                 {activeCategory && (
                   <Link
@@ -101,7 +105,7 @@ export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
                     onClick={onClose}
                     className="text-xs font-bold text-[#FF1028] hover:underline flex items-center gap-0.5 cursor-pointer"
                   >
-                    <span>Explore All</span>
+                    <span>{t.common.exploreAll}</span>
                     <ArrowRight className="w-3 h-3" />
                   </Link>
                 )}
@@ -116,11 +120,11 @@ export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
                       onClick={onClose}
                       className="p-2 rounded-lg hover:bg-slate-50 text-slate-600 hover:text-[#00143D] font-medium transition-colors block cursor-pointer"
                     >
-                      {sub}
+                      {getLocalizedSubcategory(sub, isSpanish)}
                     </Link>
                   ))
                 ) : (
-                  <div className="col-span-2 text-slate-400 text-xs py-4">No subcategories available.</div>
+                  <div className="col-span-2 text-slate-400 text-xs py-4">{t.header.noSubcategories}</div>
                 )}
               </div>
             </div>
@@ -129,16 +133,16 @@ export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
             <div className="p-4 rounded-2xl bg-gradient-to-br from-[#00143D] to-[#002366] text-white flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase text-amber-300">
-                  Direct Factory Deal
+                  {t.header.directFactoryDeal}
                 </span>
-                <h5 className="font-heading font-black text-xs">USDT Zero Fee Settlement</h5>
+                <h5 className="font-heading font-black text-xs">{t.header.usdtZeroFeeSettlement}</h5>
               </div>
               <Link
                 href="/categories/flash-deals"
                 onClick={onClose}
                 className="bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-wider shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer inline-block"
               >
-                Shop Now
+                {t.common.shopNow}
               </Link>
             </div>
           </div>

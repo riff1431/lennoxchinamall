@@ -27,6 +27,7 @@ import {
   FooterSection,
   getLocalizedFooterTrustItems,
   getLocalizedFooterSections,
+  getLocalizedFooterContacts,
 } from "./footerData";
 
 /* ──────────────────────────────────────────────────────────
@@ -113,6 +114,7 @@ export function Footer({
 
   const trustItems = getLocalizedFooterTrustItems(isSpanish);
   const activeSections = sections === FOOTER_SECTIONS ? getLocalizedFooterSections(isSpanish) : sections;
+  const activeContacts = getLocalizedFooterContacts(isSpanish);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +133,9 @@ export function Footer({
       setNewsletterFeedback({
         success: false,
         status: "error",
-        message: "Failed to connect to subscription server. Please retry.",
+        message: isSpanish
+          ? "Error al conectar con el servidor de suscripción. Por favor reintente."
+          : "Failed to connect to subscription server. Please retry.",
       });
     } finally {
       setIsSubmitting(false);
@@ -255,7 +259,15 @@ export function Footer({
                     ) : (
                       <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
                     )}
-                    <span>{newsletterFeedback.message}</span>
+                    <span>
+                      {isSpanish
+                        ? newsletterFeedback.status === "success"
+                          ? "¡Gracias por suscribirte! Tu cupón del 10% LENNOX10 ha sido activado."
+                          : newsletterFeedback.status === "duplicate"
+                          ? "¡Ya estás suscrito al boletín directo de fábrica!"
+                          : "Por favor ingresa un correo electrónico válido."
+                        : newsletterFeedback.message}
+                    </span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -303,7 +315,7 @@ export function Footer({
 
             {/* Interactive Contact Items with Clipboard Copy */}
             <div className="space-y-2 pt-1 text-xs">
-              {FOOTER_CONTACTS.map((contact) => (
+              {activeContacts.map((contact) => (
                 <div
                   key={contact.label}
                   className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/[0.05] hover:border-slate-700 transition-colors"
@@ -441,10 +453,10 @@ export function Footer({
             <div className="mt-8 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block font-mono">
-                  Mobile Sourcing App
+                  {isSpanish ? "App Móvil de Compras" : "Mobile Sourcing App"}
                 </span>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Direct factory sourcing on iOS and Android devices.
+                  {isSpanish ? "Abastecimiento directo de fábrica en dispositivos iOS y Android." : "Direct factory sourcing on iOS and Android devices."}
                 </p>
               </div>
 
@@ -456,7 +468,7 @@ export function Footer({
                 >
                   <AppleIcon className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
                   <div className="text-left">
-                    <span className="text-[8px] text-slate-400 block leading-none">Download on</span>
+                    <span className="text-[8px] text-slate-400 block leading-none">{isSpanish ? "Descargar en" : "Download on"}</span>
                     <span className="text-[11px] font-bold font-heading leading-tight">App Store</span>
                   </div>
                 </a>
@@ -468,7 +480,7 @@ export function Footer({
                 >
                   <GooglePlayIcon className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
                   <div className="text-left">
-                    <span className="text-[8px] text-slate-400 block leading-none">Get it on</span>
+                    <span className="text-[8px] text-slate-400 block leading-none">{isSpanish ? "Disponible en" : "Get it on"}</span>
                     <span className="text-[11px] font-bold font-heading leading-tight">Google Play</span>
                   </div>
                 </a>
@@ -487,16 +499,16 @@ export function Footer({
           
           {/* Left: Copyright & Legal Quick Links */}
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-center lg:text-left">
-            <span>&copy; {new Date().getFullYear()} Lennox China Mall. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} Lennox China Mall. {isSpanish ? "Todos los derechos reservados." : "All rights reserved."}</span>
             <span className="hidden sm:inline text-slate-700">&bull;</span>
             <Link href="/pages/privacy-policy" className="hover:text-white transition-colors">
-              Privacy
+              {isSpanish ? "Privacidad" : "Privacy"}
             </Link>
             <Link href="/pages/terms" className="hover:text-white transition-colors">
-              Terms
+              {isSpanish ? "Términos" : "Terms"}
             </Link>
             <Link href="/pages/shipping-policy" className="hover:text-white transition-colors">
-              Shipping &amp; Customs
+              {isSpanish ? "Envíos y Aduanas" : "Shipping & Customs"}
             </Link>
           </div>
 
@@ -516,7 +528,7 @@ export function Footer({
               USDC
             </span>
             <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 text-slate-300">
-              Web3 Escrow
+              {isSpanish ? "Garantía Web3" : "Web3 Escrow"}
             </span>
             <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-sans flex items-center gap-1">
               <Lock className="w-3 h-3" />
@@ -596,9 +608,9 @@ export function Footer({
             <button
               onClick={scrollToTop}
               className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-white/[0.05] hover:bg-[#FF1028] px-3 py-1.5 rounded-lg border border-white/10 transition-all cursor-pointer group"
-              aria-label="Scroll back to top"
+              aria-label={isSpanish ? "Volver arriba" : "Scroll back to top"}
             >
-              <span>Top</span>
+              <span>{isSpanish ? "Inicio" : "Top"}</span>
               <ArrowUp className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" />
             </button>
           </div>

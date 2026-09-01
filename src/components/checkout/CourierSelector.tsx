@@ -169,7 +169,11 @@ export function CourierSelector({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <span className="font-heading font-black text-sm sm:text-base text-slate-900 leading-tight">
-                      {freight.name}
+                      {isSpanish
+                        ? (freight.id === "air"
+                            ? "Carga Aérea Directa (Carga Express Prioritaria)"
+                            : "Carga Marítima (Contenedor al Por Mayor)")
+                        : freight.name}
                     </span>
 
                     {freight.badge && (
@@ -186,7 +190,7 @@ export function CourierSelector({
                           <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
                         )}
                         {isSpanish
-                          ? (freight.badge === "Fastest Air Dispatch" ? "Despacho Aéreo Más Rápido" : "Tarifa Más Económica")
+                          ? (freight.badgeType === "fast" ? "Despacho Aéreo Más Rápido" : "Tarifa Más Económica")
                           : freight.badge}
                       </span>
                     )}
@@ -212,7 +216,7 @@ export function CourierSelector({
                         : `${isSpanish ? "Facturable" : "Chargeable"}: ${b.chargeableMetric} CBM`}
                     </span>
                     <span className="text-slate-400">
-                      {isSpanish ? "Fórmula:" : "Formula:"} ${b.baseFee.toFixed(2)} Base + ({b.chargeableMetric} × ${b.ratePerUnit.toFixed(2)}/{b.chargeableMetricLabel})
+                      {isSpanish ? "Fórmula:" : "Formula:"} ${b.baseFee.toFixed(2)} Base + ({b.chargeableMetric} × ${b.ratePerUnit.toFixed(2)}/{isSpanish ? (freight.id === "air" ? "KG facturable" : "volumen CBM") : b.chargeableMetricLabel})
                       {b.surcharges > 0 ? (isSpanish ? " + Recargo Mercancía Especial" : ` + $${b.surcharges.toFixed(2)} DG Surcharge`) : ""}
                     </span>
                   </div>

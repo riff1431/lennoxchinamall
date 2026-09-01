@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { MapPin, Plus, Trash2, Edit2, CheckCircle2, ShieldCheck, X } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface Address {
   id: string;
@@ -18,10 +19,11 @@ interface Address {
 }
 
 export default function AddressesPage() {
+  const { isSpanish } = useTranslation();
   const [addresses, setAddresses] = useState<Address[]>([
     {
       id: "addr-1",
-      label: "Primary Residence",
+      label: "Residencia Principal",
       fullName: "Alex Harrison",
       street: "2847 Mission Street, Suite 400",
       city: "San Francisco",
@@ -33,7 +35,7 @@ export default function AddressesPage() {
     },
     {
       id: "addr-2",
-      label: "Engineering Lab & Warehouse",
+      label: "Laboratorio y Almacén",
       fullName: "Alex Harrison (Lennox Labs)",
       street: "100 Innovation Way, Bay 14",
       city: "San Jose",
@@ -46,7 +48,7 @@ export default function AddressesPage() {
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newLabel, setNewLabel] = useState("Home");
+  const [newLabel, setNewLabel] = useState(isSpanish ? "Casa" : "Home");
   const [newFullName, setNewFullName] = useState("");
   const [newStreet, setNewStreet] = useState("");
   const [newCity, setNewCity] = useState("");
@@ -99,10 +101,12 @@ export default function AddressesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#00143D]">
-            Saved Shipping Destinations
+            {isSpanish ? "Direcciones de Envío Guardadas" : "Saved Shipping Destinations"}
           </h1>
           <p className="text-xs text-slate-500 font-semibold mt-0.5">
-            Manage your global delivery addresses for rapid, 1-click Binance Pay USDT checkout.
+            {isSpanish
+              ? "Administra tus destinos globales para compras rápidas con Binance Pay USDT en 1 clic."
+              : "Manage your global delivery addresses for rapid, 1-click Binance Pay USDT checkout."}
           </p>
         </div>
         <button
@@ -110,7 +114,7 @@ export default function AddressesPage() {
           className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2.5 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>Add New Address</span>
+          <span>{isSpanish ? "Agregar Nueva Dirección" : "Add New Address"}</span>
         </button>
       </div>
 
@@ -132,7 +136,7 @@ export default function AddressesPage() {
                 </span>
                 {addr.isDefault && (
                   <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase">
-                    DEFAULT
+                    {isSpanish ? "PREDETERMINADA" : "DEFAULT"}
                   </span>
                 )}
               </div>
@@ -157,11 +161,11 @@ export default function AddressesPage() {
                   onClick={() => handleSetDefault(addr.id)}
                   className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
                 >
-                  Set as Default
+                  {isSpanish ? "Establecer como Predeterminada" : "Set as Default"}
                 </button>
               ) : (
                 <span className="text-[11px] text-[#10B981] font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Active for Air Express
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {isSpanish ? "Activa para Aéreo Express" : "Active for Air Express"}
                 </span>
               )}
 
@@ -169,7 +173,7 @@ export default function AddressesPage() {
                 type="button"
                 onClick={() => handleDelete(addr.id)}
                 className="text-slate-400 hover:text-red-500 p-1 cursor-pointer"
-                title="Delete address"
+                title={isSpanish ? "Eliminar dirección" : "Delete address"}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -182,16 +186,18 @@ export default function AddressesPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Add New Shipping Address"
+        title={isSpanish ? "Agregar Nueva Dirección de Envío" : "Add New Shipping Address"}
         size="md"
       >
         <form onSubmit={handleAddAddress} className="p-4 sm:p-6 space-y-4 font-montserrat text-xs">
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Address Nickname / Label</label>
+            <label className="font-bold text-slate-700">
+              {isSpanish ? "Etiqueta / Nombre de Dirección" : "Address Nickname / Label"}
+            </label>
             <input
               type="text"
               required
-              placeholder="e.g. Home, Office, Workshop"
+              placeholder={isSpanish ? "ej. Casa, Oficina, Taller" : "e.g. Home, Office, Workshop"}
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none focus:border-[#00143D]"
@@ -199,7 +205,9 @@ export default function AddressesPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Recipient Full Name</label>
+            <label className="font-bold text-slate-700">
+              {isSpanish ? "Nombre Completo del Destinatario" : "Recipient Full Name"}
+            </label>
             <input
               type="text"
               required
@@ -210,7 +218,9 @@ export default function AddressesPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Street Address</label>
+            <label className="font-bold text-slate-700">
+              {isSpanish ? "Dirección" : "Street Address"}
+            </label>
             <input
               type="text"
               required
@@ -222,7 +232,9 @@ export default function AddressesPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">City</label>
+              <label className="font-bold text-slate-700">
+                {isSpanish ? "Ciudad" : "City"}
+              </label>
               <input
                 type="text"
                 required
@@ -232,7 +244,9 @@ export default function AddressesPage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">State / Region</label>
+              <label className="font-bold text-slate-700">
+                {isSpanish ? "Estado / Región" : "State / Region"}
+              </label>
               <input
                 type="text"
                 required
@@ -245,7 +259,9 @@ export default function AddressesPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Postal / Zip Code</label>
+              <label className="font-bold text-slate-700">
+                {isSpanish ? "Código Postal" : "Postal / Zip Code"}
+              </label>
               <input
                 type="text"
                 required
@@ -255,24 +271,28 @@ export default function AddressesPage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Country</label>
+              <label className="font-bold text-slate-700">
+                {isSpanish ? "País" : "Country"}
+              </label>
               <select
                 value={newCountry}
                 onChange={(e) => setNewCountry(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold bg-white focus:outline-none focus:border-[#00143D]"
               >
-                <option value="United States">United States</option>
-                <option value="United Kingdom">United Kingdom</option>
-                <option value="Germany">Germany</option>
-                <option value="Canada">Canada</option>
-                <option value="Australia">Australia</option>
-                <option value="United Arab Emirates">UAE</option>
+                <option value="United States">{isSpanish ? "Estados Unidos" : "United States"}</option>
+                <option value="United Kingdom">{isSpanish ? "Reino Unido" : "United Kingdom"}</option>
+                <option value="Germany">{isSpanish ? "Alemania" : "Germany"}</option>
+                <option value="Canada">{isSpanish ? "Canadá" : "Canada"}</option>
+                <option value="Australia">{isSpanish ? "Australia" : "Australia"}</option>
+                <option value="United Arab Emirates">{isSpanish ? "Emiratos Árabes Unidos" : "UAE"}</option>
               </select>
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Contact Phone (for Courier)</label>
+            <label className="font-bold text-slate-700">
+              {isSpanish ? "Teléfono de Contacto (para el transportista)" : "Contact Phone (for Courier)"}
+            </label>
             <input
               type="tel"
               required
@@ -285,16 +305,16 @@ export default function AddressesPage() {
           <div className="pt-2 flex gap-3">
             <button
               type="submit"
-              className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl font-black text-xs transition-colors"
+              className="flex-1 bg-[#FF1028] hover:bg-[#E00B20] text-white py-3 rounded-xl font-black text-xs transition-colors cursor-pointer"
             >
-              Save Address
+              {isSpanish ? "Guardar Dirección" : "Save Address"}
             </button>
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-xs transition-colors"
+              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-xs transition-colors cursor-pointer"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
           </div>
         </form>

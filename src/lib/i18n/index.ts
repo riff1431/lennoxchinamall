@@ -9,7 +9,7 @@ export const DICTIONARIES: Record<SupportedLocale, TranslationDictionary> = {
   es,
 };
 
-export const DEFAULT_LOCALE: SupportedLocale = "es";
+export const DEFAULT_LOCALE: SupportedLocale = "en";
 export const SUPPORTED_LOCALES: SupportedLocale[] = ["en", "es"];
 export const LOCALE_COOKIE_KEY = "NEXT_LOCALE";
 

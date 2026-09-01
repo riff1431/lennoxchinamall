@@ -13,8 +13,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
-import { HOT_SEARCH_TAGS } from "./headerConfig";
+import { HOT_SEARCH_TAGS, getLocalizedHotSearchTags } from "./headerConfig";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
 import type { Category } from "@/types/database";
 
 interface SearchCategory extends Partial<Category> {
@@ -37,7 +38,8 @@ export function HeaderSearchBar({
   isMounted = true,
 }: HeaderSearchBarProps) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
+  const hotTags = getLocalizedHotSearchTags(isSpanish);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -177,7 +179,7 @@ export function HeaderSearchBar({
       {/* Hot Search Quick Tags */}
       <div className="hidden lg:flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 overflow-hidden whitespace-nowrap">
         <span className="font-bold text-[#00143D]">{t.common.hotKeywords}:</span>
-        {HOT_SEARCH_TAGS.map((tag) => (
+        {hotTags.map((tag) => (
           <button
             key={tag}
             onClick={() => {
@@ -207,7 +209,7 @@ export function HeaderSearchBar({
             {searchSuggestions.categories.length > 0 && (
               <div className="p-3 bg-slate-50 border-b border-slate-100">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5 font-mono">
-                  Categories
+                  {t.header.suggestedCategories}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {searchSuggestions.categories.map((cat) => (
@@ -223,7 +225,7 @@ export function HeaderSearchBar({
                         name={cat.name}
                         className="w-3.5 h-3.5 text-[#FF1028]"
                       />
-                      <span>{cat.name}</span>
+                      <span>{getLocalizedCategoryName(cat.name, isSpanish)}</span>
                       {cat.productCount && (
                         <span className="text-[10px] text-slate-400 font-normal">
                           ({cat.productCount})
@@ -238,11 +240,11 @@ export function HeaderSearchBar({
             {/* Matching Products */}
             <div className="p-2 space-y-1 max-h-80 overflow-y-auto">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-1 block font-mono">
-                Matching Factory Products
+                {t.header.suggestedProducts}
               </span>
               {searchSuggestions.products.length === 0 ? (
                 <div className="p-4 text-center text-slate-500 text-xs">
-                  No direct matches found for &quot;{searchQuery}&quot;. Press Search to see all results.
+                  {t.header.noMatchingProducts}
                 </div>
               ) : (
                 searchSuggestions.products.map((prod) => (
@@ -280,7 +282,7 @@ export function HeaderSearchBar({
                 onClick={() => handleSearch()}
                 className="text-xs font-black text-[#FF1028] hover:underline flex items-center justify-center gap-1 mx-auto cursor-pointer"
               >
-                <span>View all results for &quot;{searchQuery}&quot;</span>
+                <span>{t.header.viewAllResults} &quot;{searchQuery}&quot;</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

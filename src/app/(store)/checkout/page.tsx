@@ -47,12 +47,13 @@ import { submitCheckoutOrder } from "@/app/actions/store-checkout";
 import { CourierSelector } from "@/components/checkout/CourierSelector";
 import { CourierLogo } from "@/components/checkout/CourierLogo";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 type CheckoutStep = 1 | 2 | 3 | 4; // 4 = Order Success / Invoice
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
   const items = useCartStore((state) => state.items);
   const subtotal = useCartStore((state) => state.getSubtotal());
   const discountAmount = useCartStore((state) => state.discountAmount);
@@ -183,16 +184,18 @@ export default function CheckoutPage() {
             <ShieldCheck className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-black text-[#00143D] font-heading">
-            No Active Procurement Items
+            {isSpanish ? "No Hay Artículos de Adquisición Activos" : "No Active Procurement Items"}
           </h2>
           <p className="text-xs text-slate-500">
-            Your shopping cart is currently empty. Add products to initiate Binance Pay USDT checkout.
+            {isSpanish
+              ? "Tu carrito de compras está vacío actualmente. Agrega productos para iniciar el pago con Binance Pay USDT."
+              : "Your shopping cart is currently empty. Add products to initiate Binance Pay USDT checkout."}
           </p>
           <Link
             href="/categories"
-            className="inline-flex items-center gap-2 bg-[#FF1028] text-white px-6 py-3 rounded-xl text-xs font-black font-heading transition-all shadow-md"
+            className="inline-flex items-center gap-2 bg-[#FF1028] text-white px-6 py-3 rounded-xl text-xs font-black font-heading transition-all shadow-md cursor-pointer"
           >
-            <span>Browse Products</span>
+            <span>{isSpanish ? "Explorar Productos" : "Browse Products"}</span>
           </Link>
         </div>
       </div>
@@ -207,10 +210,11 @@ export default function CheckoutPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-bold text-emerald-600 uppercase font-mono flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> 256-Bit SSL Escrow Gateway
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {isSpanish ? "Pasarela con Depósito en Garantía SSL de 256 Bits" : "256-Bit SSL Escrow Gateway"}
               </span>
               <h1 className="text-2xl font-black font-heading text-[#00143D] mt-0.5">
-                Direct China Sourcing Checkout
+                {isSpanish ? "Pago y Adquisición Directa de Fábrica" : "Direct China Sourcing Checkout"}
               </h1>
             </div>
 
@@ -275,28 +279,36 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-1">
                 <span className="text-xs font-black uppercase text-emerald-600 font-mono">
-                  Binance Pay USDT Escrow Confirmed
+                  {isSpanish ? "Depósito en Garantía Binance Pay USDT Confirmado" : "Binance Pay USDT Escrow Confirmed"}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-black font-heading text-[#00143D]">
-                  Factory Procurement Order Placed!
+                  {isSpanish ? "¡Orden de Adquisición de Fábrica Realizada!" : "Factory Procurement Order Placed!"}
                 </h2>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
-                  Your purchase order has been queued for Shenzhen factory quality inspection and customs air freight dispatch.
+                  {isSpanish
+                    ? "Tu orden de compra ha sido encolada para inspección de calidad en la fábrica de Shenzhen y despacho de carga aérea internacional."
+                    : "Your purchase order has been queued for Shenzhen factory quality inspection and customs air freight dispatch."}
                 </p>
               </div>
 
               {/* Order Reference Details */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left text-xs font-mono">
                 <div>
-                  <span className="text-[10px] text-slate-400 block uppercase">Order ID</span>
+                  <span className="text-[10px] text-slate-400 block uppercase">
+                    {isSpanish ? "ID de Pedido" : "Order ID"}
+                  </span>
                   <span className="font-black text-slate-900">{createdOrderNumber}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block uppercase">Merchant Trade No</span>
+                  <span className="text-[10px] text-slate-400 block uppercase">
+                    {isSpanish ? "No. de Transacción" : "Merchant Trade No"}
+                  </span>
                   <span className="font-bold text-slate-800">{merchantTradeNo}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block uppercase">Logistics Freight Method</span>
+                  <span className="text-[10px] text-slate-400 block uppercase">
+                    {isSpanish ? "Método de Logística" : "Logistics Freight Method"}
+                  </span>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <CourierLogo courier={shippingCourier} size="sm" className="w-5 h-5 rounded-md" />
                     <span className="font-bold text-blue-600">
@@ -304,11 +316,16 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   <span className="text-[9px] text-slate-400 block mt-0.5 truncate">
-                    {FREIGHT_CONFIGS[shippingCourier]?.shortName || "Air Cargo"} ({totalUnits} {totalUnits === 1 ? "unit" : "units"})
+                    {isSpanish
+                      ? (shippingCourier === "sea" ? "Contenedor Marítimo" : "Carga Aérea Express")
+                      : (FREIGHT_CONFIGS[shippingCourier]?.shortName || "Air Cargo")}{" "}
+                    ({totalUnits} {totalUnits === 1 ? (isSpanish ? "unidad" : "unit") : (isSpanish ? "unidades" : "units")})
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block uppercase">Settlement Amount</span>
+                  <span className="text-[10px] text-slate-400 block uppercase">
+                    {isSpanish ? "Monto de Liquidación" : "Settlement Amount"}
+                  </span>
                   <span className="font-black text-[#FF1028]">${grandTotal.toFixed(2)} USDT</span>
                 </div>
               </div>
@@ -320,13 +337,13 @@ export default function CheckoutPage() {
                   className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>Print Customs Invoice</span>
+                  <span>{isSpanish ? "Imprimir Factura Aduanera" : "Print Customs Invoice"}</span>
                 </button>
                 <Link
                   href="/account/orders"
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#00143D] hover:bg-[#FF1028] text-white font-black font-heading text-xs uppercase tracking-wider transition-colors shadow-md text-center"
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#00143D] hover:bg-[#FF1028] text-white font-black font-heading text-xs uppercase tracking-wider transition-colors shadow-md text-center cursor-pointer"
                 >
-                  View Order in Account
+                  {isSpanish ? "Ver Pedido en Mi Cuenta" : "View Order in Account"}
                 </Link>
               </div>
             </div>
@@ -342,15 +359,19 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <h3 className="font-heading font-black text-base text-[#00143D] uppercase tracking-wider flex items-center gap-2">
                       <Truck className="w-4 h-4 text-[#FF1028]" />
-                      <span>1. Destination Shipping Address</span>
+                      <span>{isSpanish ? "1. Dirección de Envío de Destino" : "1. Destination Shipping Address"}</span>
                     </h3>
-                    <span className="text-xs text-slate-400 font-mono">Guest / User Checkout</span>
+                    <span className="text-xs text-slate-400 font-mono">
+                      {isSpanish ? "Pago como Invitado / Usuario" : "Guest / User Checkout"}
+                    </span>
                   </div>
 
                   <form onSubmit={() => setCurrentStep(2)} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Full Legal Name *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          {isSpanish ? "Nombre Legal Completo *" : "Full Legal Name *"}
+                        </label>
                         <input
                           type="text"
                           required
@@ -360,7 +381,9 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Email Address *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          {isSpanish ? "Correo Electrónico *" : "Email Address *"}
+                        </label>
                         <input
                           type="email"
                           required
@@ -373,7 +396,9 @@ export default function CheckoutPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Mobile / WhatsApp Number *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          {isSpanish ? "Número de Móvil / WhatsApp *" : "Mobile / WhatsApp Number *"}
+                        </label>
                         <input
                           type="tel"
                           required
@@ -383,23 +408,27 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Country / Territory *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          {isSpanish ? "País / Territorio *" : "Country / Territory *"}
+                        </label>
                         <select
                           value={country}
                           onChange={(e) => setCountry(e.target.value)}
                           className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:border-[#FF1028]"
                         >
-                          <option value="United States">United States (Fast Track Air)</option>
-                          <option value="Canada">Canada (Air Express)</option>
-                          <option value="United Kingdom">United Kingdom (VAT Cleared)</option>
-                          <option value="Germany">Germany (EU Hub)</option>
-                          <option value="Australia">Australia (Direct Cargo)</option>
+                          <option value="United States">{isSpanish ? "Estados Unidos (Aéreo Rápido)" : "United States (Fast Track Air)"}</option>
+                          <option value="Canada">{isSpanish ? "Canadá (Aéreo Express)" : "Canada (Air Express)"}</option>
+                          <option value="United Kingdom">{isSpanish ? "Reino Unido (IVA Despachado)" : "United Kingdom (VAT Cleared)"}</option>
+                          <option value="Germany">{isSpanish ? "Alemania (Hub UE)" : "Germany (EU Hub)"}</option>
+                          <option value="Australia">{isSpanish ? "Australia (Carga Directa)" : "Australia (Direct Cargo)"}</option>
                         </select>
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Street Address &amp; Suite *</label>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        {isSpanish ? "Dirección y Suite / Apartamento *" : "Street Address & Suite *"}
+                      </label>
                       <input
                         type="text"
                         required
@@ -411,7 +440,9 @@ export default function CheckoutPage() {
 
                     <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">City *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          {isSpanish ? "Ciudad *" : "City *"}
+                        </label>
                         <input
                           type="text"
                           required
@@ -421,7 +452,9 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">State / Province *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          {isSpanish ? "Estado / Provincia *" : "State / Province *"}
+                        </label>
                         <input
                           type="text"
                           required
@@ -431,7 +464,9 @@ export default function CheckoutPage() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Postal Code *</label>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          {isSpanish ? "Código Postal *" : "Postal Code *"}
+                        </label>
                         <input
                           type="text"
                           required
@@ -443,10 +478,12 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Customs Clearance Notes / Instructions</label>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        {isSpanish ? "Notas e Instrucciones para Aduanas (Opcional)" : "Customs Clearance Notes / Instructions"}
+                      </label>
                       <input
                         type="text"
-                        placeholder="e.g. Leave at gate, commercial invoice in package"
+                        placeholder={isSpanish ? "ej. Dejar en la entrada, factura comercial en paquete" : "e.g. Leave at gate, commercial invoice in package"}
                         value={customsNotes}
                         onChange={(e) => setCustomsNotes(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-[#FF1028]"
@@ -458,7 +495,7 @@ export default function CheckoutPage() {
                         type="submit"
                         className="w-full bg-[#00143D] hover:bg-[#FF1028] text-white py-3.5 rounded-2xl font-black font-heading text-xs uppercase tracking-wider transition-colors shadow-md flex items-center justify-center gap-2 cursor-pointer"
                       >
-                        <span>Continue to Freight Logistics Selection</span>
+                        <span>{isSpanish ? "Continuar a Selección de Logística y Flete" : "Continue to Freight Logistics Selection"}</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -472,13 +509,13 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <h3 className="font-heading font-black text-base text-[#00143D] uppercase tracking-wider flex items-center gap-2">
                       <Plane className="w-4 h-4 text-[#FF1028]" />
-                      <span>2. Select Freight Logistics Mode (Air vs Sea)</span>
+                      <span>{isSpanish ? "2. Seleccionar Modo de Logística y Flete (Aéreo vs Marítimo)" : "2. Select Freight Logistics Mode (Air vs Sea)"}</span>
                     </h3>
                     <button
                       onClick={() => setCurrentStep(1)}
-                      className="text-xs font-bold text-blue-600 hover:underline"
+                      className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
                     >
-                      Edit Address
+                      {isSpanish ? "Editar Dirección" : "Edit Address"}
                     </button>
                   </div>
 
@@ -498,10 +535,12 @@ export default function CheckoutPage() {
                       </div>
                       <div className="space-y-0.5 min-w-0">
                         <span className="font-heading font-black text-slate-900 block text-xs">
-                          Guaranteed DDP Pre-Cleared Freight Cargo
+                          {isSpanish ? "Carga de Flete Garantizada con Despacho DDP Previo" : "Guaranteed DDP Pre-Cleared Freight Cargo"}
                         </span>
                         <p className="text-[11px] text-slate-500 leading-relaxed">
-                          All direct flights and ocean containers include export documentation and destination customs VAT pre-clearance. Zero surprise tariffs upon arrival, backed by 100% Binance escrow protection.
+                          {isSpanish
+                            ? "Todos los vuelos directos y contenedores marítimos incluyen documentación de exportación y despacho previo de IVA/aduanas de destino. Sin aranceles sorpresa a la llegada, respaldado por protección de depósito Binance 100%."
+                            : "All direct flights and ocean containers include export documentation and destination customs VAT pre-clearance. Zero surprise tariffs upon arrival, backed by 100% Binance escrow protection."}
                         </p>
                       </div>
                     </div>
@@ -511,9 +550,9 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(1)}
-                      className="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
+                      className="px-5 py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer hover:bg-slate-200 transition-colors"
                     >
-                      Back
+                      {isSpanish ? "Atrás" : "Back"}
                     </button>
                     <button
                       type="button"
@@ -525,7 +564,7 @@ export default function CheckoutPage() {
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <>
-                          <span>Proceed to Binance USDT Payment</span>
+                          <span>{isSpanish ? "Proceder al Pago con Binance USDT" : "Proceed to Binance USDT Payment"}</span>
                           <ArrowRight className="w-4 h-4" />
                         </>
                       )}
@@ -541,11 +580,11 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-2">
                       <Coins className="w-5 h-5 text-amber-300" />
                       <h3 className="font-heading font-black text-base uppercase tracking-wider text-white">
-                        3. Binance Pay USDT Escrow
+                        {isSpanish ? "3. Depósito en Garantía Binance Pay USDT" : "3. Binance Pay USDT Escrow"}
                       </h3>
                     </div>
                     <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-                      Zero Fees • 100% Escrow Protection
+                      {isSpanish ? "Cero Comisiones • 100% Protección de Depósito" : "Zero Fees • 100% Escrow Protection"}
                     </span>
                   </div>
 
@@ -557,14 +596,16 @@ export default function CheckoutPage() {
                         <QrCode className="w-36 h-36 text-slate-900" />
                       </div>
                       <span className="text-[11px] font-mono font-bold text-slate-600 block">
-                        Scan with Binance App to Pay
+                        {isSpanish ? "Escanear con Binance App para Pagar" : "Scan with Binance App to Pay"}
                       </span>
                     </div>
 
                     {/* Payment Info */}
                     <div className="space-y-4 text-xs font-mono">
                       <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                        <span className="text-[10px] text-slate-400 block uppercase">Exact Payment Amount</span>
+                        <span className="text-[10px] text-slate-400 block uppercase">
+                          {isSpanish ? "Monto Exacto a Pagar" : "Exact Payment Amount"}
+                        </span>
                         <div className="flex items-center justify-between">
                           <span className="text-2xl font-black text-amber-300">
                             ${grandTotal.toFixed(2)} USDT
@@ -572,7 +613,7 @@ export default function CheckoutPage() {
                           <button
                             onClick={handleCopyAmount}
                             className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
-                            title="Copy amount"
+                            title={isSpanish ? "Copiar monto" : "Copy amount"}
                           >
                             {copiedAmount ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                           </button>
@@ -580,14 +621,16 @@ export default function CheckoutPage() {
                       </div>
 
                       <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                        <span className="text-[10px] text-slate-400 block uppercase">Prepay ID / Trade No</span>
+                        <span className="text-[10px] text-slate-400 block uppercase">
+                          {isSpanish ? "ID de Prepago / No. de Transacción" : "Prepay ID / Trade No"}
+                        </span>
                         <span className="font-bold text-slate-200 block truncate">{prepayId}</span>
                       </div>
 
                       {/* Expiry Timer */}
                       <div className="flex items-center justify-between p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300">
                         <span className="flex items-center gap-1.5 font-bold">
-                          <Clock className="w-4 h-4" /> QR Expires In:
+                          <Clock className="w-4 h-4" /> {isSpanish ? "El QR expira en:" : "QR Expires In:"}
                         </span>
                         <span className="font-black text-sm">
                           {Math.floor(qrExpirySeconds / 60)}:
@@ -607,17 +650,17 @@ export default function CheckoutPage() {
                       {paymentStatus === "verifying" ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Verifying Blockchain Transaction...</span>
+                          <span>{isSpanish ? "Verificando Transacción en Blockchain..." : "Verifying Blockchain Transaction..."}</span>
                         </>
                       ) : paymentStatus === "paid" ? (
                         <>
                           <CheckCircle2 className="w-4 h-4" />
-                          <span>Payment Verified! Directing to Invoice...</span>
+                          <span>{isSpanish ? "¡Pago Verificado! Redirigiendo a la Factura..." : "Payment Verified! Directing to Invoice..."}</span>
                         </>
                       ) : (
                         <>
                           <Coins className="w-4 h-4" />
-                          <span>I Have Paid ${grandTotal.toFixed(2)} USDT (Verify Instantly)</span>
+                          <span>{isSpanish ? `He Pagado $${grandTotal.toFixed(2)} USDT (Verificar al Instante)` : `I Have Paid $${grandTotal.toFixed(2)} USDT (Verify Instantly)`}</span>
                         </>
                       )}
                     </button>
@@ -630,7 +673,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-5 space-y-6">
               <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-6 sticky top-24">
                 <h3 className="text-sm font-black text-[#00143D] uppercase tracking-wider pb-3 border-b border-slate-100 font-heading">
-                  Order Items ({items.length})
+                  {isSpanish ? `Artículos del Pedido (${items.length})` : `Order Items (${items.length})`}
                 </h3>
 
                 {/* Items Mini List */}
@@ -639,11 +682,15 @@ export default function CheckoutPage() {
                     <div key={item.id} className="pt-2 flex items-center justify-between gap-3 text-xs">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 relative shrink-0 border border-slate-200">
-                          <Image src={item.image} alt={item.title} fill className="object-cover" />
+                          <Image src={item.image} alt={getLocalizedProductTitle(item.slug, item.title, isSpanish)} fill className="object-cover" />
                         </div>
                         <div className="min-w-0">
-                          <span className="font-bold text-slate-900 block truncate">{item.title}</span>
-                          <span className="text-[11px] text-slate-400 font-mono">Qty: {item.quantity}</span>
+                          <span className="font-bold text-slate-900 block truncate">
+                            {getLocalizedProductTitle(item.slug, item.title, isSpanish)}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            {isSpanish ? `Cant: ${item.quantity}` : `Qty: ${item.quantity}`}
+                          </span>
                         </div>
                       </div>
                       <span className="font-mono font-bold text-slate-900 shrink-0">
@@ -656,12 +703,12 @@ export default function CheckoutPage() {
                 {/* Financial Summary */}
                 <div className="space-y-2.5 pt-3 border-t border-slate-100 text-xs">
                   <div className="flex justify-between text-slate-600">
-                    <span>Subtotal</span>
+                    <span>{t.cart.subtotal}</span>
                     <span className="font-mono font-bold text-slate-900">{formatCurrency(subtotal)}</span>
                   </div>
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-[#FF1028] font-bold">
-                      <span>Discount ({couponCode})</span>
+                      <span>{t.cart.discount} ({couponCode})</span>
                       <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                     </div>
                   )}
@@ -669,15 +716,17 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-1.5 min-w-0">
                       <CourierLogo courier={shippingCourier} size="sm" className="w-4 h-4 rounded-md" />
                       <span className="truncate">
-                        {FREIGHT_CONFIGS[shippingCourier]?.name || "Direct Air Freight"}
+                        {isSpanish
+                          ? (shippingCourier === "sea" ? "Carga en Contenedor Marítimo" : "Flete Aéreo Directo")
+                          : (FREIGHT_CONFIGS[shippingCourier]?.name || "Direct Air Freight")}
                       </span>
                     </div>
                     <span className="font-mono font-bold text-slate-900 shrink-0">
-                      {courierCost === 0 ? <span className="text-emerald-600">FREE</span> : `$${courierCost.toFixed(2)}`}
+                      {courierCost === 0 ? <span className="text-emerald-600">{isSpanish ? "GRATIS" : "FREE"}</span> : `$${courierCost.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="flex justify-between text-base font-black text-[#00143D] pt-3 border-t border-slate-200">
-                    <span>Total Due (USDT)</span>
+                    <span>{isSpanish ? "Total a Pagar (USDT)" : "Total Due (USDT)"}</span>
                     <span className="text-xl text-[#FF1028] font-mono">
                       ${grandTotal.toFixed(2)}
                     </span>

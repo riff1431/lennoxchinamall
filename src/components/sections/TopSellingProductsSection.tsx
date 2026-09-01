@@ -19,6 +19,7 @@ import { formatCurrency, calcDiscount } from "@/utils/helpers";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 interface TopSellingProductsSectionProps {
   products: Product[];
@@ -364,7 +365,7 @@ export function TopSellingProductsSection({
                       {/* Bottom Image Overlay Tag: Sold Count */}
                       <div className="absolute bottom-2 left-2 z-10">
                         <span className="bg-slate-900/80 backdrop-blur-xs text-emerald-400 font-mono text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-xs shadow-2xs">
-                          {product.sold_count || 1200 + (idx % totalItems) * 240}+ Sold
+                          {product.sold_count || 1200 + (idx % totalItems) * 240}+ {isSpanish ? "Vendidos" : "Sold"}
                         </span>
                       </div>
 
@@ -399,7 +400,7 @@ export function TopSellingProductsSection({
                       {/* Product Title */}
                       <Link href={`/products/${product.slug}`} className="block">
                         <h3 className="text-xs font-bold text-slate-900 group-hover:text-[#FF1028] transition-colors line-clamp-2 leading-snug font-heading min-h-[32px]">
-                          {product.title}
+                          {getLocalizedProductTitle(product.slug, product.title, isSpanish)}
                         </h3>
                       </Link>
                     </div>
@@ -428,7 +429,7 @@ export function TopSellingProductsSection({
                             : "bg-[#00143D] hover:bg-[#FF1028] text-white hover:shadow-[0_0_14px_rgba(255,16,40,0.35)]"
                         }`}
                         aria-label={`Add ${product.title} to cart`}
-                        title="Quick Add to Cart"
+                        title={isSpanish ? "Añadir al carrito" : "Quick Add to Cart"}
                       >
                         {isJustAdded ? (
                           <Check className="w-3.5 h-3.5 animate-in zoom-in" />

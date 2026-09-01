@@ -31,6 +31,18 @@ export const HOT_SEARCH_TAGS = [
   "Bluetooth Speakers",
 ];
 
+export const getLocalizedHotSearchTags = (isSpanish: boolean) =>
+  isSpanish
+    ? [
+        "Drones 4K",
+        "Impresoras 3D",
+        "Escáneres OBD2",
+        "Linternas Tácticas",
+        "Coches RC",
+        "Altavoces Bluetooth",
+      ]
+    : HOT_SEARCH_TAGS;
+
 // ─── Languages (English & Spanish Only) ──────────────────────────────────────
 export const LANGUAGES = [
   { code: "EN", name: "English (US)", locale: "en" },

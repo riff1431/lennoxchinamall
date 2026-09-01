@@ -44,6 +44,8 @@ export interface TranslationDictionary {
     usdtZeroFee: string;
     minOrder: string;
     leadTime: string;
+    exploreAll: string;
+    shopNow: string;
   };
   header: {
     announcementPromo: string;
@@ -63,6 +65,19 @@ export interface TranslationDictionary {
     checkout: string;
     totalAmount: string;
     itemsCount: string;
+    directFactoryDeal: string;
+    usdtZeroFeeSettlement: string;
+    subcategories: string;
+    noSubcategories: string;
+    suggestedProducts: string;
+    suggestedCategories: string;
+    popularSearches: string;
+    noMatchingProducts: string;
+    viewAllResults: string;
+    compare: string;
+    openMenu: string;
+    closeMenu: string;
+    role: string;
   };
   home: {
     dealOfTheDay: string;

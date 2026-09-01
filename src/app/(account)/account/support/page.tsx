@@ -17,27 +17,49 @@ import {
   Sparkles,
 } from "lucide-react";
 import { formatDate } from "@/utils/helpers";
-
-const FAQS = [
-  {
-    q: "How fast is direct China Air Cargo delivery to my doorstep?",
-    a: "All orders are dispatched directly from our Shenzhen or Ningbo hubs via tracked international air express (YunExpress, DHL, 4PX, FedEx). Standard transit time is 7-12 business days with full door-to-door tracking.",
-  },
-  {
-    q: "How does Binance Pay USDT settlement protect my purchase?",
-    a: "Binance Pay settlements are held in single-vendor escrow until factory QC inspection passes. In the rare event of transit damage or inventory stockout, a direct 100% USDT refund is credited directly to your crypto wallet within 24 hours.",
-  },
-  {
-    q: "Are import duties and customs taxes included in the price?",
-    a: "Yes! All prices listed on Lennox ChinaMall include DDP (Delivered Duty Paid) clearance for supported countries. You will not receive surprise customs bills upon delivery.",
-  },
-  {
-    q: "How do I claim the 30-day warranty or return a defective item?",
-    a: "Visit the Returns & Claims section in your account, enter your order number, and attach photos or videos of the defect. Our Shenzhen engineering team reviews claims within 1 business day.",
-  },
-];
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function SupportTicketsPage() {
+  const { isSpanish } = useTranslation();
+
+  const FAQS = isSpanish
+    ? [
+        {
+          q: "¿Qué tan rápida es la entrega de Carga Aérea directa de China a mi puerta?",
+          a: "Todos los pedidos se despachan directamente desde nuestros centros de Shenzhen o Ningbo a través de servicio aéreo internacional rastreado (YunExpress, DHL, 4PX, FedEx). El tiempo estándar de tránsito es de 7 a 12 días hábiles con seguimiento puerta a puerta.",
+        },
+        {
+          q: "¿Cómo protege mi compra la liquidación con Binance Pay USDT?",
+          a: "Las liquidaciones de Binance Pay se mantienen en depósito de garantía hasta que la inspección de calidad de fábrica se aprueba. En el raro caso de daños durante el transporte o falta de inventario, se acredita un reembolso directo del 100% en USDT a tu billetera cripto en 24 horas.",
+        },
+        {
+          q: "¿Están incluidos los aranceles de importación e impuestos aduaneros en el precio?",
+          a: "¡Sí! Todos los precios listados en Lennox ChinaMall incluyen despacho DDP (Entregado con Derechos Pagados) para países admitidos. No recibirás cobros aduaneros sorpresa a la entrega.",
+        },
+        {
+          q: "¿Cómo reclamo la garantía de 30 días o devuelvo un artículo defectuoso?",
+          a: "Visita la sección de Devoluciones y Reclamos en tu cuenta, ingresa tu número de pedido y adjunta fotos o videos del defecto. Nuestro equipo de ingeniería en Shenzhen revisa los reclamos en 1 día hábil.",
+        },
+      ]
+    : [
+        {
+          q: "How fast is direct China Air Cargo delivery to my doorstep?",
+          a: "All orders are dispatched directly from our Shenzhen or Ningbo hubs via tracked international air express (YunExpress, DHL, 4PX, FedEx). Standard transit time is 7-12 business days with full door-to-door tracking.",
+        },
+        {
+          q: "How does Binance Pay USDT settlement protect my purchase?",
+          a: "Binance Pay settlements are held in single-vendor escrow until factory QC inspection passes. In the rare event of transit damage or inventory stockout, a direct 100% USDT refund is credited directly to your crypto wallet within 24 hours.",
+        },
+        {
+          q: "Are import duties and customs taxes included in the price?",
+          a: "Yes! All prices listed on Lennox ChinaMall include DDP (Delivered Duty Paid) clearance for supported countries. You will not receive surprise customs bills upon delivery.",
+        },
+        {
+          q: "How do I claim the 30-day warranty or return a defective item?",
+          a: "Visit the Returns & Claims section in your account, enter your order number, and attach photos or videos of the defect. Our Shenzhen engineering team reviews claims within 1 business day.",
+        },
+      ];
+
   const [tickets, setTickets] = useState([
     {
       id: "tick-1",
@@ -82,7 +104,7 @@ export default function SupportTicketsPage() {
       priority: "medium",
       createdAt: new Date().toISOString(),
       messages: [
-        { sender: "Alex Harrison", body: newMsg, time: "Just now" },
+        { sender: "Alex Harrison", body: newMsg, time: isSpanish ? "Ahora mismo" : "Just now" },
       ],
     };
 
@@ -91,7 +113,11 @@ export default function SupportTicketsPage() {
     setNewSubject("");
     setNewMsg("");
     setShowCreate(false);
-    setToastMsg(`Support Ticket #${newTicket.id} created! A sourcing engineer is assigned.`);
+    setToastMsg(
+      isSpanish
+        ? `¡Ticket de Soporte #${newTicket.id} creado! Un ingeniero de abastecimiento ha sido asignado.`
+        : `Support Ticket #${newTicket.id} created! A sourcing engineer is assigned.`
+    );
     setTimeout(() => setToastMsg(null), 4000);
   };
 
@@ -105,7 +131,7 @@ export default function SupportTicketsPage() {
             ...t,
             messages: [
               ...t.messages,
-              { sender: "Alex Harrison", body: replyText, time: "Just now" },
+              { sender: "Alex Harrison", body: replyText, time: isSpanish ? "Ahora mismo" : "Just now" },
             ],
           };
         }
@@ -122,10 +148,12 @@ export default function SupportTicketsPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#00143D] flex items-center gap-2 font-heading">
             <Headphones className="w-6 h-6 text-[#FF1028]" />
-            <span>24/7 Sourcing Support Desk</span>
+            <span>{isSpanish ? "Mesa de Ayuda y Soporte 24/7" : "24/7 Sourcing Support Desk"}</span>
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Direct communication with Lennox procurement engineers and air cargo logistics coordinators in Shenzhen.
+            {isSpanish
+              ? "Comunicación directa con ingenieros de compras de Lennox y coordinadores de logística de carga aérea en Shenzhen."
+              : "Direct communication with Lennox procurement engineers and air cargo logistics coordinators in Shenzhen."}
           </p>
         </div>
 
@@ -134,14 +162,14 @@ export default function SupportTicketsPage() {
           className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2.5 rounded-xl text-xs font-black font-heading transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>Open New Ticket</span>
+          <span>{isSpanish ? "Abrir Nuevo Ticket" : "Open New Ticket"}</span>
         </button>
       </div>
 
       {toastMsg && (
         <div className="bg-[#10B981] text-slate-950 px-4 py-3 rounded-2xl text-xs font-black shadow-md flex items-center justify-between animate-in fade-in">
           <span>✓ {toastMsg}</span>
-          <button onClick={() => setToastMsg(null)} className="font-bold text-sm">×</button>
+          <button onClick={() => setToastMsg(null)} className="font-bold text-sm cursor-pointer">×</button>
         </div>
       )}
 
@@ -153,9 +181,11 @@ export default function SupportTicketsPage() {
           </div>
           <div>
             <span className="font-heading text-xs font-black text-slate-900 block">
-              &lt; 1 Hour Response
+              {isSpanish ? "Respuesta en < 1 Hora" : "< 1 Hour Response"}
             </span>
-            <span className="text-[11px] text-slate-500">24/7 Shenzhen Hub Desk</span>
+            <span className="text-[11px] text-slate-500">
+              {isSpanish ? "Mesa 24/7 en Hub Shenzhen" : "24/7 Shenzhen Hub Desk"}
+            </span>
           </div>
         </div>
 
@@ -165,9 +195,11 @@ export default function SupportTicketsPage() {
           </div>
           <div>
             <span className="font-heading text-xs font-black text-slate-900 block">
-              Direct USDT Escrow
+              {isSpanish ? "Garantía Directa en USDT" : "Direct USDT Escrow"}
             </span>
-            <span className="text-[11px] text-slate-500">Instant Refund Protection</span>
+            <span className="text-[11px] text-slate-500">
+              {isSpanish ? "Protección de Reembolso Inmediato" : "Instant Refund Protection"}
+            </span>
           </div>
         </div>
 
@@ -177,9 +209,11 @@ export default function SupportTicketsPage() {
           </div>
           <div>
             <span className="font-heading text-xs font-black text-slate-900 block">
-              Factory QA Support
+              {isSpanish ? "Soporte de Calidad de Fábrica" : "Factory QA Support"}
             </span>
-            <span className="text-[11px] text-slate-500">Hardware Engineers on Call</span>
+            <span className="text-[11px] text-slate-500">
+              {isSpanish ? "Ingenieros de Hardware Disponibles" : "Hardware Engineers on Call"}
+            </span>
           </div>
         </div>
       </div>
@@ -191,22 +225,26 @@ export default function SupportTicketsPage() {
           className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 text-xs animate-in fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-            <span className="font-black text-[#00143D] uppercase font-heading">Create Support Ticket</span>
+            <span className="font-black text-[#00143D] uppercase font-heading">
+              {isSpanish ? "Crear Ticket de Soporte" : "Create Support Ticket"}
+            </span>
             <button
               type="button"
               onClick={() => setShowCreate(false)}
-              className="text-slate-400 hover:text-slate-700"
+              className="text-slate-400 hover:text-slate-700 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Inquiry Subject *</label>
+            <label className="font-bold text-slate-700">
+              {isSpanish ? "Asunto de la Consulta *" : "Inquiry Subject *"}
+            </label>
             <input
               type="text"
               required
-              placeholder="e.g., Question regarding 4K Drone Battery Replacement..."
+              placeholder={isSpanish ? "ej., Pregunta sobre reemplazo de batería de Dron 4K..." : "e.g., Question regarding 4K Drone Battery Replacement..."}
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none focus:border-[#00143D]"
@@ -214,25 +252,37 @@ export default function SupportTicketsPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Category</label>
+            <label className="font-bold text-slate-700">
+              {isSpanish ? "Categoría" : "Category"}
+            </label>
             <select
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold bg-white focus:outline-none focus:border-[#00143D]"
             >
-              <option value="Shipping & Tracking">Shipping & Air Cargo Tracking</option>
-              <option value="Product Hardware Specs">Product Hardware & Specs</option>
-              <option value="Binance Pay USDT Settlement">Binance Pay USDT Settlement</option>
-              <option value="Returns & Warranty">Returns & 30-Day Warranty</option>
+              <option value="Shipping & Tracking">
+                {isSpanish ? "Envíos y Rastreo de Carga Aérea" : "Shipping & Air Cargo Tracking"}
+              </option>
+              <option value="Product Hardware Specs">
+                {isSpanish ? "Especificaciones de Hardware de Producto" : "Product Hardware & Specs"}
+              </option>
+              <option value="Binance Pay USDT Settlement">
+                {isSpanish ? "Liquidaciones Binance Pay USDT" : "Binance Pay USDT Settlement"}
+              </option>
+              <option value="Returns & Warranty">
+                {isSpanish ? "Devoluciones y Garantía de 30 Días" : "Returns & 30-Day Warranty"}
+              </option>
             </select>
           </div>
 
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">Detailed Message *</label>
+            <label className="font-bold text-slate-700">
+              {isSpanish ? "Mensaje Detallado *" : "Detailed Message *"}
+            </label>
             <textarea
               rows={4}
               required
-              placeholder="Provide order number or hardware questions..."
+              placeholder={isSpanish ? "Proporciona el número de pedido o preguntas sobre el hardware..." : "Provide order number or hardware questions..."}
               value={newMsg}
               onChange={(e) => setNewMsg(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold focus:outline-none focus:border-[#00143D]"
@@ -242,16 +292,16 @@ export default function SupportTicketsPage() {
           <div className="flex gap-2">
             <button
               type="submit"
-              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black font-heading transition-colors"
+              className="bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black font-heading transition-colors cursor-pointer"
             >
-              Submit Ticket
+              {isSpanish ? "Enviar Ticket" : "Submit Ticket"}
             </button>
             <button
               type="button"
               onClick={() => setShowCreate(false)}
-              className="bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold font-heading"
+              className="bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold font-heading cursor-pointer"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
           </div>
         </form>
@@ -260,7 +310,7 @@ export default function SupportTicketsPage() {
       {/* Tickets List */}
       <div className="space-y-4">
         <h3 className="font-heading text-sm font-black text-slate-900 uppercase tracking-wider">
-          Active Support Conversations ({tickets.length})
+          {isSpanish ? `Conversaciones de Soporte Activas (${tickets.length})` : `Active Support Conversations (${tickets.length})`}
         </h3>
 
         {tickets.map((t) => (
@@ -274,7 +324,7 @@ export default function SupportTicketsPage() {
                   {t.subject}
                 </span>
                 <span className="text-slate-400 font-semibold">
-                  Category: {t.category} • Created {formatDate(t.createdAt)}
+                  {isSpanish ? `Categoría: ${t.category} • Creado el ${formatDate(t.createdAt)}` : `Category: ${t.category} • Created ${formatDate(t.createdAt)}`}
                 </span>
               </div>
               <span
@@ -284,7 +334,7 @@ export default function SupportTicketsPage() {
                     : "bg-blue-50 text-blue-700 border border-blue-200"
                 }`}
               >
-                {t.status}
+                {isSpanish ? (t.status === "resolved" ? "RESUELTO" : "ABIERTO") : t.status}
               </span>
             </div>
 
@@ -320,7 +370,7 @@ export default function SupportTicketsPage() {
             <div className="flex gap-2 text-xs">
               <input
                 type="text"
-                placeholder="Type a follow-up reply..."
+                placeholder={isSpanish ? "Escribe una respuesta de seguimiento..." : "Type a follow-up reply..."}
                 value={activeTicketId === t.id ? replyText : ""}
                 onChange={(e) => {
                   setActiveTicketId(t.id);
@@ -337,7 +387,7 @@ export default function SupportTicketsPage() {
                 className="bg-[#00143D] hover:bg-[#FF1028] text-white px-4 py-2 rounded-xl text-xs font-black font-heading transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>Reply</span>
+                <span>{isSpanish ? "Responder" : "Reply"}</span>
               </button>
             </div>
           </div>
@@ -348,7 +398,7 @@ export default function SupportTicketsPage() {
       <div className="pt-4 border-t border-slate-100 space-y-4">
         <h3 className="font-heading text-sm font-black text-slate-900 flex items-center gap-2">
           <HelpCircle className="w-4 h-4 text-[#FF1028]" />
-          <span>Frequently Asked Sourcing & Delivery Questions</span>
+          <span>{isSpanish ? "Preguntas Frecuentes de Abastecimiento y Entregas" : "Frequently Asked Sourcing & Delivery Questions"}</span>
         </h3>
 
         <div className="space-y-2">
@@ -359,7 +409,7 @@ export default function SupportTicketsPage() {
             >
               <button
                 onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                className="w-full p-4 text-left flex items-center justify-between text-xs font-bold text-slate-800 hover:text-[#00143D] transition-colors"
+                className="w-full p-4 text-left flex items-center justify-between text-xs font-bold text-slate-800 hover:text-[#00143D] transition-colors cursor-pointer"
               >
                 <span className="font-heading">{faq.q}</span>
                 <ChevronDown

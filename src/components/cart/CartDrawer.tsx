@@ -25,6 +25,7 @@ import {
 import { formatCurrency } from "@/utils/helpers";
 import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 const PRESET_COUPONS = [
   { code: "LENNOX10", desc: "10% OFF Storewide" },
@@ -66,17 +67,31 @@ export function CartDrawer() {
   );
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
+  const getLocalizedCouponMessage = (msg: string, isSuccess: boolean) => {
+    if (!isSpanish) return msg;
+    if (isSuccess) {
+      if (msg.toLowerCase().includes("activated") || msg.toLowerCase().includes("applied")) {
+        return "¡Cupón aplicado exitosamente!";
+      }
+      return msg;
+    } else {
+      if (msg.toLowerCase().includes("invalid")) return "Código de cupón no válido o expirado.";
+      if (msg.toLowerCase().includes("unable")) return "No se pudo validar el cupón en este momento.";
+      return msg;
+    }
+  };
+
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCoupon.trim()) return;
     const res = await applyCoupon(inputCoupon);
-    setCouponMsg({ text: res.message, isError: !res.success });
+    setCouponMsg({ text: getLocalizedCouponMessage(res.message, res.success), isError: !res.success });
     if (res.success) setInputCoupon("");
   };
 
   const handlePresetCoupon = async (code: string) => {
     const res = await applyCoupon(code);
-    setCouponMsg({ text: res.message, isError: !res.success });
+    setCouponMsg({ text: getLocalizedCouponMessage(res.message, res.success), isError: !res.success });
   };
 
 
@@ -242,9 +257,17 @@ export function CartDrawer() {
               <span className="flex items-center gap-1.5 text-slate-700">
                 <Truck className="w-3.5 h-3.5 text-blue-600" />
                 {remainingForFreeShipping === 0 ? (
-                  <span className="text-[#10B981] font-black">🎉 You qualified for FREE Air Cargo!</span>
+                  <span className="text-[#10B981] font-black">
+                    {isSpanish ? "🎉 ¡Calificaste para Envío Aéreo GRATIS!" : "🎉 You qualified for FREE Air Cargo!"}
+                  </span>
                 ) : (
-                  <span>Add <strong className="text-[#FF1028]">${remainingForFreeShipping.toFixed(2)}</strong> for FREE Shipping</span>
+                  <span>
+                    {isSpanish ? (
+                      <>Agrega <strong className="text-[#FF1028]">${remainingForFreeShipping.toFixed(2)}</strong> para Envío GRATIS</>
+                    ) : (
+                      <>Add <strong className="text-[#FF1028]">${remainingForFreeShipping.toFixed(2)}</strong> for FREE Shipping</>
+                    )}
+                  </span>
                 )}
               </span>
               <span className="text-[10px] text-slate-400 font-extrabold">{Math.round(progressToFreeShipping)}%</span>
@@ -280,12 +303,12 @@ export function CartDrawer() {
                         onClick={closeCart}
                         className="text-xs font-bold text-slate-800 hover:text-[#FF1028] transition-colors line-clamp-2 leading-snug"
                       >
-                        {item.title}
+                        {getLocalizedProductTitle(item.slug, item.title, isSpanish)}
                       </Link>
                       <button
                         onClick={() => removeItem(item.id)}
                         className="text-slate-400 hover:text-red-500 transition-colors p-0.5 cursor-pointer shrink-0"
-                        title="Remove item"
+                        title={isSpanish ? "Eliminar producto" : "Remove item"}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -341,20 +364,20 @@ export function CartDrawer() {
           {/* Coupon Input & Quick Vouchers */}
           <div className="pt-3 border-t border-slate-200 space-y-2">
             <span className="text-xs font-black text-[#00143D] uppercase tracking-wider block">
-              Apply Sourcing Voucher:
+              {isSpanish ? "Aplicar Cupón de Descuento:" : "Apply Sourcing Voucher:"}
             </span>
 
             {couponCode ? (
               <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
                 <div className="flex items-center gap-1.5 text-[#10B981] font-bold">
                   <Check className="w-4 h-4" />
-                  <span>Voucher <strong>{couponCode}</strong> applied!</span>
+                  <span>{isSpanish ? <>¡Cupón <strong>{couponCode}</strong> aplicado!</> : <>Voucher <strong>{couponCode}</strong> applied!</>}</span>
                 </div>
                 <button
                   onClick={removeCoupon}
                   className="text-xs text-red-500 font-bold hover:underline cursor-pointer"
                 >
-                  Remove
+                  {isSpanish ? "Eliminar" : "Remove"}
                 </button>
               </div>
             ) : (
@@ -362,7 +385,7 @@ export function CartDrawer() {
                 <form onSubmit={handleApplyCoupon} className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Enter voucher code (e.g. LENNOX10)..."
+                    placeholder={isSpanish ? "Ingresa código de cupón (ej. LENNOX10)..." : "Enter voucher code (e.g. LENNOX10)..."}
                     value={inputCoupon}
                     onChange={(e) => setInputCoupon(e.target.value.toUpperCase())}
                     className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-xl uppercase font-bold focus:outline-none focus:border-[#FF1028]"
@@ -371,13 +394,16 @@ export function CartDrawer() {
                     type="submit"
                     className="bg-[#00143D] hover:bg-[#FF1028] text-white px-3.5 py-2 rounded-xl text-xs font-black transition-colors shrink-0"
                   >
-                    Apply
+                    {isSpanish ? "Aplicar" : "Apply"}
                   </button>
                 </form>
 
                 {/* Preset Voucher Pills */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {PRESET_COUPONS.map((c) => (
+                  {[
+                    { code: "LENNOX10", desc: isSpanish ? "10% DCTO en Toda la Tienda" : "10% OFF Storewide" },
+                    { code: "USDT5", desc: isSpanish ? "$5 DCTO en Pedidos > $50" : "$5 OFF Orders > $50" },
+                  ].map((c) => (
                     <button
                       key={c.code}
                       type="button"

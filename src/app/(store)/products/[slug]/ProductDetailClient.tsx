@@ -48,6 +48,8 @@ import { useProductStore } from "@/store/useProductStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { formatCurrency, calcDiscount } from "@/utils/helpers";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
+import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
 
 interface ProductDetailClientProps {
   product?: Product | null;
@@ -61,7 +63,7 @@ export function ProductDetailClient({
   slug: urlSlug,
 }: ProductDetailClientProps) {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
   const searchSlug = urlSlug || initialProduct?.slug || initialProduct?.id || "";
 
   const isMounted = React.useSyncExternalStore(
@@ -287,41 +289,58 @@ export function ProductDetailClient({
       : "30.0 × 20.0 × 12.0 cm";
 
     const cargoLabels: Record<string, string> = {
-      general: "General Cargo (普货 - Non-Battery)",
-      lithium_built_in: "Built-in Lithium Battery (PI967 Air Cargo Pass)",
-      lithium_pure: "Pure Battery / Power Bank (PI965 Special Line)",
-      liquid_cream: "Liquid / Cream / Cosmetics (Airfreight Certified)",
-      magnetic: "Magnetized Goods (Shielded & Inspected)",
-      powder: "Powder / Chemical (Lab Tested)",
+      general: isSpanish ? "Carga General (Sin Batería)" : "General Cargo (普货 - Non-Battery)",
+      lithium_built_in: isSpanish ? "Batería de Litio Integrada (Pase Aéreo PI967)" : "Built-in Lithium Battery (PI967 Air Cargo Pass)",
+      lithium_pure: isSpanish ? "Batería Pura / Power Bank (Línea Especial PI965)" : "Pure Battery / Power Bank (PI965 Special Line)",
+      liquid_cream: isSpanish ? "Líquido / Crema / Cosméticos (Certificado Aéreo)" : "Liquid / Cream / Cosmetics (Airfreight Certified)",
+      magnetic: isSpanish ? "Bienes Magnetizados (Blindados e Inspeccionados)" : "Magnetized Goods (Shielded & Inspected)",
+      powder: isSpanish ? "Polvo / Químico (Probado en Laboratorio)" : "Powder / Chemical (Lab Tested)",
     };
 
     const packageLabels: Record<string, string> = {
-      corrugated_box: "Double-Wall Corrugated Air-Cargo Box",
-      bubble_mailer: "Padded Waterproof Bubble Mailer",
-      retail_box: "Original Factory Retail Color Box",
-      wooden_crate: "Reinforced Wooden Pallet / Crate",
-      anti_static: "Anti-Static Shielding Bag",
+      corrugated_box: isSpanish ? "Caja de Cartón Corrugado de Doble Pared para Carga Aérea" : "Double-Wall Corrugated Air-Cargo Box",
+      bubble_mailer: isSpanish ? "Sobre Acolchado Impermeable de Burbujas" : "Padded Waterproof Bubble Mailer",
+      retail_box: isSpanish ? "Caja a Color Minorista Original de Fábrica" : "Original Factory Retail Color Box",
+      wooden_crate: isSpanish ? "Pallet / Caja de Madera Reforzada" : "Reinforced Wooden Pallet / Crate",
+      anti_static: isSpanish ? "Bolsa de Blindaje Antiestática" : "Anti-Static Shielding Bag",
     };
 
-    const defaults: Record<string, string> = {
-      "Manufacturing Origin": product.shipping_origin || "Shenzhen / Guangdong, China",
-      "Package Dimensions": dimensionStr,
-      "Gross Shipping Weight": product.weight ? `${product.weight} kg` : "0.85 kg",
-      "Net Product Weight": product.net_weight ? `${product.net_weight} kg` : (product.weight ? `${(product.weight * 0.8).toFixed(2)} kg` : "0.65 kg"),
-      "Cargo Classification": cargoLabels[product.cargo_type || ""] || "Built-in Lithium Battery (PI967 Air Cargo Pass)",
-      "Packaging Container": packageLabels[product.package_type || ""] || "Double-Wall Corrugated Air-Cargo Box",
-      "Dispatch SLA": product.lead_time || "Same Day Dispatch (Within 24h)",
-      "HS Customs Code": product.hs_code || "8517.62.00",
-      "QC Certification": "100% Pre-Departure Dual Laser & Load Tested (Grade A+)",
-      "SKU Identifier": currentVariant?.sku || product.sku,
-      "Direct Brand": product.brand?.name || "Lennox Direct Factory",
-      "Department / Cluster": category?.name || "Hardware & Electronics",
-      "Payment Escrow": "Binance Pay USDT (Zero Gas Fees & Instant Escrow)",
-      "Warranty & Guarantee": "30-Day Money-Back Guarantee + 1-Year Direct Factory Support",
-    };
+    const defaults: Record<string, string> = isSpanish
+      ? {
+          "Origen de Manufactura": product.shipping_origin || "Shenzhen / Guangdong, China",
+          "Dimensiones del Paquete": dimensionStr,
+          "Peso Bruto de Envío": product.weight ? `${product.weight} kg` : "0.85 kg",
+          "Peso Neto del Producto": product.net_weight ? `${product.net_weight} kg` : (product.weight ? `${(product.weight * 0.8).toFixed(2)} kg` : "0.65 kg"),
+          "Clasificación de Carga": cargoLabels[product.cargo_type || ""] || "Batería de Litio Integrada (Pase Aéreo PI967)",
+          "Embalaje y Empaque": packageLabels[product.package_type || ""] || "Caja de Cartón Corrugado de Doble Pared para Carga Aérea",
+          "Plazo de Despacho": product.lead_time || "Despacho el Mismo Día (Menos de 24h)",
+          "Código Arancelario HS": product.hs_code || "8517.62.00",
+          "Certificación de Calidad": "100% Probado con Láser y Carga Previo al Envío (Grado A+)",
+          "Identificador SKU": currentVariant?.sku || product.sku,
+          "Marca Directa": product.brand?.name || "Fábrica Directa Lennox",
+          "Departamento / Clúster": getLocalizedCategoryName(category?.name, true) || "Hardware y Electrónica",
+          "Garantía de Pago": "Binance Pay USDT (Cero comisiones de red y depósito en garantía)",
+          "Garantía y Devolución": "30 Días de Devolución de Dinero + 1 Año de Soporte Directo de Fábrica",
+        }
+      : {
+          "Manufacturing Origin": product.shipping_origin || "Shenzhen / Guangdong, China",
+          "Package Dimensions": dimensionStr,
+          "Gross Shipping Weight": product.weight ? `${product.weight} kg` : "0.85 kg",
+          "Net Product Weight": product.net_weight ? `${product.net_weight} kg` : (product.weight ? `${(product.weight * 0.8).toFixed(2)} kg` : "0.65 kg"),
+          "Cargo Classification": cargoLabels[product.cargo_type || ""] || "Built-in Lithium Battery (PI967 Air Cargo Pass)",
+          "Packaging Container": packageLabels[product.package_type || ""] || "Double-Wall Corrugated Air-Cargo Box",
+          "Dispatch SLA": product.lead_time || "Same Day Dispatch (Within 24h)",
+          "HS Customs Code": product.hs_code || "8517.62.00",
+          "QC Certification": "100% Pre-Departure Dual Laser & Load Tested (Grade A+)",
+          "SKU Identifier": currentVariant?.sku || product.sku,
+          "Direct Brand": product.brand?.name || "Lennox Direct Factory",
+          "Department / Cluster": category?.name || "Hardware & Electronics",
+          "Payment Escrow": "Binance Pay USDT (Zero Gas Fees & Instant Escrow)",
+          "Warranty & Guarantee": "30-Day Money-Back Guarantee + 1-Year Direct Factory Support",
+        };
 
     return { ...defaults, ...specsMap };
-  }, [product, currentVariant, category]);
+  }, [product, currentVariant, category, isSpanish]);
 
   const shippingMethod = useCartStore((state) => state.shippingMethod);
   const setShippingMethod = useCartStore((state) => state.setShippingMethod);
@@ -392,22 +411,22 @@ export function ProductDetailClient({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-1.5 md:gap-2.5">
             <Breadcrumbs
               items={[
-                { label: "Home", href: "/" },
+                { label: isSpanish ? "Inicio" : "Home", href: "/" },
                 {
-                  label: category?.name || "Departments",
+                  label: getLocalizedCategoryName(category?.name, isSpanish) || (isSpanish ? "Departamentos" : "Departments"),
                   href: category ? `/categories/${category.slug}` : "/categories",
                 },
-                { label: product.title },
+                { label: getLocalizedProductTitle(product.slug, product.title, isSpanish) },
               ]}
             />
 
             <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono">
               <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Shenzhen Sourcing Hub Active
+                {isSpanish ? "Hub de Abastecimiento de Shenzhen Activo" : "Shenzhen Sourcing Hub Active"}
               </span>
               <span className="text-slate-500 font-medium">
-                100% Pre-Departure QC Tested
+                {isSpanish ? "100% Probado con Control de Calidad Previo al Envío" : "100% Pre-Departure QC Tested"}
               </span>
             </div>
 
@@ -415,12 +434,12 @@ export function ProductDetailClient({
             <div className="flex sm:hidden items-center gap-3 text-[10px] font-mono text-slate-500">
               <span className="flex items-center gap-1 text-emerald-700 font-bold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                QC Verified
+                {isSpanish ? "Verificado QC" : "QC Verified"}
               </span>
               <span>•</span>
-              <span>5–8 Day Air Cargo</span>
+              <span>{isSpanish ? "Carga Aérea 5–8 Días" : "5–8 Day Air Cargo"}</span>
               <span>•</span>
-              <span>USDT Pay</span>
+              <span>{isSpanish ? "Pago USDT" : "USDT Pay"}</span>
             </div>
           </div>
         </div>
@@ -430,7 +449,11 @@ export function ProductDetailClient({
       {addedToast && (
         <div className="fixed top-20 right-4 sm:right-8 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-black animate-in slide-in-from-top duration-300">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>Added {quantity} item(s) to cart at factory price!</span>
+          <span>
+            {isSpanish
+              ? `¡Se agregaron ${quantity} artículo(s) al carrito a precio de fábrica!`
+              : `Added ${quantity} item(s) to cart at factory price!`}
+          </span>
         </div>
       )}
 
@@ -447,7 +470,7 @@ export function ProductDetailClient({
             >
               <Image
                 src={images[selectedImageIndex] || fallbackUrl}
-                alt={product.title}
+                alt={getLocalizedProductTitle(product.slug, product.title, isSpanish)}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 42vw"
@@ -458,12 +481,12 @@ export function ProductDetailClient({
               <div className="absolute top-3 sm:top-4 left-3 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10">
                 {discount > 0 && (
                   <span className="bg-[#FF1028] text-white text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg uppercase tracking-wider font-heading shadow-md">
-                    -{discount}% OFF
+                    -{discount}% {isSpanish ? "DCTO" : "OFF"}
                   </span>
                 )}
                 {product.is_flash_deal && (
                   <span className="bg-[#00143D] text-amber-300 text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg flex items-center gap-1 sm:gap-1.5 border border-amber-300/30 uppercase tracking-wide shadow-md">
-                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-300" /> FLASH
+                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-300" /> {isSpanish ? "OFERTA FLASH" : "FLASH"}
                   </span>
                 )}
               </div>
@@ -499,7 +522,7 @@ export function ProductDetailClient({
               <button
                 onClick={() => setIsZoomModalOpen(true)}
                 className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/95 backdrop-blur-md text-slate-700 hover:text-[#00143D] flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer border border-slate-200"
-                title="Expand Fullscreen"
+                title={isSpanish ? "Expandir pantalla completa" : "Expand Fullscreen"}
                 aria-label="Expand image"
               >
                 <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -532,11 +555,11 @@ export function ProductDetailClient({
                     <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    100% QC Pass
+                    {isSpanish ? "100% Aprobado QC" : "100% QC Pass"}
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  Lab bench verified
+                  {isSpanish ? "Verificado en laboratorio" : "Lab bench verified"}
                 </p>
               </div>
 
@@ -546,11 +569,11 @@ export function ProductDetailClient({
                     <Zap className="w-3.5 h-3.5 fill-blue-600" />
                   </div>
                   <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    Direct Sourcing
+                    {isSpanish ? "Fábrica Directa" : "Direct Sourcing"}
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  0 Middleman markup
+                  {isSpanish ? "0 comisiones extra" : "0 Middleman markup"}
                 </p>
               </div>
 
@@ -560,11 +583,11 @@ export function ProductDetailClient({
                     <Plane className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    5–8d Air Cargo
+                    {isSpanish ? "Carga Aérea 5–8d" : "5–8d Air Cargo"}
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  Express air courier
+                  {isSpanish ? "Courier aéreo express" : "Express air courier"}
                 </p>
               </div>
 
@@ -574,11 +597,11 @@ export function ProductDetailClient({
                     <Coins className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    USDT Escrow
+                    {isSpanish ? "Garantía USDT" : "USDT Escrow"}
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  30-day money back
+                  {isSpanish ? "30 días de garantía" : "30-day money back"}
                 </p>
               </div>
             </div>
@@ -590,7 +613,7 @@ export function ProductDetailClient({
             <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-blue-600 font-mono bg-blue-50/80 px-2 py-0.5 rounded-md border border-blue-200/60 truncate max-w-[160px] sm:max-w-none">
-                  {product.brand?.name || "Direct Factory Hardware"}
+                  {product.brand?.name || (isSpanish ? "Hardware Directo de Fábrica" : "Direct Factory Hardware")}
                 </span>
                 <button
                   onClick={() => {
@@ -610,7 +633,7 @@ export function ProductDetailClient({
               </div>
 
               <h1 className="text-base sm:text-xl lg:text-2xl font-black font-heading text-[#00143D] leading-snug tracking-tight">
-                {product.title}
+                {getLocalizedProductTitle(product.slug, product.title, isSpanish)}
               </h1>
 
               {/* Rating & Sold & Q&A Row */}
@@ -625,7 +648,7 @@ export function ProductDetailClient({
                 >
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                   <span className="font-black text-slate-900">{(product.avg_rating || 4.9).toFixed(1)}</span>
-                  <span className="text-slate-400">({product.review_count || 32} reviews)</span>
+                  <span className="text-slate-400">({product.review_count || 32} {isSpanish ? "reseñas" : "reviews"})</span>
                 </button>
                 <span className="text-slate-300">•</span>
                 <button
@@ -637,20 +660,20 @@ export function ProductDetailClient({
                   className="flex items-center gap-1 hover:underline cursor-pointer text-slate-600 hover:text-[#00143D]"
                 >
                   <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
-                  <span className="font-bold text-slate-700">{qaCount} Q&amp;As</span>
+                  <span className="font-bold text-slate-700">{qaCount} {isSpanish ? "Preguntas" : "Q&As"}</span>
                 </button>
                 <span className="text-slate-300">•</span>
                 <span className="text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded font-mono text-[11px]">
                   {product.sold_count >= 1000
-                    ? `${(product.sold_count / 1000).toFixed(1)}k+ orders`
-                    : `${product.sold_count || 85} sold`}
+                    ? `${(product.sold_count / 1000).toFixed(1)}k+ ${isSpanish ? "pedidos" : "orders"}`
+                    : `${product.sold_count || 85} ${isSpanish ? "vendidos" : "sold"}`}
                 </span>
                 <button
                   onClick={handleShare}
                   className="ml-auto text-slate-400 hover:text-slate-700 flex items-center gap-1 text-[11px] cursor-pointer"
                 >
                   <Share2 className="w-3 h-3" />
-                  <span>{copiedLink ? "Copied!" : "Share"}</span>
+                  <span>{copiedLink ? (isSpanish ? "¡Copiado!" : "Copied!") : (isSpanish ? "Compartir" : "Share")}</span>
                 </button>
               </div>
             </div>
@@ -660,7 +683,7 @@ export function ProductDetailClient({
               <div className="flex items-baseline justify-between gap-2">
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-mono">
-                    Direct Wholesale Price
+                    {isSpanish ? "Precio Directo de Mayoreo" : "Direct Wholesale Price"}
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span className="text-2xl sm:text-3xl font-black text-white font-mono leading-none">
@@ -676,7 +699,7 @@ export function ProductDetailClient({
 
                 {savings > 0 && (
                   <span className="bg-[#FF1028] text-white text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-lg uppercase font-heading shadow-xs shrink-0">
-                    -{discount}% OFF
+                    -{discount}% {isSpanish ? "DCTO" : "OFF"}
                   </span>
                 )}
               </div>
@@ -686,8 +709,8 @@ export function ProductDetailClient({
                 <div className="p-2 sm:p-2.5 rounded-xl bg-[#00143D] border border-amber-300/30 flex items-center justify-between text-xs font-mono text-amber-300">
                   <span className="flex items-center gap-1.5 font-bold text-white text-[10px] sm:text-[11px]">
                     <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-300 animate-pulse" />
-                    <span className="hidden xs:inline">Sourcing Deal Ends:</span>
-                    <span className="xs:hidden">Ends:</span>
+                    <span className="hidden xs:inline">{isSpanish ? "Oferta termina en:" : "Sourcing Deal Ends:"}</span>
+                    <span className="xs:hidden">{isSpanish ? "Termina:" : "Ends:"}</span>
                   </span>
                   <span className="font-black text-xs text-amber-300">
                     {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:
@@ -706,11 +729,11 @@ export function ProductDetailClient({
                   }
                 }}
                 className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs flex items-center justify-between cursor-pointer border border-white/10 transition-colors"
-                title="Click to copy coupon code"
+                title={isSpanish ? "Clic para copiar cupón" : "Click to copy coupon code"}
               >
                 <div className="flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
-                  <span className="text-[10px] sm:text-[11px] font-medium">Extra 10% Off:</span>
+                  <span className="text-[10px] sm:text-[11px] font-medium">{isSpanish ? "10% de Descuento Extra:" : "Extra 10% Off:"}</span>
                 </div>
                 <span className="bg-[#FF1028] text-white font-black px-2 py-0.5 rounded font-mono text-[10px] flex items-center gap-1 shrink-0">
                   <span>LENNOX10</span>
@@ -724,7 +747,7 @@ export function ProductDetailClient({
               <div className="space-y-2.5 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-[#00143D] uppercase tracking-wider font-heading">
-                    Model / Configuration
+                    {isSpanish ? "Modelo / Configuración" : "Model / Configuration"}
                   </span>
                   <span className="text-xs font-mono font-bold text-[#FF1028]">
                     {currentVariant?.title || currentVariant?.sku}
@@ -755,10 +778,10 @@ export function ProductDetailClient({
             {/* ── Quantity & Live Inventory Stock State ── */}
             <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
               <div>
-                <span className="text-xs font-bold text-slate-700 block">Quantity</span>
+                <span className="text-xs font-bold text-slate-700 block">{isSpanish ? "Cantidad" : "Quantity"}</span>
                 <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 font-mono">
                   <CheckCircle2 className="w-3 h-3" />
-                  {isOutOfStock ? "Out of Stock" : `In Stock (${activeStock} Units)`}
+                  {isOutOfStock ? (isSpanish ? "Agotado" : "Out of Stock") : (isSpanish ? `En Stock (${activeStock} Unidades)` : `In Stock (${activeStock} Units)`)}
                 </span>
               </div>
 
@@ -795,8 +818,12 @@ export function ProductDetailClient({
               >
                 <Zap className="w-4 h-4 fill-white shrink-0" />
                 {/* Short text on mobile, full text on sm+ */}
-                <span className="sm:hidden">Buy Now — ${(activePrice * quantity).toFixed(2)} USDT</span>
-                <span className="hidden sm:inline">Buy Now with Binance Pay (${(activePrice * quantity).toFixed(2)} USDT)</span>
+                <span className="sm:hidden">
+                  {isSpanish ? `Comprar — $${(activePrice * quantity).toFixed(2)} USDT` : `Buy Now — $${(activePrice * quantity).toFixed(2)} USDT`}
+                </span>
+                <span className="hidden sm:inline">
+                  {isSpanish ? `Comprar Ahora con Binance Pay ($${(activePrice * quantity).toFixed(2)} USDT)` : `Buy Now with Binance Pay ($${(activePrice * quantity).toFixed(2)} USDT)`}
+                </span>
               </button>
 
               <div className="flex gap-2">
@@ -806,8 +833,8 @@ export function ProductDetailClient({
                   className="flex-1 py-3 min-h-[44px] rounded-2xl bg-[#00143D] hover:bg-[#002366] text-white font-black font-heading text-xs uppercase tracking-wider transition-all shadow-xs active:scale-98 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40"
                 >
                   <ShoppingCart className="w-4 h-4 shrink-0" />
-                  <span className="sm:hidden">Cart</span>
-                  <span className="hidden sm:inline">Add to Cart</span>
+                  <span className="sm:hidden">{isSpanish ? "Carrito" : "Cart"}</span>
+                  <span className="hidden sm:inline">{isSpanish ? "Añadir al Carrito" : "Add to Cart"}</span>
                 </button>
 
                 <button
@@ -870,10 +897,12 @@ export function ProductDetailClient({
                   </div>
                   <div>
                     <span className="font-heading font-black text-xs uppercase tracking-wider text-slate-900 block">
-                      Freight Route &amp; Cost
+                      {isSpanish ? "Ruta y Costo de Envío" : "Freight Route & Cost"}
                     </span>
                     <span className="text-[10px] text-slate-400 font-medium">
-                      Live calculated for {quantity} {quantity === 1 ? "unit" : "units"}
+                      {isSpanish
+                        ? `Calculado en vivo para ${quantity} ${quantity === 1 ? "unidad" : "unidades"}`
+                        : `Live calculated for ${quantity} ${quantity === 1 ? "unit" : "units"}`}
                     </span>
                   </div>
                 </div>
@@ -900,15 +929,17 @@ export function ProductDetailClient({
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase flex items-center gap-1.5 font-heading">
                       <Zap className={`w-3.5 h-3.5 ${shippingMethod === "air" ? "fill-blue-500 text-blue-600" : "text-slate-400"}`} />
-                      Air Express
+                      {isSpanish ? "Aéreo Express" : "Air Express"}
                     </span>
                     <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
-                      {productShippingPreview.air.totalCost === 0 ? "FREE" : `$${productShippingPreview.air.totalCost.toFixed(2)}`}
+                      {productShippingPreview.air.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${productShippingPreview.air.totalCost.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">
                     <span className="text-slate-500 font-medium">{t.product.airLeadDays}</span>
-                    <span className="text-[9px] font-bold font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">Fastest</span>
+                    <span className="text-[9px] font-bold font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">
+                      {isSpanish ? "Más Rápido" : "Fastest"}
+                    </span>
                   </div>
                 </button>
 
@@ -924,15 +955,17 @@ export function ProductDetailClient({
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-black uppercase flex items-center gap-1.5 font-heading">
                       <Ship className={`w-3.5 h-3.5 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
-                      Sea Container
+                      {isSpanish ? "Contenedor Marítimo" : "Sea Container"}
                     </span>
                     <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
-                      {productShippingPreview.sea.totalCost === 0 ? "FREE" : `$${productShippingPreview.sea.totalCost.toFixed(2)}`}
+                      {productShippingPreview.sea.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${productShippingPreview.sea.totalCost.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">
                     <span className="text-slate-500 font-medium">{t.product.seaLeadDays}</span>
-                    <span className="text-[9px] font-bold font-mono text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded">Lowest Rate</span>
+                    <span className="text-[9px] font-bold font-mono text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded">
+                      {isSpanish ? "Menor Tarifa" : "Lowest Rate"}
+                    </span>
                   </div>
                 </button>
               </div>
@@ -941,12 +974,12 @@ export function ProductDetailClient({
               <div className="flex items-center justify-between px-1 text-[11px] text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  {product.shipping_origin || "Shenzhen Hub Departure"} • {t.product.ddpPreCleared}
+                  {product.shipping_origin || (isSpanish ? "Salida Hub de Shenzhen" : "Shenzhen Hub Departure")} • {t.product.ddpPreCleared}
                 </span>
                 <span className="font-mono text-[10px] text-slate-400">
                   {shippingMethod === "sea"
-                    ? `${productShippingPreview.sea.chargeableMetric} CBM billable`
-                    : `${productShippingPreview.air.chargeableMetric} kg billable`}
+                    ? `${productShippingPreview.sea.chargeableMetric} ${isSpanish ? "CBM facturable" : "CBM billable"}`
+                    : `${productShippingPreview.air.chargeableMetric} ${isSpanish ? "kg facturable" : "kg billable"}`}
                 </span>
               </div>
             </div>
@@ -958,7 +991,7 @@ export function ProductDetailClient({
               <div className="flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#FF1028]" />
                 <h4 className="font-heading font-black text-xs uppercase tracking-wider text-slate-900">
-                  Factory QC Videos
+                  {isSpanish ? "Videos QC de Fábrica" : "Factory QC Videos"}
                 </h4>
               </div>
               <span className="text-[9px] text-amber-700 font-mono font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
@@ -973,7 +1006,9 @@ export function ProductDetailClient({
                 onClick={() =>
                   setActiveVideoModal({
                     title: video1Title,
-                    subtitle: "Shenzhen Inspection Lab Benchmark • 100% Signal & Load Testing",
+                    subtitle: isSpanish
+                      ? "Evaluación de Laboratorio de Inspección de Shenzhen • 100% Pruebas de Carga y Señal"
+                      : "Shenzhen Inspection Lab Benchmark • 100% Signal & Load Testing",
                     tag: "QC LAB BENCHMARK",
                     hub: product.shipping_origin || "Shenzhen SZX Hub",
                     productPrice: activePrice,
@@ -1033,12 +1068,14 @@ export function ProductDetailClient({
                 <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
                   <div className="flex items-center justify-between">
                     <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors truncate">
-                      {video1Config?.title || "Hardware Teardown QC"}
+                      {video1Config?.title || (isSpanish ? "Desarme de Hardware QC" : "Hardware Teardown QC")}
                     </h5>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400">PASSED</span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400">
+                      {isSpanish ? "APROBADO" : "PASSED"}
+                    </span>
                   </div>
                   <p className="text-[11px] text-slate-300 line-clamp-1">
-                    {product.shipping_origin || "Shenzhen Inspection Lab Benchmark"}
+                    {product.shipping_origin || (isSpanish ? "Estándar del Laboratorio de Shenzhen" : "Shenzhen Inspection Lab Benchmark")}
                   </p>
                 </div>
               </div>
@@ -1048,7 +1085,9 @@ export function ProductDetailClient({
                 onClick={() =>
                   setActiveVideoModal({
                     title: video2Title,
-                    subtitle: "Live Sourcing QC • Direct Verification",
+                    subtitle: isSpanish
+                      ? "Control de Calidad en Vivo • Verificación Directa de Fábrica"
+                      : "Live Sourcing QC • Direct Verification",
                     tag: "FACTORY STRESS DEMO",
                     hub: product.shipping_origin || "Shenzhen SZX Hub",
                     productPrice: activePrice,
@@ -1108,12 +1147,14 @@ export function ProductDetailClient({
                 <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
                   <div className="flex items-center justify-between">
                     <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors truncate">
-                      {video2Config?.title || "Live Performance Test"}
+                      {video2Config?.title || (isSpanish ? "Prueba de Rendimiento en Vivo" : "Live Performance Test")}
                     </h5>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400">PASSED</span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-400">
+                      {isSpanish ? "APROBADO" : "PASSED"}
+                    </span>
                   </div>
                   <p className="text-[11px] text-slate-300 line-clamp-1">
-                    100% Full Load Stability &amp; Stress Pass
+                    {isSpanish ? "100% Estabilidad y Resistencia a Plena Carga" : "100% Full Load Stability & Stress Pass"}
                   </p>
                 </div>
               </div>
@@ -1126,11 +1167,13 @@ export function ProductDetailClient({
                   <ShieldCheck className="w-3.5 h-3.5" />
                 </div>
                 <span className="text-xs font-bold text-slate-900 font-heading">
-                  Shenzhen Inspection Guarantee
+                  {isSpanish ? "Garantía de Inspección de Shenzhen" : "Shenzhen Inspection Guarantee"}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                Every unit is recorded, tested, and certified before international cargo dispatch.
+                {isSpanish
+                  ? "Cada unidad es grabada, probada y certificada antes del despacho de carga internacional."
+                  : "Every unit is recorded, tested, and certified before international cargo dispatch."}
               </p>
             </div>
           </div>
@@ -1160,7 +1203,7 @@ export function ProductDetailClient({
               }`}
             >
               <span className="sm:hidden">{t.product.factoryVideos}</span>
-              <span className="hidden sm:inline">Shenzhen QC &amp; {t.product.factoryVideos}</span>
+              <span className="hidden sm:inline">{isSpanish ? `Control Shenzhen y ${t.product.factoryVideos}` : `Shenzhen QC & ${t.product.factoryVideos}`}</span>
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
@@ -1209,10 +1252,10 @@ export function ProductDetailClient({
               <div className="space-y-6">
                 <div>
                   <h3 className="text-base font-black text-[#00143D] mb-2 font-heading">
-                    Product Overview
+                    {isSpanish ? "Descripción General del Producto" : "Product Overview"}
                   </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
-                    {product.description || product.short_description || "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty."}
+                    {product.description || product.short_description || (isSpanish ? "Fabricado directamente en fábrica con componentes de alta calidad. Probado para exportación y respaldado por la garantía Lennox de 30 días." : "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty.")}
                   </p>
                 </div>
 
@@ -1241,9 +1284,13 @@ export function ProductDetailClient({
                 <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900">
                   <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
                   <div>
-                    <h4 className="font-heading font-black text-xs">100% Pre-Departure Quality Pass</h4>
+                    <h4 className="font-heading font-black text-xs">
+                      {isSpanish ? "100% Control de Calidad Previo al Envío Aprobado" : "100% Pre-Departure Quality Pass"}
+                    </h4>
                     <p className="text-[11px] text-emerald-800">
-                      Every production lot undergoes voltage benchmarking, circuit integrity analysis, and packaging seal tests before departure to Hong Kong or Shenzhen airport hubs.
+                      {isSpanish
+                        ? "Cada lote de producción se somete a pruebas de voltaje, análisis de integridad de circuitos y pruebas de sellado de embalaje antes de la salida a los centros aeroportuarios de Hong Kong o Shenzhen."
+                        : "Every production lot undergoes voltage benchmarking, circuit integrity analysis, and packaging seal tests before departure to Hong Kong or Shenzhen airport hubs."}
                     </p>
                   </div>
                 </div>
@@ -1251,18 +1298,30 @@ export function ProductDetailClient({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                     <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Check 01</span>
-                    <h5 className="font-bold text-slate-900 text-xs">Laser Gimbal Calibration</h5>
-                    <p className="text-[11px] text-slate-500">3-axis motorized gyro deviation under 0.01°.</p>
+                    <h5 className="font-bold text-slate-900 text-xs">
+                      {isSpanish ? "Calibración Láser de Gimbal" : "Laser Gimbal Calibration"}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">
+                      {isSpanish ? "Desviación del giroscopio motorizado de 3 ejes inferior a 0.01°." : "3-axis motorized gyro deviation under 0.01°."}
+                    </p>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                     <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Check 02</span>
-                    <h5 className="font-bold text-slate-900 text-xs">Thermal &amp; Power Stress</h5>
-                    <p className="text-[11px] text-slate-500">Continuous 4-hour full-load thermal scan.</p>
+                    <h5 className="font-bold text-slate-900 text-xs">
+                      {isSpanish ? "Estrés Térmico y de Potencia" : "Thermal & Power Stress"}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">
+                      {isSpanish ? "Escaneo térmico continuo de 4 horas a plena carga." : "Continuous 4-hour full-load thermal scan."}
+                    </p>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                     <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Check 03</span>
-                    <h5 className="font-bold text-slate-900 text-xs">Drop &amp; Vibration Seal</h5>
-                    <p className="text-[11px] text-slate-500">Custom double-wall airfreight cargo carton.</p>
+                    <h5 className="font-bold text-slate-900 text-xs">
+                      {isSpanish ? "Sellado contra Caídas y Vibraciones" : "Drop & Vibration Seal"}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">
+                      {isSpanish ? "Caja de cartón corrugado de doble pared para transporte aéreo." : "Custom double-wall airfreight cargo carton."}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1277,7 +1336,7 @@ export function ProductDetailClient({
                 categoryName={category?.name}
                 variants={product.variants?.map((v) => ({
                   id: v.id,
-                  title: v.title || v.sku || "Standard Edition",
+                  title: v.title || v.sku || (isSpanish ? "Edición Estándar" : "Standard Edition"),
                   sku: v.sku,
                 }))}
               />
@@ -1304,10 +1363,18 @@ export function ProductDetailClient({
                     </div>
                     <div>
                       <h4 className="font-heading font-black text-xs uppercase tracking-wider text-slate-900">
-                        Global Air &amp; Ocean Freight Guarantee
+                        {isSpanish ? "Garantía Global de Transporte Aéreo y Marítimo" : "Global Air & Ocean Freight Guarantee"}
                       </h4>
                       <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                        Shipments depart directly from <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen (SZX) Hub"}</span> with export customs pre-clearance under HS Code <span className="font-mono font-bold text-blue-700">{product.hs_code || "8517.62.00"}</span>.
+                        {isSpanish ? (
+                          <>
+                            Los envíos salen directamente desde <span className="font-bold text-slate-900">{product.shipping_origin || "el Hub de Shenzhen (SZX)"}</span> con despacho aduanero previo bajo el Código HS <span className="font-mono font-bold text-blue-700">{product.hs_code || "8517.62.00"}</span>.
+                          </>
+                        ) : (
+                          <>
+                            Shipments depart directly from <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen (SZX) Hub"}</span> with export customs pre-clearance under HS Code <span className="font-mono font-bold text-blue-700">{product.hs_code || "8517.62.00"}</span>.
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -1319,53 +1386,69 @@ export function ProductDetailClient({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                   <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 transition-all space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider">01. Dimensions</span>
+                      <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider">
+                        {isSpanish ? "01. Dimensiones" : "01. Dimensions"}
+                      </span>
                       <Box className="w-4 h-4 text-blue-500" />
                     </div>
                     <div>
                       <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
-                        {dynamicSpecs["Package Dimensions"]}
+                        {dynamicSpecs["Dimensiones del Paquete"] || dynamicSpecs["Package Dimensions"]}
                       </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Gross Wt: {dynamicSpecs["Gross Shipping Weight"]}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {isSpanish ? "Peso Bruto" : "Gross Wt"}: {dynamicSpecs["Peso Bruto de Envío"] || dynamicSpecs["Gross Shipping Weight"]}
+                      </p>
                     </div>
                   </div>
 
                   <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-300 transition-all space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wider">02. Dispatch SLA</span>
+                      <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wider">
+                        {isSpanish ? "02. Plazo SLA" : "02. Dispatch SLA"}
+                      </span>
                       <Clock className="w-4 h-4 text-emerald-500" />
                     </div>
                     <div>
                       <h5 className="font-bold text-slate-900 text-xs sm:text-sm">
-                        {product.lead_time || "Same Day Dispatch (24h)"}
+                        {product.lead_time || (isSpanish ? "Despacho el Mismo Día (24h)" : "Same Day Dispatch (24h)")}
                       </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Shenzhen Airport Flight Facility</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {isSpanish ? "Instalaciones de Vuelo de Shenzhen" : "Shenzhen Airport Flight Facility"}
+                      </p>
                     </div>
                   </div>
 
                   <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-amber-300 transition-all space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-wider">03. DG Class</span>
+                      <span className="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-wider">
+                        {isSpanish ? "03. Clase Mercancía" : "03. DG Class"}
+                      </span>
                       <Zap className="w-4 h-4 text-amber-500" />
                     </div>
                     <div>
                       <h5 className="font-bold text-slate-900 text-xs truncate">
-                        {dynamicSpecs["Cargo Classification"]}
+                        {dynamicSpecs["Clasificación de Carga"] || dynamicSpecs["Cargo Classification"]}
                       </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">PI967 Certified Air Passenger Pass</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {isSpanish ? "Pase Aéreo de Pasajeros Certificado PI967" : "PI967 Certified Air Passenger Pass"}
+                      </p>
                     </div>
                   </div>
 
                   <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 transition-all space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-purple-600 uppercase tracking-wider">04. Customs Code</span>
+                      <span className="text-[10px] font-mono font-bold text-purple-600 uppercase tracking-wider">
+                        {isSpanish ? "04. Código Arancelario" : "04. Customs Code"}
+                      </span>
                       <ShieldCheck className="w-4 h-4 text-purple-500" />
                     </div>
                     <div>
                       <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
                         HS {product.hs_code || "8517.62.00"}
                       </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">Fast-track automated manifest</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {isSpanish ? "Manifiesto automatizado express" : "Fast-track automated manifest"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1377,15 +1460,17 @@ export function ProductDetailClient({
                     </div>
                     <div>
                       <span className="font-heading font-black text-xs uppercase tracking-wider block">
-                        30-Day Money-Back Warranty &amp; Binance Pay Escrow
+                        {isSpanish ? "Garantía de Devolución de Dinero de 30 Días y Depósito Binance Pay" : "30-Day Money-Back Warranty & Binance Pay Escrow"}
                       </span>
                       <span className="text-[11px] text-slate-300">
-                        Disputes settled instantly in USDT via Binance escrow with zero gateway surcharge.
+                        {isSpanish
+                          ? "Disputas resueltas instantáneamente en USDT vía fideicomiso de Binance sin comisiones extra."
+                          : "Disputes settled instantly in USDT via Binance escrow with zero gateway surcharge."}
                       </span>
                     </div>
                   </div>
                   <span className="px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-[11px] font-mono shrink-0 uppercase tracking-wider">
-                    Buyer Protected
+                    {isSpanish ? "Comprador Protegido" : "Buyer Protected"}
                   </span>
                 </div>
               </div>
@@ -1406,10 +1491,12 @@ export function ProductDetailClient({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-9 h-9 rounded-lg overflow-hidden bg-slate-100 relative shrink-0 border border-slate-200">
-                <Image src={images[0]} alt={product.title} fill className="object-cover" />
+                <Image src={images[0]} alt={getLocalizedProductTitle(product.slug, product.title, isSpanish)} fill className="object-cover" />
               </div>
               <div className="min-w-0">
-                <span className="text-[11px] font-bold text-slate-900 block truncate">{product.title}</span>
+                <span className="text-[11px] font-bold text-slate-900 block truncate">
+                  {getLocalizedProductTitle(product.slug, product.title, isSpanish)}
+                </span>
                 <span className="text-sm font-black font-mono text-[#FF1028]">
                   {formatCurrency(activePrice * quantity)}
                 </span>
@@ -1430,7 +1517,7 @@ export function ProductDetailClient({
                 disabled={isOutOfStock}
                 className="bg-[#FF1028] text-white px-4 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider shadow-md shrink-0 cursor-pointer disabled:opacity-50"
               >
-                Buy Now
+                {isSpanish ? "Comprar Ahora" : "Buy Now"}
               </button>
             </div>
           </div>
@@ -1441,13 +1528,13 @@ export function ProductDetailClient({
       <Modal
         isOpen={isZoomModalOpen}
         onClose={() => setIsZoomModalOpen(false)}
-        title={product.title}
+        title={getLocalizedProductTitle(product.slug, product.title, isSpanish)}
         size="lg"
       >
         <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black">
           <Image
             src={images[selectedImageIndex] || fallbackUrl}
-            alt={product.title}
+            alt={getLocalizedProductTitle(product.slug, product.title, isSpanish)}
             fill
             className="object-contain"
           />

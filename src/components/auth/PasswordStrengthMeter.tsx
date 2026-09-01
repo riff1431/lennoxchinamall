@@ -2,28 +2,75 @@
 
 import React from "react";
 import { Check, X } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface PasswordStrengthMeterProps {
   password?: string;
 }
 
 export function PasswordStrengthMeter({ password = "" }: PasswordStrengthMeterProps) {
+  const { isSpanish } = useTranslation();
+
   const criteria = [
-    { label: "At least 8 characters", valid: password.length >= 8 },
-    { label: "Uppercase letter (A-Z)", valid: /[A-Z]/.test(password) },
-    { label: "Lowercase letter (a-z)", valid: /[a-z]/.test(password) },
-    { label: "Number digit (0-9)", valid: /[0-9]/.test(password) },
-    { label: "Special symbol (!@#$%^&*)", valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) },
+    {
+      label: isSpanish ? "Al menos 8 caracteres" : "At least 8 characters",
+      valid: password.length >= 8,
+    },
+    {
+      label: isSpanish ? "Letra mayúscula (A-Z)" : "Uppercase letter (A-Z)",
+      valid: /[A-Z]/.test(password),
+    },
+    {
+      label: isSpanish ? "Letra minúscula (a-z)" : "Lowercase letter (a-z)",
+      valid: /[a-z]/.test(password),
+    },
+    {
+      label: isSpanish ? "Dígito numérico (0-9)" : "Number digit (0-9)",
+      valid: /[0-9]/.test(password),
+    },
+    {
+      label: isSpanish ? "Símbolo especial (!@#$%^&*)" : "Special symbol (!@#$%^&*)",
+      valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    },
   ];
 
   const score = criteria.filter((c) => c.valid).length;
 
   const getStrengthMeta = () => {
-    if (!password) return { text: "None", color: "bg-slate-700", textCol: "text-slate-500", percent: 0 };
-    if (score <= 2) return { text: "Weak", color: "bg-red-500", textCol: "text-red-400", percent: 25 };
-    if (score <= 3) return { text: "Fair", color: "bg-amber-500", textCol: "text-amber-400", percent: 50 };
-    if (score === 4) return { text: "Good", color: "bg-blue-500", textCol: "text-blue-400", percent: 75 };
-    return { text: "Strong", color: "bg-emerald-500", textCol: "text-emerald-400", percent: 100 };
+    if (!password)
+      return {
+        text: isSpanish ? "Ninguna" : "None",
+        color: "bg-slate-700",
+        textCol: "text-slate-500",
+        percent: 0,
+      };
+    if (score <= 2)
+      return {
+        text: isSpanish ? "Débil" : "Weak",
+        color: "bg-red-500",
+        textCol: "text-red-400",
+        percent: 25,
+      };
+    if (score <= 3)
+      return {
+        text: isSpanish ? "Regular" : "Fair",
+        color: "bg-amber-500",
+        textCol: "text-amber-400",
+        percent: 50,
+      };
+    if (score === 4)
+      return {
+        text: isSpanish ? "Buena" : "Good",
+        color: "bg-blue-500",
+        textCol: "text-blue-400",
+        percent: 75,
+      };
+    return {
+      text: isSpanish ? "Fuerte" : "Strong",
+      color: "bg-emerald-500",
+      textCol: "text-emerald-400",
+      percent: 100,
+    };
   };
 
   const meta = getStrengthMeta();
@@ -32,7 +79,7 @@ export function PasswordStrengthMeter({ password = "" }: PasswordStrengthMeterPr
     <div className="space-y-2 p-3 bg-slate-950/60 rounded-xl border border-slate-800 text-[11px]">
       <div className="flex items-center justify-between">
         <span className="font-bold text-slate-400 font-heading uppercase text-[10px] tracking-wider">
-          Password Strength
+          {isSpanish ? "Seguridad de la Contraseña" : "Password Strength"}
         </span>
         <span className={`font-mono font-bold ${meta.textCol}`}>{meta.text}</span>
       </div>

@@ -13,7 +13,8 @@ const DEFAULT_FALLBACK_PRODUCTS = [
   {
     id: "hist-def-1",
     productId: "prod-total-glue-gun",
-    title: "Pistola De Silicona Electrica 220w Total Tt301116...",
+    title: "Total 220W Electric Hot Melt Glue Gun TT301116",
+    titleEs: "Pistola De Silicona Eléctrica 220w Total TT301116",
     slug: "ts101-smart-usbc-soldering-iron",
     image: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=600&auto=format&fit=crop&q=80",
     price: 18.99,
@@ -21,7 +22,8 @@ const DEFAULT_FALLBACK_PRODUCTS = [
   {
     id: "hist-def-2",
     productId: "prod-circuit-breaker",
-    title: "Interruptor Automático Extinguidor Incendios Par...",
+    title: "Automatic Smart Circuit Breaker Power Cutoff Extinguisher",
+    titleEs: "Interruptor Automático Extinguidor Incendios",
     slug: "konnwei-kw850-obd2-car-diagnostic-scanner",
     image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&auto=format&fit=crop&q=80",
     price: 24.5,
@@ -29,7 +31,8 @@ const DEFAULT_FALLBACK_PRODUCTS = [
   {
     id: "hist-def-3",
     productId: "prod-phone-holder",
-    title: "Porta Celular Soporte Telefono Escritorio...",
+    title: "Desktop Adjustable Cell Phone Stand & Tablet Holder",
+    titleEs: "Porta Celular Soporte Teléfono Escritorio Ajustable",
     slug: "eachine-ex5-4k-gps-fpv-drone",
     image: "https://images.unsplash.com/photo-1586105251261-72a756497a11?w=600&auto=format&fit=crop&q=80",
     price: 7.99,
@@ -37,7 +40,8 @@ const DEFAULT_FALLBACK_PRODUCTS = [
   {
     id: "hist-def-4",
     productId: "prod-phone-stand-pro",
-    title: "Soporte Teléfono Ajustable Porta Celular Escritorio",
+    title: "Aluminum Heavy Duty Desktop Phone Dock",
+    titleEs: "Soporte Teléfono Aluminio Escritorio Ajustable",
     slug: "creality-ender-3-v3-se-3d-printer",
     image: "https://images.unsplash.com/photo-1586105251261-72a756497a11?w=600&auto=format&fit=crop&q=80",
     price: 9.5,
@@ -45,7 +49,8 @@ const DEFAULT_FALLBACK_PRODUCTS = [
   {
     id: "hist-def-5",
     productId: "prod-usb-cable",
-    title: "Cable Carga Rápida Tipo-c Usb 1.5m Con Soporte...",
+    title: "1.5m Fast Charge Type-C USB Cable with Holder",
+    titleEs: "Cable Carga Rápida Tipo-C USB 1.5m con Soporte",
     slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
     image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80",
     price: 4.99,
@@ -53,7 +58,8 @@ const DEFAULT_FALLBACK_PRODUCTS = [
   {
     id: "hist-def-6",
     productId: "prod-traditional-dress",
-    title: "Vestido Huasa China Niña Talla 10-12-14-16 Cueca...",
+    title: "Girls Traditional Embroidered Party Dress",
+    titleEs: "Vestido Huasa China Niña Talla 10-12-14-16",
     slug: "eachine-ex5-4k-gps-fpv-drone",
     image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80",
     price: 32.0,
@@ -62,6 +68,7 @@ const DEFAULT_FALLBACK_PRODUCTS = [
     id: "hist-def-7",
     productId: "prod-corexy-printer",
     title: "CoreXY 600mm/s High-Speed 3D Printer Dual Extruder",
+    titleEs: "Impresora 3D Alta Velocidad CoreXY 600mm/s",
     slug: "creality-ender-3-v3-se-3d-printer",
     image: "https://images.unsplash.com/photo-1615655406736-b37c4fabf923?w=600&auto=format&fit=crop&q=80",
     price: 349.0,
@@ -70,6 +77,7 @@ const DEFAULT_FALLBACK_PRODUCTS = [
     id: "hist-def-8",
     productId: "prod-drone-4k",
     title: "4K Laser Gimbal Aerial Drone Brushless Dual GPS",
+    titleEs: "Drone Aéreo 4K Gimbal Láser GPS Dual",
     slug: "eachine-ex5-4k-gps-fpv-drone",
     image: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=600&auto=format&fit=crop&q=80",
     price: 189.0,
@@ -78,6 +86,7 @@ const DEFAULT_FALLBACK_PRODUCTS = [
     id: "hist-def-9",
     productId: "prod-speaker-boombox",
     title: "120W Tri-Driver Bluetooth IPX7 Outdoor Boombox",
+    titleEs: "Altavoz Bluetooth 120W Tri-Driver Exterior IPX7",
     slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
     image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop&q=80",
     price: 79.99,
@@ -86,6 +95,7 @@ const DEFAULT_FALLBACK_PRODUCTS = [
     id: "hist-def-10",
     productId: "prod-smart-watch",
     title: "Smart Sports Watch AMOLED Display Heart Rate Monitor",
+    titleEs: "Reloj Deportivo Inteligente AMOLED con Monitor Cardíaco",
     slug: "astrolux-ft03s-9300lm-tactical-flashlight",
     image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
     price: 45.0,
@@ -94,6 +104,7 @@ const DEFAULT_FALLBACK_PRODUCTS = [
     id: "hist-def-11",
     productId: "prod-wireless-headphones",
     title: "ANC Wireless Noise Cancelling Over-Ear Headphones",
+    titleEs: "Auriculares Inalámbricos con Cancelación de Ruido ANC",
     slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
     price: 59.99,
@@ -102,6 +113,7 @@ const DEFAULT_FALLBACK_PRODUCTS = [
     id: "hist-def-12",
     productId: "prod-impact-wrench",
     title: "Topshak 20V Cordless Brushless Impact Wrench Set",
+    titleEs: "Juego de Llave de Impacto Inalámbrica 20V Topshak",
     slug: "topshak-ts-esd4-20v-brushless-impact-wrench",
     image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=600&auto=format&fit=crop&q=80",
     price: 89.99,
@@ -299,7 +311,7 @@ export function BrowsingHistorySection() {
               {/* Product Title (2-line clamped) */}
               <div className="w-full">
                 <p className="text-xs sm:text-[13px] text-slate-700 leading-snug line-clamp-2 font-normal group-hover/item:text-blue-600 transition-colors">
-                  {item.title}
+                  {isSpanish && "titleEs" in item ? (item as any).titleEs : item.title}
                 </p>
                 {item.price > 0 && (
                   <p className="text-xs font-semibold text-slate-900 font-mono mt-1 opacity-0 group-hover/item:opacity-100 transition-opacity">

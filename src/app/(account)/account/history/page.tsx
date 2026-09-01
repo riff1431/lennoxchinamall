@@ -17,6 +17,8 @@ import {
 import { useHistoryStore, HistoryItem } from "@/store/useHistoryStore";
 import { useCartStore } from "@/store/useCartStore";
 import { formatCurrency } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 const DEFAULT_EXPLORE_ITEMS = [
   {
@@ -70,6 +72,7 @@ const DEFAULT_EXPLORE_ITEMS = [
 ];
 
 export default function BrowsingHistoryPage() {
+  const { isSpanish } = useTranslation();
   const historyItems = useHistoryStore((state) => state.items);
   const removeItem = useHistoryStore((state) => state.removeItem);
   const clearHistory = useHistoryStore((state) => state.clearHistory);
@@ -117,14 +120,16 @@ export default function BrowsingHistoryPage() {
         <div>
           <div className="flex items-center gap-2">
             <span className="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-              HISTORIAL DE NAVEGACIÓN
+              {isSpanish ? "HISTORIAL DE NAVEGACIÓN" : "BROWSING HISTORY"}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-[#00143D] mt-1 font-heading">
-            Tu historial ({items.length})
+            {isSpanish ? `Tu historial (${items.length})` : `Your Browsing History (${items.length})`}
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Productos que has consultado recientemente en Lennox ChinaMall.
+            {isSpanish
+              ? "Productos que has consultado recientemente en Lennox ChinaMall."
+              : "Products you recently viewed on Lennox ChinaMall."}
           </p>
         </div>
 
@@ -132,7 +137,9 @@ export default function BrowsingHistoryPage() {
           <div className="flex items-center gap-3">
             {showConfirmClear ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-600 font-medium">¿Borrar todo?</span>
+                <span className="text-xs text-slate-600 font-medium">
+                  {isSpanish ? "¿Borrar todo?" : "Clear all?"}
+                </span>
                 <button
                   onClick={() => {
                     clearHistory();
@@ -140,13 +147,13 @@ export default function BrowsingHistoryPage() {
                   }}
                   className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors cursor-pointer"
                 >
-                  Sí, borrar
+                  {isSpanish ? "Sí, borrar" : "Yes, clear"}
                 </button>
                 <button
                   onClick={() => setShowConfirmClear(false)}
                   className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                 >
-                  Cancelar
+                  {isSpanish ? "Cancelar" : "Cancel"}
                 </button>
               </div>
             ) : (
@@ -155,7 +162,7 @@ export default function BrowsingHistoryPage() {
                 className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-600 font-bold transition-colors cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Borrar historial</span>
+                <span>{isSpanish ? "Borrar historial" : "Clear History"}</span>
               </button>
             )}
           </div>
@@ -170,7 +177,7 @@ export default function BrowsingHistoryPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar en tu historial..."
+            placeholder={isSpanish ? "Buscar en tu historial..." : "Search in your browsing history..."}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50"
           />
         </div>
@@ -185,25 +192,27 @@ export default function BrowsingHistoryPage() {
             </div>
             <div className="space-y-1">
               <h3 className="text-base font-black text-[#00143D] font-heading">
-                Aún no tienes productos en tu historial
+                {isSpanish ? "Aún no tienes productos en tu historial" : "No products in your history yet"}
               </h3>
               <p className="text-xs text-slate-500">
-                A medida que navegues por los productos de nuestras fábricas en China, aparecerán aquí para que puedas encontrarlos fácilmente.
+                {isSpanish
+                  ? "A medida que navegues por los productos de nuestras fábricas en China, aparecerán aquí para que puedas encontrarlos fácilmente."
+                  : "As you browse products from China factories, they will appear here for easy retrieval."}
               </p>
             </div>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 bg-[#00143D] hover:bg-[#002366] text-white px-5 py-2.5 rounded-xl text-xs font-black transition-colors"
+              className="inline-flex items-center gap-2 bg-[#00143D] hover:bg-[#002366] text-white px-5 py-2.5 rounded-xl text-xs font-black transition-colors cursor-pointer"
             >
               <Zap className="w-4 h-4 text-amber-400" />
-              <span>Explorar Catálogo Principal</span>
+              <span>{isSpanish ? "Explorar Catálogo Principal" : "Browse Main Catalog"}</span>
             </Link>
           </div>
 
           {/* Fallback Trending Items Showcase */}
           <div className="pt-6 border-t border-slate-100 space-y-4">
             <h3 className="text-sm font-black text-[#00143D] font-heading">
-              Productos recomendados para ti
+              {isSpanish ? "Productos recomendados para ti" : "Recommended products for you"}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {DEFAULT_EXPLORE_ITEMS.map((item) => (
@@ -217,7 +226,7 @@ export default function BrowsingHistoryPage() {
                   >
                     <Image
                       src={item.image}
-                      alt={item.title}
+                      alt={getLocalizedProductTitle(item.slug, item.title, isSpanish)}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
                       className="object-contain p-1"
@@ -228,7 +237,7 @@ export default function BrowsingHistoryPage() {
                     href={`/products/${item.slug}`}
                     className="text-xs text-slate-700 font-medium line-clamp-2 hover:text-blue-600 leading-snug mb-1.5 flex-1"
                   >
-                    {item.title}
+                    {getLocalizedProductTitle(item.slug, item.title, isSpanish)}
                   </Link>
                   <div className="flex items-center justify-between mt-auto pt-1">
                     <span className="text-xs font-black text-slate-900 font-mono">
@@ -237,7 +246,7 @@ export default function BrowsingHistoryPage() {
                     <button
                       onClick={() => handleAddToCart(item)}
                       className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
-                      title="Agregar al carrito"
+                      title={isSpanish ? "Agregar al carrito" : "Add to cart"}
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                     </button>
@@ -249,7 +258,9 @@ export default function BrowsingHistoryPage() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="py-12 text-center text-xs text-slate-500">
-          No se encontraron productos que coincidan con &quot;{searchQuery}&quot;.
+          {isSpanish
+            ? `No se encontraron productos que coincidan con "${searchQuery}".`
+            : `No products matching "${searchQuery}".`}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -262,7 +273,7 @@ export default function BrowsingHistoryPage() {
               <button
                 onClick={() => removeItem(item.productId)}
                 className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-white/90 shadow-xs border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                title="Eliminar de mi historial"
+                title={isSpanish ? "Eliminar de mi historial" : "Remove from my history"}
               >
                 <Trash2 className="w-3 h-3" />
               </button>
@@ -274,7 +285,7 @@ export default function BrowsingHistoryPage() {
               >
                 <Image
                   src={item.image}
-                  alt={item.title}
+                  alt={getLocalizedProductTitle(item.slug, item.title, isSpanish)}
                   fill
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
                   className="object-contain p-1"
@@ -287,7 +298,7 @@ export default function BrowsingHistoryPage() {
                 href={`/products/${item.slug}`}
                 className="text-xs text-slate-700 font-medium line-clamp-2 hover:text-blue-600 leading-snug mb-2 flex-1"
               >
-                {item.title}
+                {getLocalizedProductTitle(item.slug, item.title, isSpanish)}
               </Link>
 
               {/* Price and Cart */}
@@ -302,7 +313,7 @@ export default function BrowsingHistoryPage() {
                       ? "bg-emerald-600 text-white"
                       : "bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white"
                   }`}
-                  title="Agregar al carrito"
+                  title={isSpanish ? "Agregar al carrito" : "Add to cart"}
                 >
                   {addedId === item.productId ? (
                     <Check className="w-3.5 h-3.5" />

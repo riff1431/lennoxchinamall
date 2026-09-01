@@ -25,6 +25,7 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 import { cn } from "@/utils/helpers";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { signout } from "@/app/actions/auth";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function AccountLayout({
   children,
@@ -34,22 +35,23 @@ export default function AccountLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, displayName, role, isLoading } = useAuth();
+  const { isSpanish } = useTranslation();
 
   const navLinks = [
-    { label: "Account Overview", href: "/account", icon: LayoutDashboard },
-    { label: "Notifications & Alerts", href: "/account/notifications", icon: Bell },
-    { label: "My Profile & Security", href: "/account/profile", icon: User },
-    { label: "Orders & Live Tracking", href: "/account/orders", icon: Package },
-    { label: "Shipping Addresses", href: "/account/addresses", icon: MapPin },
-    { label: "My Wishlist", href: "/account/wishlist", icon: Heart },
-    { label: "Historial de Navegación", href: "/account/history", icon: Clock },
-    { label: "Verified Reviews", href: "/account/reviews", icon: Star },
-    { label: "Support Tickets", href: "/account/support", icon: MessageCircle },
-    { label: "Returns & Refunds", href: "/account/returns", icon: RotateCcw },
+    { label: isSpanish ? "Resumen de Cuenta" : "Account Overview", href: "/account", icon: LayoutDashboard },
+    { label: isSpanish ? "Notificaciones y Alertas" : "Notifications & Alerts", href: "/account/notifications", icon: Bell },
+    { label: isSpanish ? "Mi Perfil y Seguridad" : "My Profile & Security", href: "/account/profile", icon: User },
+    { label: isSpanish ? "Pedidos y Rastreo en Vivo" : "Orders & Live Tracking", href: "/account/orders", icon: Package },
+    { label: isSpanish ? "Direcciones de Envío" : "Shipping Addresses", href: "/account/addresses", icon: MapPin },
+    { label: isSpanish ? "Mi Lista de Deseos" : "My Wishlist", href: "/account/wishlist", icon: Heart },
+    { label: isSpanish ? "Historial de Navegación" : "Browsing History", href: "/account/history", icon: Clock },
+    { label: isSpanish ? "Reseñas Verificadas" : "Verified Reviews", href: "/account/reviews", icon: Star },
+    { label: isSpanish ? "Tickets de Soporte" : "Support Tickets", href: "/account/support", icon: MessageCircle },
+    { label: isSpanish ? "Devoluciones y Reembolsos" : "Returns & Refunds", href: "/account/returns", icon: RotateCcw },
   ];
 
   const email = user?.email || "";
-  const name = displayName || email.split("@")[0] || "User";
+  const name = displayName || email.split("@")[0] || (isSpanish ? "Usuario" : "User");
   const initials = name
     .split(" ")
     .map((n: string) => n[0])
@@ -71,16 +73,20 @@ export default function AccountLayout({
           <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-xs">
             <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
             <div className="flex-1">
-              <span className="font-bold text-amber-800">Verify your email address</span>
+              <span className="font-bold text-amber-800">
+                {isSpanish ? "Verifica tu dirección de correo electrónico" : "Verify your email address"}
+              </span>
               <p className="text-amber-600 mt-0.5">
-                Please check your inbox for a verification link to activate all account features.
+                {isSpanish
+                  ? "Por favor revisa tu bandeja de entrada para activar todas las funciones de tu cuenta."
+                  : "Please check your inbox for a verification link to activate all account features."}
               </p>
             </div>
             <Link
               href="/auth/verify-email"
               className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors"
             >
-              Resend
+              {isSpanish ? "Reenviar" : "Resend"}
             </Link>
           </div>
         )}
@@ -95,14 +101,16 @@ export default function AccountLayout({
               </div>
               <div className="min-w-0">
                 <span className="text-sm font-black text-[#00143D] block truncate font-heading">
-                  {isLoading ? "Loading..." : name}
+                  {isLoading ? (isSpanish ? "Cargando..." : "Loading...") : name}
                 </span>
                 <span className="text-[11px] text-slate-400 block truncate">
                   {email}
                 </span>
                 <span className="inline-flex items-center gap-1 text-[10px] text-[#10B981] font-extrabold mt-0.5">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  {emailVerified ? "Verified Buyer" : "Email Pending"}
+                  {emailVerified
+                    ? (isSpanish ? "Comprador Verificado" : "Verified Buyer")
+                    : (isSpanish ? "Correo Pendiente" : "Email Pending")}
                 </span>
               </div>
             </div>
@@ -144,13 +152,15 @@ export default function AccountLayout({
                 className="flex items-center gap-3 px-3.5 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors w-full cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Sign Out of Account</span>
+                <span>{isSpanish ? "Cerrar Sesión" : "Sign Out of Account"}</span>
               </button>
             </div>
           </aside>
 
           {/* Right Main Content Area (8 cols) */}
-          <div className="md:col-span-8 min-w-0">{children}</div>
+          <div className="md:col-span-8 space-y-6">
+            {children}
+          </div>
         </div>
       </main>
       <Footer />

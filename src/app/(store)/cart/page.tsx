@@ -31,15 +31,10 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { formatCurrency } from "@/utils/helpers";
 import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-
-const PRESET_COUPONS = [
-  { code: "LENNOX10", desc: "10% Off Sourcing Order" },
-  { code: "WELCOME10", desc: "10% Off First PO" },
-  { code: "FREESHIP", desc: "Free Express Airfreight" },
-];
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 export default function CartPage() {
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
   const items = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -60,6 +55,18 @@ export default function CartPage() {
   const [couponMsg, setCouponMsg] = useState<{ text: string; isError: boolean } | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  const PRESET_COUPONS = isSpanish
+    ? [
+        { code: "LENNOX10", desc: "10% de Dcto en Pedido" },
+        { code: "WELCOME10", desc: "10% en Primer Pedido" },
+        { code: "FREESHIP", desc: "Carga Aérea Gratis" },
+      ]
+    : [
+        { code: "LENNOX10", desc: "10% Off Sourcing Order" },
+        { code: "WELCOME10", desc: "10% Off First PO" },
+        { code: "FREESHIP", desc: "Free Express Airfreight" },
+      ];
+
   const shippingBreakdown = getShippingBreakdown();
   const totalUnits = shippingBreakdown.totalUnits;
   const activeShipping = shippingMethod === "sea" ? shippingBreakdown.sea.totalCost : shippingBreakdown.air.totalCost;
@@ -69,17 +76,32 @@ export default function CartPage() {
   const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
+  const getLocalizedCouponMessage = (msg: string, isSuccess: boolean) => {
+    if (!isSpanish) return msg;
+    if (isSuccess) {
+      if (msg.toLowerCase().includes("activated") || msg.toLowerCase().includes("applied") || msg.toLowerCase().includes("valid")) {
+        return "¡Cupón aplicado exitosamente!";
+      }
+      return "¡Cupón aplicado exitosamente!";
+    } else {
+      if (msg.toLowerCase().includes("invalid") || msg.toLowerCase().includes("expired")) return "Código de cupón no válido o expirado.";
+      if (msg.toLowerCase().includes("unable") || msg.toLowerCase().includes("error")) return "No se pudo validar el cupón en este momento.";
+      if (msg.toLowerCase().includes("enter")) return "Por favor ingresa un código de cupón.";
+      return "Código de cupón no válido o requisitos no cumplidos.";
+    }
+  };
+
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCoupon.trim()) return;
     const res: any = await applyCoupon(inputCoupon);
-    setCouponMsg({ text: res?.message || "", isError: !res?.success });
+    setCouponMsg({ text: getLocalizedCouponMessage(res?.message || "", res?.success), isError: !res?.success });
     if (res?.success) setInputCoupon("");
   };
 
   const handlePresetCoupon = async (code: string) => {
     const res: any = await applyCoupon(code);
-    setCouponMsg({ text: res?.message || "", isError: !res?.success });
+    setCouponMsg({ text: getLocalizedCouponMessage(res?.message || "", res?.success), isError: !res?.success });
   };
 
   const handleMoveToWishlist = (item: any) => {
@@ -109,12 +131,14 @@ export default function CartPage() {
               {t.cart.emptyCartTitle}
             </h1>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Explore 100,000+ factory-direct China electronics and hardware items with zero Binance Pay USDT gateway fees.
+              {isSpanish
+                ? "Explora más de 100,000 artículos directos de fábrica de China con cero comisiones en pagos con Binance Pay USDT."
+                : "Explore 100,000+ factory-direct China electronics and hardware items with zero Binance Pay USDT gateway fees."}
             </p>
           </div>
           <Link
             href="/categories"
-            className="inline-flex items-center gap-2 bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3.5 rounded-2xl text-xs font-black font-heading transition-all shadow-md active:scale-95"
+            className="inline-flex items-center gap-2 bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3.5 rounded-2xl text-xs font-black font-heading transition-all shadow-md active:scale-95 cursor-pointer"
           >
             <Zap className="w-4 h-4" />
             <span>{t.cart.continueShopping}</span>
@@ -131,18 +155,20 @@ export default function CartPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Breadcrumbs
             items={[
-              { label: "Home", href: "/" },
-              { label: "Sourcing Cart" },
+              { label: isSpanish ? "Inicio" : "Home", href: "/" },
+              { label: isSpanish ? "Carrito de Compras" : "Sourcing Cart" },
             ]}
           />
 
           <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-bold text-blue-600 uppercase font-mono">
-                Direct China Factory Procurement
+                {isSpanish ? "Adquisición Directa de Fábrica de China" : "Direct China Factory Procurement"}
               </span>
               <h1 className="text-2xl sm:text-3xl font-black font-heading text-[#00143D] mt-0.5">
-                Shopping Cart ({items.reduce((sum, i) => sum + i.quantity, 0)} Units)
+                {isSpanish
+                  ? `Carrito de Compras (${items.reduce((sum, i) => sum + i.quantity, 0)} ${items.reduce((sum, i) => sum + i.quantity, 0) === 1 ? "Unidad" : "Unidades"})`
+                  : `Shopping Cart (${items.reduce((sum, i) => sum + i.quantity, 0)} Units)`}
               </h1>
             </div>
 
@@ -152,7 +178,7 @@ export default function CartPage() {
                 className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Clear Cart</span>
+                <span>{isSpanish ? "Vaciar Carrito" : "Clear Cart"}</span>
               </button>
               <span className="text-slate-300">|</span>
               <Link
@@ -160,7 +186,7 @@ export default function CartPage() {
                 className="text-xs font-bold text-[#FF1028] hover:underline flex items-center gap-1"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Continue Shopping</span>
+                <span>{isSpanish ? "Seguir Comprando" : "Continue Shopping"}</span>
               </Link>
             </div>
           </div>
@@ -176,11 +202,21 @@ export default function CartPage() {
               {remainingForFreeShipping === 0 ? (
                 <span className="text-emerald-600 font-black flex items-center gap-1">
                   <Check className="w-3.5 h-3.5" />
-                  Your order qualifies for FREE International Air Cargo (5–8 Days)!
+                  {isSpanish
+                    ? "¡Tu pedido califica para Carga Aérea Internacional GRATIS (5–8 Días)!"
+                    : "Your order qualifies for FREE International Air Cargo (5–8 Days)!"}
                 </span>
               ) : (
                 <span>
-                  Add <strong className="text-[#FF1028]">${remainingForFreeShipping.toFixed(2)} USDT</strong> more to unlock FREE Air Cargo Express!
+                  {isSpanish ? (
+                    <>
+                      Agrega <strong className="text-[#FF1028]">${remainingForFreeShipping.toFixed(2)} USDT</strong> más para desbloquear Carga Aérea Express GRATIS!
+                    </>
+                  ) : (
+                    <>
+                      Add <strong className="text-[#FF1028]">${remainingForFreeShipping.toFixed(2)} USDT</strong> more to unlock FREE Air Cargo Express!
+                    </>
+                  )}
                 </span>
               )}
             </span>
@@ -204,7 +240,7 @@ export default function CartPage() {
                 <div key={item.id} className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 group">
                   {/* Image */}
                   <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-                    <Image src={item.image} alt={item.title} fill className="object-cover" />
+                    <Image src={item.image} alt={getLocalizedProductTitle(item.slug, item.title, isSpanish)} fill className="object-cover" />
                   </div>
 
                   {/* Item Specs & Title */}
@@ -215,20 +251,20 @@ export default function CartPage() {
                           href={`/products/${item.slug}`}
                           className="text-xs sm:text-sm font-bold text-slate-900 hover:text-[#FF1028] transition-colors leading-snug line-clamp-2"
                         >
-                          {item.title}
+                          {getLocalizedProductTitle(item.slug, item.title, isSpanish)}
                         </Link>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             onClick={() => handleMoveToWishlist(item)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-[#FF1028] hover:bg-slate-100 transition-colors cursor-pointer"
-                            title="Move to Wishlist"
+                            title={isSpanish ? "Mover a Favoritos" : "Move to Wishlist"}
                           >
                             <Heart className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => removeItem(item.id)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                            title="Remove from Cart"
+                            title={isSpanish ? "Eliminar del Carrito" : "Remove from Cart"}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -258,7 +294,7 @@ export default function CartPage() {
                         </span>
                         {item.quantity > 1 && (
                           <span className="text-[11px] text-slate-400 font-mono">
-                            (${item.price.toFixed(2)} ea)
+                            (${item.price.toFixed(2)} {isSpanish ? "c/u" : "ea"})
                           </span>
                         )}
                       </div>
@@ -268,7 +304,7 @@ export default function CartPage() {
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="px-3 py-1.5 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
-                          aria-label="Decrease quantity"
+                          aria-label={isSpanish ? "Disminuir cantidad" : "Decrease quantity"}
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
@@ -278,7 +314,7 @@ export default function CartPage() {
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="px-3 py-1.5 text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
-                          aria-label="Increase quantity"
+                          aria-label={isSpanish ? "Aumentar cantidad" : "Increase quantity"}
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -295,10 +331,12 @@ export default function CartPage() {
                 <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0" />
                 <div>
                   <span className="text-xs font-black font-heading block uppercase tracking-wider">
-                    Factory Quality Assurance
+                    {isSpanish ? "Garantía de Calidad de Fábrica" : "Factory Quality Assurance"}
                   </span>
                   <span className="text-[11px] text-slate-300">
-                    Inspected at Shenzhen factory gates before export packing. 30-day USDT dispute warranty.
+                    {isSpanish
+                      ? "Inspeccionado en las puertas de fábrica de Shenzhen antes del embalaje de exportación. Garantía de disputa USDT de 30 días."
+                      : "Inspected at Shenzhen factory gates before export packing. 30-day USDT dispute warranty."}
                   </span>
                 </div>
               </div>
@@ -337,10 +375,10 @@ export default function CartPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black uppercase font-heading flex items-center gap-1.5">
                         <Zap className={`w-3.5 h-3.5 ${shippingMethod === "air" ? "fill-blue-500 text-blue-600" : "text-slate-400"}`} />
-                        Direct Air
+                        {isSpanish ? "Aéreo Directo" : "Direct Air"}
                       </span>
                       <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
-                        {shippingBreakdown.air.totalCost === 0 ? "FREE" : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
+                        {shippingBreakdown.air.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${shippingBreakdown.air.totalCost.toFixed(2)}`}
                       </span>
                     </div>
                     <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">{t.product.airLeadDays}</span>
@@ -358,10 +396,10 @@ export default function CartPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black uppercase font-heading flex items-center gap-1.5">
                         <Ship className={`w-3.5 h-3.5 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
-                        Sea Cargo
+                        {isSpanish ? "Carga Marítima" : "Sea Cargo"}
                       </span>
                       <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
-                        {shippingBreakdown.sea.totalCost === 0 ? "FREE" : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
+                        {shippingBreakdown.sea.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${shippingBreakdown.sea.totalCost.toFixed(2)}`}
                       </span>
                     </div>
                     <span className="text-[10px] text-slate-500 block mt-0.5 font-medium">{t.product.seaLeadDays}</span>
@@ -387,11 +425,14 @@ export default function CartPage() {
 
                 <div className="flex justify-between text-slate-600 font-medium">
                   <span>
-                    {shippingMethod === "sea" ? "Ocean Container Freight" : "Priority Direct Air Cargo"} ({totalUnits} {totalUnits === 1 ? "unit" : "units"})
+                    {isSpanish
+                      ? (shippingMethod === "sea" ? "Carga en Contenedor Marítimo" : "Carga Aérea Directa Prioritaria")
+                      : (shippingMethod === "sea" ? "Ocean Container Freight" : "Priority Direct Air Cargo")}{" "}
+                    ({totalUnits} {totalUnits === 1 ? (isSpanish ? "unidad" : "unit") : (isSpanish ? "unidades" : "units")})
                   </span>
                   <span className="font-bold text-slate-900 font-mono">
                     {activeShipping === 0 ? (
-                      <span className="text-emerald-600 font-black uppercase">FREE</span>
+                      <span className="text-emerald-600 font-black uppercase">{isSpanish ? "GRATIS" : "FREE"}</span>
                     ) : (
                       formatCurrency(activeShipping)
                     )}
@@ -416,7 +457,7 @@ export default function CartPage() {
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs">
                     <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
                       <Check className="w-4 h-4" />
-                      <span>Voucher <strong>{couponCode}</strong> Active</span>
+                      <span>{isSpanish ? `Cupón ${couponCode} Activo` : `Voucher ${couponCode} Active`}</span>
                     </div>
                     <button
                       onClick={removeCoupon}
@@ -430,7 +471,7 @@ export default function CartPage() {
                     <form onSubmit={handleApplyCoupon} className="flex gap-2">
                       <input
                         type="text"
-                        placeholder="e.g. LENNOX10"
+                        placeholder={isSpanish ? "ej. LENNOX10" : "e.g. LENNOX10"}
                         value={inputCoupon}
                         onChange={(e) => setInputCoupon(e.target.value.toUpperCase())}
                         className="flex-1 px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl uppercase font-mono font-bold focus:outline-none focus:border-[#FF1028]"
@@ -479,7 +520,11 @@ export default function CartPage() {
               {/* Payment Info Badge */}
               <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 flex items-center justify-center gap-2 font-semibold">
                 <Coins className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Binance Pay Zero-Fee Escrow • Instant Delivery</span>
+                <span>
+                  {isSpanish
+                    ? "Depósito en Garantía Binance Pay con Cero Comisiones • Entrega Inmediata"
+                    : "Binance Pay Zero-Fee Escrow • Instant Delivery"}
+                </span>
               </div>
             </div>
           </div>
@@ -491,17 +536,19 @@ export default function CartPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
             <h4 className="font-heading font-black text-base text-[#00143D]">
-              Clear Shopping Cart?
+              {isSpanish ? "¿Vaciar Carrito de Compras?" : "Clear Shopping Cart?"}
             </h4>
             <p className="text-xs text-slate-500">
-              Are you sure you want to remove all {items.length} items from your shopping cart?
+              {isSpanish
+                ? `¿Estás seguro de que deseas eliminar todos los ${items.length} artículos de tu carrito de compras?`
+                : `Are you sure you want to remove all ${items.length} items from your shopping cart?`}
             </p>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setShowClearConfirm(false)}
                 className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
               >
-                Cancel
+                {isSpanish ? "Cancelar" : "Cancel"}
               </button>
               <button
                 onClick={() => {
@@ -510,7 +557,7 @@ export default function CartPage() {
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-black text-xs font-heading cursor-pointer"
               >
-                Yes, Clear Cart
+                {isSpanish ? "Sí, Vaciar Carrito" : "Yes, Clear Cart"}
               </button>
             </div>
           </div>

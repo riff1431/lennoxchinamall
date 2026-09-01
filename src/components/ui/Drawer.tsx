@@ -74,7 +74,8 @@ export function Drawer({
             <div className="text-base font-bold text-slate-900">{title}</div>
             <button
               onClick={onClose}
-              className="p-2 -mr-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+              aria-label="Close"
+              className="p-2 -mr-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>

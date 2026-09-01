@@ -29,6 +29,8 @@ import { formatCurrency } from "@/utils/helpers";
 import { HomepageSection } from "@/types/homepage";
 import { MotionSection } from "@/components/animation/MotionSection";
 import { StaggerGrid, StaggerItem } from "@/components/animation/StaggerGrid";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
 
 const HERO_SLIDES = [
   {
@@ -77,6 +79,7 @@ export interface HomePageClientProps {
 }
 
 export function HomePageClient({ sections, initialProducts = [] }: HomePageClientProps) {
+  const { t, isSpanish } = useTranslation();
   const heroSection = sections?.find((s) => s.type === "hero_banner" && s.is_active);
   const rawSlides = heroSection?.config?.slides;
 
@@ -207,11 +210,11 @@ export function HomePageClient({ sections, initialProducts = [] }: HomePageClien
             <div>
               <div className="flex items-center gap-2">
                 <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-                  CURATED SELECTION
+                  {isSpanish ? "SELECCIÓN CURADA" : "CURATED SELECTION"}
                 </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-[#00143D] font-heading">
-                Top Trending Factory Products
+                {isSpanish ? "Productos de Fábrica en Tendencia" : "Top Trending Factory Products"}
               </h2>
             </div>
 
@@ -224,7 +227,7 @@ export function HomePageClient({ sections, initialProducts = [] }: HomePageClien
                     : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
-                All Popular
+                {isSpanish ? "Todos los Populares" : "All Popular"}
               </button>
               {rootCategories.map((cat) => (
                 <button
@@ -236,7 +239,7 @@ export function HomePageClient({ sections, initialProducts = [] }: HomePageClien
                       : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
                   }`}
                 >
-                  {cat.name}
+                  {getLocalizedCategoryName(cat.name, isSpanish)}
                 </button>
               ))}
             </div>

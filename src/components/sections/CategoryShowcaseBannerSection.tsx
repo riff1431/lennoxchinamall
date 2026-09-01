@@ -9,6 +9,7 @@ import { Category } from "@/types/database";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
 
 const PASTEL_PALETTES = [
   "#EBF4FB", // Soft Ice Blue (Men's Fashion)
@@ -169,7 +170,7 @@ export function CategoryShowcaseBannerSection({
 
                   {/* Category Name Underneath */}
                   <span className="mt-2 text-[11px] sm:text-xs md:text-sm font-bold text-slate-800 text-center line-clamp-2 leading-snug group-hover:text-[#00B4D8] transition-colors font-heading">
-                    {cat.name}
+                    {getLocalizedCategoryName(cat.name, isSpanish)}
                   </span>
                 </Link>
               );

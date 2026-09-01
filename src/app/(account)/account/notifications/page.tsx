@@ -52,11 +52,13 @@ import {
   CategoriesConfig,
 } from "@/types/notifications";
 import { formatTimeAgo, formatDate, cn } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 type TabKey = "all" | "unread" | "orders" | "shipping" | "payments" | "promotions" | "archived" | "preferences";
 
 export default function CustomerNotificationCenterPage() {
   const { user } = useAuth();
+  const { isSpanish } = useTranslation();
   const refreshHeaderStore = useNotificationStore((state) => state.fetchNotifications);
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -171,28 +173,28 @@ export default function CustomerNotificationCenterPage() {
     setUnreadCount((c) => Math.max(0, c - 1));
     await markNotificationAsRead(id);
     refreshHeaderStore();
-    showToast("Notification marked as read");
+    showToast(isSpanish ? "Notificación marcada como leída" : "Notification marked as read");
   };
 
   const handleArchive = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     await archiveNotification(id);
     refreshHeaderStore();
-    showToast("Notification archived");
+    showToast(isSpanish ? "Notificación archivada" : "Notification archived");
   };
 
   const handleUnarchive = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     await unarchiveNotification(id);
     refreshHeaderStore();
-    showToast("Notification restored to inbox");
+    showToast(isSpanish ? "Notificación restaurada a la bandeja" : "Notification restored to inbox");
   };
 
   const handleDelete = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     await deleteNotification(id);
     refreshHeaderStore();
-    showToast("Notification removed");
+    showToast(isSpanish ? "Notificación eliminada" : "Notification removed");
   };
 
   // Bulk Actions
@@ -203,7 +205,11 @@ export default function CustomerNotificationCenterPage() {
     setSelectedIds([]);
     loadData();
     refreshHeaderStore();
-    showToast(`Updated ${count} notification(s)`);
+    showToast(
+      isSpanish
+        ? `Se actualizaron ${count} notificación(es)`
+        : `Updated ${count} notification(s)`
+    );
   };
 
   const handleMarkAllRead = async () => {
@@ -213,13 +219,13 @@ export default function CustomerNotificationCenterPage() {
     setUnreadCount(0);
     await markAllNotificationsAsRead();
     refreshHeaderStore();
-    showToast("All notifications marked as read");
+    showToast(isSpanish ? "Todas las notificaciones marcadas como leídas" : "All notifications marked as read");
   };
 
   // Enable Web Push
   const handleEnablePush = async () => {
     if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
-      alert("Push notifications are not supported by this browser.");
+      alert(isSpanish ? "Las notificaciones push no son compatibles con este navegador." : "Push notifications are not supported by this browser.");
       return;
     }
 
@@ -232,7 +238,6 @@ export default function CustomerNotificationCenterPage() {
         let sub = await reg.pushManager.getSubscription();
 
         if (!sub) {
-          // Dummy VAPID public key placeholder for browser subscription registration
           const applicationServerKey = new Uint8Array([
             4, 98, 12, 45, 67, 89, 12, 34, 56, 78, 90, 12, 34, 56, 78, 90, 12, 34, 56, 78,
             90, 12, 34, 56, 78, 90, 12, 34, 56, 78, 90, 12, 34, 56, 78, 90, 12, 34, 56, 78,
@@ -246,7 +251,7 @@ export default function CustomerNotificationCenterPage() {
               applicationServerKey,
             });
           } catch {
-            // Subscription with custom key fallback
+            // Subscription fallback
           }
         }
 
@@ -263,11 +268,11 @@ export default function CustomerNotificationCenterPage() {
           });
         }
 
-        showToast("Web Push notifications enabled successfully!");
+        showToast(isSpanish ? "¡Notificaciones Web Push habilitadas exitosamente!" : "Web Push notifications enabled successfully!");
       }
     } catch (err) {
       console.error("Push registration error:", err);
-      showToast("Could not enable push notifications");
+      showToast(isSpanish ? "No se pudieron habilitar las notificaciones push" : "Could not enable push notifications");
     }
   };
 
@@ -279,9 +284,9 @@ export default function CustomerNotificationCenterPage() {
     try {
       const res = await updateUserNotificationPreferences(preferences);
       if (res.success) {
-        showToast("Notification preferences updated successfully!");
+        showToast(isSpanish ? "¡Preferencias de notificación actualizadas exitosamente!" : "Notification preferences updated successfully!");
       } else {
-        showToast(res.error || "Failed to update preferences");
+        showToast(res.error || (isSpanish ? "Error al actualizar preferencias" : "Failed to update preferences"));
       }
     } finally {
       setIsSavingPrefs(false);
@@ -292,23 +297,55 @@ export default function CustomerNotificationCenterPage() {
   const getCategoryMeta = (cat: NotificationCategory) => {
     switch (cat) {
       case "orders":
-        return { label: "Order & Sourcing", icon: Package, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/50 border-blue-200" };
+        return {
+          label: isSpanish ? "Pedidos y Abastecimiento" : "Order & Sourcing",
+          icon: Package,
+          color: "text-blue-600 bg-blue-50 dark:bg-blue-950/50 border-blue-200",
+        };
       case "payments":
-        return { label: "Binance Pay", icon: Coins, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200" };
+        return {
+          label: "Binance Pay",
+          icon: Coins,
+          color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200",
+        };
       case "shipping":
-        return { label: "Air Cargo", icon: Plane, color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 border-indigo-200" };
+        return {
+          label: isSpanish ? "Carga Aérea" : "Air Cargo",
+          icon: Plane,
+          color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 border-indigo-200",
+        };
       case "delivery":
-        return { label: "Delivery", icon: Truck, color: "text-green-600 bg-green-50 dark:bg-green-950/50 border-green-200" };
+        return {
+          label: isSpanish ? "Entrega" : "Delivery",
+          icon: Truck,
+          color: "text-green-600 bg-green-50 dark:bg-green-950/50 border-green-200",
+        };
       case "returns":
       case "refunds":
-        return { label: "Returns & Refund", icon: RotateCcw, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/50 border-amber-200" };
+        return {
+          label: isSpanish ? "Devoluciones y Reembolsos" : "Returns & Refund",
+          icon: RotateCcw,
+          color: "text-amber-600 bg-amber-50 dark:bg-amber-950/50 border-amber-200",
+        };
       case "support":
-        return { label: "Support Desk", icon: MessageCircle, color: "text-sky-600 bg-sky-50 dark:bg-sky-950/50 border-sky-200" };
+        return {
+          label: isSpanish ? "Mesa de Soporte" : "Support Desk",
+          icon: MessageCircle,
+          color: "text-sky-600 bg-sky-50 dark:bg-sky-950/50 border-sky-200",
+        };
       case "security":
-        return { label: "Account Security", icon: ShieldAlert, color: "text-rose-600 bg-rose-50 dark:bg-rose-950/50 border-rose-200" };
+        return {
+          label: isSpanish ? "Seguridad de Cuenta" : "Account Security",
+          icon: ShieldAlert,
+          color: "text-rose-600 bg-rose-50 dark:bg-rose-950/50 border-rose-200",
+        };
       case "promotions":
       default:
-        return { label: "Flash Drop", icon: Sparkles, color: "text-[#FF1028] bg-red-50 dark:bg-red-950/50 border-red-200" };
+        return {
+          label: isSpanish ? "Ofertas Flash" : "Flash Drop",
+          icon: Sparkles,
+          color: "text-[#FF1028] bg-red-50 dark:bg-red-950/50 border-red-200",
+        };
     }
   };
 
@@ -319,19 +356,22 @@ export default function CustomerNotificationCenterPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-heading">
-              COMMUNICATION HUB
+              {isSpanish ? "CENTRO DE COMUNICACIÓN" : "COMMUNICATION HUB"}
             </span>
             {unreadCount > 0 && (
               <span className="text-xs text-amber-300 font-bold flex items-center gap-1">
-                <Bell className="w-3.5 h-3.5 text-[#FF1028]" /> {unreadCount} Unread Alert(s)
+                <Bell className="w-3.5 h-3.5 text-[#FF1028]" />
+                {unreadCount} {isSpanish ? "Alerta(s) No Leída(s)" : "Unread Alert(s)"}
               </span>
             )}
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-            Notifications &amp; Activity Center
+            {isSpanish ? "Centro de Notificaciones y Actividad" : "Notifications & Activity Center"}
           </h1>
           <p className="text-xs text-slate-300">
-            Real-time updates on China factory orders, Binance Pay escrows, Hong Kong air transit, and VIP drops.
+            {isSpanish
+              ? "Actualizaciones en tiempo real sobre órdenes en fábrica, depósitos Binance Pay, tránsito aéreo de Hong Kong y ofertas VIP."
+              : "Real-time updates on China factory orders, Binance Pay escrows, Hong Kong air transit, and VIP drops."}
           </p>
         </div>
 
@@ -342,7 +382,7 @@ export default function CustomerNotificationCenterPage() {
               className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3.5 py-2 rounded-xl border border-white/20 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <CheckCheck className="w-4 h-4 text-[#10B981]" />
-              <span>Mark All Read</span>
+              <span>{isSpanish ? "Marcar Todo como Leído" : "Mark All Read"}</span>
             </button>
           )}
           <button
@@ -350,7 +390,7 @@ export default function CustomerNotificationCenterPage() {
             className="bg-[#FF1028] hover:bg-[#E00B20] text-white text-xs font-black px-4 py-2 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs font-heading uppercase"
           >
             <Sliders className="w-4 h-4" />
-            <span>Preferences</span>
+            <span>{isSpanish ? "Preferencias" : "Preferences"}</span>
           </button>
         </div>
       </div>
@@ -359,14 +399,14 @@ export default function CustomerNotificationCenterPage() {
       <div className="flex items-center justify-between gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800 pb-2">
         <div className="flex items-center gap-1.5 shrink-0">
           {[
-            { key: "all", label: "All Inbox" },
-            { key: "unread", label: `Unread (${unreadCount})` },
-            { key: "orders", label: "Orders" },
-            { key: "shipping", label: "Air Shipping" },
-            { key: "payments", label: "Payments" },
-            { key: "promotions", label: "Flash Drops" },
-            { key: "archived", label: "Archived" },
-            { key: "preferences", label: "Preferences" },
+            { key: "all", label: isSpanish ? "Todos" : "All Inbox" },
+            { key: "unread", label: isSpanish ? `No Leídos (${unreadCount})` : `Unread (${unreadCount})` },
+            { key: "orders", label: isSpanish ? "Pedidos" : "Orders" },
+            { key: "shipping", label: isSpanish ? "Envíos Aéreos" : "Air Shipping" },
+            { key: "payments", label: isSpanish ? "Pagos" : "Payments" },
+            { key: "promotions", label: isSpanish ? "Ofertas Flash" : "Flash Drops" },
+            { key: "archived", label: isSpanish ? "Archivados" : "Archived" },
+            { key: "preferences", label: isSpanish ? "Preferencias" : "Preferences" },
           ].map((t) => (
             <button
               key={t.key}
@@ -386,7 +426,7 @@ export default function CustomerNotificationCenterPage() {
         {/* Refresh button */}
         <button
           onClick={() => loadData()}
-          title="Refresh Feed"
+          title={isSpanish ? "Actualizar Notificaciones" : "Refresh Feed"}
           className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-[#00143D] transition-colors cursor-pointer shrink-0"
         >
           <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
@@ -399,10 +439,12 @@ export default function CustomerNotificationCenterPage() {
           <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
             <h2 className="text-base font-black text-[#00143D] dark:text-white font-heading flex items-center gap-2">
               <Sliders className="w-5 h-5 text-[#FF1028]" />
-              <span>Notification Channel Preferences</span>
+              <span>{isSpanish ? "Preferencias de Canales de Notificación" : "Notification Channel Preferences"}</span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Customize how and where you receive notifications across email, web push, SMS, and in-app alerts.
+              {isSpanish
+                ? "Personaliza cómo y dónde recibir notificaciones por correo electrónico, web push, SMS y alertas dentro de la app."
+                : "Customize how and where you receive notifications across email, web push, SMS, and in-app alerts."}
             </p>
           </div>
 
@@ -414,8 +456,12 @@ export default function CustomerNotificationCenterPage() {
                   <Bell className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">In-App Alerts</span>
-                  <span className="text-[10px] text-slate-400">Header bell &amp; badge</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    {isSpanish ? "Alertas en la App" : "In-App Alerts"}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {isSpanish ? "Campana y globos en cabecera" : "Header bell & badge"}
+                  </span>
                 </div>
               </div>
               <input
@@ -434,8 +480,12 @@ export default function CustomerNotificationCenterPage() {
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Email Reports</span>
-                  <span className="text-[10px] text-slate-400">Invoices &amp; Tracking</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    {isSpanish ? "Reportes por Correo" : "Email Reports"}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {isSpanish ? "Facturas y Rastreo" : "Invoices & Tracking"}
+                  </span>
                 </div>
               </div>
               <input
@@ -454,8 +504,12 @@ export default function CustomerNotificationCenterPage() {
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Web Push</span>
-                  <span className="text-[10px] text-slate-400">Instant desktop popups</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    {isSpanish ? "Notificaciones Web Push" : "Web Push"}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {isSpanish ? "Ventanas emergentes al instante" : "Instant desktop popups"}
+                  </span>
                 </div>
               </div>
               <input
@@ -474,8 +528,12 @@ export default function CustomerNotificationCenterPage() {
                   <Smartphone className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">SMS Messages</span>
-                  <span className="text-[10px] text-slate-400">Direct courier text</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    {isSpanish ? "Mensajes SMS" : "SMS Messages"}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {isSpanish ? "Texto directo del transportista" : "Direct courier text"}
+                  </span>
                 </div>
               </div>
               <input
@@ -494,10 +552,12 @@ export default function CustomerNotificationCenterPage() {
             <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="space-y-0.5">
                 <span className="font-bold text-indigo-900 dark:text-indigo-200 block">
-                  Enable Instant Web Push Notifications
+                  {isSpanish ? "Habilitar Notificaciones Web Push Instantáneas" : "Enable Instant Web Push Notifications"}
                 </span>
                 <p className="text-indigo-700 dark:text-indigo-300">
-                  Receive live alerts when your package clears customs or when VIP flash drops launch.
+                  {isSpanish
+                    ? "Recibe alertas en vivo cuando tu paquete pase la aduana o cuando inicien ofertas flash VIP."
+                    : "Receive live alerts when your package clears customs or when VIP flash drops launch."}
                 </p>
               </div>
               <button
@@ -505,7 +565,7 @@ export default function CustomerNotificationCenterPage() {
                 onClick={handleEnablePush}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-bold transition-colors shrink-0 cursor-pointer shadow-xs"
               >
-                Allow Browser Notifications
+                {isSpanish ? "Permitir Notificaciones del Navegador" : "Allow Browser Notifications"}
               </button>
             </div>
           )}
@@ -514,7 +574,7 @@ export default function CustomerNotificationCenterPage() {
           {preferences?.sms_enabled && (
             <div className="space-y-1.5 p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30">
               <label className="text-xs font-bold text-emerald-900 dark:text-emerald-300 block">
-                Delivery Mobile Number (with country code)
+                {isSpanish ? "Número de Teléfono Móvil (con código de país)" : "Delivery Mobile Number (with country code)"}
               </label>
               <input
                 type="tel"
@@ -531,30 +591,30 @@ export default function CustomerNotificationCenterPage() {
           {/* Category Channel Matrix */}
           <div className="space-y-3 pt-2">
             <span className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider block font-heading">
-              Fine-Grained Category Delivery Matrix
+              {isSpanish ? "Matriz Detallada de Entrega por Categoría" : "Fine-Grained Category Delivery Matrix"}
             </span>
 
             <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold">
                   <tr>
-                    <th className="p-3.5">Category</th>
-                    <th className="p-3.5 text-center">In-App</th>
-                    <th className="p-3.5 text-center">Email</th>
-                    <th className="p-3.5 text-center">Web Push</th>
-                    <th className="p-3.5 text-center">SMS</th>
+                    <th className="p-3.5">{isSpanish ? "Categoría" : "Category"}</th>
+                    <th className="p-3.5 text-center">{isSpanish ? "En la App" : "In-App"}</th>
+                    <th className="p-3.5 text-center">{isSpanish ? "Correo" : "Email"}</th>
+                    <th className="p-3.5 text-center">{isSpanish ? "Web Push" : "Web Push"}</th>
+                    <th className="p-3.5 text-center">{isSpanish ? "SMS" : "SMS"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                   {[
-                    { key: "orders", label: "Orders & Sourcing" },
-                    { key: "payments", label: "Binance Pay Payments" },
-                    { key: "shipping", label: "Air Cargo & Flight Tracking" },
-                    { key: "delivery", label: "Parcel Delivery Updates" },
-                    { key: "returns", label: "Returns & Refund Claims" },
-                    { key: "support", label: "Support Tickets & Replies" },
-                    { key: "security", label: "Account Security (Mandatory)" },
-                    { key: "promotions", label: "VIP Drops & Flash Sales" },
+                    { key: "orders", label: isSpanish ? "Pedidos y Abastecimiento" : "Orders & Sourcing" },
+                    { key: "payments", label: isSpanish ? "Pagos Binance Pay" : "Binance Pay Payments" },
+                    { key: "shipping", label: isSpanish ? "Carga Aérea y Vuelos" : "Air Cargo & Flight Tracking" },
+                    { key: "delivery", label: isSpanish ? "Actualizaciones de Entrega" : "Parcel Delivery Updates" },
+                    { key: "returns", label: isSpanish ? "Devoluciones y Reembolsos" : "Returns & Refund Claims" },
+                    { key: "support", label: isSpanish ? "Tickets y Soporte" : "Support Tickets & Replies" },
+                    { key: "security", label: isSpanish ? "Seguridad de Cuenta (Obligatorio)" : "Account Security (Mandatory)" },
+                    { key: "promotions", label: isSpanish ? "Ofertas VIP y Flash" : "VIP Drops & Flash Sales" },
                   ].map((row) => {
                     const catKey = row.key as NotificationCategory;
                     const config = preferences?.categories_config?.[catKey] || {
@@ -638,7 +698,9 @@ export default function CustomerNotificationCenterPage() {
               disabled={isSavingPrefs}
               className="px-6 py-2.5 rounded-xl text-xs font-black text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors shadow-xs cursor-pointer font-heading uppercase tracking-wider"
             >
-              {isSavingPrefs ? "Saving Preferences..." : "Save Preferences"}
+              {isSavingPrefs
+                ? (isSpanish ? "Guardando Preferencias..." : "Saving Preferences...")
+                : (isSpanish ? "Guardar Preferencias" : "Save Preferences")}
             </button>
           </div>
         </form>
@@ -652,7 +714,7 @@ export default function CustomerNotificationCenterPage() {
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder="Search notifications by order number, title, keywords..."
+                placeholder={isSpanish ? "Buscar notificaciones por no. de pedido, título, palabras clave..." : "Search notifications by order number, title, keywords..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs outline-none focus:border-[#FF1028]"
@@ -666,15 +728,15 @@ export default function CustomerNotificationCenterPage() {
                 className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
               >
                 {selectedIds.length === notifications.length && notifications.length > 0
-                  ? "Deselect All"
-                  : "Select All"}
+                  ? (isSpanish ? "Deseleccionar Todos" : "Deselect All")
+                  : (isSpanish ? "Seleccionar Todos" : "Select All")}
               </button>
 
               {selectedIds.length > 0 && (
                 <>
                   <button
                     onClick={() => handleBulkAction("read")}
-                    title="Mark Selected Read"
+                    title={isSpanish ? "Marcar seleccionados como leídos" : "Mark Selected Read"}
                     className="p-2 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950 rounded-xl hover:bg-blue-100 transition-colors cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
@@ -682,7 +744,7 @@ export default function CustomerNotificationCenterPage() {
 
                   <button
                     onClick={() => handleBulkAction("archive")}
-                    title="Archive Selected"
+                    title={isSpanish ? "Archivar seleccionados" : "Archive Selected"}
                     className="p-2 text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-950 rounded-xl hover:bg-amber-100 transition-colors cursor-pointer"
                   >
                     <Archive className="w-4 h-4" />
@@ -690,7 +752,7 @@ export default function CustomerNotificationCenterPage() {
 
                   <button
                     onClick={() => handleBulkAction("delete")}
-                    title="Delete Selected"
+                    title={isSpanish ? "Eliminar seleccionados" : "Delete Selected"}
                     className="p-2 text-xs font-bold text-red-600 bg-red-50 dark:bg-red-950 rounded-xl hover:bg-red-100 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -704,20 +766,20 @@ export default function CustomerNotificationCenterPage() {
           {isLoading ? (
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 text-center text-xs text-slate-400 space-y-2">
               <div className="w-7 h-7 border-2 border-[#FF1028] border-t-transparent rounded-full animate-spin mx-auto" />
-              <p>Fetching notifications from Lennox China Mall...</p>
+              <p>{isSpanish ? "Obteniendo notificaciones de Lennox China Mall..." : "Fetching notifications from Lennox China Mall..."}</p>
             </div>
           ) : notifications.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 text-center text-xs text-slate-400 space-y-3">
               <Bell className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
               <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                No notifications found
+                {isSpanish ? "No se encontraron notificaciones" : "No notifications found"}
               </h3>
               <p className="max-w-sm mx-auto text-slate-500 text-[11px]">
                 {activeTab === "archived"
-                  ? "You have no archived messages."
+                  ? (isSpanish ? "No tienes mensajes archivados." : "You have no archived messages.")
                   : activeTab === "unread"
-                  ? "You have read all your latest order and communication alerts."
-                  : "New order status updates, air cargo dispatches, and flash drops will appear here."}
+                  ? (isSpanish ? "Has leído todas tus alertas recientes." : "You have read all your latest order and communication alerts.")
+                  : (isSpanish ? "Las nuevas actualizaciones de pedidos, envíos aéreos y ofertas flash aparecerán aquí." : "New order status updates, air cargo dispatches, and flash drops will appear here.")}
               </p>
             </div>
           ) : (
@@ -770,13 +832,13 @@ export default function CustomerNotificationCenterPage() {
 
                         {notif.priority === "urgent" && (
                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200">
-                            Urgent
+                            {isSpanish ? "Urgente" : "Urgent"}
                           </span>
                         )}
 
                         {isUnread && (
                           <span className="bg-[#FF1028] text-white text-[9px] font-black px-1.5 py-0.2 rounded uppercase">
-                            NEW
+                            {isSpanish ? "NUEVO" : "NEW"}
                           </span>
                         )}
 
@@ -805,7 +867,7 @@ export default function CustomerNotificationCenterPage() {
                             href={notif.action_url}
                             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#00143D] hover:bg-[#002366] text-white text-xs font-bold transition-colors shadow-xs"
                           >
-                            <span>{notif.action_label || "View Details"}</span>
+                            <span>{notif.action_label || (isSpanish ? "Ver Detalles" : "View Details")}</span>
                             <ArrowRight className="w-3.5 h-3.5 text-[#FF1028]" />
                           </Link>
                         </div>
@@ -817,7 +879,7 @@ export default function CustomerNotificationCenterPage() {
                       {isUnread ? (
                         <button
                           onClick={() => handleMarkRead(notif.id)}
-                          title="Mark as Read"
+                          title={isSpanish ? "Marcar como leído" : "Mark as Read"}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                         >
                           <Check className="w-4 h-4" />
@@ -827,7 +889,7 @@ export default function CustomerNotificationCenterPage() {
                       {activeTab === "archived" ? (
                         <button
                           onClick={() => handleUnarchive(notif.id)}
-                          title="Restore to Inbox"
+                          title={isSpanish ? "Restaurar a la bandeja" : "Restore to Inbox"}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer"
                         >
                           <ArchiveRestore className="w-4 h-4" />
@@ -835,7 +897,7 @@ export default function CustomerNotificationCenterPage() {
                       ) : (
                         <button
                           onClick={() => handleArchive(notif.id)}
-                          title="Archive"
+                          title={isSpanish ? "Archivar" : "Archive"}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                         >
                           <Archive className="w-4 h-4" />
@@ -844,7 +906,7 @@ export default function CustomerNotificationCenterPage() {
 
                       <button
                         onClick={() => handleDelete(notif.id)}
-                        title="Delete"
+                        title={isSpanish ? "Eliminar" : "Delete"}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />

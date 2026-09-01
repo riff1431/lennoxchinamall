@@ -35,8 +35,14 @@ import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
 import { signout } from "@/app/actions/auth";
 import type { Category } from "@/types/database";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
-const HOT_TAGS = ["4K Drones", "3D Printers", "OBD2", "Speakers", "RC Cars", "Flashlights"];
+const getHotTags = (isSpanish: boolean) =>
+  isSpanish
+    ? ["Drones 4K", "Impresoras 3D", "OBD2", "Altavoces", "Autos RC", "Linternas"]
+    : ["4K Drones", "3D Printers", "OBD2", "Speakers", "RC Cars", "Flashlights"];
 
 const QUICK_CATEGORIES = [
   { name: "Flash Deals", slug: "flash-deals", icon: Zap, color: "bg-red-50 text-[#FF1028]" },
@@ -51,6 +57,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, displayName, isAuthenticated } = useAuth();
+  const { t, isSpanish } = useTranslation();
 
   const cartTotal = useCartStore((state) => state.getTotalItems());
   const cartSubtotal = useCartStore((state) => state.getSubtotal());
@@ -109,12 +116,12 @@ export function MobileNav() {
             price: p.base_price,
             image: p.media?.[0]?.url,
           })),
-          suggestions: HOT_TAGS.filter((t) => t.toLowerCase().includes(q)),
+          suggestions: getHotTags(isSpanish).filter((t) => t.toLowerCase().includes(q)),
         });
       }
     }, 180);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, isSpanish]);
 
   // Auto-focus search input
   useEffect(() => {
@@ -155,7 +162,7 @@ export function MobileNav() {
   const navItems = [
     {
       id: "home",
-      label: "Home",
+      label: t.common.home,
       href: "/",
       icon: Home,
       isActive: pathname === "/",
@@ -163,7 +170,7 @@ export function MobileNav() {
     },
     {
       id: "categories",
-      label: "Categories",
+      label: isSpanish ? "Categorías" : "Categories",
       href: null,
       icon: LayoutGrid,
       isActive: pathname.startsWith("/categories"),
@@ -172,7 +179,7 @@ export function MobileNav() {
     },
     {
       id: "search",
-      label: "Search",
+      label: t.common.search,
       href: null,
       icon: Search,
       isActive: activeSheet === "search" || pathname === "/search",
@@ -181,7 +188,7 @@ export function MobileNav() {
     },
     {
       id: "wishlist",
-      label: "Wishlist",
+      label: t.header.wishlist,
       href: "/account/wishlist",
       icon: Heart,
       isActive: pathname === "/account/wishlist",
@@ -189,7 +196,7 @@ export function MobileNav() {
     },
     {
       id: "account",
-      label: isMounted && isAuthenticated ? "Me" : "Sign In",
+      label: isMounted && isAuthenticated ? (isSpanish ? "Mi Cuenta" : "Me") : t.header.login,
       href: null,
       icon: UserCircle,
       isActive:
@@ -200,7 +207,7 @@ export function MobileNav() {
     },
     {
       id: "cart",
-      label: "Cart",
+      label: isSpanish ? "Carrito" : "Cart",
       href: null,
       icon: ShoppingBag,
       isActive: false,
@@ -235,7 +242,7 @@ export function MobileNav() {
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search 100,000+ factory products..."
+                  placeholder={t.common.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 py-3.5 text-sm bg-transparent outline-none text-slate-900 font-medium placeholder:text-slate-400"
@@ -252,7 +259,7 @@ export function MobileNav() {
             {/* Hot Tags */}
             {!searchQuery && (
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {HOT_TAGS.map((tag) => (
+                {getHotTags(isSpanish).map((tag) => (
                   <button
                     key={tag}
                     onClick={() => setSearchQuery(tag)}
@@ -290,7 +297,7 @@ export function MobileNav() {
                 {/* Product results */}
                 {searchResults.products.length === 0 ? (
                   <div className="text-center py-8 text-slate-400 text-sm">
-                    No results for &quot;{searchQuery}&quot;
+                    {isSpanish ? `Sin resultados para "${searchQuery}"` : `No results for "${searchQuery}"`}
                   </div>
                 ) : (
                   <>
@@ -311,7 +318,9 @@ export function MobileNav() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-slate-800 truncate">{prod.title}</p>
+                          <p className="text-sm font-bold text-slate-800 truncate">
+                            {getLocalizedProductTitle(prod.slug, prod.title, isSpanish)}
+                          </p>
                           <p className="text-xs font-black text-[#00143D] font-mono">{formatCurrency(prod.price)}</p>
                         </div>
                         <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
@@ -321,7 +330,7 @@ export function MobileNav() {
                       onClick={handleSearch}
                       className="w-full mt-2 py-3 rounded-md bg-[#00143D] text-white text-sm font-black flex items-center justify-center gap-2"
                     >
-                      <span>See all results for &quot;{searchQuery}&quot;</span>
+                      <span>{isSpanish ? `Ver todos los resultados para "${searchQuery}"` : `See all results for "${searchQuery}"`}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </>
@@ -332,7 +341,7 @@ export function MobileNav() {
             {/* Category quick-links when idle */}
             {!searchQuery && (
               <div className="px-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 font-mono">Browse Departments</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 font-mono">{isSpanish ? "Explorar Departamentos" : "Browse Departments"}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {rootCategories.slice(0, 9).map((cat) => (
                     <Link
@@ -344,7 +353,7 @@ export function MobileNav() {
                       <div className="w-8 h-8 rounded-md bg-[#00143D]/10 flex items-center justify-center p-1.5 overflow-hidden">
                         <CategoryIcon icon={cat.icon || cat.iconName} name={cat.name} className="w-4 h-4 text-[#00143D]" />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-700 leading-tight line-clamp-2">{cat.name}</span>
+                      <span className="text-[10px] font-bold text-slate-700 leading-tight line-clamp-2">{getLocalizedCategoryName(cat.name, isSpanish)}</span>
                     </Link>
                   ))}
                 </div>
@@ -363,13 +372,13 @@ export function MobileNav() {
 
           <div className="px-4 py-3 border-b border-slate-100 shrink-0">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-[#00143D] font-heading">All Departments</h3>
+              <h3 className="text-base font-black text-[#00143D] font-heading">{t.common.allDepartments}</h3>
               <Link
                 href="/categories"
                 onClick={closeSheet}
                 className="text-xs font-bold text-[#FF1028] flex items-center gap-1"
               >
-                View All <ArrowRight className="w-3.5 h-3.5" />
+                {isSpanish ? "Ver Todo" : "View All"} <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
@@ -377,7 +386,12 @@ export function MobileNav() {
           {/* Quick Access Row */}
           <div className="px-4 pt-3 pb-2 shrink-0">
             <div className="grid grid-cols-4 gap-2">
-              {QUICK_CATEGORIES.map((qc) => {
+              {[
+                { name: t.common.flashDeals, slug: "flash-deals", icon: Zap, color: "bg-red-50 text-[#FF1028]" },
+                { name: t.common.newArrivals, slug: "new-arrivals", icon: Star, color: "bg-amber-50 text-amber-600" },
+                { name: isSpanish ? "Más Vendidos" : "Best Sellers", slug: "consumer-electronics", icon: Tag, color: "bg-blue-50 text-blue-600" },
+                { name: t.common.trackOrder, slug: null, href: "/account/orders", icon: Plane, color: "bg-emerald-50 text-emerald-600" },
+              ].map((qc) => {
                 const Icon = qc.icon;
                 const href = qc.href || (qc.slug ? `/categories/${qc.slug}` : "#");
                 return (
@@ -398,7 +412,7 @@ export function MobileNav() {
           </div>
 
           <div className="px-4 pb-1 shrink-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">Manufacturing Clusters</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">{t.home.manufacturingClusters}</p>
           </div>
 
           {/* Full category list */}
@@ -415,8 +429,8 @@ export function MobileNav() {
                     <CategoryIcon icon={cat.icon || cat.iconName} name={cat.name} className="w-4 h-4 text-[#00143D]" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-800">{cat.name}</p>
-                    <p className="text-[10px] text-slate-500 font-mono">{cat.product_count || 0}+ products</p>
+                    <p className="text-sm font-bold text-slate-800">{getLocalizedCategoryName(cat.name, isSpanish)}</p>
+                    <p className="text-[10px] text-slate-500 font-mono">{cat.product_count || 0}+ {isSpanish ? "productos" : "products"}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#FF1028] transition-colors" />
@@ -442,15 +456,15 @@ export function MobileNav() {
                     {displayName ? displayName[0].toUpperCase() : "U"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-black text-[#00143D] truncate">{displayName || "My Account"}</p>
+                    <p className="text-base font-black text-[#00143D] truncate">{displayName || (isSpanish ? "Mi Cuenta" : "My Account")}</p>
                     <p className="text-xs text-slate-500 truncate">{user.email}</p>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-[10px] font-black text-[#FF1028] bg-red-50 px-2 py-0.5 rounded-md uppercase">
-                        Verified Customer
+                        {isSpanish ? "Cliente Verificado" : "Verified Customer"}
                       </span>
                       {mountedWishlistTotal > 0 && (
                         <span className="text-[10px] font-bold text-slate-500">
-                          ♡ {mountedWishlistTotal} saved
+                          ♡ {mountedWishlistTotal} {isSpanish ? "guardados" : "saved"}
                         </span>
                       )}
                     </div>
@@ -465,7 +479,7 @@ export function MobileNav() {
                     className="flex flex-col items-center p-2.5 rounded-lg bg-slate-50 hover:bg-blue-50 active:scale-95 transition-all"
                   >
                     <Package className="w-5 h-5 text-blue-600 mb-1" />
-                    <span className="text-[10px] font-bold text-slate-600">My Orders</span>
+                    <span className="text-[10px] font-bold text-slate-600">{t.header.myOrders}</span>
                   </Link>
                   <Link
                     href="/account/wishlist"
@@ -478,7 +492,7 @@ export function MobileNav() {
                         {mountedWishlistTotal}
                       </span>
                     )}
-                    <span className="text-[10px] font-bold text-slate-600">Wishlist</span>
+                    <span className="text-[10px] font-bold text-slate-600">{t.header.wishlist}</span>
                   </Link>
                   <Link
                     href="/account/returns"
@@ -486,7 +500,7 @@ export function MobileNav() {
                     className="flex flex-col items-center p-2.5 rounded-lg bg-slate-50 hover:bg-amber-50 active:scale-95 transition-all"
                   >
                     <RefreshCcw className="w-5 h-5 text-amber-600 mb-1" />
-                    <span className="text-[10px] font-bold text-slate-600">Returns</span>
+                    <span className="text-[10px] font-bold text-slate-600">{isSpanish ? "Devoluciones" : "Returns"}</span>
                   </Link>
                 </div>
               </div>
@@ -494,13 +508,13 @@ export function MobileNav() {
               {/* Menu Links */}
               <div className="overflow-y-auto flex-1 px-4 py-3 space-y-1">
                 {[
-                  { href: "/account/profile", label: "My Profile", icon: UserCircle, color: "text-slate-600" },
-                  { href: "/account/orders", label: "Orders & Air Cargo Tracking", icon: Package, color: "text-blue-600" },
-                  { href: "/account/history", label: "Historial de Navegación", icon: Clock, color: "text-indigo-600" },
-                  { href: "/account/notifications", label: "Notifications", icon: Bell, color: "text-purple-600" },
-                  { href: "/account/reviews", label: "My Reviews", icon: Star, color: "text-amber-600" },
-                  { href: "/account/support", label: "Support Tickets", icon: FileText, color: "text-emerald-600" },
-                  { href: "/account/addresses", label: "Saved Addresses", icon: Settings, color: "text-slate-600" },
+                  { href: "/account/profile", label: t.header.profile, icon: UserCircle, color: "text-slate-600" },
+                  { href: "/account/orders", label: isSpanish ? "Pedidos y Rastreo de Carga Aérea" : "Orders & Air Cargo Tracking", icon: Package, color: "text-blue-600" },
+                  { href: "/account/history", label: isSpanish ? "Historial de Navegación" : "Browsing History", icon: Clock, color: "text-indigo-600" },
+                  { href: "/account/notifications", label: isSpanish ? "Notificaciones" : "Notifications", icon: Bell, color: "text-purple-600" },
+                  { href: "/account/reviews", label: isSpanish ? "Mis Reseñas" : "My Reviews", icon: Star, color: "text-amber-600" },
+                  { href: "/account/support", label: isSpanish ? "Tickets de Soporte" : "Support Tickets", icon: FileText, color: "text-emerald-600" },
+                  { href: "/account/addresses", label: isSpanish ? "Direcciones Guardadas" : "Saved Addresses", icon: Settings, color: "text-slate-600" },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -529,7 +543,7 @@ export function MobileNav() {
                       <ShoppingBag className="w-5 h-5 text-[#00143D]" />
                       <div className="text-left">
                         <p className="text-sm font-bold text-[#00143D]">
-                          My Cart ({mountedCartTotal} {mountedCartTotal === 1 ? "item" : "items"})
+                          {isSpanish ? `Mi Carrito (${mountedCartTotal} ${mountedCartTotal === 1 ? "artículo" : "artículos"})` : `My Cart (${mountedCartTotal} ${mountedCartTotal === 1 ? "item" : "items"})`}
                         </p>
                         <p className="text-xs font-black text-[#10B981] font-mono">{formatCurrency(mountedCartSubtotal)} USDT</p>
                       </div>
@@ -544,7 +558,7 @@ export function MobileNav() {
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 active:bg-red-100 transition-colors mt-2"
                 >
                   <LogOut className="w-5 h-5 text-red-500" />
-                  <span className="text-sm font-bold text-red-600">Sign Out</span>
+                  <span className="text-sm font-bold text-red-600">{t.header.logout}</span>
                 </button>
               </div>
             </>
@@ -555,9 +569,9 @@ export function MobileNav() {
                 <div className="w-16 h-16 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
                   <UserCircle className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-black text-[#00143D] font-heading">Join China Mall</h3>
+                <h3 className="text-lg font-black text-[#00143D] font-heading">{isSpanish ? "Únete a China Mall" : "Join China Mall"}</h3>
                 <p className="text-sm text-slate-500 mt-1">
-                  Sign in to track orders, save products and get exclusive wholesale prices.
+                  {isSpanish ? "Inicia sesión para rastrear pedidos, guardar productos y obtener precios de mayoreo." : "Sign in to track orders, save products and get exclusive wholesale prices."}
                 </p>
               </div>
 
@@ -567,21 +581,21 @@ export function MobileNav() {
                   onClick={closeSheet}
                   className="w-full py-3 rounded-md bg-[#00143D] text-white text-sm font-black text-center"
                 >
-                  Sign In
+                  {t.header.login}
                 </Link>
                 <Link
                   href="/auth/register"
                   onClick={closeSheet}
                   className="w-full py-3 rounded-md bg-slate-100 text-slate-800 text-sm font-bold text-center"
                 >
-                  Create Free Account
+                  {t.header.register}
                 </Link>
               </div>
 
               <div className="flex flex-col gap-1">
                 {[
-                  { href: "/account/orders", label: "Track My Order", icon: Package },
-                  { href: "/account/support", label: "24/7 Sourcing Support", icon: FileText },
+                  { href: "/account/orders", label: t.common.trackOrder, icon: Package },
+                  { href: "/account/support", label: isSpanish ? "Soporte de Abastecimiento 24/7" : "24/7 Sourcing Support", icon: FileText },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (

@@ -18,6 +18,8 @@ import { Product, Category } from "@/types/database";
 import { ProductCard } from "@/components/product/ProductCard";
 import { getRelatedProducts } from "@/lib/related-products";
 import { MOCK_PRODUCTS } from "@/lib/mockData";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
 
 export interface RelatedProductsSectionProps {
   currentProduct: Product;
@@ -34,6 +36,7 @@ export function RelatedProductsSection({
   category,
   initialCatalog,
 }: RelatedProductsSectionProps) {
+  const { isSpanish } = useTranslation();
   const isMounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
@@ -221,15 +224,17 @@ export function RelatedProductsSection({
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#FF1028] font-mono bg-red-50 px-2 py-0.5 rounded-md border border-red-200/60 flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-[#FF1028]" />
-              Direct Factory Matches
+              {isSpanish ? "Coincidencias Directas de Fábrica" : "Direct Factory Matches"}
             </span>
             <span className="text-[10px] font-mono text-slate-500 hidden md:inline">
-              Same Cluster • Similar Specifications &amp; Category
+              {isSpanish
+                ? "Mismo Clúster • Especificaciones y Categoría Similares"
+                : "Same Cluster • Similar Specifications & Category"}
             </span>
           </div>
 
           <h3 className="text-lg sm:text-xl lg:text-2xl font-black font-heading text-[#00143D] tracking-tight">
-            Related Factory Hardware
+            {isSpanish ? "Hardware Relacionado de Fábrica" : "Related Factory Hardware"}
           </h3>
         </div>
 
@@ -243,18 +248,18 @@ export function RelatedProductsSection({
                 ? "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                 : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
             }`}
-            title={isAutoScrolling ? "Pause Auto-scroll" : "Enable Auto-scroll"}
-            aria-label={isAutoScrolling ? "Pause Auto-scroll" : "Enable Auto-scroll"}
+            title={isAutoScrolling ? (isSpanish ? "Pausar Auto-Desplazamiento" : "Pause Auto-scroll") : (isSpanish ? "Activar Auto-Desplazamiento" : "Enable Auto-scroll")}
+            aria-label={isAutoScrolling ? (isSpanish ? "Pausar Auto-Desplazamiento" : "Pause Auto-scroll") : (isSpanish ? "Activar Auto-Desplazamiento" : "Enable Auto-scroll")}
           >
             {isAutoScrolling ? (
               <>
                 <Pause className="w-3.5 h-3.5 text-slate-600" />
-                <span className="text-[10px] hidden xs:inline">Auto-Scroll</span>
+                <span className="text-[10px] hidden xs:inline">{isSpanish ? "Auto-Desplazamiento" : "Auto-Scroll"}</span>
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 text-amber-700" />
-                <span className="text-[10px] hidden xs:inline">Paused</span>
+                <span className="text-[10px] hidden xs:inline">{isSpanish ? "Pausado" : "Paused"}</span>
               </>
             )}
             {/* Miniature progress meter when autoplaying */}
@@ -290,7 +295,7 @@ export function RelatedProductsSection({
             href={category ? `/categories/${category.slug}` : "/categories"}
             className="text-xs font-bold text-[#00143D] hover:text-[#FF1028] flex items-center gap-1 ml-1 hover:underline transition-colors hidden sm:flex"
           >
-            <span>View Category</span>
+            <span>{isSpanish ? "Ver Categoría" : "View Category"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -307,7 +312,7 @@ export function RelatedProductsSection({
           }`}
         >
           <Layers className="w-3 h-3" />
-          <span>All Recommended ({allRelatedProducts.length})</span>
+          <span>{isSpanish ? `Todos Recomendados (${allRelatedProducts.length})` : `All Recommended (${allRelatedProducts.length})`}</span>
         </button>
 
         {category && (
@@ -320,7 +325,7 @@ export function RelatedProductsSection({
             }`}
           >
             <Tag className="w-3 h-3" />
-            <span>Same Category: {category.name}</span>
+            <span>{isSpanish ? `Misma Categoría: ${getLocalizedCategoryName(category.name, isSpanish)}` : `Same Category: ${category.name}`}</span>
           </button>
         )}
 
@@ -334,7 +339,7 @@ export function RelatedProductsSection({
             }`}
           >
             <Zap className="w-3 h-3" />
-            <span>Matching Specs &amp; Tags</span>
+            <span>{isSpanish ? "Mismas Especificaciones y Etiquetas" : "Matching Specs & Tags"}</span>
           </button>
         )}
 
@@ -347,7 +352,7 @@ export function RelatedProductsSection({
           }`}
         >
           <Award className="w-3 h-3" />
-          <span>Top Rated &amp; Best Sellers</span>
+          <span>{isSpanish ? "Mejor Valorados y Más Vendidos" : "Top Rated & Best Sellers"}</span>
         </button>
       </div>
 

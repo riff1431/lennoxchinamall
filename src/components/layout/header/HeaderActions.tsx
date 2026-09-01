@@ -10,6 +10,7 @@ import { useCompareStore } from "@/store/useCompareStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useMounted } from "@/hooks/useMounted";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import { AccountDropdown } from "./AccountDropdown";
 import { CartButton } from "./CartButton";
 
@@ -17,15 +18,16 @@ export function HeaderActions() {
   const compareTotalItems = useCompareStore((state) => state.getTotalItems());
   const wishlistTotalItems = useWishlistStore((state) => state.getTotalItems());
   const isMounted = useMounted();
+  const { t } = useTranslation();
 
   return (
     <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 shrink-0">
       {/* Compare Action Button - Visible on MD+ */}
       <Link
         href="/categories"
-        title="Product Comparison"
+        title={t.header.compare}
         className="relative w-10 h-10 rounded-xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-blue-300 transition-all duration-200 hidden md:flex items-center justify-center cursor-pointer group shadow-2xs hover:shadow-sm text-slate-700 hover:text-blue-600"
-        aria-label="View Product Comparison"
+        aria-label={t.header.compare}
       >
         <ArrowLeftRight className="w-4.5 h-4.5 group-hover:scale-110 transition-transform" />
         {isMounted && compareTotalItems > 0 && (
@@ -41,9 +43,9 @@ export function HeaderActions() {
       {/* Wishlist Action Button - Visible on SM+ (MobileNav handles mobile) */}
       <Link
         href="/account/wishlist"
-        title="My Wishlist"
+        title={t.header.wishlist}
         className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-red-400 hover:shadow-[0_0_16px_rgba(255,16,40,0.2)] transition-all duration-200 hidden sm:flex items-center justify-center cursor-pointer group text-slate-700 hover:text-[#FF1028] shadow-2xs hover:shadow-sm"
-        aria-label="View Wishlist"
+        aria-label={t.header.wishlist}
       >
         <Heart className="w-4.5 h-4.5 group-hover:scale-110 group-hover:fill-[#FF1028] transition-all" />
         {isMounted && wishlistTotalItems > 0 && (

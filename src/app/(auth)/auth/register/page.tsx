@@ -6,8 +6,10 @@ import { User, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } f
 import { signup } from "@/app/actions/auth";
 import { validatePasswordStrength } from "@/lib/auth/password";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function RegisterPage() {
+  const { isSpanish } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState("");
@@ -19,7 +21,12 @@ export default function RegisterPage() {
 
     const validation = validatePasswordStrength(password);
     if (!validation.valid) {
-      setError(validation.error || "Password does not meet security requirements.");
+      setError(
+        validation.error ||
+          (isSpanish
+            ? "La contraseña no cumple con los requisitos de seguridad."
+            : "Password does not meet security requirements.")
+      );
       return;
     }
 
@@ -29,7 +36,7 @@ export default function RegisterPage() {
     try {
       const result = await signup(formData);
       if (result && !result.success) {
-        setError(result.error || "Registration failed.");
+        setError(result.error || (isSpanish ? "El registro ha fallado." : "Registration failed."));
         setIsLoading(false);
       }
     } catch {
@@ -41,10 +48,12 @@ export default function RegisterPage() {
     <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
       <div className="space-y-1">
         <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-          Create Sourcing Account
+          {isSpanish ? "Crear Cuenta de Abastecimiento" : "Create Sourcing Account"}
         </h1>
         <p className="text-xs text-slate-400">
-          Get direct access to wholesale China products, USDT checkout, and real-time air cargo tracking.
+          {isSpanish
+            ? "Obtén acceso directo a productos al mayoreo de China, pagos en USDT y rastreo de carga aérea en tiempo real."
+            : "Get direct access to wholesale China products, USDT checkout, and real-time air cargo tracking."}
         </p>
       </div>
 
@@ -58,7 +67,7 @@ export default function RegisterPage() {
       <form onSubmit={handleRegister} className="space-y-4 text-xs">
         <div className="space-y-1.5">
           <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-            Full Name / Business Name
+            {isSpanish ? "Nombre Completo / Nombre Comercial" : "Full Name / Business Name"}
           </label>
           <div className="relative">
             <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -75,7 +84,7 @@ export default function RegisterPage() {
 
         <div className="space-y-1.5">
           <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-            Email Address
+            {isSpanish ? "Correo Electrónico" : "Email Address"}
           </label>
           <div className="relative">
             <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -92,7 +101,7 @@ export default function RegisterPage() {
 
         <div className="space-y-1.5">
           <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-            Create Master Password
+            {isSpanish ? "Crear Contraseña Maestra" : "Create Master Password"}
           </label>
           <div className="relative">
             <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -101,7 +110,11 @@ export default function RegisterPage() {
               name="password"
               required
               autoComplete="new-password"
-              placeholder="Minimum 8 characters with upper, lower, number, symbol"
+              placeholder={
+                isSpanish
+                  ? "Mínimo 8 caracteres con mayúscula, minúscula, número y símbolo"
+                  : "Minimum 8 characters with upper, lower, number, symbol"
+              }
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
@@ -125,26 +138,30 @@ export default function RegisterPage() {
           className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 rounded-xl text-xs font-black font-heading uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-red-600/25 active:scale-98 disabled:opacity-50"
         >
           {isLoading ? (
-            <span>Generating Secure Sourcing Account...</span>
+            <span>{isSpanish ? "Generando Cuenta Segura..." : "Generating Secure Sourcing Account..."}</span>
           ) : (
             <>
-              <span>Join Lennox ChinaMall Free</span>
+              <span>{isSpanish ? "Unirse a Lennox ChinaMall Gratis" : "Join Lennox ChinaMall Free"}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
 
         <div className="pt-2 text-center text-xs text-slate-400">
-          Already have an account?{" "}
+          {isSpanish ? "¿Ya tienes una cuenta? " : "Already have an account? "}
           <Link href="/auth/login" className="text-white hover:text-[#FF1028] font-bold transition-colors">
-            Sign In
+            {isSpanish ? "Iniciar Sesión" : "Sign In"}
           </Link>
         </div>
       </form>
 
       <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center gap-2.5 text-[11px] text-slate-400">
         <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
-        <span>By signing up, you agree to Lennox ChinaMall&apos;s Verified Sourcing &amp; USDT Escrow Terms.</span>
+        <span>
+          {isSpanish
+            ? "Al registrarte, aceptas los Términos de Abastecimiento Verificado y Depósito en Garantía USDT de Lennox ChinaMall."
+            : "By signing up, you agree to Lennox ChinaMall's Verified Sourcing & USDT Escrow Terms."}
+        </span>
       </div>
     </div>
   );

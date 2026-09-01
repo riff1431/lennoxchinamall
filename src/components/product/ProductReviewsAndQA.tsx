@@ -77,7 +77,7 @@ export function ProductReviewsAndQA({
   categoryName,
   variants = [],
 }: ProductReviewsAndQAProps) {
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
   const { user, displayName, isAuthenticated } = useAuth();
   const [activeMainTab, setActiveMainTab] = useState<"reviews" | "qa">("reviews");
 
@@ -512,11 +512,13 @@ export function ProductReviewsAndQA({
                 <Rating rating={distribution.averageRating} size="lg" />
               </div>
               <p className="text-xs font-bold text-slate-500 mt-2">
-                Based on <span className="text-slate-900">{distribution.totalReviews} verified reviews</span>
+                {isSpanish
+                  ? `Basado en ${distribution.totalReviews} reseñas verificadas`
+                  : `Based on ${distribution.totalReviews} verified reviews`}
               </p>
               <div className="flex items-center gap-2 mt-4 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
                 <ShieldCheck className="w-4 h-4" />
-                <span>100% Direct Factory Verified Orders</span>
+                <span>{isSpanish ? "100% Pedidos Verificados de Fábrica" : "100% Direct Factory Verified Orders"}</span>
               </div>
             </div>
 
@@ -558,25 +560,25 @@ export function ProductReviewsAndQA({
             {/* Right: Key Quality Badges */}
             <div className="lg:col-span-3 flex flex-col justify-center space-y-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
               <h4 className="text-xs font-black text-[#00143D] uppercase tracking-wider">
-                Lennox Verified Assurance
+                {isSpanish ? "Garantía Verificada Lennox" : "Lennox Verified Assurance"}
               </h4>
               <div className="space-y-2 text-xs text-slate-600">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Dual Video QC Benchmark Recorded</span>
+                  <span>{isSpanish ? "Video dual de inspección QC grabado" : "Dual Video QC Benchmark Recorded"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Shenzhen Factory Direct Dispatch</span>
+                  <span>{isSpanish ? "Despacho directo de fábrica Shenzhen" : "Shenzhen Factory Direct Dispatch"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Escrow-Protected USDT & Card Payment</span>
+                  <span>{isSpanish ? "Pago en USDT y tarjeta protegido" : "Escrow-Protected USDT & Card Payment"}</span>
                 </div>
               </div>
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
-                <span>With Photos/Videos</span>
-                <span className="text-[#00143D]">{distribution.withMediaCount} reviews</span>
+                <span>{isSpanish ? "Con Fotos/Videos" : "With Photos/Videos"}</span>
+                <span className="text-[#00143D]">{distribution.withMediaCount} {isSpanish ? "reseñas" : "reviews"}</span>
               </div>
             </div>
           </div>
@@ -587,7 +589,7 @@ export function ProductReviewsAndQA({
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-black text-[#00143D] uppercase tracking-wider flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-slate-600" />
-                  <span>Customer Uploaded Media ({allReviewMedia.length})</span>
+                  <span>{isSpanish ? `Fotos y Videos de Clientes (${allReviewMedia.length})` : `Customer Uploaded Media (${allReviewMedia.length})`}</span>
                 </h4>
                 <button
                   onClick={() => setMediaOnly(!mediaOnly)}
@@ -598,7 +600,9 @@ export function ProductReviewsAndQA({
                       : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
                   )}
                 >
-                  {mediaOnly ? "✓ Media Only Active" : "Filter by Media Only"}
+                  {isSpanish
+                    ? (mediaOnly ? "✓ Solo Multimedia Activo" : "Filtrar solo Multimedia")
+                    : (mediaOnly ? "✓ Media Only Active" : "Filter by Media Only")}
                 </button>
               </div>
 
@@ -639,7 +643,7 @@ export function ProductReviewsAndQA({
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search reviews by keyword, topic, or buyer..."
+                placeholder={isSpanish ? "Buscar reseñas por palabra clave, tema o comprador..." : "Search reviews by keyword, topic, or buyer..."}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -668,12 +672,12 @@ export function ProductReviewsAndQA({
                 }}
                 className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
               >
-                <option value="all">All Star Ratings</option>
-                <option value="5">5 Stars only</option>
-                <option value="4">4 Stars only</option>
-                <option value="3">3 Stars only</option>
-                <option value="2">2 Stars only</option>
-                <option value="1">1 Star only</option>
+                <option value="all">{isSpanish ? "Todas las calificaciones" : "All Star Ratings"}</option>
+                <option value="5">{isSpanish ? "5 estrellas" : "5 Stars only"}</option>
+                <option value="4">{isSpanish ? "4 estrellas" : "4 Stars only"}</option>
+                <option value="3">{isSpanish ? "3 estrellas" : "3 Stars only"}</option>
+                <option value="2">{isSpanish ? "2 estrellas" : "2 Stars only"}</option>
+                <option value="1">{isSpanish ? "1 estrella" : "1 Star only"}</option>
               </select>
 
               {/* Variant Filter (if product has variants) */}
@@ -686,7 +690,7 @@ export function ProductReviewsAndQA({
                   }}
                   className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
                 >
-                  <option value="">All Variants</option>
+                  <option value="">{isSpanish ? "Todas las variantes" : "All Variants"}</option>
                   {variants.map((v) => (
                     <option key={v.id} value={v.id}>
                       {v.title || v.sku}
@@ -709,7 +713,7 @@ export function ProductReviewsAndQA({
                 )}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Verified Buyer</span>
+                <span>{isSpanish ? "Comprador Verificado" : "Verified Buyer"}</span>
               </button>
 
               {/* Sorting Select */}
@@ -718,10 +722,10 @@ export function ProductReviewsAndQA({
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
               >
-                <option value="most_helpful">Sort: Most Helpful</option>
-                <option value="newest">Sort: Most Recent</option>
-                <option value="highest_rating">Sort: Highest Rating</option>
-                <option value="lowest_rating">Sort: Lowest Rating</option>
+                <option value="most_helpful">{isSpanish ? "Ordenar: Más Útiles" : "Sort: Most Helpful"}</option>
+                <option value="newest">{isSpanish ? "Ordenar: Más Recientes" : "Sort: Most Recent"}</option>
+                <option value="highest_rating">{isSpanish ? "Ordenar: Mejor Valorados" : "Sort: Highest Rating"}</option>
+                <option value="lowest_rating">{isSpanish ? "Ordenar: Menor Calificación" : "Sort: Lowest Rating"}</option>
               </select>
             </div>
           </div>
@@ -749,16 +753,20 @@ export function ProductReviewsAndQA({
                 <Star className="w-7 h-7 text-slate-400" />
               </div>
               <div>
-                <h4 className="text-base font-black text-[#00143D]">No matching reviews found</h4>
+                <h4 className="text-base font-black text-[#00143D]">
+                  {isSpanish ? "No se encontraron reseñas coincidentes" : "No matching reviews found"}
+                </h4>
                 <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                  Try clearing your active filters or be the first verified buyer to share feedback on this hardware item.
+                  {isSpanish
+                    ? "Intenta borrar tus filtros activos o sé el primer comprador verificado en compartir su opinión."
+                    : "Try clearing your active filters or be the first verified buyer to share feedback on this hardware item."}
                 </p>
               </div>
               <button
                 onClick={handleOpenWriteReview}
                 className="bg-[#00143D] text-white text-xs font-black px-5 py-2.5 rounded-xl shadow-xs hover:bg-[#002366] transition-colors"
               >
-                Write First Verified Review
+                {isSpanish ? "Escribir Primera Reseña Verificada" : "Write First Verified Review"}
               </button>
             </div>
           ) : (
@@ -788,17 +796,17 @@ export function ProductReviewsAndQA({
                           <span className="text-xs font-black text-slate-900">{review.userName}</span>
                           {review.isVerifiedPurchase && (
                             <span className="bg-emerald-50 text-[#10B981] text-[10px] font-black px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
-                              <ShieldCheck className="w-3 h-3" /> Verified Purchase
+                              <ShieldCheck className="w-3 h-3" /> {isSpanish ? "Compra Verificada" : "Verified Purchase"}
                             </span>
                           )}
                           {review.isFeatured && (
                             <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-md border border-amber-300 flex items-center gap-1">
-                              <Award className="w-3 h-3 text-amber-600" /> Factory Spotlight
+                              <Award className="w-3 h-3 text-amber-600" /> {isSpanish ? "Destacado de Fábrica" : "Factory Spotlight"}
                             </span>
                           )}
                         </div>
                         <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                          {review.userLocation || "Verified Customer"}
+                          {review.userLocation || (isSpanish ? "Cliente Verificado" : "Verified Customer")}
                         </div>
                       </div>
                     </div>
@@ -814,7 +822,7 @@ export function ProductReviewsAndQA({
                   {/* Variant Tag (if present) */}
                   {review.variantName && (
                     <div className="inline-block text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                      Purchased: <span className="text-slate-800">{review.variantName}</span>
+                      {isSpanish ? "Comprado:" : "Purchased:"} <span className="text-slate-800">{review.variantName}</span>
                     </div>
                   )}
 
@@ -851,9 +859,9 @@ export function ProductReviewsAndQA({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs font-black text-[#00143D]">
                           <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                          <span>{review.adminRepliedByName || "Lennox Factory Sourcing Desk"}</span>
+                          <span>{review.adminRepliedByName || (isSpanish ? "Mesa de Abastecimiento Lennox" : "Lennox Factory Sourcing Desk")}</span>
                           <span className="bg-[#00143D] text-white text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide">
-                            OFFICIAL
+                            {isSpanish ? "OFICIAL" : "OFFICIAL"}
                           </span>
                         </div>
                         {review.adminReplyAt && (
@@ -869,7 +877,9 @@ export function ProductReviewsAndQA({
                   {/* Bottom Actions: Helpful Voting, Edit/Delete (if author), Report */}
                   <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
                     <div className="flex items-center gap-3">
-                      <span className="text-[11px] text-slate-400 font-semibold">Was this helpful?</span>
+                      <span className="text-[11px] text-slate-400 font-semibold">
+                        {isSpanish ? "¿Fue útil esta reseña?" : "Was this helpful?"}
+                      </span>
                       <button
                         onClick={() => handleVoteReview(review.id, "helpful")}
                         className={cn(
@@ -903,7 +913,7 @@ export function ProductReviewsAndQA({
                           className="text-slate-500 hover:text-[#00143D] font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <Edit2 className="w-3 h-3" />
-                          <span>Edit</span>
+                          <span>{isSpanish ? "Editar" : "Edit"}</span>
                         </button>
                       )}
                       {review.canDelete && (
@@ -915,7 +925,7 @@ export function ProductReviewsAndQA({
                           className="text-slate-400 hover:text-[#FF1028] font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3 h-3" />
-                          <span>Delete</span>
+                          <span>{isSpanish ? "Eliminar" : "Delete"}</span>
                         </button>
                       )}
                       <button
@@ -923,7 +933,7 @@ export function ProductReviewsAndQA({
                         className="text-slate-400 hover:text-[#FF1028] font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Flag className="w-3 h-3" />
-                        <span>Report</span>
+                        <span>{isSpanish ? "Reportar" : "Report"}</span>
                       </button>
                     </div>
                   </div>
@@ -940,7 +950,7 @@ export function ProductReviewsAndQA({
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 hover:bg-slate-50 cursor-pointer"
               >
-                Previous
+                {isSpanish ? "Anterior" : "Previous"}
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
@@ -961,7 +971,7 @@ export function ProductReviewsAndQA({
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 hover:bg-slate-50 cursor-pointer"
               >
-                Next
+                {isSpanish ? "Siguiente" : "Next"}
               </button>
             </div>
           )}
@@ -986,12 +996,14 @@ export function ProductReviewsAndQA({
       <Modal
         isOpen={isWriteReviewOpen}
         onClose={() => setIsWriteReviewOpen(false)}
-        title="Write a Verified Product Review"
+        title={isSpanish ? "Escribir una Reseña de Producto Verificada" : "Write a Verified Product Review"}
       >
         {isCheckingEligibility ? (
           <div className="py-12 text-center space-y-3">
             <div className="w-8 h-8 border-3 border-[#00143D] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs font-bold text-slate-600">Verifying purchase credentials with Supabase...</p>
+            <p className="text-xs font-bold text-slate-600">
+              {isSpanish ? "Verificando credenciales de compra con Supabase..." : "Verifying purchase credentials with Supabase..."}
+            </p>
           </div>
         ) : (
           <form onSubmit={handleSubmitReview} className="space-y-5 font-montserrat">
@@ -1001,15 +1013,21 @@ export function ProductReviewsAndQA({
                 <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
                 <span>
                   {eligibility.orderNumber
-                    ? `Verified Order #${eligibility.orderNumber} confirmed. Your review will display the Verified Buyer badge.`
-                    : "Verified customer detected. Thank you for your feedback!"}
+                    ? (isSpanish
+                        ? `Pedido verificado #${eligibility.orderNumber} confirmado. Tu reseña mostrará la insignia de Comprador Verificado.`
+                        : `Verified Order #${eligibility.orderNumber} confirmed. Your review will display the Verified Buyer badge.`)
+                    : (isSpanish
+                        ? "Cliente verificado detectado. ¡Gracias por tus comentarios!"
+                        : "Verified customer detected. Thank you for your feedback!")}
                 </span>
               </div>
             ) : (
               <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-800 flex items-center gap-2.5">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>
-                  Sign in with the account used for purchase to earn Lennox Sourcing Rewards and the Verified Badge.
+                  {isSpanish
+                    ? "Inicia sesión con la cuenta utilizada para la compra para obtener Recompensas Lennox y la Insignia Verificada."
+                    : "Sign in with the account used for purchase to earn Lennox Sourcing Rewards and the Verified Badge."}
                 </span>
               </div>
             )}
@@ -1031,7 +1049,7 @@ export function ProductReviewsAndQA({
             {/* 1. Star Rating Selector */}
             <div className="space-y-1.5 text-center sm:text-left">
               <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                Your Overall Rating <span className="text-[#FF1028]">*</span>
+                {isSpanish ? "Tu Calificación General" : "Your Overall Rating"} <span className="text-[#FF1028]">*</span>
               </label>
               <div className="flex items-center gap-1.5">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -1054,7 +1072,9 @@ export function ProductReviewsAndQA({
                   </button>
                 ))}
                 <span className="ml-2 text-xs font-black text-slate-700">
-                  {formRating === 5 ? "5.0 (Exceptional)" : `${formRating}.0`}
+                  {formRating === 5
+                    ? (isSpanish ? "5.0 (Excepcional)" : "5.0 (Exceptional)")
+                    : `${formRating}.0`}
                 </span>
               </div>
             </div>
@@ -1062,7 +1082,9 @@ export function ProductReviewsAndQA({
             {/* 2. Variant Selector (if applicable) */}
             {variants.length > 0 && (
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-slate-800">Purchased Hardware Variant</label>
+                <label className="text-xs font-black text-slate-800">
+                  {isSpanish ? "Variante de Hardware Comprada" : "Purchased Hardware Variant"}
+                </label>
                 <select
                   value={formVariantId}
                   onChange={(e) => setFormVariantId(e.target.value)}
@@ -1080,12 +1102,16 @@ export function ProductReviewsAndQA({
             {/* 3. Review Headline */}
             <div className="space-y-1.5">
               <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                Review Headline <span className="text-[#FF1028]">*</span>
+                {isSpanish ? "Título de la Reseña" : "Review Headline"} <span className="text-[#FF1028]">*</span>
               </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Incredible 4K Optical Clarity & High-Speed CNC build"
+                placeholder={
+                  isSpanish
+                    ? "ej. Increíble claridad óptica 4K y construcción CNC de alta velocidad"
+                    : "e.g. Incredible 4K Optical Clarity & High-Speed CNC build"
+                }
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
@@ -1095,12 +1121,16 @@ export function ProductReviewsAndQA({
             {/* 4. Detailed Comments */}
             <div className="space-y-1.5">
               <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                Detailed Feedback & Experience <span className="text-[#FF1028]">*</span>
+                {isSpanish ? "Comentarios y Experiencia Detallada" : "Detailed Feedback & Experience"} <span className="text-[#FF1028]">*</span>
               </label>
               <textarea
                 required
                 rows={4}
-                placeholder="Share your experience with build quality, flight time, factory QC video match, and logistics delivery speed..."
+                placeholder={
+                  isSpanish
+                    ? "Comparte tu experiencia con la calidad de construcción, tiempo de vuelo, video QC de fábrica y velocidad de entrega..."
+                    : "Share your experience with build quality, flight time, factory QC video match, and logistics delivery speed..."
+                }
                 value={formBody}
                 onChange={(e) => setFormBody(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
@@ -1110,8 +1140,10 @@ export function ProductReviewsAndQA({
             {/* 5. Photos & Videos Upload */}
             <div className="space-y-2">
               <label className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center justify-between">
-                <span>Upload Photos / Unboxing Video (Optional)</span>
-                <span className="text-[10px] text-slate-400 font-semibold">Max 100MB JPG/PNG, 100MB MP4</span>
+                <span>{isSpanish ? "Subir Fotos / Video de Unboxing (Opcional)" : "Upload Photos / Unboxing Video (Optional)"}</span>
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  {isSpanish ? "Máx. 100MB JPG/PNG, 100MB MP4" : "Max 100MB JPG/PNG, 100MB MP4"}
+                </span>
               </label>
 
               <input
@@ -1157,7 +1189,7 @@ export function ProductReviewsAndQA({
                   ) : (
                     <>
                       <UploadCloud className="w-4 h-4" />
-                      <span className="text-[9px] font-bold">Add</span>
+                      <span className="text-[9px] font-bold">{isSpanish ? "Agregar" : "Add"}</span>
                     </>
                   )}
                 </button>
@@ -1171,7 +1203,7 @@ export function ProductReviewsAndQA({
                 onClick={() => setIsWriteReviewOpen(false)}
                 className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
               >
-                Cancel
+                {isSpanish ? "Cancelar" : "Cancel"}
               </button>
               <button
                 type="submit"
@@ -1181,7 +1213,7 @@ export function ProductReviewsAndQA({
                 {isSubmittingReview && (
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 )}
-                <span>Publish Verified Review</span>
+                <span>{isSpanish ? "Publicar Reseña Verificada" : "Publish Verified Review"}</span>
               </button>
             </div>
           </form>
@@ -1194,11 +1226,13 @@ export function ProductReviewsAndQA({
       <Modal
         isOpen={isEditReviewOpen}
         onClose={() => setIsEditReviewOpen(false)}
-        title="Edit Your Review"
+        title={isSpanish ? "Editar Tu Reseña" : "Edit Your Review"}
       >
         <form onSubmit={handleSubmitEditReview} className="space-y-4 font-montserrat">
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Rating</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Calificación" : "Rating"}
+            </label>
             <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -1219,7 +1253,9 @@ export function ProductReviewsAndQA({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Headline</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Título" : "Headline"}
+            </label>
             <input
               type="text"
               required
@@ -1230,7 +1266,9 @@ export function ProductReviewsAndQA({
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Comments</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Comentarios" : "Comments"}
+            </label>
             <textarea
               required
               rows={4}
@@ -1242,7 +1280,9 @@ export function ProductReviewsAndQA({
 
           {/* Media attachments */}
           <div className="space-y-1.5">
-            <label className="text-xs font-black text-slate-800">Attachments</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Archivos Adjuntos" : "Attachments"}
+            </label>
             <input
               ref={editFileInputRef}
               type="file"
@@ -1286,14 +1326,14 @@ export function ProductReviewsAndQA({
               onClick={() => setIsEditReviewOpen(false)}
               className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
             <button
               type="submit"
               disabled={isSubmittingEdit}
               className="bg-[#00143D] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#002366] transition-colors"
             >
-              Save Changes
+              {isSpanish ? "Guardar Cambios" : "Save Changes"}
             </button>
           </div>
         </form>
@@ -1305,24 +1345,26 @@ export function ProductReviewsAndQA({
       <Modal
         isOpen={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title="Delete Your Review?"
+        title={isSpanish ? "¿Eliminar Tu Reseña?" : "Delete Your Review?"}
       >
         <div className="space-y-4 font-montserrat">
           <p className="text-xs text-slate-600 leading-relaxed">
-            Are you sure you want to permanently delete your review? This action will remove your feedback and rating contribution from the product page.
+            {isSpanish
+              ? "¿Estás seguro de que deseas eliminar permanentemente tu reseña? Esta acción eliminará tus comentarios y calificación de la página del producto."
+              : "Are you sure you want to permanently delete your review? This action will remove your feedback and rating contribution from the product page."}
           </p>
           <div className="flex items-center justify-end gap-2 pt-2">
             <button
               onClick={() => setIsDeleteConfirmOpen(false)}
               className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
             >
-              Keep Review
+              {isSpanish ? "Conservar Reseña" : "Keep Review"}
             </button>
             <button
               onClick={handleConfirmDelete}
               className="bg-[#FF1028] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#D90017]"
             >
-              Yes, Delete Review
+              {isSpanish ? "Sí, Eliminar Reseña" : "Yes, Delete Review"}
             </button>
           </div>
         </div>
@@ -1334,27 +1376,29 @@ export function ProductReviewsAndQA({
       <Modal
         isOpen={Boolean(reportModalReviewId)}
         onClose={() => setReportModalReviewId(null)}
-        title="Report Inappropriate Review"
+        title={isSpanish ? "Reportar Reseña Inapropiada" : "Report Inappropriate Review"}
       >
         <div className="space-y-4 font-montserrat">
           <p className="text-xs text-slate-600">
-            Help us keep Lennox China Mall trustworthy. Why are you reporting this review?
+            {isSpanish
+              ? "Ayúdanos a mantener Lennox China Mall confiable. ¿Por qué estás reportando esta reseña?"
+              : "Help us keep Lennox China Mall trustworthy. Why are you reporting this review?"}
           </p>
 
           <div className="space-y-2">
             {[
-              "Spam or Advertising",
-              "Offensive, Abusive or Hateful Content",
-              "Fake Review or Competitor Attack",
-              "Irrelevant to this Hardware Product",
-              "Other Violation",
-            ].map((reason) => (
+              { key: "Spam or Advertising", label: isSpanish ? "Spam o Publicidad" : "Spam or Advertising" },
+              { key: "Offensive, Abusive or Hateful Content", label: isSpanish ? "Contenido Ofensivo, Abusivo o de Odio" : "Offensive, Abusive or Hateful Content" },
+              { key: "Fake Review or Competitor Attack", label: isSpanish ? "Reseña Falsa o Ataque de Competidor" : "Fake Review or Competitor Attack" },
+              { key: "Irrelevant to this Hardware Product", label: isSpanish ? "Irrelevante para este Producto" : "Irrelevant to this Hardware Product" },
+              { key: "Other Violation", label: isSpanish ? "Otra Infracción" : "Other Violation" },
+            ].map((item) => (
               <label
-                key={reason}
-                onClick={() => setReportReason(reason)}
+                key={item.key}
+                onClick={() => setReportReason(item.key)}
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer",
-                  reportReason === reason
+                  reportReason === item.key
                     ? "bg-slate-100 border-[#00143D] text-[#00143D]"
                     : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                 )}
@@ -1362,20 +1406,22 @@ export function ProductReviewsAndQA({
                 <input
                   type="radio"
                   name="reportReason"
-                  checked={reportReason === reason}
-                  onChange={() => setReportReason(reason)}
+                  checked={reportReason === item.key}
+                  onChange={() => setReportReason(item.key)}
                   className="accent-[#00143D]"
                 />
-                <span>{reason}</span>
+                <span>{item.label}</span>
               </label>
             ))}
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Additional Details (Optional)</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Detalles Adicionales (Opcional)" : "Additional Details (Optional)"}
+            </label>
             <textarea
               rows={2}
-              placeholder="Provide any specific context..."
+              placeholder={isSpanish ? "Proporciona cualquier contexto específico..." : "Provide any specific context..."}
               value={reportDetails}
               onChange={(e) => setReportDetails(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs"
@@ -1387,13 +1433,13 @@ export function ProductReviewsAndQA({
               onClick={() => setReportModalReviewId(null)}
               className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
             <button
               onClick={handleReportReviewSubmit}
               className="bg-[#FF1028] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#D90017]"
             >
-              Submit Report
+              {isSpanish ? "Enviar Reporte" : "Submit Report"}
             </button>
           </div>
         </div>
@@ -1405,11 +1451,13 @@ export function ProductReviewsAndQA({
       <Modal
         isOpen={isAskQuestionOpen}
         onClose={() => setIsAskQuestionOpen(false)}
-        title="Ask Factory Sourcing Desk"
+        title={isSpanish ? "Preguntar a la Mesa de Fábrica" : "Ask Factory Sourcing Desk"}
       >
         <form onSubmit={handleAskQuestionSubmit} className="space-y-4 font-montserrat">
           <p className="text-xs text-slate-600 leading-relaxed">
-            Have a question about specifications, voltage compatibility, or YunExpress airfreight? Our Shenzhen team answers questions directly.
+            {isSpanish
+              ? "¿Tienes alguna pregunta sobre especificaciones, compatibilidad de voltaje o transporte aéreo? Nuestro equipo de Shenzhen responde directamente."
+              : "Have a question about specifications, voltage compatibility, or YunExpress airfreight? Our Shenzhen team answers questions directly."}
           </p>
 
           {questionMsg && (
@@ -1427,10 +1475,12 @@ export function ProductReviewsAndQA({
           )}
 
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Your Name (or Display Name)</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Tu Nombre (o Nombre a Mostrar)" : "Your Name (or Display Name)"}
+            </label>
             <input
               type="text"
-              placeholder={displayName || "Verified Customer"}
+              placeholder={displayName || (isSpanish ? "Cliente Verificado" : "Verified Customer")}
               value={newQuestionAuthor}
               onChange={(e) => setNewQuestionAuthor(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold"
@@ -1439,12 +1489,16 @@ export function ProductReviewsAndQA({
 
           <div className="space-y-1">
             <label className="text-xs font-black text-slate-800">
-              Your Question <span className="text-[#FF1028]">*</span>
+              {isSpanish ? "Tu Pregunta" : "Your Question"} <span className="text-[#FF1028]">*</span>
             </label>
             <textarea
               required
               rows={3}
-              placeholder="e.g. Does the 3D printer include EU 220V power adapter and replacement nozzle kit?"
+              placeholder={
+                isSpanish
+                  ? "ej. ¿La impresora 3D incluye adaptador de corriente EU 220V y kit de boquilla de repuesto?"
+                  : "e.g. Does the 3D printer include EU 220V power adapter and replacement nozzle kit?"
+              }
               value={newQuestionText}
               onChange={(e) => setNewQuestionText(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-semibold"
@@ -1457,14 +1511,14 @@ export function ProductReviewsAndQA({
               onClick={() => setIsAskQuestionOpen(false)}
               className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
             <button
               type="submit"
               disabled={isSubmittingQuestion}
               className="bg-[#00143D] text-white text-xs font-black px-6 py-2 rounded-xl hover:bg-[#002366] transition-colors"
             >
-              Submit Question
+              {isSpanish ? "Enviar Pregunta" : "Submit Question"}
             </button>
           </div>
         </form>

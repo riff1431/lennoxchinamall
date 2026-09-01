@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 import type { Category } from "@/types/database";
 
 interface PickerCategory extends Partial<Category> {
@@ -37,6 +38,7 @@ export function DepartmentPicker({
   rootCategories = [],
 }: DepartmentPickerProps) {
   const router = useRouter();
+  const { t, isSpanish } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [filterQuery, setFilterQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,7 +133,7 @@ export function DepartmentPicker({
         </div>
 
         <span className="max-w-[100px] sm:max-w-[135px] truncate font-black text-slate-800 group-hover:text-[#FF1028] transition-colors text-[11px] sm:text-xs">
-          {currentSelectedCategory?.name || "All Departments"}
+          {currentSelectedCategory?.name || t.common.allDepartments}
         </span>
 
         <ChevronDown
@@ -157,10 +159,10 @@ export function DepartmentPicker({
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black text-[#00143D] dark:text-white uppercase tracking-wider font-heading flex items-center gap-1.5">
                   <LayoutGrid className="w-3.5 h-3.5 text-[#FF1028]" />
-                  Main Departments
+                  {isSpanish ? "Departamentos Principales" : "Main Departments"}
                 </span>
                 <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                  {rootCategories.length} Total
+                  {rootCategories.length} {isSpanish ? "en Total" : "Total"}
                 </span>
               </div>
 
@@ -170,7 +172,7 @@ export function DepartmentPicker({
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Filter departments..."
+                  placeholder={isSpanish ? "Filtrar departamentos..." : "Filter departments..."}
                   value={filterQuery}
                   onChange={(e) => setFilterQuery(e.target.value)}
                   className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]/20 transition-all font-medium"
@@ -196,9 +198,9 @@ export function DepartmentPicker({
                     <LayoutGrid className="w-4 h-4 text-[#FF1028]" />
                   </div>
                   <div>
-                    <span className="block truncate">All Departments</span>
+                    <span className="block truncate">{t.common.allDepartments}</span>
                     <span className="text-[10px] text-slate-400 font-normal">
-                      Search across all catalogue
+                      {isSpanish ? "Buscar en todo el catálogo" : "Search across all catalogue"}
                     </span>
                   </div>
                 </div>
@@ -210,12 +212,12 @@ export function DepartmentPicker({
               {/* Dynamic Category Items */}
               {filteredCategories.length === 0 ? (
                 <div className="p-4 text-center text-xs text-slate-400">
-                  No departments found matching &quot;{filterQuery}&quot;
+                  {isSpanish ? `No se encontraron departamentos para "${filterQuery}"` : `No departments found matching "${filterQuery}"`}
                 </div>
               ) : (
                 filteredCategories.map((cat) => {
                   const isSelected = selectedCategory === cat.slug;
-                  const count = cat.product_count || (cat.subcategories ? `${cat.subcategories.length} subcategories` : null);
+                  const count = cat.product_count || (cat.subcategories ? `${cat.subcategories.length} ${isSpanish ? "subcategorías" : "subcategories"}` : null);
 
                   return (
                     <div
@@ -243,7 +245,7 @@ export function DepartmentPicker({
                           </span>
                           {count && (
                             <span className="text-[10px] text-slate-400 block truncate">
-                              {typeof count === "number" ? `${count} items` : count}
+                              {typeof count === "number" ? `${count} ${isSpanish ? "artículos" : "items"}` : count}
                             </span>
                           )}
                         </div>
@@ -274,14 +276,14 @@ export function DepartmentPicker({
             {/* Footer View All Categories Link */}
             <div className="p-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
               <span className="text-[10px] text-slate-400">
-                Direct factory sourcing
+                {isSpanish ? "Suministro directo de fábrica" : "Direct factory sourcing"}
               </span>
               <Link
                 href="/categories"
                 onClick={() => setIsOpen(false)}
                 className="text-[11px] font-black text-[#FF1028] hover:underline flex items-center gap-1 font-heading uppercase tracking-wider cursor-pointer"
               >
-                <span>All Categories &rarr;</span>
+                <span>{isSpanish ? "Todas las Categorías →" : "All Categories →"}</span>
               </Link>
             </div>
           </motion.div>

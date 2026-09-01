@@ -28,9 +28,11 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { getUserNotifications } from "@/app/actions/notifications";
 import { NotificationItem } from "@/types/notifications";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function AccountDashboardPage() {
   const { user, displayName } = useAuth();
+  const { isSpanish } = useTranslation();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(true);
 
@@ -71,7 +73,7 @@ export default function AccountDashboardPage() {
   const recentOrders = MOCK_ORDERS.slice(0, 2);
   const recentlyViewed = MOCK_PRODUCTS.slice(0, 4);
 
-  const greetingName = displayName || user?.email?.split("@")[0] || "Valued Buyer";
+  const greetingName = displayName || user?.email?.split("@")[0] || (isSpanish ? "Comprador Valioso" : "Valued Buyer");
 
   return (
     <div className="space-y-8">
@@ -80,31 +82,34 @@ export default function AccountDashboardPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider font-heading">
-              VIP BUYER TIER
+              {isSpanish ? "NIVEL COMPRADOR VIP" : "VIP BUYER TIER"}
             </span>
             <span className="text-xs text-amber-300 font-bold flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" /> USDT Verified Account
+              <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+              {isSpanish ? "Cuenta Verificada con USDT" : "USDT Verified Account"}
             </span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-black text-white font-heading">
-            Welcome back, {greetingName}
+            {isSpanish ? `Bienvenido de nuevo, ${greetingName}` : `Welcome back, ${greetingName}`}
           </h1>
           <p className="text-xs text-slate-300">
-            Manage your China factory purchase orders, live air freight tracking, and saved delivery addresses.
+            {isSpanish
+              ? "Administra tus órdenes de compra directa de fábrica de China, rastreo aéreo en vivo y direcciones de entrega guardadas."
+              : "Manage your China factory purchase orders, live air freight tracking, and saved delivery addresses."}
           </p>
         </div>
 
         {/* USDT Escrow & Sourcing Status Pill */}
         <div className="bg-white/10 backdrop-blur-md border border-white/15 p-4 rounded-2xl shrink-0 space-y-1 text-xs">
           <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider block">
-            Binance Pay Settlement Status
+            {isSpanish ? "Estado de Liquidación Binance Pay" : "Binance Pay Settlement Status"}
           </span>
           <span className="text-base font-black text-[#10B981] flex items-center gap-1.5 price-tag">
-            <Coins className="w-4 h-4" /> Zero-Fee Active Escrow
+            <Coins className="w-4 h-4" /> {isSpanish ? "Depósito Activo Cero Comisiones" : "Zero-Fee Active Escrow"}
           </span>
           <span className="text-[10px] text-slate-300 block">
-            Direct refund protection enabled
+            {isSpanish ? "Protección de reembolso directo habilitada" : "Direct refund protection enabled"}
           </span>
         </div>
       </div>
@@ -117,14 +122,18 @@ export default function AccountDashboardPage() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-500 group-hover:text-[#00143D]">
-              Total Orders
+              {isSpanish ? "Total de Pedidos" : "Total Orders"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Package className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-xl font-black text-[#00143D]">{MOCK_ORDERS.length} Orders</span>
-          <span className="text-[10px] text-slate-400 block mt-0.5">1 currently in air transit</span>
+          <span className="text-xl font-black text-[#00143D]">
+            {MOCK_ORDERS.length} {isSpanish ? "Pedidos" : "Orders"}
+          </span>
+          <span className="text-[10px] text-slate-400 block mt-0.5">
+            {isSpanish ? "1 actualmente en tránsito aéreo" : "1 currently in air transit"}
+          </span>
         </Link>
 
         <Link
@@ -133,14 +142,18 @@ export default function AccountDashboardPage() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-500 group-hover:text-[#FF1028]">
-              Air Shipments
+              {isSpanish ? "Envíos Aéreos" : "Air Shipments"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-red-50 text-[#FF1028] flex items-center justify-center">
               <Truck className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-xl font-black text-[#FF1028]">1 Active</span>
-          <span className="text-[10px] text-[#10B981] font-bold block mt-0.5">Est. Arrival: 4 Days</span>
+          <span className="text-xl font-black text-[#FF1028]">
+            {isSpanish ? "1 Activo" : "1 Active"}
+          </span>
+          <span className="text-[10px] text-[#10B981] font-bold block mt-0.5">
+            {isSpanish ? "Llegada Est.: 4 Días" : "Est. Arrival: 4 Days"}
+          </span>
         </Link>
 
         <Link
@@ -149,14 +162,18 @@ export default function AccountDashboardPage() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-500 group-hover:text-[#FF1028]">
-              Wishlist Items
+              {isSpanish ? "Lista de Deseos" : "Wishlist Items"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center">
               <Heart className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-xl font-black text-slate-900">4 Saved</span>
-          <span className="text-[10px] text-slate-400 block mt-0.5">2 currently on flash drop</span>
+          <span className="text-xl font-black text-slate-900">
+            {isSpanish ? "4 Guardados" : "4 Saved"}
+          </span>
+          <span className="text-[10px] text-slate-400 block mt-0.5">
+            {isSpanish ? "2 actualmente en oferta flash" : "2 currently on flash drop"}
+          </span>
         </Link>
 
         <Link
@@ -165,14 +182,18 @@ export default function AccountDashboardPage() {
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-500 group-hover:text-[#00143D]">
-              Support Desk
+              {isSpanish ? "Mesa de Soporte" : "Support Desk"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <MessageCircle className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-xl font-black text-slate-900">0 Open</span>
-          <span className="text-[10px] text-[#10B981] font-bold block mt-0.5">24/7 Agent Available</span>
+          <span className="text-xl font-black text-slate-900">
+            {isSpanish ? "0 Abiertos" : "0 Open"}
+          </span>
+          <span className="text-[10px] text-[#10B981] font-bold block mt-0.5">
+            {isSpanish ? "Agente 24/7 Disponible" : "24/7 Agent Available"}
+          </span>
         </Link>
       </div>
 
@@ -182,10 +203,11 @@ export default function AccountDashboardPage() {
           <div>
             <h2 className="text-base font-black text-[#00143D] flex items-center gap-2">
               <Truck className="w-5 h-5 text-blue-600" />
-              <span>Live Air Freight Shipment Tracker</span>
+              <span>{isSpanish ? "Rastreador de Carga Aérea en Vivo" : "Live Air Freight Shipment Tracker"}</span>
             </h2>
             <span className="text-xs text-slate-500">
-              Tracking Number: <strong>YUN-982741920-US</strong> (YunExpress International Air Express)
+              {isSpanish ? "Número de Guía: " : "Tracking Number: "}
+              <strong>YUN-982741920-US</strong> (YunExpress International Air Express)
             </span>
           </div>
 
@@ -193,7 +215,7 @@ export default function AccountDashboardPage() {
             href="/account/orders"
             className="text-xs font-black text-[#FF1028] hover:underline flex items-center gap-1"
           >
-            <span>View All Orders</span>
+            <span>{isSpanish ? "Ver Todos los Pedidos" : "View All Orders"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -205,39 +227,53 @@ export default function AccountDashboardPage() {
               <div className="w-8 h-8 rounded-full bg-[#10B981] text-white flex items-center justify-center mx-auto text-xs font-black shadow-xs">
                 ✓
               </div>
-              <span className="text-[11px] font-bold text-slate-800 block">USDT Paid</span>
-              <span className="text-[9px] text-slate-400">Aug 22, 10:14</span>
+              <span className="text-[11px] font-bold text-slate-800 block">
+                {isSpanish ? "USDT Pagado" : "USDT Paid"}
+              </span>
+              <span className="text-[9px] text-slate-400">Ago 22, 10:14</span>
             </div>
 
             <div className="space-y-1">
               <div className="w-8 h-8 rounded-full bg-[#10B981] text-white flex items-center justify-center mx-auto text-xs font-black shadow-xs">
                 ✓
               </div>
-              <span className="text-[11px] font-bold text-slate-800 block">QC Checked</span>
-              <span className="text-[9px] text-slate-400">Aug 22, 16:30</span>
+              <span className="text-[11px] font-bold text-slate-800 block">
+                {isSpanish ? "QC Aprobado" : "QC Checked"}
+              </span>
+              <span className="text-[9px] text-slate-400">Ago 22, 16:30</span>
             </div>
 
             <div className="space-y-1">
               <div className="w-8 h-8 rounded-full bg-[#FF1028] text-white flex items-center justify-center mx-auto text-xs font-black shadow-xs animate-pulse">
                 ✈️
               </div>
-              <span className="text-[11px] font-black text-[#FF1028] block">Air Flight</span>
-              <span className="text-[9px] text-red-500 font-bold">In Transit</span>
+              <span className="text-[11px] font-black text-[#FF1028] block">
+                {isSpanish ? "Vuelo Aéreo" : "Air Flight"}
+              </span>
+              <span className="text-[9px] text-red-500 font-bold">
+                {isSpanish ? "En Tránsito" : "In Transit"}
+              </span>
             </div>
 
             <div className="space-y-1">
               <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto text-xs font-black">
                 4
               </div>
-              <span className="text-[11px] font-bold text-slate-400 block">Customs Clearance</span>
-              <span className="text-[9px] text-slate-400">DDP Handled</span>
+              <span className="text-[11px] font-bold text-slate-400 block">
+                {isSpanish ? "Aduana e IVA" : "Customs Clearance"}
+              </span>
+              <span className="text-[9px] text-slate-400">
+                {isSpanish ? "DDP Despachado" : "DDP Handled"}
+              </span>
             </div>
 
             <div className="space-y-1">
               <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto text-xs font-black">
                 5
               </div>
-              <span className="text-[11px] font-bold text-slate-400 block">Delivered</span>
+              <span className="text-[11px] font-bold text-slate-400 block">
+                {isSpanish ? "Entregado" : "Delivered"}
+              </span>
               <span className="text-[9px] text-slate-400">San Francisco, CA</span>
             </div>
           </div>
@@ -245,9 +281,14 @@ export default function AccountDashboardPage() {
           <div className="text-[11px] text-slate-600 bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-blue-600" />
-              <span>Latest Dispatch Scan: <strong>Departed Hong Kong International Air Hub (Flight CX872)</strong></span>
+              <span>
+                {isSpanish ? "Último Escaneo: " : "Latest Dispatch Scan: "}
+                <strong>{isSpanish ? "Salida del Hub Aeroportuario de Hong Kong (Vuelo CX872)" : "Departed Hong Kong International Air Hub (Flight CX872)"}</strong>
+              </span>
             </span>
-            <span className="text-[#10B981] font-bold">On Schedule</span>
+            <span className="text-[#10B981] font-bold">
+              {isSpanish ? "A Tiempo" : "On Schedule"}
+            </span>
           </div>
         </div>
       </div>
@@ -257,22 +298,26 @@ export default function AccountDashboardPage() {
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <h2 className="text-base font-black text-[#00143D] flex items-center gap-2 font-heading">
             <Bell className="w-5 h-5 text-[#FF1028]" />
-            <span>Sourcing Notifications & Order Updates</span>
+            <span>{isSpanish ? "Notificaciones y Actualizaciones de Pedidos" : "Sourcing Notifications & Order Updates"}</span>
           </h2>
           <Link
             href="/account/notifications"
             className="text-xs font-black text-[#FF1028] hover:underline flex items-center gap-1 font-heading uppercase"
           >
-            <span>View All Inbox ({notifications.length})</span>
+            <span>{isSpanish ? `Ver Bandeja (${notifications.length})` : `View All Inbox (${notifications.length})`}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         <div className="space-y-3">
           {loadingNotifs ? (
-            <div className="p-6 text-center text-xs text-slate-400">Loading notifications...</div>
+            <div className="p-6 text-center text-xs text-slate-400">
+              {isSpanish ? "Cargando notificaciones..." : "Loading notifications..."}
+            </div>
           ) : notifications.length === 0 ? (
-            <div className="p-6 text-center text-xs text-slate-400">No active notifications.</div>
+            <div className="p-6 text-center text-xs text-slate-400">
+              {isSpanish ? "No hay notificaciones activas." : "No active notifications."}
+            </div>
           ) : (
             notifications.map((notif) => {
               const isUnread = !notif.read_at;
@@ -290,7 +335,7 @@ export default function AccountDashboardPage() {
                       <h4 className="text-xs font-bold text-slate-900">{notif.title}</h4>
                       {isUnread && (
                         <span className="bg-[#FF1028] text-white text-[9px] font-black px-1.5 py-0.2 rounded uppercase">
-                          NEW
+                          {isSpanish ? "NUEVO" : "NEW"}
                         </span>
                       )}
                     </div>
@@ -300,7 +345,7 @@ export default function AccountDashboardPage() {
                         href={notif.action_url}
                         className="inline-flex items-center gap-1 text-[11px] font-bold text-[#FF1028] hover:underline pt-0.5"
                       >
-                        <span>{notif.action_label || "View Details"}</span>
+                        <span>{notif.action_label || (isSpanish ? "Ver Detalles" : "View Details")}</span>
                         <ArrowRight className="w-3 h-3" />
                       </Link>
                     )}
@@ -319,13 +364,13 @@ export default function AccountDashboardPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-black text-[#00143D]">
-            Recently Viewed Factory Products
+            {isSpanish ? "Productos Vistos Recientemente" : "Recently Viewed Factory Products"}
           </h2>
           <Link
             href="/categories"
             className="text-xs font-black text-[#FF1028] hover:underline"
           >
-            Explore Catalogue →
+            {isSpanish ? "Explorar Catálogo →" : "Explore Catalogue →"}
           </Link>
         </div>
 

@@ -15,6 +15,7 @@ import { NAV_LINKS } from "@/components/layout/header/headerConfig";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { useMounted } from "@/hooks/useMounted";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedCategoryName, getLocalizedSubcategory } from "@/lib/i18n/categoryI18n";
 import type { Category } from "@/types/database";
 
 interface DrawerCategory extends Partial<Category> {
@@ -38,7 +39,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
   const router = useRouter();
   const { user, role, displayName } = useAuth();
   const { getRootCategories } = useCategoryStore();
-  const { locale, setLocale, t } = useTranslation();
+  const { locale, setLocale, t, isSpanish } = useTranslation();
   
   const isMounted = useMounted();
   const unreadNotificationsCount = useNotificationStore((state) => state.unreadCount);
@@ -117,7 +118,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
             className="relative w-[85%] max-w-sm bg-white h-full shadow-2xl flex flex-col justify-between z-10"
             role="dialog"
             aria-modal="true"
-            aria-label="Navigation menu"
+            aria-label={t.header.openMenu}
           >
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 space-y-6">
               {/* Drawer Header */}
@@ -131,7 +132,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                   ref={closeButtonRef}
                   onClick={onClose}
                   className="p-2 text-slate-500 hover:text-[#FF1028] rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
-                  aria-label="Close menu"
+                  aria-label={t.header.closeMenu}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -175,8 +176,12 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                   </div>
                 ) : (
                   <div>
-                    <span className="text-sm font-bold text-slate-800 block">Direct Factory Sourcing</span>
-                    <span className="text-xs text-slate-500">Join free for wholesale</span>
+                    <span className="text-sm font-bold text-slate-800 block">
+                      {isSpanish ? "Suministro Directo de Fábrica" : "Direct Factory Sourcing"}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {isSpanish ? "Únete gratis para compras mayoristas" : "Join free for wholesale"}
+                    </span>
                   </div>
                 )}
                 {isMounted && user ? (
@@ -197,7 +202,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
               {/* Navigation Links */}
               <div className="space-y-1.5">
                 <span className="text-[10px] font-black uppercase text-slate-400 font-mono tracking-wider ml-2">
-                  Navigation
+                  {isSpanish ? "Navegación" : "Navigation"}
                 </span>
                 <nav className="flex flex-col gap-1">
                   {NAV_LINKS.map((link) => {
@@ -239,7 +244,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                     <div className="flex items-center gap-3">
                       <Bell className={`w-4 h-4 ${pathname === "/account/notifications" ? "text-[#FF1028]" : "text-slate-400"}`} />
                       <span className={`text-sm ${pathname === "/account/notifications" ? "font-black" : "font-bold"}`}>
-                        Notifications
+                        {isSpanish ? "Notificaciones" : "Notifications"}
                       </span>
                     </div>
                     {isMounted && unreadNotificationsCount > 0 && (
@@ -272,7 +277,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                               className="w-4 h-4 text-[#FF1028]"
                             />
                           </div>
-                          <span>{cat.name}</span>
+                          <span>{getLocalizedCategoryName(cat.name, isSpanish)}</span>
                         </div>
                         <ChevronDown
                           className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
@@ -297,7 +302,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                                   onClick={onClose}
                                   className="block py-1.5 text-xs font-medium text-slate-500 hover:text-[#FF1028] transition-colors cursor-pointer"
                                 >
-                                  {sub}
+                                  {getLocalizedSubcategory(sub, isSpanish)}
                                 </Link>
                               ))}
                             </div>

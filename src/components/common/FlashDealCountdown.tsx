@@ -5,6 +5,8 @@ import { Clock } from "lucide-react";
 import { timeRemaining } from "@/utils/helpers";
 import { useMounted } from "@/hooks/useMounted";
 
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
 interface FlashDealCountdownProps {
   targetDate?: string;
   label?: string;
@@ -17,6 +19,7 @@ export function FlashDealCountdown({
   variant = "default",
 }: FlashDealCountdownProps) {
   const isMounted = useMounted();
+  const { isSpanish } = useTranslation();
   const [activeTarget, setActiveTarget] = useState<string>(
     targetDate || new Date(Date.now() + 14 * 3600 * 1000).toISOString()
   );
@@ -55,7 +58,7 @@ export function FlashDealCountdown({
   if (isMounted && timeLeft.expired) {
     return (
       <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-md">
-        <span>Deal has ended</span>
+        <span>{isSpanish ? "La oferta ha terminado" : "Deal has ended"}</span>
       </div>
     );
   }

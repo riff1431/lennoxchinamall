@@ -35,6 +35,7 @@ const FOUR_DEAL_ITEMS = [
   {
     id: "hero-deal-1",
     title: "CMF Buds Pro 2 Wireless Earbuds",
+    titleEs: "Auriculares Inalámbricos CMF Buds Pro 2",
     slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
     discountBadge: "-$10.00",
     comparePrice: 373.0,
@@ -49,6 +50,7 @@ const FOUR_DEAL_ITEMS = [
   {
     id: "hero-deal-2",
     title: "iPhone 17 Pro Max Titanium Sourcing",
+    titleEs: "iPhone 17 Pro Max Titanio de Fábrica",
     slug: "eachine-ex5-4k-gps-fpv-drone",
     discountBadge: "-$10.00",
     comparePrice: 950.0,
@@ -63,6 +65,7 @@ const FOUR_DEAL_ITEMS = [
   {
     id: "hero-deal-3",
     title: "Elegant Floral Embroidered Handbag",
+    titleEs: "Bolso Elegante con Bordado Floral",
     slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
     discountBadge: "-$10.00",
     comparePrice: 100.0,
@@ -77,6 +80,7 @@ const FOUR_DEAL_ITEMS = [
   {
     id: "hero-deal-4",
     title: "Copper Alloy Inlaid Zircon Round Ring",
+    titleEs: "Anillo Redondo con Zircón Incrustado",
     slug: "konnwei-kw850-obd2-car-diagnostic-scanner",
     discountBadge: "-50%",
     comparePrice: 18.0,
@@ -198,7 +202,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                 </div>
 
                 <h3 className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-[#FF1028] transition-colors leading-snug line-clamp-2">
-                  Acoustic Audio by Goldwood 120W
+                  {isSpanish ? "Audio Acústico Goldwood 120W" : "Acoustic Audio by Goldwood 120W"}
                 </h3>
 
                 <div className="flex items-baseline justify-center gap-2 pt-0.5">
@@ -344,7 +348,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     {/* Title */}
                     <Link href={`/products/${item.slug}`} className="block">
                       <h4 className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-800 group-hover:text-[#FF1028] transition-colors line-clamp-2 leading-tight min-h-[28px]">
-                        {item.title}
+                        {isSpanish ? item.titleEs : item.title}
                       </h4>
                     </Link>
 
@@ -400,7 +404,7 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                         ? "bg-emerald-600 text-white shadow-xs"
                         : "bg-[#FF1028] hover:bg-[#e00d22] text-white shadow-2xs"
                     }`}
-                    aria-label={`Add ${item.title} to cart`}
+                    aria-label={`Add ${isSpanish ? item.titleEs : item.title} to cart`}
                   >
                     {isAdded ? (
                       <>
@@ -431,11 +435,13 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
             onClick={() =>
               onOpenVideoModal({
                 title: t.home.cantonFairLive,
-                subtitle: "Guangzhou Complex • Verified Hardware & Robotics Suppliers",
+                subtitle: isSpanish
+                  ? "Complejo Cantón • Proveedores Verificados de Hardware y Robótica"
+                  : "Guangzhou Complex • Verified Hardware & Robotics Suppliers",
                 productLink: "/products/eachine-ex5-4k-gps-fpv-drone",
                 productPrice: 189.0,
                 hub: "Guangzhou Canton Hub",
-                tag: "LIVE EXPORT FAIR",
+                tag: isSpanish ? "FERIA DE EXPORTACIÓN EN VIVO" : "LIVE EXPORT FAIR",
                 videoUrl: "/videos/hero/hero_ad_1.mov",
                 poster: "/videos/hero/hero_ad_1_thumb.jpg",
               })
@@ -479,11 +485,13 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     e.stopPropagation();
                     onOpenVideoModal({
                       title: t.home.cantonFairLive,
-                      subtitle: "Guangzhou Complex • Verified Hardware & Robotics Suppliers",
+                      subtitle: isSpanish
+                        ? "Complejo Cantón • Proveedores Verificados de Hardware y Robótica"
+                        : "Guangzhou Complex • Verified Hardware & Robotics Suppliers",
                       productLink: "/products/eachine-ex5-4k-gps-fpv-drone",
                       productPrice: 189.0,
                       hub: "Guangzhou Canton Hub",
-                      tag: "LIVE EXPORT FAIR",
+                      tag: isSpanish ? "FERIA DE EXPORTACIÓN EN VIVO" : "LIVE EXPORT FAIR",
                       videoUrl: "/videos/hero/hero_ad_1.mov",
                       poster: "/videos/hero/hero_ad_1_thumb.jpg",
                     });
@@ -522,11 +530,13 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
             onClick={() =>
               onOpenVideoModal({
                 title: t.home.shenzhenLabInspection,
-                subtitle: "Direct Bench Quality Control • Circuitry & Load Verification",
+                subtitle: isSpanish
+                  ? "Control de Calidad en Banco de Pruebas • Verificación de Carga y Circuitos"
+                  : "Direct Bench Quality Control • Circuitry & Load Verification",
                 productLink: "/products/creality-ender-3-v3-se-3d-printer",
                 productPrice: 219.0,
                 hub: "Shenzhen SZX Hub",
-                tag: "LAB BENCHMARK",
+                tag: isSpanish ? "PRUEBAS DE LABORATORIO" : "LAB BENCHMARK",
                 videoUrl: "/videos/hero/hero_ad_2.mov",
                 poster: "/videos/hero/hero_ad_2_thumb.jpg",
               })
@@ -570,11 +580,13 @@ export function HeroLennoxSection({ onOpenVideoModal }: HeroLennoxSectionProps) 
                     e.stopPropagation();
                     onOpenVideoModal({
                       title: t.home.shenzhenLabInspection,
-                      subtitle: "Direct Bench Quality Control • Circuitry & Load Verification",
+                      subtitle: isSpanish
+                        ? "Control de Calidad en Banco de Pruebas • Verificación de Carga y Circuitos"
+                        : "Direct Bench Quality Control • Circuitry & Load Verification",
                       productLink: "/products/creality-ender-3-v3-se-3d-printer",
                       productPrice: 219.0,
                       hub: "Shenzhen SZX Hub",
-                      tag: "LAB BENCHMARK",
+                      tag: isSpanish ? "PRUEBAS DE LABORATORIO" : "LAB BENCHMARK",
                       videoUrl: "/videos/hero/hero_ad_2.mov",
                       poster: "/videos/hero/hero_ad_2_thumb.jpg",
                     });

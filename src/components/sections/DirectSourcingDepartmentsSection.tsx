@@ -289,7 +289,7 @@ export function DirectSourcingDepartmentsSection({
             href="/categories"
             className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-md bg-slate-50 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200 text-xs font-black font-heading transition-all shadow-2xs group btn-smooth"
           >
-            <span>{isSpanish ? "Todos los Departamentos" : "All Departments"}</span>
+            <span>{t.common.allDepartments}</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>

@@ -32,6 +32,7 @@ import { formatCurrency, calcDiscount } from "@/utils/helpers";
 import { Modal } from "@/components/ui/Modal";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 interface ProductCardProps {
   product: Product;
@@ -39,7 +40,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, priority = false }: ProductCardProps) {
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
   const [isHovered, setIsHovered] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
@@ -206,7 +207,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                     -{discount > 0 ? `${discount}%` : "45%"}
                   </span>
                   <span className="bg-amber-400 text-slate-950 text-[7.5px] sm:text-[8px] font-black px-1.5 py-0.5 rounded-xs uppercase tracking-wider flex items-center gap-0.5 shadow-2xs font-mono">
-                    <Flame className="w-2.5 h-2.5 fill-slate-950" /> FLASH DROP
+                    <Flame className="w-2.5 h-2.5 fill-slate-950" /> {isSpanish ? "OFERTA FLASH" : "FLASH DROP"}
                   </span>
                 </>
               ) : (
@@ -218,12 +219,12 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                   )}
                   {product.is_new_arrival && (
                     <span className="bg-emerald-600 text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
-                      <Sparkles className="w-2.5 h-2.5" /> NEW
+                      <Sparkles className="w-2.5 h-2.5" /> {isSpanish ? "NUEVO" : "NEW"}
                     </span>
                   )}
                   {product.is_best_seller && !product.is_flash_deal && (
                     <span className="bg-amber-500 text-slate-950 text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs shadow-2xs uppercase tracking-wide flex items-center gap-1 font-heading">
-                      <Award className="w-2.5 h-2.5" /> BEST SELLER
+                      <Award className="w-2.5 h-2.5" /> {isSpanish ? "MÁS VENDIDO" : "BEST SELLER"}
                     </span>
                   )}
                 </>
@@ -238,7 +239,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 className={`w-6.5 h-6.5 rounded-md bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
                   mountedIsInWishlist ? "text-[#FF1028]" : "text-slate-400 hover:text-[#FF1028]"
                 }`}
-                title={mountedIsInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                title={mountedIsInWishlist ? (isSpanish ? "Eliminar de favoritos" : "Remove from wishlist") : (isSpanish ? "Añadir a favoritos" : "Add to wishlist")}
                 aria-label="Toggle Wishlist"
               >
                 <Heart className={`w-3.5 h-3.5 ${mountedIsInWishlist ? "fill-[#FF1028]" : ""}`} />
@@ -250,7 +251,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 className={`w-6.5 h-6.5 rounded-md bg-white/95 backdrop-blur-md flex items-center justify-center transition-all shadow-xs cursor-pointer border border-slate-100 hover:scale-115 ${
                   mountedIsInCompare ? "text-blue-600 font-bold" : "text-slate-400 hover:text-blue-600"
                 }`}
-                title={mountedIsInCompare ? "Remove from comparison" : "Add to compare"}
+                title={mountedIsInCompare ? (isSpanish ? "Eliminar de comparar" : "Remove from comparison") : (isSpanish ? "Añadir a comparar" : "Add to compare")}
                 aria-label="Compare Product"
               >
                 <Scale className="w-3.5 h-3.5" />
@@ -260,7 +261,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               <button
                 onClick={handleOpenQuickView}
                 className="w-6.5 h-6.5 rounded-md bg-white/95 backdrop-blur-md flex items-center justify-center text-slate-400 hover:text-slate-800 hover:scale-115 transition-all shadow-xs cursor-pointer border border-slate-100"
-                title="Quick View Details"
+                title={isSpanish ? "Vista Rápida" : "Quick View Details"}
                 aria-label="Quick View"
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -271,7 +272,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             {product.is_flash_deal && (
               <div className="absolute bottom-0 inset-x-0 bg-[#00143D]/95 backdrop-blur-md text-amber-300 text-[8.5px] sm:text-[9.5px] font-black py-0.5 px-2 flex items-center justify-between z-10 border-t border-amber-400/20 font-mono">
                 <span className="flex items-center gap-1 text-slate-300">
-                  <Clock className="w-2.5 h-2.5 text-amber-400" /> Ends:
+                  <Clock className="w-2.5 h-2.5 text-amber-400" /> {isSpanish ? "Termina:" : "Ends:"}
                 </span>
                 <span className="tracking-widest font-black">
                   {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:{String(timeLeft.seconds).padStart(2, "0")}
@@ -284,13 +285,13 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-1.5">
             {/* Origin & QC Tag */}
             <div className="flex items-center justify-between text-[9px] text-slate-400 uppercase tracking-wider font-mono">
-              <span className="truncate">{product.shipping_origin ? "Direct China Factory" : "Direct Factory"}</span>
+              <span className="truncate">{product.shipping_origin ? (isSpanish ? "Fábrica Directa China" : "Direct China Factory") : (isSpanish ? "Fábrica Directa" : "Direct Factory")}</span>
               <span className="text-emerald-700 font-bold shrink-0">QC</span>
             </div>
 
             {/* Title */}
             <h3 className="font-sans font-bold text-xs sm:text-[13px] text-slate-800 line-clamp-2 leading-tight group-hover:text-[#FF1028] transition-colors">
-              {product.title}
+              {getLocalizedProductTitle(product.slug, product.title, isSpanish)}
             </h3>
 
             {/* Rating & Social Proof */}
@@ -304,7 +305,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               <span className="text-slate-400 text-[9px]">({product.review_count || 120})</span>
               <span className="text-slate-300">•</span>
               <span className="text-[9px] font-mono text-slate-500 truncate">
-                {product.sold_count ? `${(product.sold_count / 1000).toFixed(1)}k+ sold` : "500+ sold"}
+                {product.sold_count ? `${(product.sold_count / 1000).toFixed(1)}k+ ${isSpanish ? "vendidos" : "sold"}` : (isSpanish ? "500+ vendidos" : "500+ sold")}
               </span>
             </div>
 
@@ -392,7 +393,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
       <Modal
         isOpen={isQuickViewOpen}
         onClose={() => setIsQuickViewOpen(false)}
-        title={product.title}
+        title={getLocalizedProductTitle(product.slug, product.title, isSpanish)}
         size="lg"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-sans text-slate-800">
@@ -402,7 +403,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               <Image src={primaryImage} alt={product.title} fill className="object-cover" />
               {discount > 0 && (
                 <span className="absolute top-3 left-3 bg-[#FF1028] text-white text-xs font-black px-2.5 py-1 rounded-md uppercase font-heading">
-                  -{discount}% OFF
+                  -{discount}% {isSpanish ? "DESCUENTO" : "OFF"}
                 </span>
               )}
             </div>
@@ -425,20 +426,20 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="bg-[#00143D] text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">
-                  DIRECT FACTORY SOURCING
+                  {isSpanish ? "SUMINISTRO DIRECTO DE FÁBRICA" : "DIRECT FACTORY SOURCING"}
                 </span>
                 <span className="text-xs text-amber-500 font-bold flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-current" />
-                  {(product.avg_rating || 4.9).toFixed(1)} ({product.review_count || 18} Reviews)
+                  {(product.avg_rating || 4.9).toFixed(1)} ({product.review_count || 18} {isSpanish ? "Reseñas" : "Reviews"})
                 </span>
               </div>
 
               <h2 className="text-base sm:text-lg font-black font-heading text-slate-900 leading-tight">
-                {product.title}
+                {getLocalizedProductTitle(product.slug, product.title, isSpanish)}
               </h2>
 
               <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
-                {product.description || "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty."}
+                {product.description || (isSpanish ? "Fabricado directamente en fábrica con componentes de alta calidad. Probado para exportación y respaldado por la garantía Lennox de 30 días." : "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty.")}
               </p>
 
               {/* Price Row */}
@@ -454,14 +455,14 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                   )}
                 </div>
                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
-                  USDT Zero-Fee Escrow
+                  {isSpanish ? "Depósito en Garantía USDT Sin Comisión" : "USDT Zero-Fee Escrow"}
                 </span>
               </div>
 
               {/* Variant Selector in Quick View */}
               {product.variants && product.variants.length > 1 && (
                 <div className="space-y-1.5 pt-2">
-                  <span className="text-xs font-bold text-slate-700 block">Select Variant / Specs:</span>
+                  <span className="text-xs font-bold text-slate-700 block">{isSpanish ? "Seleccionar Variante / Especificaciones:" : "Select Variant / Specs:"}</span>
                   <div className="flex flex-wrap gap-2">
                     {product.variants.map((v) => (
                       <button
@@ -492,7 +493,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 className="w-full py-3 rounded-xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-colors cursor-pointer"
               >
                 <ShoppingCart className="w-4 h-4" />
-                <span>Add to Cart ({formatCurrency(activePrice)})</span>
+                <span>{t.common.addToCart} ({formatCurrency(activePrice)})</span>
               </button>
 
               <Link
@@ -500,7 +501,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                 onClick={() => setIsQuickViewOpen(false)}
                 className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1 transition-colors text-center"
               >
-                <span>View Complete Product Page</span>
+                <span>{isSpanish ? "Ver Página Completa del Producto" : "View Complete Product Page"}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>

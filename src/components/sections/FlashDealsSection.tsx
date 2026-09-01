@@ -100,7 +100,7 @@ export function FlashDealsSection({ flashDeals }: FlashDealsSectionProps) {
                         : "text-slate-400"
                     }`}
                   >
-                    {Math.max(4, 12 - idx * 2)} {isSpanish ? "restantes" : "units left"}
+                    {Math.max(4, 12 - idx * 2)} {isSpanish ? "unidades restantes" : "units left"}
                   </span>
                 </div>
 

@@ -13,6 +13,7 @@ import {
   Pause,
   ExternalLink,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export interface ReelsVideoData {
   title: string;
@@ -32,6 +33,7 @@ export interface ReelsVideoModalProps {
 }
 
 export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalProps) {
+  const { isSpanish } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -246,7 +248,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
               <div className="w-14 h-14 mx-auto rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg">
                 <Play className="w-6 h-6 ml-0.5" />
               </div>
-              <p className="text-xs font-bold text-white">Live Stream Broadcast</p>
+              <p className="text-xs font-bold text-white">{isSpanish ? "Transmisión en Vivo" : "Live Stream Broadcast"}</p>
             </div>
           </div>
         )}
@@ -326,7 +328,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
                     ${videoData.productPrice.toFixed(2)} USDT
                   </span>
                   <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">
-                    Direct Sourcing
+                    {isSpanish ? "Suministro Directo" : "Direct Sourcing"}
                   </span>
                 </div>
 
@@ -336,7 +338,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
                     onClick={onClose}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FF1028] hover:bg-red-700 active:scale-95 text-white text-xs font-black font-heading transition-all shadow-md cursor-pointer"
                   >
-                    <span>View Specs</span>
+                    <span>{isSpanish ? "Ver Especificaciones" : "View Specs"}</span>
                     <ExternalLink className="w-3 h-3" />
                   </Link>
                 )}

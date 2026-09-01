@@ -8,8 +8,11 @@ import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCartStore } from "@/store/useCartStore";
 import { Rating } from "@/components/ui/Rating";
 import { formatCurrency } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 export default function WishlistPage() {
+  const { isSpanish } = useTranslation();
   const wishlistItems = useWishlistStore((state) => state.items);
   const removeItem = useWishlistStore((state) => state.removeItem);
   const clearWishlist = useWishlistStore((state) => state.clearWishlist);
@@ -45,10 +48,16 @@ export default function WishlistPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#00143D] flex items-center gap-2">
             <Heart className="w-5 h-5 text-[#FF1028] fill-[#FF1028]" />
-            <span>My Sourcing Wishlist ({wishlistItems.length})</span>
+            <span>
+              {isSpanish
+                ? `Mi Lista de Deseos (${wishlistItems.length})`
+                : `My Sourcing Wishlist (${wishlistItems.length})`}
+            </span>
           </h1>
           <p className="text-xs text-slate-500 font-semibold mt-0.5">
-            Saved direct-from-China factory products ready for single-click USDT procurement.
+            {isSpanish
+              ? "Productos directos de fábrica de China guardados, listos para comprar con USDT en 1 clic."
+              : "Saved direct-from-China factory products ready for single-click USDT procurement."}
           </p>
         </div>
 
@@ -57,7 +66,7 @@ export default function WishlistPage() {
             onClick={clearWishlist}
             className="text-xs text-slate-400 hover:text-red-500 font-bold transition-colors cursor-pointer self-start sm:self-auto"
           >
-            Clear All Saved
+            {isSpanish ? "Vaciar Lista de Deseos" : "Clear All Saved"}
           </button>
         )}
       </div>
@@ -68,17 +77,21 @@ export default function WishlistPage() {
             <Heart className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-black text-[#00143D]">Your Wishlist is Empty</h3>
+            <h3 className="text-base font-black text-[#00143D]">
+              {isSpanish ? "Tu Lista de Deseos Está Vacía" : "Your Wishlist is Empty"}
+            </h3>
             <p className="text-xs text-slate-500">
-              Save products while browsing our China factory catalogues to monitor price drops and flash sales.
+              {isSpanish
+                ? "Guarda productos mientras exploras nuestros catálogos de fábrica de China para monitorear descuentos y ofertas flash."
+                : "Save products while browsing our China factory catalogues to monitor price drops and flash sales."}
             </p>
           </div>
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black transition-colors"
+            className="inline-flex items-center gap-1.5 bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-black transition-colors cursor-pointer"
           >
             <Zap className="w-4 h-4" />
-            <span>Browse Sourcing Deals</span>
+            <span>{isSpanish ? "Explorar Ofertas de Abastecimiento" : "Browse Sourcing Deals"}</span>
           </Link>
         </div>
       ) : (
@@ -92,7 +105,7 @@ export default function WishlistPage() {
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
                   <Image
                     src={item.image}
-                    alt={item.title}
+                    alt={getLocalizedProductTitle(item.slug, item.title, isSpanish)}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform"
                   />
@@ -103,7 +116,7 @@ export default function WishlistPage() {
                     href={`/products/${item.slug}`}
                     className="text-xs font-bold text-slate-800 hover:text-[#FF1028] transition-colors line-clamp-2 leading-snug"
                   >
-                    {item.title}
+                    {getLocalizedProductTitle(item.slug, item.title, isSpanish)}
                   </Link>
 
                   <div className="flex items-center gap-2 mt-1.5">
@@ -111,7 +124,7 @@ export default function WishlistPage() {
                       {formatCurrency(item.price)}
                     </span>
                     {item.compareAtPrice && (
-                      <span className="text-xs text-slate-400 line-through">
+                      <span className="text-xs text-slate-400 line-through font-mono">
                         ${item.compareAtPrice.toFixed(2)}
                       </span>
                     )}
@@ -132,12 +145,12 @@ export default function WishlistPage() {
                   {movedId === item.productId ? (
                     <>
                       <Check className="w-3.5 h-3.5" />
-                      <span>Moved!</span>
+                      <span>{isSpanish ? "¡Movido!" : "Moved!"}</span>
                     </>
                   ) : (
                     <>
                       <ShoppingCart className="w-3.5 h-3.5" />
-                      <span>Move to Cart</span>
+                      <span>{isSpanish ? "Mover al Carrito" : "Move to Cart"}</span>
                     </>
                   )}
                 </button>
@@ -146,7 +159,7 @@ export default function WishlistPage() {
                   type="button"
                   onClick={() => removeItem(item.productId)}
                   className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                  title="Remove from wishlist"
+                  title={isSpanish ? "Eliminar de la lista" : "Remove from wishlist"}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

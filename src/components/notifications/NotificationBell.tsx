@@ -31,6 +31,7 @@ import { useNotificationStore } from "@/store/useNotificationStore";
 import { NotificationItem, NotificationCategory } from "@/types/notifications";
 import { formatTimeAgo, cn } from "@/utils/helpers";
 import { useMounted } from "@/hooks/useMounted";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface NotificationBellProps {
   variant?: "storefront" | "admin";
@@ -44,6 +45,7 @@ export function NotificationBell({
   const router = useRouter();
   const { user } = useAuth();
   const isMounted = useMounted();
+  const { t, isSpanish } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -278,11 +280,11 @@ export function NotificationBell({
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black text-[#00143D] dark:text-white uppercase tracking-wider font-heading flex items-center gap-1.5">
                   <Bell className="w-3.5 h-3.5 text-[#FF1028]" />
-                  Notifications
+                  {isSpanish ? "Notificaciones" : "Notifications"}
                 </span>
                 {unreadCount > 0 && (
                   <span className="bg-[#FF1028] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
-                    {unreadCount} New
+                    {unreadCount} {isSpanish ? "Nuevas" : "New"}
                   </span>
                 )}
               </div>
@@ -295,13 +297,13 @@ export function NotificationBell({
                   className="p-1.5 rounded-lg hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
                   title={
                     soundEnabled
-                      ? "Mute notification sounds"
-                      : "Unmute notification sounds"
+                      ? (isSpanish ? "Silenciar sonidos" : "Mute notification sounds")
+                      : (isSpanish ? "Activar sonidos" : "Unmute notification sounds")
                   }
                   aria-label={
                     soundEnabled
-                      ? "Mute notification sounds"
-                      : "Unmute notification sounds"
+                      ? (isSpanish ? "Silenciar sonidos" : "Mute notification sounds")
+                      : (isSpanish ? "Activar sonidos" : "Unmute notification sounds")
                   }
                 >
                   {soundEnabled ? (
@@ -319,7 +321,7 @@ export function NotificationBell({
                     className="text-[11px] font-bold text-[#2F65F6] hover:text-blue-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors cursor-pointer"
                   >
                     <CheckCheck className="w-3.5 h-3.5" />
-                    <span>Mark all read</span>
+                    <span>{isSpanish ? "Marcar todo leído" : "Mark all read"}</span>
                   </button>
                 )}
               </div>
@@ -337,7 +339,7 @@ export function NotificationBell({
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700"
                 )}
               >
-                All ({notifications.filter((n) => !n.archived_at).length})
+                {isSpanish ? "Todas" : "All"} ({notifications.filter((n) => !n.archived_at).length})
               </button>
               <button
                 type="button"
@@ -349,7 +351,7 @@ export function NotificationBell({
                     : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/60 border border-slate-200/80 dark:border-slate-700"
                 )}
               >
-                <span>Unread</span>
+                <span>{isSpanish ? "No leídas" : "Unread"}</span>
                 {unreadCount > 0 && (
                   <span
                     className={cn(
@@ -371,7 +373,7 @@ export function NotificationBell({
             {isLoading ? (
               <div className="p-8 text-center text-xs text-slate-400 space-y-2.5">
                 <div className="w-6 h-6 border-2 border-[#FF1028] border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="font-medium">Syncing live alerts...</p>
+                <p className="font-medium">{isSpanish ? "Sincronizando alertas..." : "Syncing live alerts..."}</p>
               </div>
             ) : filteredNotifications.length === 0 ? (
               <div className="p-8 text-center space-y-2">
@@ -380,13 +382,13 @@ export function NotificationBell({
                 </div>
                 <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
                   {filter === "unread"
-                    ? "No unread alerts"
-                    : "All caught up!"}
+                    ? (isSpanish ? "Sin alertas pendientes" : "No unread alerts")
+                    : (isSpanish ? "¡Todo al día!" : "All caught up!")}
                 </p>
                 <p className="text-[11px] text-slate-400 max-w-[220px] mx-auto">
                   {filter === "unread"
-                    ? "You have reviewed all current notifications."
-                    : "No new activity on your orders or sourcing updates."}
+                    ? (isSpanish ? "Has revisado todas las notificaciones." : "You have reviewed all current notifications.")
+                    : (isSpanish ? "No hay nueva actividad en tus pedidos o actualizaciones." : "No new activity on your orders or sourcing updates.")}
                 </p>
                 {filter === "unread" && (
                   <button
@@ -394,7 +396,7 @@ export function NotificationBell({
                     onClick={() => setFilter("all")}
                     className="mt-2 text-xs font-bold text-[#2F65F6] hover:underline cursor-pointer inline-flex items-center gap-1"
                   >
-                    <span>View all notifications</span>
+                    <span>{isSpanish ? "Ver todas las notificaciones" : "View all notifications"}</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 )}
@@ -476,8 +478,8 @@ export function NotificationBell({
                                 markAsRead(notif.id);
                               }}
                               className="p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-600 transition-colors"
-                              title="Mark as read"
-                              aria-label="Mark as read"
+                              title={isSpanish ? "Marcar como leído" : "Mark as read"}
+                              aria-label={isSpanish ? "Marcar como leído" : "Mark as read"}
                             >
                               <Check className="w-3.5 h-3.5" />
                             </button>
@@ -489,8 +491,8 @@ export function NotificationBell({
                               dismissNotification(notif.id);
                             }}
                             className="p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950 text-slate-400 hover:text-rose-600 transition-colors"
-                            title="Dismiss notification"
-                            aria-label="Dismiss notification"
+                            title={isSpanish ? "Eliminar notificación" : "Dismiss notification"}
+                            aria-label={isSpanish ? "Eliminar notificación" : "Dismiss notification"}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -524,7 +526,7 @@ export function NotificationBell({
               className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-[11px] font-bold flex items-center gap-1 hover:underline cursor-pointer"
             >
               <Sliders className="w-3 h-3" />
-              <span>Preferences</span>
+              <span>{isSpanish ? "Preferencias" : "Preferences"}</span>
             </Link>
 
             <Link
@@ -536,7 +538,7 @@ export function NotificationBell({
               onClick={() => setIsOpen(false)}
               className="font-black text-[#FF1028] hover:underline flex items-center gap-1 text-[11px] font-heading uppercase tracking-wider cursor-pointer"
             >
-              <span>Notification Center</span>
+              <span>{isSpanish ? "Centro de Notificaciones" : "Notification Center"}</span>
               <ChevronRight className="w-3 h-3" />
             </Link>
           </div>

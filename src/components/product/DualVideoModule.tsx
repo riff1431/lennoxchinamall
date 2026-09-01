@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Play, Film, ExternalLink, Video as VideoIcon, Sparkles, ShieldCheck } from "lucide-react";
 import { ProductVideo } from "@/types/database";
 import { Modal } from "@/components/ui/Modal";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface DualVideoModuleProps {
   videos: ProductVideo[];
@@ -12,6 +13,7 @@ interface DualVideoModuleProps {
 }
 
 export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) {
+  const { isSpanish } = useTranslation();
   const [activeModalVideo, setActiveModalVideo] = useState<ProductVideo | null>(
     null
   );
@@ -28,15 +30,15 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
           </div>
           <div>
             <h4 className="font-heading text-xs font-black tracking-wide uppercase text-white">
-              Factory Video Demonstrations
+              {isSpanish ? "Demostraciones en Video de Fábrica" : "Factory Video Demonstrations"}
             </h4>
             <span className="text-[10px] text-slate-300 font-medium">
-              Live hardware inspection &amp; flight test
+              {isSpanish ? "Inspección de hardware y prueba en vivo" : "Live hardware inspection & flight test"}
             </span>
           </div>
         </div>
         <span className="bg-[#FF1028] text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider font-heading">
-          {videos.length} Direct Videos
+          {isSpanish ? `${videos.length} Videos Directos` : `${videos.length} Direct Videos`}
         </span>
       </div>
 
@@ -77,7 +79,11 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
                 <div className="absolute top-2.5 left-2.5 z-20">
                   <span className="bg-[#00143D]/90 backdrop-blur-md text-[10px] font-black text-amber-300 px-2 py-0.5 rounded-xs border border-amber-300/30 flex items-center gap-1 font-heading uppercase tracking-wide">
                     <VideoIcon className="w-3 h-3 text-[#FF1028]" />
-                    <span>SLOT {video.position || idx + 1}: {idx === 0 ? "QUALITY TEST" : "FLIGHT DEMO"}</span>
+                    <span>
+                      {isSpanish
+                        ? `ESPACIO ${video.position || idx + 1}: ${idx === 0 ? "CONTROL DE CALIDAD" : "DEMO EN VIVO"}`
+                        : `SLOT ${video.position || idx + 1}: ${idx === 0 ? "QUALITY TEST" : "FLIGHT DEMO"}`}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -85,10 +91,10 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
               {/* Video Description Bar */}
               <div className="p-3 bg-[#000B24]/90 flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-slate-200 line-clamp-1 group-hover:text-[#FF1028] transition-colors">
-                  {video.title || `Video Demo #${idx + 1}`}
+                  {video.title || (isSpanish ? `Video Demo #${idx + 1}` : `Video Demo #${idx + 1}`)}
                 </span>
                 <span className="text-[10px] text-amber-300 font-bold shrink-0 flex items-center gap-0.5">
-                  Play Video <ExternalLink className="w-3 h-3" />
+                  {isSpanish ? "Reproducir Video" : "Play Video"} <ExternalLink className="w-3 h-3" />
                 </span>
               </div>
             </div>
@@ -99,14 +105,18 @@ export function DualVideoModule({ videos, productTitle }: DualVideoModuleProps) 
       {/* Trust Notice */}
       <div className="mt-4 pt-3 border-t border-[#002366] text-[10px] text-slate-300 flex items-center gap-1.5 font-medium">
         <ShieldCheck className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
-        <span>Videos verified directly by Lennox Quality Inspection Team</span>
+        <span>
+          {isSpanish
+            ? "Videos verificados directamente por el Equipo de Inspección de Calidad Lennox"
+            : "Videos verified directly by Lennox Quality Inspection Team"}
+        </span>
       </div>
 
       {/* Video Playback Modal */}
       <Modal
         isOpen={!!activeModalVideo}
         onClose={() => setActiveModalVideo(null)}
-        title={activeModalVideo?.title || `${productTitle} — Live Video Demo`}
+        title={activeModalVideo?.title || (isSpanish ? `${productTitle} — Demo en Video en Vivo` : `${productTitle} — Live Video Demo`)}
         size="xl"
       >
         <div className="aspect-video w-full rounded-xl overflow-hidden bg-black shadow-2xl">

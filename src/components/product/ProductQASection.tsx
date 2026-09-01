@@ -47,15 +47,6 @@ interface ProductQASectionProps {
   onQuestionCountChange?: (count: number) => void;
 }
 
-const TOPIC_FILTERS = [
-  "All Topics",
-  "Technical Specs",
-  "Compatibility",
-  "Shipping & DDP",
-  "Power & Battery",
-  "Warranty & Parts",
-];
-
 export function ProductQASection({
   productId,
   productTitle,
@@ -64,9 +55,29 @@ export function ProductQASection({
   initialQuestions,
   onQuestionCountChange,
 }: ProductQASectionProps) {
-  const { t } = useTranslation();
+  const { t, isSpanish } = useTranslation();
   const { user, displayName, role } = useAuth();
   const isStaffOrAdmin = Boolean(role && role !== "customer");
+
+  const topicFilters = useMemo(() => {
+    return isSpanish
+      ? [
+          { key: "All Topics", label: "Todos los Temas" },
+          { key: "Technical Specs", label: "Especificaciones Técnicas" },
+          { key: "Compatibility", label: "Compatibilidad" },
+          { key: "Shipping & DDP", label: "Envío y DDP" },
+          { key: "Power & Battery", label: "Energía y Batería" },
+          { key: "Warranty & Parts", label: "Garantía y Repuestos" },
+        ]
+      : [
+          { key: "All Topics", label: "All Topics" },
+          { key: "Technical Specs", label: "Technical Specs" },
+          { key: "Compatibility", label: "Compatibility" },
+          { key: "Shipping & DDP", label: "Shipping & DDP" },
+          { key: "Power & Battery", label: "Power & Battery" },
+          { key: "Warranty & Parts", label: "Warranty & Parts" },
+        ];
+  }, [isSpanish]);
 
   // Data states
   const [questions, setQuestions] = useState<ProductQuestion[]>(initialQuestions || []);
@@ -328,13 +339,15 @@ export function ProductQASection({
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold text-amber-300">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Shenzhen Factory Direct Technical Support</span>
+              <span>{isSpanish ? "Soporte Técnico Directo de Fábrica Shenzhen" : "Shenzhen Factory Direct Technical Support"}</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black font-heading tracking-tight text-white">
-              Questions & Answers (Q&A)
+              {isSpanish ? "Preguntas y Respuestas (Q&A)" : "Questions & Answers (Q&A)"}
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Have technical questions regarding compatibility, firmware, factory QC, or DDP customs? Ask our Shenzhen hardware engineering desk and verified buyers.
+              {isSpanish
+                ? "¿Tienes dudas técnicas sobre compatibilidad, firmware, control QC o aduanas DDP? Pregunta a nuestro equipo de ingeniería y compradores verificados."
+                : "Have technical questions regarding compatibility, firmware, factory QC, or DDP customs? Ask our Shenzhen hardware engineering desk and verified buyers."}
             </p>
           </div>
 
@@ -356,20 +369,34 @@ export function ProductQASection({
         {/* Highlight Stats Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 mt-6 border-t border-white/10 text-xs">
           <div className="space-y-0.5">
-            <span className="text-[11px] text-slate-400 font-semibold block">Total Questions</span>
+            <span className="text-[11px] text-slate-400 font-semibold block">
+              {isSpanish ? "Total Preguntas" : "Total Questions"}
+            </span>
             <span className="text-lg font-black font-mono text-white">{questions.length}</span>
           </div>
           <div className="space-y-0.5">
-            <span className="text-[11px] text-slate-400 font-semibold block">Answered by Staff</span>
-            <span className="text-lg font-black font-mono text-[#10B981]">{staffAnsweredCount} Verified</span>
+            <span className="text-[11px] text-slate-400 font-semibold block">
+              {isSpanish ? "Respondidas por Fábrica" : "Answered by Staff"}
+            </span>
+            <span className="text-lg font-black font-mono text-[#10B981]">
+              {staffAnsweredCount} {isSpanish ? "Verificadas" : "Verified"}
+            </span>
           </div>
           <div className="space-y-0.5">
-            <span className="text-[11px] text-slate-400 font-semibold block">Response Time</span>
-            <span className="text-lg font-black font-mono text-amber-300">6–12 Hours</span>
+            <span className="text-[11px] text-slate-400 font-semibold block">
+              {isSpanish ? "Tiempo de Respuesta" : "Response Time"}
+            </span>
+            <span className="text-lg font-black font-mono text-amber-300">
+              {isSpanish ? "6–12 Horas" : "6–12 Hours"}
+            </span>
           </div>
           <div className="space-y-0.5">
-            <span className="text-[11px] text-slate-400 font-semibold block">Customs Guarantee</span>
-            <span className="text-lg font-black font-mono text-blue-300">100% DDP Covered</span>
+            <span className="text-[11px] text-slate-400 font-semibold block">
+              {isSpanish ? "Garantía de Aduanas" : "Customs Guarantee"}
+            </span>
+            <span className="text-lg font-black font-mono text-blue-300">
+              {isSpanish ? "100% Cobertura DDP" : "100% DDP Covered"}
+            </span>
           </div>
         </div>
       </div>
@@ -381,7 +408,11 @@ export function ProductQASection({
           <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search answered questions by keyword (e.g. flight time, DDP, voltage, size, warranty)..."
+            placeholder={
+              isSpanish
+                ? "Buscar preguntas por palabra clave (ej. voltaje, DDP, tamaño, garantía)..."
+                : "Search answered questions by keyword (e.g. flight time, DDP, voltage, size, warranty)..."
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-10 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D] focus:bg-white transition-all"
@@ -398,12 +429,12 @@ export function ProductQASection({
 
         {/* Topic Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
-          {TOPIC_FILTERS.map((topic) => {
-            const isSelected = selectedTopic === topic;
+          {topicFilters.map((topic) => {
+            const isSelected = selectedTopic === topic.key;
             return (
               <button
-                key={topic}
-                onClick={() => setSelectedTopic(topic)}
+                key={topic.key}
+                onClick={() => setSelectedTopic(topic.key)}
                 className={cn(
                   "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer",
                   isSelected
@@ -411,7 +442,7 @@ export function ProductQASection({
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                 )}
               >
-                {topic}
+                {topic.label}
               </button>
             );
           })}
@@ -420,7 +451,9 @@ export function ProductQASection({
         {/* Filter & Sort Controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">Filter:</span>
+            <span className="text-slate-400 font-bold text-[11px] uppercase tracking-wider">
+              {isSpanish ? "Filtro:" : "Filter:"}
+            </span>
             <button
               onClick={() => setFilterType("all")}
               className={cn(
@@ -430,7 +463,7 @@ export function ProductQASection({
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               )}
             >
-              All ({questions.length})
+              {isSpanish ? `Todas (${questions.length})` : `All (${questions.length})`}
             </button>
             <button
               onClick={() => setFilterType("answered")}
@@ -441,7 +474,7 @@ export function ProductQASection({
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               )}
             >
-              Answered ({answeredCount})
+              {isSpanish ? `Respondidas (${answeredCount})` : `Answered (${answeredCount})`}
             </button>
             <button
               onClick={() => setFilterType("staff_answered")}
@@ -453,22 +486,22 @@ export function ProductQASection({
               )}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Official Staff Answers ({staffAnsweredCount})</span>
+              <span>{isSpanish ? `Respuestas Oficiales (${staffAnsweredCount})` : `Official Staff Answers (${staffAnsweredCount})`}</span>
             </button>
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-slate-400 font-bold text-[11px] uppercase tracking-wider hidden sm:inline">
-              Sort by:
+              {isSpanish ? "Ordenar por:" : "Sort by:"}
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
               className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
             >
-              <option value="most_helpful">Most Helpful</option>
-              <option value="newest">Most Recent</option>
-              <option value="most_answered">Most Answered</option>
+              <option value="most_helpful">{isSpanish ? "Más Útiles" : "Most Helpful"}</option>
+              <option value="newest">{isSpanish ? "Más Recientes" : "Most Recent"}</option>
+              <option value="most_answered">{isSpanish ? "Más Respondidas" : "Most Answered"}</option>
             </select>
           </div>
         </div>
@@ -493,13 +526,13 @@ export function ProductQASection({
           <div className="space-y-1">
             <h4 className="text-base font-black text-[#00143D]">
               {searchQuery || selectedTopic !== "All Topics"
-                ? "No matching questions found"
-                : "Have a question about this product?"}
+                ? (isSpanish ? "No se encontraron preguntas coincidentes" : "No matching questions found")
+                : (isSpanish ? "¿Tienes una pregunta sobre este producto?" : "Have a question about this product?")}
             </h4>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
               {searchQuery || selectedTopic !== "All Topics"
-                ? "Try clearing your search query or selecting 'All Topics' to see all answered questions."
-                : "Ask our Shenzhen factory engineering and logistics team for fast clarification on compatibility, firmware, or DDP customs."}
+                ? (isSpanish ? "Intenta borrar tu búsqueda o seleccionar 'Todos los Temas' para ver todas las preguntas." : "Try clearing your search query or selecting 'All Topics' to see all answered questions.")
+                : (isSpanish ? "Pregunta a nuestro equipo de ingeniería y logística de Shenzhen para aclaraciones sobre compatibilidad, firmware o aduanas DDP." : "Ask our Shenzhen factory engineering and logistics team for fast clarification on compatibility, firmware, or DDP customs.")}
             </p>
           </div>
           <div className="flex items-center justify-center gap-3 pt-2">
@@ -512,7 +545,7 @@ export function ProductQASection({
                 }}
                 className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
               >
-                Clear Filters
+                {isSpanish ? "Limpiar Filtros" : "Clear Filters"}
               </button>
             )}
             <button
@@ -523,7 +556,7 @@ export function ProductQASection({
               className="bg-[#00143D] hover:bg-[#002366] text-white text-xs font-black px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Ask the First Question</span>
+              <span>{isSpanish ? "Hacer la Primera Pregunta" : "Ask the First Question"}</span>
             </button>
           </div>
         </div>
@@ -555,7 +588,9 @@ export function ProductQASection({
                         {q.question}
                       </h4>
                       <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-400 font-semibold">
-                        <span className="text-slate-700 font-bold">Asked by {q.authorName}</span>
+                        <span className="text-slate-700 font-bold">
+                          {isSpanish ? `Preguntado por ${q.authorName}` : `Asked by ${q.authorName}`}
+                        </span>
                         <span>•</span>
                         <span>{formatDate(q.createdAt)}</span>
                       </div>
@@ -621,7 +656,7 @@ export function ProductQASection({
                             {ans.isOfficialStaff && (
                               <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-wider flex items-center gap-1 shadow-2xs">
                                 <ShieldCheck className="w-3 h-3 text-[#10B981]" />
-                                OFFICIAL FACTORY DESK
+                                {isSpanish ? "MESA OFICIAL DE FÁBRICA" : "OFFICIAL FACTORY DESK"}
                               </span>
                             )}
                           </div>
@@ -637,7 +672,9 @@ export function ProductQASection({
 
                         {/* Answer Footer Action */}
                         <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[11px]">
-                          <span className="text-slate-400 font-medium">Was this answer helpful?</span>
+                          <span className="text-slate-400 font-medium">
+                            {isSpanish ? "¿Fue útil esta respuesta?" : "Was this answer helpful?"}
+                          </span>
                           <button
                             onClick={() => handleVoteAnswer(ans.id)}
                             className={cn(
@@ -648,7 +685,11 @@ export function ProductQASection({
                             )}
                           >
                             <Check className="w-3 h-3" />
-                            <span>{votedAnswerIds[ans.id] ? "Marked Helpful" : "Yes, Helpful"}</span>
+                            <span>
+                              {isSpanish
+                                ? (votedAnswerIds[ans.id] ? "Marcado Útil" : "Sí, Útil")
+                                : (votedAnswerIds[ans.id] ? "Marked Helpful" : "Yes, Helpful")}
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -669,12 +710,12 @@ export function ProductQASection({
                           {isAnswerExpanded ? (
                             <>
                               <ChevronUp className="w-3.5 h-3.5" />
-                              <span>Show fewer answers</span>
+                              <span>{isSpanish ? "Mostrar menos respuestas" : "Show fewer answers"}</span>
                             </>
                           ) : (
                             <>
                               <ChevronDown className="w-3.5 h-3.5" />
-                              <span>View all {q.answers.length} answers</span>
+                              <span>{isSpanish ? `Ver las ${q.answers.length} respuestas` : `View all ${q.answers.length} answers`}</span>
                             </>
                           )}
                         </button>
@@ -684,7 +725,7 @@ export function ProductQASection({
                           className="text-xs font-bold text-slate-500 hover:text-[#00143D] flex items-center gap-1 cursor-pointer"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Add another answer</span>
+                          <span>{isSpanish ? "Agregar otra respuesta" : "Add another answer"}</span>
                         </button>
                       </div>
                     )}
@@ -694,7 +735,9 @@ export function ProductQASection({
                     <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-800 flex items-center gap-2.5">
                       <Clock className="w-4 h-4 text-amber-600 shrink-0" />
                       <span>
-                        Pending response from Lennox Factory Engineering. Typical turnaround is within 6–12 hours.
+                        {isSpanish
+                          ? "Respuesta pendiente del equipo de ingeniería Lennox. Tiempo estimado: 6–12 horas."
+                          : "Pending response from Lennox Factory Engineering. Typical turnaround is within 6–12 hours."}
                       </span>
                     </div>
                   </div>
@@ -708,7 +751,7 @@ export function ProductQASection({
                       className="text-xs font-bold text-slate-500 hover:text-[#00143D] flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
-                      <span>Answer this Question</span>
+                      <span>{isSpanish ? "Responder a esta Pregunta" : "Answer this Question"}</span>
                     </button>
                   </div>
                 )}
@@ -726,10 +769,12 @@ export function ProductQASection({
           </div>
           <div>
             <h4 className="font-heading font-black text-xs sm:text-sm text-[#00143D]">
-              Need specialized B2B customization or bulk factory orders?
+              {isSpanish ? "¿Necesitas personalización B2B o pedidos por mayor de fábrica?" : "Need specialized B2B customization or bulk factory orders?"}
             </h4>
             <p className="text-[11px] text-slate-500">
-              Direct OEM silkscreen branding, firmware flashing, and airfreight pallet logistics available.
+              {isSpanish
+                ? "Personalización OEM directa, actualización de firmware y logística aérea en pallets disponibles."
+                : "Direct OEM silkscreen branding, firmware flashing, and airfreight pallet logistics available."}
             </p>
           </div>
         </div>
@@ -741,7 +786,7 @@ export function ProductQASection({
           }}
           className="bg-[#00143D] hover:bg-[#002366] text-white text-xs font-black px-5 py-2.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
         >
-          Submit Factory Inquiry
+          {isSpanish ? "Enviar Consulta de Fábrica" : "Submit Factory Inquiry"}
         </button>
       </div>
 
@@ -751,7 +796,7 @@ export function ProductQASection({
       <Modal
         isOpen={isAskModalOpen}
         onClose={() => setIsAskModalOpen(false)}
-        title="Ask Factory Sourcing Desk"
+        title={isSpanish ? "Preguntar a la Mesa de Fábrica" : "Ask Factory Sourcing Desk"}
       >
         <form onSubmit={handleAskSubmit} className="space-y-4 font-montserrat">
           {/* Header context */}
@@ -763,7 +808,7 @@ export function ProductQASection({
             )}
             <div className="min-w-0">
               <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-                Direct Inquiry For
+                {isSpanish ? "Consulta Directa Para" : "Direct Inquiry For"}
               </span>
               <h5 className="text-xs font-black text-slate-900 truncate">{productTitle}</h5>
             </div>
@@ -787,19 +832,31 @@ export function ProductQASection({
           {/* Topic Selector */}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              Topic Category <span className="text-[#FF1028]">*</span>
+              {isSpanish ? "Categoría del Tema" : "Topic Category"} <span className="text-[#FF1028]">*</span>
             </label>
             <select
               value={formTopic}
               onChange={(e) => setFormTopic(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-[#00143D]"
             >
-              <option value="Technical Specs">Technical Specifications & Performance</option>
-              <option value="Compatibility">Compatibility & Hardware Accessories</option>
-              <option value="Shipping & DDP">Airfreight Shipping & DDP Customs</option>
-              <option value="Power & Battery">Power Supply, Voltage & Battery Life</option>
-              <option value="Warranty & Parts">Warranty, Returns & Spare Parts</option>
-              <option value="General">General Inquiry</option>
+              <option value="Technical Specs">
+                {isSpanish ? "Especificaciones Técnicas y Rendimiento" : "Technical Specifications & Performance"}
+              </option>
+              <option value="Compatibility">
+                {isSpanish ? "Compatibilidad y Accesorios" : "Compatibility & Hardware Accessories"}
+              </option>
+              <option value="Shipping & DDP">
+                {isSpanish ? "Envío Aéreo y Aduanas DDP" : "Airfreight Shipping & DDP Customs"}
+              </option>
+              <option value="Power & Battery">
+                {isSpanish ? "Alimentación, Voltaje y Batería" : "Power Supply, Voltage & Battery Life"}
+              </option>
+              <option value="Warranty & Parts">
+                {isSpanish ? "Garantía, Devoluciones y Repuestos" : "Warranty, Returns & Spare Parts"}
+              </option>
+              <option value="General">
+                {isSpanish ? "Consulta General" : "General Inquiry"}
+              </option>
             </select>
           </div>
 
@@ -807,7 +864,7 @@ export function ProductQASection({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                Your Question <span className="text-[#FF1028]">*</span>
+                {isSpanish ? "Tu Pregunta" : "Your Question"} <span className="text-[#FF1028]">*</span>
               </label>
               <span className="text-[10px] text-slate-400 font-semibold">
                 {formQuestion.length} / 500 chars
@@ -817,7 +874,11 @@ export function ProductQASection({
               required
               rows={4}
               maxLength={500}
-              placeholder="e.g. Does this unit include the regional 110V/220V adapter, and is firmware upgrading supported via USB-C?"
+              placeholder={
+                isSpanish
+                  ? "ej. ¿Esta unidad incluye el adaptador regional de 110V/220V y admite actualización de firmware por USB-C?"
+                  : "e.g. Does this unit include the regional 110V/220V adapter, and is firmware upgrading supported via USB-C?"
+              }
               value={formQuestion}
               onChange={(e) => setFormQuestion(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
@@ -827,11 +888,11 @@ export function ProductQASection({
           {/* Author Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              Your Display Name
+              {isSpanish ? "Tu Nombre a Mostrar" : "Your Display Name"}
             </label>
             <input
               type="text"
-              placeholder={displayName || "Verified Customer"}
+              placeholder={displayName || (isSpanish ? "Cliente Verificado" : "Verified Customer")}
               value={formAuthorName}
               onChange={(e) => setFormAuthorName(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
@@ -846,7 +907,11 @@ export function ProductQASection({
               onChange={(e) => setFormNotifyEmail(e.target.checked)}
               className="rounded border-slate-300 text-[#00143D] focus:ring-0"
             />
-            <span>Receive notification when Shenzhen engineers post a verified response</span>
+            <span>
+              {isSpanish
+                ? "Recibir notificación cuando los ingenieros de Shenzhen publiquen una respuesta"
+                : "Receive notification when Shenzhen engineers post a verified response"}
+            </span>
           </label>
 
           {/* Actions */}
@@ -856,7 +921,7 @@ export function ProductQASection({
               onClick={() => setIsAskModalOpen(false)}
               className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
             <button
               type="submit"
@@ -866,7 +931,7 @@ export function ProductQASection({
               {isSubmittingQuestion && (
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               )}
-              <span>Post Question</span>
+              <span>{isSpanish ? "Publicar Pregunta" : "Post Question"}</span>
             </button>
           </div>
         </form>
@@ -878,14 +943,14 @@ export function ProductQASection({
       <Modal
         isOpen={isAnswerModalOpen}
         onClose={() => setIsAnswerModalOpen(false)}
-        title="Submit Answer"
+        title={isSpanish ? "Enviar Respuesta" : "Submit Answer"}
       >
         <form onSubmit={handleAnswerSubmit} className="space-y-4 font-montserrat">
           {/* Question preview */}
           {activeQuestionForAnswer && (
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
               <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">
-                Question by {activeQuestionForAnswer.authorName}
+                {isSpanish ? `Pregunta de ${activeQuestionForAnswer.authorName}` : `Question by ${activeQuestionForAnswer.authorName}`}
               </span>
               <p className="text-xs font-bold text-[#00143D] leading-snug">
                 {activeQuestionForAnswer.question}
@@ -911,12 +976,16 @@ export function ProductQASection({
           {/* Answer Text */}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              Your Answer / Explanation <span className="text-[#FF1028]">*</span>
+              {isSpanish ? "Tu Respuesta / Explicación" : "Your Answer / Explanation"} <span className="text-[#FF1028]">*</span>
             </label>
             <textarea
               required
               rows={4}
-              placeholder="Provide clear technical clarification, specifications, or real-world usage experience..."
+              placeholder={
+                isSpanish
+                  ? "Proporciona una aclaración técnica clara, especificaciones o experiencia real de uso..."
+                  : "Provide clear technical clarification, specifications, or real-world usage experience..."
+              }
               value={answerText}
               onChange={(e) => setAnswerText(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#00143D]"
@@ -926,11 +995,11 @@ export function ProductQASection({
           {/* Responder Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              Responder Name
+              {isSpanish ? "Nombre del Respondedor" : "Responder Name"}
             </label>
             <input
               type="text"
-              placeholder="e.g. Lennox Sourcing Lab • Shenzhen or Verified Buyer"
+              placeholder={isSpanish ? "ej. Lennox Sourcing Lab • Shenzhen o Comprador Verificado" : "e.g. Lennox Sourcing Lab • Shenzhen or Verified Buyer"}
               value={answerAuthorName}
               onChange={(e) => setAnswerAuthorName(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-[#00143D]"
@@ -947,7 +1016,7 @@ export function ProductQASection({
                 className="rounded text-emerald-600 focus:ring-0"
               />
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Mark this response with Official Lennox Staff Badge</span>
+              <span>{isSpanish ? "Marcar esta respuesta con Insignia Oficial Lennox" : "Mark this response with Official Lennox Staff Badge"}</span>
             </label>
           )}
 
@@ -958,7 +1027,7 @@ export function ProductQASection({
               onClick={() => setIsAnswerModalOpen(false)}
               className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
             <button
               type="submit"
@@ -968,7 +1037,7 @@ export function ProductQASection({
               {isSubmittingAnswer && (
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               )}
-              <span>Publish Answer</span>
+              <span>{isSpanish ? "Publicar Respuesta" : "Publish Answer"}</span>
             </button>
           </div>
         </form>
@@ -980,36 +1049,46 @@ export function ProductQASection({
       <Modal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
-        title="Report Content to Lennox Moderation"
+        title={isSpanish ? "Reportar Contenido a Moderación Lennox" : "Report Content to Lennox Moderation"}
       >
         <div className="space-y-4 font-montserrat">
           <p className="text-xs text-slate-600">
-            Our moderation desk actively audits all questions and answers to maintain accurate, spam-free factory specifications.
+            {isSpanish
+              ? "Nuestro equipo de moderación audita activamente todas las preguntas y respuestas para mantener especificaciones de fábrica precisas y libres de spam."
+              : "Our moderation desk actively audits all questions and answers to maintain accurate, spam-free factory specifications."}
           </p>
 
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              Reason for Report
+              {isSpanish ? "Motivo del Reporte" : "Reason for Report"}
             </label>
             <select
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-hidden"
             >
-              <option value="Spam or Advertising">Spam, Promotional Links or Advertising</option>
-              <option value="Inappropriate Language">Harassment, Profanity or Hate Speech</option>
-              <option value="Misleading Information">Misleading or False Product Information</option>
-              <option value="Off-Topic">Irrelevant or Off-Topic Content</option>
+              <option value="Spam or Advertising">
+                {isSpanish ? "Spam, Enlaces Promocionales o Publicidad" : "Spam, Promotional Links or Advertising"}
+              </option>
+              <option value="Inappropriate Language">
+                {isSpanish ? "Acoso, Lenguaje Ofensivo o Insultos" : "Harassment, Profanity or Hate Speech"}
+              </option>
+              <option value="Misleading Information">
+                {isSpanish ? "Información Engañosa o Falsa del Producto" : "Misleading or False Product Information"}
+              </option>
+              <option value="Off-Topic">
+                {isSpanish ? "Contenido Fuera de Tema o Irrelevante" : "Irrelevant or Off-Topic Content"}
+              </option>
             </select>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              Additional Details (Optional)
+              {isSpanish ? "Detalles Adicionales (Opcional)" : "Additional Details (Optional)"}
             </label>
             <textarea
               rows={3}
-              placeholder="Describe the issue in detail..."
+              placeholder={isSpanish ? "Describe el problema en detalle..." : "Describe the issue in detail..."}
               value={reportDetails}
               onChange={(e) => setReportDetails(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold"
@@ -1021,13 +1100,13 @@ export function ProductQASection({
               onClick={() => setIsReportModalOpen(false)}
               className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
             <button
               onClick={handleReportSubmit}
               className="bg-[#FF1028] hover:bg-[#D90017] text-white text-xs font-black px-5 py-2 rounded-xl transition-all cursor-pointer shadow-2xs"
             >
-              Submit Report
+              {isSpanish ? "Enviar Reporte" : "Submit Report"}
             </button>
           </div>
         </div>

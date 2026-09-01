@@ -29,8 +29,11 @@ import {
 } from "@/app/actions/product-reviews";
 import { ProductReview, CustomerUnreviewedItem } from "@/types/reviews";
 import { formatDate, formatCurrency, cn } from "@/utils/helpers";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 export default function AccountReviewsPage() {
+  const { isSpanish } = useTranslation();
   const [activeTab, setActiveTab] = useState<"submitted" | "unreviewed">("submitted");
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [unreviewedItems, setUnreviewedItems] = useState<CustomerUnreviewedItem[]>([]);
@@ -98,7 +101,7 @@ export default function AccountReviewsPage() {
     setIsSubmittingEdit(false);
 
     if (res.success) {
-      showToast("Your review has been updated successfully.");
+      showToast(isSpanish ? "Tu reseña ha sido actualizada con éxito." : "Your review has been updated successfully.");
       setIsEditModalOpen(false);
       loadData();
     } else {
@@ -124,7 +127,7 @@ export default function AccountReviewsPage() {
     setIsSubmittingNew(false);
 
     if (res.success) {
-      showToast("Thank you! Your verified review has been published.");
+      showToast(isSpanish ? "¡Gracias! Tu reseña verificada ha sido publicada." : "Thank you! Your verified review has been published.");
       setIsWriteModalOpen(false);
       setItemToWriteReview(null);
       setNewTitle("");
@@ -141,7 +144,7 @@ export default function AccountReviewsPage() {
     if (!reviewToDeleteId) return;
     const res = await deleteCustomerReview(reviewToDeleteId);
     if (res.success) {
-      showToast("Review deleted successfully.");
+      showToast(isSpanish ? "Reseña eliminada con éxito." : "Review deleted successfully.");
       setIsDeleteModalOpen(false);
       setReviewToDeleteId(null);
       loadData();
@@ -165,10 +168,12 @@ export default function AccountReviewsPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-[#00143D] flex items-center gap-2">
             <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-            <span>My Verified Hardware Reviews</span>
+            <span>{isSpanish ? "Mis Reseñas Verificadas de Productos" : "My Verified Hardware Reviews"}</span>
           </h1>
           <p className="text-xs text-slate-500 font-semibold mt-0.5">
-            Share feedback on your factory purchases and earn Lennox Sourcing Reward Points.
+            {isSpanish
+              ? "Comparte tus opiniones sobre compras en fábrica y gana Puntos de Recompensa Lennox."
+              : "Share feedback on your factory purchases and earn Lennox Sourcing Reward Points."}
           </p>
         </div>
       </div>
@@ -184,7 +189,7 @@ export default function AccountReviewsPage() {
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           )}
         >
-          <span>Published Reviews</span>
+          <span>{isSpanish ? "Reseñas Publicadas" : "Published Reviews"}</span>
           <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
             {reviews.length}
           </span>
@@ -199,7 +204,7 @@ export default function AccountReviewsPage() {
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           )}
         >
-          <span>Unreviewed Purchases</span>
+          <span>{isSpanish ? "Compras Sin Reseñar" : "Unreviewed Purchases"}</span>
           {unreviewedItems.length > 0 && (
             <span className="bg-[#FF1028] text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
               {unreviewedItems.length}
@@ -231,16 +236,22 @@ export default function AccountReviewsPage() {
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-xs border border-slate-200">
               <Star className="w-6 h-6 text-slate-400" />
             </div>
-            <h4 className="text-sm font-black text-[#00143D]">No reviews submitted yet</h4>
+            <h4 className="text-sm font-black text-[#00143D]">
+              {isSpanish ? "No has enviado reseñas todavía" : "No reviews submitted yet"}
+            </h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              You haven&apos;t reviewed any purchased products yet. Review your orders to earn reward points.
+              {isSpanish
+                ? "Aún no has reseñado ningún producto comprado. Reseña tus pedidos para ganar puntos de recompensa."
+                : "You haven't reviewed any purchased products yet. Review your orders to earn reward points."}
             </p>
             {unreviewedItems.length > 0 && (
               <button
                 onClick={() => setActiveTab("unreviewed")}
-                className="bg-[#00143D] text-white text-xs font-black px-4 py-2 rounded-xl shadow-xs hover:bg-[#002366]"
+                className="bg-[#00143D] text-white text-xs font-black px-4 py-2 rounded-xl shadow-xs hover:bg-[#002366] cursor-pointer"
               >
-                View ({unreviewedItems.length}) Unreviewed Purchases
+                {isSpanish
+                  ? `Ver (${unreviewedItems.length}) Compras Pendientes`
+                  : `View (${unreviewedItems.length}) Unreviewed Purchases`}
               </button>
             )}
           </div>
@@ -260,7 +271,7 @@ export default function AccountReviewsPage() {
                           rev.productImage ||
                           "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=400&auto=format&fit=crop&q=80"
                         }
-                        alt={rev.productTitle || "Product"}
+                        alt={getLocalizedProductTitle(rev.productSlug || "", rev.productTitle || "Product", isSpanish)}
                         fill
                         className="object-cover"
                       />
@@ -270,14 +281,14 @@ export default function AccountReviewsPage() {
                         href={`/products/${rev.productSlug}`}
                         className="text-xs font-bold text-slate-900 hover:text-[#FF1028] transition-colors line-clamp-1 flex items-center gap-1"
                       >
-                        <span>{rev.productTitle}</span>
+                        <span>{getLocalizedProductTitle(rev.productSlug || "", rev.productTitle || "Product", isSpanish)}</span>
                         <ExternalLink className="w-3 h-3 text-slate-400" />
                       </Link>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <Rating rating={rev.rating} size="sm" />
                         {rev.isVerifiedPurchase && (
                           <span className="bg-emerald-50 text-[#10B981] text-[10px] font-black px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                            <ShieldCheck className="w-3 h-3" /> Verified Purchase
+                            <ShieldCheck className="w-3 h-3" /> {isSpanish ? "Compra Verificada" : "Verified Purchase"}
                           </span>
                         )}
                         <span
@@ -290,13 +301,15 @@ export default function AccountReviewsPage() {
                               : "bg-red-50 text-red-700 border-red-200"
                           )}
                         >
-                          {rev.status.toUpperCase()}
+                          {isSpanish
+                            ? (rev.status === "approved" ? "APROBADA" : rev.status === "pending" ? "PENDIENTE" : "RECHAZADA")
+                            : rev.status.toUpperCase()}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <span className="text-[11px] text-slate-400 font-semibold shrink-0">
+                  <span className="text-[11px] text-slate-400 font-semibold shrink-0 font-mono">
                     {formatDate(rev.createdAt)}
                   </span>
                 </div>
@@ -312,7 +325,7 @@ export default function AccountReviewsPage() {
                   <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
                     <div className="flex items-center gap-1.5 font-bold text-[#00143D]">
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                      <span>{rev.adminRepliedByName || "Lennox Official Staff Reply"}</span>
+                      <span>{rev.adminRepliedByName || (isSpanish ? "Respuesta Oficial del Equipo Lennox" : "Lennox Official Staff Reply")}</span>
                     </div>
                     <p className="text-slate-600">{rev.adminReply}</p>
                   </div>
@@ -322,14 +335,16 @@ export default function AccountReviewsPage() {
                 {rev.status === "rejected" && rev.rejectionReason && (
                   <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
-                    <span>Rejection Reason: {rev.rejectionReason}</span>
+                    <span>{isSpanish ? "Motivo del Rechazo: " : "Rejection Reason: "}{rev.rejectionReason}</span>
                   </div>
                 )}
 
                 {/* Customer Edit & Delete Actions (30-day window) */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
                   <div className="text-[11px] text-slate-400 font-semibold">
-                    {rev.helpfulVotes} customer(s) found this helpful
+                    {isSpanish
+                      ? `A ${rev.helpfulVotes} cliente(s) les pareció útil`
+                      : `${rev.helpfulVotes} customer(s) found this helpful`}
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -345,7 +360,7 @@ export default function AccountReviewsPage() {
                         className="text-slate-600 hover:text-[#00143D] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Edit2 className="w-3 h-3" />
-                        <span>Edit Review</span>
+                        <span>{isSpanish ? "Editar Reseña" : "Edit Review"}</span>
                       </button>
                     )}
                     {rev.canDelete && (
@@ -357,7 +372,7 @@ export default function AccountReviewsPage() {
                         className="text-slate-400 hover:text-[#FF1028] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3 h-3" />
-                        <span>Delete</span>
+                        <span>{isSpanish ? "Eliminar" : "Delete"}</span>
                       </button>
                     )}
                   </div>
@@ -373,9 +388,13 @@ export default function AccountReviewsPage() {
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-xs border border-slate-200">
               <ShoppingBag className="w-6 h-6 text-slate-400" />
             </div>
-            <h4 className="text-sm font-black text-[#00143D]">All purchased products reviewed!</h4>
+            <h4 className="text-sm font-black text-[#00143D]">
+              {isSpanish ? "¡Todos los productos comprados han sido reseñados!" : "All purchased products reviewed!"}
+            </h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              You have shared feedback for all your delivered orders. Thank you for empowering our factory direct marketplace.
+              {isSpanish
+                ? "Has compartido comentarios sobre todos tus pedidos entregados. Gracias por apoyar nuestro mercado directo de fábrica."
+                : "You have shared feedback for all your delivered orders. Thank you for empowering our factory direct marketplace."}
             </p>
           </div>
         ) : (
@@ -387,15 +406,19 @@ export default function AccountReviewsPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 shrink-0">
-                    <Image src={item.productImage} alt={item.productTitle} fill className="object-cover" />
+                    <Image src={item.productImage} alt={getLocalizedProductTitle(item.productSlug || "", item.productTitle, isSpanish)} fill className="object-cover" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{item.productTitle}</h4>
+                    <h4 className="text-xs font-bold text-slate-900 line-clamp-1">
+                      {getLocalizedProductTitle(item.productSlug || "", item.productTitle, isSpanish)}
+                    </h4>
                     {item.variantTitle && (
-                      <div className="text-[11px] text-slate-500">Variant: {item.variantTitle}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {isSpanish ? "Variante: " : "Variant: "}{item.variantTitle}
+                      </div>
                     )}
-                    <div className="text-[11px] text-slate-400 font-semibold mt-0.5">
-                      Order #{item.orderNumber} • {formatDate(item.orderDate)}
+                    <div className="text-[11px] text-slate-400 font-semibold mt-0.5 font-mono">
+                      {isSpanish ? `Pedido #${item.orderNumber} • ${formatDate(item.orderDate)}` : `Order #${item.orderNumber} • ${formatDate(item.orderDate)}`}
                     </div>
                   </div>
                 </div>
@@ -411,7 +434,7 @@ export default function AccountReviewsPage() {
                   className="bg-[#FF1028] hover:bg-[#D90017] text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
                 >
                   <Star className="w-3.5 h-3.5 fill-white" />
-                  <span>Write Verified Review</span>
+                  <span>{isSpanish ? "Escribir Reseña Verificada" : "Write Verified Review"}</span>
                 </button>
               </div>
             ))}
@@ -425,11 +448,13 @@ export default function AccountReviewsPage() {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title="Edit Your Verified Review"
+        title={isSpanish ? "Editar Tu Reseña Verificada" : "Edit Your Verified Review"}
       >
         <form onSubmit={handleEditSubmit} className="space-y-4 font-montserrat">
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Star Rating</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Calificación" : "Star Rating"}
+            </label>
             <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -450,7 +475,9 @@ export default function AccountReviewsPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Headline</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Título de la Reseña" : "Headline"}
+            </label>
             <input
               type="text"
               required
@@ -461,7 +488,9 @@ export default function AccountReviewsPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-black text-slate-800">Comments</label>
+            <label className="text-xs font-black text-slate-800">
+              {isSpanish ? "Comentarios y Detalles" : "Comments"}
+            </label>
             <textarea
               required
               rows={4}
@@ -475,16 +504,16 @@ export default function AccountReviewsPage() {
             <button
               type="button"
               onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 cursor-pointer"
             >
-              Cancel
+              {isSpanish ? "Cancelar" : "Cancel"}
             </button>
             <button
               type="submit"
               disabled={isSubmittingEdit}
-              className="bg-[#00143D] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#002366] transition-colors"
+              className="bg-[#00143D] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#002366] transition-colors cursor-pointer"
             >
-              Save Changes
+              {isSpanish ? "Guardar Cambios" : "Save Changes"}
             </button>
           </div>
         </form>
@@ -496,7 +525,7 @@ export default function AccountReviewsPage() {
       <Modal
         isOpen={isWriteModalOpen}
         onClose={() => setIsWriteModalOpen(false)}
-        title="Write a Verified Product Review"
+        title={isSpanish ? "Escribir Reseña Verificada de Producto" : "Write a Verified Product Review"}
       >
         {itemToWriteReview && (
           <form onSubmit={handleWriteSubmit} className="space-y-4 font-montserrat">
@@ -505,15 +534,20 @@ export default function AccountReviewsPage() {
                 <Image src={itemToWriteReview.productImage} alt="Product" fill className="object-cover" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-slate-900 truncate">{itemToWriteReview.productTitle}</div>
-                <div className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Verified Order #{itemToWriteReview.orderNumber}
+                <div className="text-xs font-bold text-slate-900 truncate">
+                  {getLocalizedProductTitle(itemToWriteReview.productSlug || "", itemToWriteReview.productTitle, isSpanish)}
+                </div>
+                <div className="text-[11px] text-emerald-600 font-bold flex items-center gap-1 font-mono">
+                  <ShieldCheck className="w-3 h-3" />
+                  {isSpanish ? `Pedido Verificado #${itemToWriteReview.orderNumber}` : `Verified Order #${itemToWriteReview.orderNumber}`}
                 </div>
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-black text-slate-800">Your Rating</label>
+              <label className="text-xs font-black text-slate-800">
+                {isSpanish ? "Tu Calificación" : "Your Rating"}
+              </label>
               <div className="flex items-center gap-1.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -534,11 +568,13 @@ export default function AccountReviewsPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-black text-slate-800">Review Headline</label>
+              <label className="text-xs font-black text-slate-800">
+                {isSpanish ? "Título de la Reseña" : "Review Headline"}
+              </label>
               <input
                 type="text"
                 required
-                placeholder="e.g. Excellent build quality, matched QC video"
+                placeholder={isSpanish ? "ej. Excelente calidad de construcción, coincide con el video QC" : "e.g. Excellent build quality, matched QC video"}
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold"
@@ -546,11 +582,13 @@ export default function AccountReviewsPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-black text-slate-800">Comments & Details</label>
+              <label className="text-xs font-black text-slate-800">
+                {isSpanish ? "Comentarios y Detalles" : "Comments & Details"}
+              </label>
               <textarea
                 required
                 rows={4}
-                placeholder="Share what you liked, performance benchmarks, and packaging condition..."
+                placeholder={isSpanish ? "Comparte lo que te gustó, rendimiento y condiciones del empaque..." : "Share what you liked, performance benchmarks, and packaging condition..."}
                 value={newBody}
                 onChange={(e) => setNewBody(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold"
@@ -561,16 +599,16 @@ export default function AccountReviewsPage() {
               <button
                 type="button"
                 onClick={() => setIsWriteModalOpen(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 cursor-pointer"
               >
-                Cancel
+                {isSpanish ? "Cancelar" : "Cancel"}
               </button>
               <button
                 type="submit"
                 disabled={isSubmittingNew}
-                className="bg-[#FF1028] text-white text-xs font-black px-6 py-2 rounded-xl hover:bg-[#D90017] transition-colors"
+                className="bg-[#FF1028] text-white text-xs font-black px-6 py-2 rounded-xl hover:bg-[#D90017] transition-colors cursor-pointer"
               >
-                Publish Review
+                {isSpanish ? "Publicar Reseña" : "Publish Review"}
               </button>
             </div>
           </form>
@@ -583,24 +621,26 @@ export default function AccountReviewsPage() {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Delete Your Review?"
+        title={isSpanish ? "¿Eliminar Tu Reseña?" : "Delete Your Review?"}
       >
         <div className="space-y-4 font-montserrat">
           <p className="text-xs text-slate-600 leading-relaxed">
-            Are you sure you want to delete this review? Your feedback and rating score will be permanently removed.
+            {isSpanish
+              ? "¿Estás seguro de que deseas eliminar esta reseña? Tus comentarios y puntuación se eliminarán permanentemente."
+              : "Are you sure you want to delete this review? Your feedback and rating score will be permanently removed."}
           </p>
           <div className="flex items-center justify-end gap-2 pt-2">
             <button
               onClick={() => setIsDeleteModalOpen(false)}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+              className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 cursor-pointer"
             >
-              Keep
+              {isSpanish ? "Conservar" : "Keep"}
             </button>
             <button
               onClick={handleDeleteConfirm}
-              className="bg-[#FF1028] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#D90017]"
+              className="bg-[#FF1028] text-white text-xs font-black px-5 py-2 rounded-xl hover:bg-[#D90017] cursor-pointer"
             >
-              Yes, Delete
+              {isSpanish ? "Sí, Eliminar" : "Yes, Delete"}
             </button>
           </div>
         </div>

@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Mail, CheckCircle2, RefreshCw, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function VerifyEmailPage() {
+  const { isSpanish } = useTranslation();
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
 
@@ -14,11 +16,9 @@ export default function VerifyEmailPage() {
     setResent(false);
 
     const supabase = createClient();
-    // Resend by calling signUp again (Supabase handles deduplication)
-    // Or use resend method if available
     await supabase.auth.resend({
       type: "signup",
-      email: "", // User needs to enter email
+      email: "",
     });
 
     setResending(false);
@@ -33,54 +33,79 @@ export default function VerifyEmailPage() {
 
       <div className="space-y-2">
         <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-          Check Your Inbox
+          {isSpanish ? "Revisa Tu Bandeja de Entrada" : "Check Your Inbox"}
         </h1>
         <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-          We&apos;ve sent a verification link to your email address. Click the link to activate
-          your Lennox ChinaMall account and start sourcing.
+          {isSpanish
+            ? "Hemos enviado un enlace de verificación a tu dirección de correo electrónico. Haz clic en el enlace para activar tu cuenta y comenzar a abastecerte."
+            : "We've sent a verification link to your email address. Click the link to activate your Lennox ChinaMall account and start sourcing."}
         </p>
       </div>
 
       <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 text-left">
         <div className="flex items-start gap-2.5 text-xs text-slate-400">
           <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-          <span>Open your email inbox and find the message from Lennox ChinaMall</span>
+          <span>
+            {isSpanish
+              ? "Abre tu bandeja de entrada y encuentra el mensaje de Lennox ChinaMall"
+              : "Open your email inbox and find the message from Lennox ChinaMall"}
+          </span>
         </div>
         <div className="flex items-start gap-2.5 text-xs text-slate-400">
           <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-          <span>Click the &quot;Confirm your email&quot; button in the email</span>
+          <span>
+            {isSpanish
+              ? "Haz clic en el botón \"Confirmar tu correo\" en el mensaje"
+              : "Click the \"Confirm your email\" button in the email"}
+          </span>
         </div>
         <div className="flex items-start gap-2.5 text-xs text-slate-400">
           <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-          <span>You&apos;ll be automatically signed in and redirected to your account</span>
+          <span>
+            {isSpanish
+              ? "Iniciarás sesión automáticamente y serás redirigido a tu cuenta"
+              : "You'll be automatically signed in and redirected to your account"}
+          </span>
         </div>
       </div>
 
       <div className="space-y-3">
         <p className="text-[11px] text-slate-500">
-          Didn&apos;t receive the email? Check your spam folder or request a new one.
+          {isSpanish
+            ? "¿No recibiste el correo? Revisa tu carpeta de spam o solicita uno nuevo."
+            : "Didn't receive the email? Check your spam folder or request a new one."}
         </p>
 
         <button
           onClick={handleResend}
           disabled={resending || resent}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-[#FF1028] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-[#FF1028] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${resending ? "animate-spin" : ""}`} />
-          <span>{resent ? "Email Resent!" : resending ? "Resending..." : "Resend Verification Email"}</span>
+          <span>
+            {resent
+              ? (isSpanish ? "¡Correo Reenviado!" : "Email Resent!")
+              : resending
+              ? (isSpanish ? "Reenviando..." : "Resending...")
+              : (isSpanish ? "Reenviar Correo de Verificación" : "Resend Verification Email")}
+          </span>
         </button>
       </div>
 
       <div className="pt-2 text-center text-xs text-slate-400">
-        Already verified?{" "}
+        {isSpanish ? "¿Ya estás verificado? " : "Already verified? "}
         <Link href="/auth/login" className="text-white hover:text-[#FF1028] font-bold">
-          Sign In
+          {isSpanish ? "Iniciar Sesión" : "Sign In"}
         </Link>
       </div>
 
       <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center gap-2.5 text-[11px] text-slate-400">
         <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
-        <span>Email verification protects your account from unauthorized access.</span>
+        <span>
+          {isSpanish
+            ? "La verificación por correo protege tu cuenta contra accesos no autorizados."
+            : "Email verification protects your account from unauthorized access."}
+        </span>
       </div>
     </div>
   );
