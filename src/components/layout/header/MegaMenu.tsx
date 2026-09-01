@@ -38,7 +38,6 @@ export function MegaMenu({ isOpen, onClose, rootCategories }: MegaMenuProps) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.97 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          onMouseLeave={onClose}
           className="absolute left-0 top-full mt-1.5 w-[780px] bg-white rounded-3xl border border-slate-200 shadow-2xl grid grid-cols-12 overflow-hidden z-50"
           role="menu"
         >

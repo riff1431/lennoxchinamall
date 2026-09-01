@@ -74,6 +74,11 @@ export function NavigationBar() {
     };
   }, [isMegaMenuOpen]);
 
+  // Close mega menu on route change
+  useEffect(() => {
+    setIsMegaMenuOpen(false);
+  }, [pathname]);
+
   return (
     <div className="bg-white border-b border-slate-200 hidden lg:block">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -81,8 +86,7 @@ export function NavigationBar() {
           {/* Mega Menu Toggle Button */}
           <div className="relative h-full flex items-center" ref={megaMenuRef}>
             <button
-              onClick={() => setIsMegaMenuOpen(!isMegaMenuOpen)}
-              onMouseEnter={() => setIsMegaMenuOpen(true)}
+              onClick={() => setIsMegaMenuOpen((prev) => !prev)}
               className="flex items-center gap-2.5 bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-5 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               aria-expanded={isMegaMenuOpen}
               aria-haspopup="true"
