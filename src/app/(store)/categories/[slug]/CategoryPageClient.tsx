@@ -32,7 +32,8 @@ import {
 import { Product, Category } from "@/types/database";
 import { ProductCard, ProductCardSkeleton } from "@/components/product/ProductCard";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
-import { formatCurrency } from "@/utils/helpers";
+import { formatCurrency, formatPrice } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { getFilteredProducts, FilteredProductsResult } from "@/app/actions/store-products";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
@@ -46,6 +47,7 @@ interface CategoryPageClientProps {
 
 export function CategoryPageClient({ slug, category }: CategoryPageClientProps) {
   const { isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency: formatCurrencyFromStore, formatPrice: formatPriceFromStore } = useCurrency();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -258,7 +260,7 @@ export function CategoryPageClient({ slug, category }: CategoryPageClientProps) 
             {/* Price Chip */}
             {(minPrice > 0 || maxPrice < 500) && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800">
-                <span>{isSpanish ? `Precio: $${minPrice} – $${maxPrice}` : `Price: $${minPrice} – $${maxPrice}`}</span>
+                <span>{isSpanish ? `Precio: ${formatPrice(minPrice)} – ${formatPrice(maxPrice)}` : `Price: ${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`}</span>
                 <button
                   onClick={() => handlePriceChange(0, 500)}
                   className="p-0.5 hover:text-[#FF1028]"
@@ -393,7 +395,7 @@ export function CategoryPageClient({ slug, category }: CategoryPageClientProps) 
               {/* Price Range Filter */}
               <div className="space-y-3">
                 <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block font-mono">
-                  {isSpanish ? "Rango de Precio (USDT)" : "Price Range (USDT)"}
+                  {isSpanish ? `Rango de Precio (${currentCurrency})` : `Price Range (${currentCurrency})`}
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <div>

@@ -46,7 +46,8 @@ import { useCompareStore } from "@/store/useCompareStore";
 import { useHistoryStore } from "@/store/useHistoryStore";
 import { useProductStore } from "@/store/useProductStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
-import { formatCurrency, calcDiscount } from "@/utils/helpers";
+import { formatCurrency, formatPrice, calcDiscount } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 import { getLocalizedCategoryName } from "@/lib/i18n/categoryI18n";
@@ -64,6 +65,7 @@ export function ProductDetailClient({
 }: ProductDetailClientProps) {
   const router = useRouter();
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency, formatPrice, convert } = useCurrency();
   const searchSlug = urlSlug || initialProduct?.slug || initialProduct?.id || "";
 
   const isMounted = React.useSyncExternalStore(
@@ -691,7 +693,7 @@ export function ProductDetailClient({
                     </span>
                     {activeComparePrice && activeComparePrice > activePrice && (
                       <span className="text-xs text-slate-400 line-through font-mono">
-                        ${activeComparePrice.toFixed(2)}
+                        {formatPrice(activeComparePrice)}
                       </span>
                     )}
                   </div>
@@ -767,7 +769,7 @@ export function ProductDetailClient({
                     >
                       <span className="text-xs font-bold block truncate">{variant.title || variant.sku}</span>
                       <span className="text-[11px] font-mono font-bold mt-0.5 block text-emerald-600 dark:text-emerald-400">
-                        ${variant.price.toFixed(2)} USDT
+                        {formatCurrency(variant.price)}
                       </span>
                     </button>
                   ))}
@@ -819,10 +821,10 @@ export function ProductDetailClient({
                 <Zap className="w-4 h-4 fill-white shrink-0" />
                 {/* Short text on mobile, full text on sm+ */}
                 <span className="sm:hidden">
-                  {isSpanish ? `Comprar — $${(activePrice * quantity).toFixed(2)} USDT` : `Buy Now — $${(activePrice * quantity).toFixed(2)} USDT`}
+                  {isSpanish ? `Comprar — ${formatCurrency(activePrice * quantity)}` : `Buy Now — ${formatCurrency(activePrice * quantity)}`}
                 </span>
                 <span className="hidden sm:inline">
-                  {isSpanish ? `Comprar Ahora con Binance Pay ($${(activePrice * quantity).toFixed(2)} USDT)` : `Buy Now with Binance Pay ($${(activePrice * quantity).toFixed(2)} USDT)`}
+                  {isSpanish ? `Comprar Ahora con Binance Pay (${formatCurrency(activePrice * quantity)})` : `Buy Now with Binance Pay (${formatCurrency(activePrice * quantity)})`}
                 </span>
               </button>
 
@@ -932,7 +934,7 @@ export function ProductDetailClient({
                       {isSpanish ? "Aéreo Express" : "Air Express"}
                     </span>
                     <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
-                      {productShippingPreview.air.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${productShippingPreview.air.totalCost.toFixed(2)}`}
+                      {productShippingPreview.air.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : formatPrice(productShippingPreview.air.totalCost)}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">
@@ -958,7 +960,7 @@ export function ProductDetailClient({
                       {isSpanish ? "Contenedor Marítimo" : "Sea Container"}
                     </span>
                     <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
-                      {productShippingPreview.sea.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : `$${productShippingPreview.sea.totalCost.toFixed(2)}`}
+                      {productShippingPreview.sea.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : formatPrice(productShippingPreview.sea.totalCost)}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">

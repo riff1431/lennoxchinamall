@@ -15,6 +15,7 @@ import { NAV_LINKS } from "@/components/layout/header/headerConfig";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { useMounted } from "@/hooks/useMounted";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { getLocalizedCategoryName, getLocalizedSubcategory } from "@/lib/i18n/categoryI18n";
 import type { Category } from "@/types/database";
 
@@ -40,6 +41,7 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
   const { user, role, displayName } = useAuth();
   const { getRootCategories } = useCategoryStore();
   const { locale, setLocale, t, isSpanish } = useTranslation();
+  const { currentCurrency, setCurrency, currencies } = useCurrency();
   
   const isMounted = useMounted();
   const unreadNotificationsCount = useNotificationStore((state) => state.unreadCount);
@@ -138,32 +140,56 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
                 </button>
               </div>
 
-              {/* Language Selector Pill */}
-              <div className="flex items-center justify-between p-2.5 bg-slate-100 rounded-xl">
-                <span className="text-xs font-bold text-slate-600">{t.header.selectLanguage}</span>
-                <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-2xs">
-                  <button
-                    type="button"
-                    onClick={() => setLocale("en")}
-                    className={`px-3 py-1 rounded-md text-xs font-black transition-all ${
-                      locale === "en"
-                        ? "bg-[#00143D] text-white shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    EN
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLocale("es")}
-                    className={`px-3 py-1 rounded-md text-xs font-black transition-all ${
-                      locale === "es"
-                        ? "bg-[#FF1028] text-white shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    ES
-                  </button>
+              {/* Language & Currency Selectors */}
+              <div className="space-y-2.5">
+                {/* Language Selector Pill */}
+                <div className="flex items-center justify-between p-2.5 bg-slate-100 rounded-xl">
+                  <span className="text-xs font-bold text-slate-600">{t.header.selectLanguage}</span>
+                  <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setLocale("en")}
+                      className={`px-3 py-1 rounded-md text-xs font-black transition-all ${
+                        locale === "en"
+                          ? "bg-[#00143D] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      EN
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLocale("es")}
+                      className={`px-3 py-1 rounded-md text-xs font-black transition-all ${
+                        locale === "es"
+                          ? "bg-[#FF1028] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      ES
+                    </button>
+                  </div>
+                </div>
+
+                {/* Currency Selector Pill */}
+                <div className="flex items-center justify-between p-2.5 bg-slate-100 rounded-xl">
+                  <span className="text-xs font-bold text-slate-600">{t.header.selectCurrency}</span>
+                  <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar">
+                    {currencies.map((c) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onClick={() => setCurrency(c.code)}
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-black transition-all ${
+                          currentCurrency === c.code
+                            ? "bg-[#00143D] text-white shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        {c.code}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

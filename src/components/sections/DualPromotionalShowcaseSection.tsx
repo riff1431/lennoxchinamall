@@ -3,9 +3,10 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight, Award } from "lucide-react";
-import { Product } from "@/types/database";
-import { formatCurrency } from "@/utils/helpers";
+import { ChevronRight, Award, Trophy } from "lucide-react";
+import type { Product } from "@/types/database";
+import { formatCurrency, formatPrice } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface DualPromotionalShowcaseSectionProps {
@@ -64,6 +65,7 @@ export function DualPromotionalShowcaseSection({
   topRated,
 }: DualPromotionalShowcaseSectionProps) {
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency, formatPrice } = useCurrency();
   const bestSellerItems =
     bestSellers && bestSellers.length > 0
       ? bestSellers.slice(0, 2).map((p) => ({
@@ -72,7 +74,7 @@ export function DualPromotionalShowcaseSection({
           slug: p.slug,
           discountBadge:
             p.compare_at_price && p.compare_at_price > p.base_price
-              ? `-$${(p.compare_at_price - p.base_price).toFixed(2)}`
+              ? `-${formatPrice(p.compare_at_price - p.base_price)}`
               : undefined,
           comparePrice: p.compare_at_price || p.base_price,
           price: p.base_price,
@@ -91,7 +93,7 @@ export function DualPromotionalShowcaseSection({
           slug: p.slug,
           discountBadge:
             p.compare_at_price && p.compare_at_price > p.base_price
-              ? `-$${(p.compare_at_price - p.base_price).toFixed(2)}`
+              ? `-${formatPrice(p.compare_at_price - p.base_price)}`
               : undefined,
           comparePrice: p.compare_at_price || p.base_price,
           price: p.base_price,
@@ -112,7 +114,9 @@ export function DualPromotionalShowcaseSection({
             {/* Card Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-3.5">
               <div className="flex items-center gap-2">
-                <span className="text-lg sm:text-xl">🏆</span>
+                <div className="w-7 h-7 rounded-md bg-rose-500/10 border border-rose-500/20 text-[#FF1028] flex items-center justify-center">
+                  <Trophy className="w-4 h-4" />
+                </div>
                 <h3 className="font-heading font-black text-base sm:text-lg text-[#00143D]">
                   {isSpanish ? "Más Vendidos" : "Best Sellers"}
                 </h3>
@@ -157,10 +161,10 @@ export function DualPromotionalShowcaseSection({
                     </h4>
                     <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="text-[10px] text-slate-400 line-through font-mono">
-                        ${item.comparePrice.toFixed(2)}
+                        {formatPrice(item.comparePrice)}
                       </span>
                       <span className="text-sm font-black text-slate-900 font-mono">
-                        ${item.price.toFixed(2)}
+                        {formatPrice(item.price)}
                       </span>
                     </div>
                   </div>
@@ -223,10 +227,10 @@ export function DualPromotionalShowcaseSection({
                     </h4>
                     <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="text-[10px] text-slate-400 line-through font-mono">
-                        ${item.comparePrice.toFixed(2)}
+                        {formatPrice(item.comparePrice)}
                       </span>
                       <span className="text-sm font-black text-slate-900 font-mono">
-                        ${item.price.toFixed(2)}
+                        {formatPrice(item.price)}
                       </span>
                     </div>
                   </div>

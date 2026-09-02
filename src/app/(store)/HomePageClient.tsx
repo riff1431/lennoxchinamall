@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -169,18 +169,47 @@ export function HomePageClient({ sections, initialProducts = [] }: HomePageClien
     return allProducts.filter((p) => p.category_id === activeCategoryFilter);
   }, [activeCategoryFilter, allProducts]);
 
-  const activeSlide = slides[currentSlide] || slides[0];
+  const heroConfig = heroSection?.config?.hero_lennox;
+
+  const categorySection = sections?.find((s) => s.type === "category_grid" && s.is_active);
+  const lifestyleSlides = categorySection?.config?.lifestyle_slides;
+
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollTabsLeft, setCanScrollTabsLeft] = useState(false);
+  const [canScrollTabsRight, setCanScrollTabsRight] = useState(false);
+
+  const checkTabsScroll = () => {
+    if (tabsScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsScrollRef.current;
+      setCanScrollTabsLeft(scrollLeft > 5);
+      setCanScrollTabsRight(scrollLeft + clientWidth < scrollWidth - 5);
+    }
+  };
+
+  useEffect(() => {
+    checkTabsScroll();
+    window.addEventListener("resize", checkTabsScroll);
+    return () => window.removeEventListener("resize", checkTabsScroll);
+  }, [rootCategories.length]);
+
+  const handleScrollTabs = (direction: "left" | "right") => {
+    if (tabsScrollRef.current) {
+      const offset = direction === "left" ? -220 : 220;
+      tabsScrollRef.current.scrollBy({ left: offset, behavior: "smooth" });
+      setTimeout(checkTabsScroll, 300);
+    }
+  };
 
   return (
     <div className="space-y-12 pb-16">
       {/* ── 1. 3-Column Hero Section ── */}
       <MotionSection effect="fade-in">
-        <HeroLennoxSection onOpenVideoModal={setActiveVideoModal} />
+        <HeroLennoxSection config={heroConfig} onOpenVideoModal={setActiveVideoModal} />
       </MotionSection>
 
-      {/* ── 2. Categories Showcase & "Your World. All in One Place." Lifestyle Hero Banner ── */}
+      {/* ── 2. Categories Showcase & "Your World. All in One Place." Lifestyle Hero Banner Carousel ── */}
       <MotionSection effect="fade-up" delay={60}>
-        <CategoryShowcaseBannerSection />
+        <CategoryShowcaseBannerSection slides={lifestyleSlides} />
       </MotionSection>
 
       {/* ── 3. Top Selling Products Carousel (5 Columns, Auto-Loop 3s) ── */}
@@ -206,42 +235,70 @@ export function HomePageClient({ sections, initialProducts = [] }: HomePageClien
       {/* ── 6. Trending Products Grid with Category Tabs ── */}
       <MotionSection effect="fade-up" delay={110}>
         <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="bg-[#FF1028] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-                  {isSpanish ? "SELECCIÓN CURADA" : "CURATED SELECTION"}
-                </span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#00143D] font-heading">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 pb-1">
+            {/* Clean Section Heading */}
+            <div className="shrink-0">
+              <h2 className="text-xl sm:text-2xl font-black text-[#00143D] font-heading tracking-tight">
                 {isSpanish ? "Productos de Fábrica en Tendencia" : "Top Trending Factory Products"}
               </h2>
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-              <button
-                onClick={() => setActiveCategoryFilter("all")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap btn-smooth ${
-                  activeCategoryFilter === "all"
-                    ? "bg-[#00143D] text-white shadow-xs"
-                    : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-                }`}
-              >
-                {isSpanish ? "Todos los Populares" : "All Popular"}
-              </button>
-              {rootCategories.map((cat) => (
+            {/* Category Filter Chips with Interactive Scroll Controls */}
+            <div className="relative min-w-0 flex-1 lg:max-w-3xl flex items-center gap-1.5">
+              {/* Left Arrow on PC / Desktop when scrollable */}
+              {canScrollTabsLeft && (
                 <button
-                  key={cat.id}
-                  onClick={() => setActiveCategoryFilter(cat.id)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap btn-smooth ${
-                    activeCategoryFilter === cat.id
-                      ? "bg-[#FF1028] text-white shadow-xs"
-                      : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                  type="button"
+                  onClick={() => handleScrollTabs("left")}
+                  className="hidden sm:flex shrink-0 w-7 h-7 rounded-full bg-white border border-slate-200 shadow-2xs items-center justify-center text-slate-700 hover:bg-[#00143D] hover:text-white transition-all cursor-pointer z-10"
+                  aria-label="Scroll categories left"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              {/* Scrollable Category Chips Track */}
+              <div
+                ref={tabsScrollRef}
+                onScroll={checkTabsScroll}
+                className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth w-full lg:justify-end"
+              >
+                <button
+                  onClick={() => setActiveCategoryFilter("all")}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                    activeCategoryFilter === "all"
+                      ? "bg-[#00143D] text-white shadow-xs"
+                      : "bg-white text-slate-600 hover:text-[#00143D] hover:bg-slate-50 border border-slate-200"
                   }`}
                 >
-                  {getLocalizedCategoryName(cat.name, isSpanish)}
+                  {isSpanish ? "Todos los Populares" : "All Popular"}
                 </button>
-              ))}
+                {rootCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategoryFilter(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                      activeCategoryFilter === cat.id
+                        ? "bg-[#FF1028] text-white shadow-xs"
+                        : "bg-white text-slate-600 hover:text-[#00143D] hover:bg-slate-50 border border-slate-200"
+                    }`}
+                  >
+                    {getLocalizedCategoryName(cat.name, isSpanish)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Right Arrow on PC / Desktop when scrollable */}
+              {canScrollTabsRight && (
+                <button
+                  type="button"
+                  onClick={() => handleScrollTabs("right")}
+                  className="hidden sm:flex shrink-0 w-7 h-7 rounded-full bg-white border border-slate-200 shadow-2xs items-center justify-center text-slate-700 hover:bg-[#00143D] hover:text-white transition-all cursor-pointer z-10"
+                  aria-label="Scroll categories right"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
           </div>
 

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { Category } from "@/types/database";
+import { LifestyleBannerSlide, DEFAULT_LIFESTYLE_SLIDES } from "@/types/homepage";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -28,17 +29,15 @@ const PASTEL_PALETTES = [
 
 export interface CategoryShowcaseBannerSectionProps {
   initialCategories?: Category[];
-  bannerImage?: string;
-  bannerTitle?: string;
-  bannerCtaLink?: string;
+  slides?: LifestyleBannerSlide[];
+  autoPlayInterval?: number;
   viewAllLink?: string;
 }
 
 export function CategoryShowcaseBannerSection({
   initialCategories,
-  bannerImage = "/banners/banner-your-world-lifestyle.jpg",
-  bannerTitle,
-  bannerCtaLink = "/categories",
+  slides,
+  autoPlayInterval = 5500,
   viewAllLink = "/categories",
 }: CategoryShowcaseBannerSectionProps) {
   const { t, isSpanish } = useTranslation();
@@ -48,7 +47,7 @@ export function CategoryShowcaseBannerSection({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Fallback to MOCK_CATEGORIES for instant SSR render
+  // ── Categories Data ──
   const rawList = isLoaded && storeCategories && storeCategories.length > 0
     ? storeCategories
     : initialCategories && initialCategories.length > 0
@@ -80,6 +79,54 @@ export function CategoryShowcaseBannerSection({
       setTimeout(checkScrollState, 350);
     }
   };
+
+  // ── Lifestyle Banner Carousel State & Autoplay ──
+  const activeSlides = (slides && slides.length > 0
+    ? slides.filter((s) => s.is_active !== false)
+    : DEFAULT_LIFESTYLE_SLIDES) as LifestyleBannerSlide[];
+
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const nextSlide = useCallback(() => {
+    setCurrentSlideIndex((prev) => (prev + 1) % activeSlides.length);
+  }, [activeSlides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlideIndex((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
+  }, [activeSlides.length]);
+
+  // Auto-play timer
+  useEffect(() => {
+    if (isHovered || activeSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      nextSlide();
+    }, autoPlayInterval);
+    return () => clearInterval(timer);
+  }, [isHovered, activeSlides.length, autoPlayInterval, nextSlide]);
+
+  // Touch Swipe Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    }
+    setTouchStartX(null);
+  };
+
+  const currentSlide = activeSlides[currentSlideIndex] || activeSlides[0];
 
   return (
     <section className="space-y-4 sm:space-y-6">
@@ -140,36 +187,34 @@ export function CategoryShowcaseBannerSection({
                 <Link
                   key={cat.id || cat.slug}
                   href={`/categories/${cat.slug}`}
-                  className="group flex flex-col items-center shrink-0 w-[74px] sm:w-[88px] md:w-[98px] lg:w-[108px] snap-start transition-transform focus:outline-none"
+                  className="group flex flex-col items-center shrink-0 w-[82px] sm:w-[96px] md:w-[108px] lg:w-[118px] snap-start transition-transform focus:outline-none"
                 >
-                  {/* Circular Avatar Container */}
+                  {/* 25% Border Radius Squircle Avatar Container */}
                   <div
-                    style={{ backgroundColor: bgColor }}
-                    className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 lg:w-22 lg:h-22 rounded-full flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-108 shadow-2xs group-hover:shadow-md border border-black/[0.04]"
+                    style={{ backgroundColor: bgColor, borderRadius: "25%" }}
+                    className="w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] md:w-[100px] md:h-[100px] lg:w-[110px] lg:h-[110px] rounded-[25%] relative overflow-hidden transition-all duration-300 group-hover:scale-106 shadow-2xs group-hover:shadow-md border border-slate-200/90 group-hover:border-[#00B4D8]/60"
                   >
                     {thumbnailSrc ? (
-                      <div className="relative w-full h-full p-2.5 sm:p-3 flex items-center justify-center">
-                        <Image
-                          src={thumbnailSrc}
-                          alt={cat.name}
-                          fill
-                          sizes="(max-width: 640px) 64px, (max-width: 1024px) 88px, 110px"
-                          className="object-contain p-2 sm:p-2.5 transition-transform duration-300 group-hover:scale-112"
-                        />
-                      </div>
+                      <Image
+                        src={thumbnailSrc}
+                        alt={cat.name}
+                        fill
+                        sizes="(max-width: 640px) 76px, (max-width: 1024px) 100px, 120px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center p-3 text-slate-700 group-hover:text-[#00B4D8] transition-colors">
                         <CategoryIcon
                           icon={cat.icon || cat.iconName || "FolderTree"}
                           name={cat.name}
-                          className="w-6 h-6 sm:w-8 sm:h-8"
+                          className="w-7 h-7 sm:w-9 sm:h-9"
                         />
                       </div>
                     )}
                   </div>
 
                   {/* Category Name Underneath */}
-                  <span className="mt-2 text-[11px] sm:text-xs md:text-sm font-bold text-slate-800 text-center line-clamp-2 leading-snug group-hover:text-[#00B4D8] transition-colors font-heading">
+                  <span className="mt-2.5 text-[11px] sm:text-xs md:text-sm font-bold text-slate-800 text-center line-clamp-2 leading-snug group-hover:text-[#00B4D8] transition-colors font-heading max-w-[95%]">
                     {getLocalizedCategoryName(cat.name, isSpanish)}
                   </span>
                 </Link>
@@ -179,60 +224,166 @@ export function CategoryShowcaseBannerSection({
         </div>
       </div>
 
-      {/* ── 2. Bottom Promotional Hero Banner Card ("Your World. All in One Place.") ── */}
-      <Link
-        href={bannerCtaLink}
-        className="group relative w-full aspect-[2.2/1] sm:aspect-[2.5/1] md:aspect-[3/1] lg:aspect-[3.3/1] min-h-[170px] sm:min-h-[220px] md:min-h-[260px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 block border border-slate-200/90 bg-[#06122C] focus:outline-none"
+      {/* ── 2. Bottom Promotional Hero Banner Carousel ("Your World. All in One Place.") ── */}
+      <div
+        className="relative group/banner w-full aspect-[2.2/1] sm:aspect-[2.5/1] md:aspect-[3/1] lg:aspect-[3.3/1] min-h-[170px] sm:min-h-[220px] md:min-h-[260px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-slate-200/90 bg-[#06122C]"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
-        {/* Background Lifestyle Image */}
-        <Image
-          src={bannerImage}
-          alt={bannerTitle || "Your World. All in One Place."}
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 1400px"
-          className="object-cover object-right sm:object-center group-hover:scale-102 transition-transform duration-700"
-        />
+        {/* Slides Track with Crossfade */}
+        {activeSlides.map((slide, idx) => {
+          const isActive = idx === currentSlideIndex;
+          const slideTitle = isSpanish
+            ? (slide.id === "lifestyle-slide-1"
+                ? "Tu Mundo."
+                : slide.id === "lifestyle-slide-2"
+                ? "Hardware de Nueva Generación."
+                : slide.id === "lifestyle-slide-3"
+                ? "Tendencias Globales."
+                : slide.title)
+            : slide.title;
 
-        {/* Dynamic Dark Gradient Overlay on the left side to ensure 100% text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#040C22]/95 via-[#040C22]/80 to-transparent sm:w-3/5 md:w-1/2 pointer-events-none" />
+          const slideHighlight = isSpanish
+            ? (slide.id === "lifestyle-slide-1"
+                ? "Un Solo Lugar."
+                : slide.id === "lifestyle-slide-2"
+                ? "Directo de Fábrica."
+                : slide.id === "lifestyle-slide-3"
+                ? "Precios al Por Mayor."
+                : slide.title_highlight)
+            : slide.title_highlight;
 
-        {/* Left Side Content & Call-To-Action */}
-        <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 sm:px-8 md:px-12 lg:px-14 max-w-xl text-white">
-          {/* Main Headline */}
-          <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black font-heading leading-tight tracking-tight text-white drop-shadow-sm">
-            {isSpanish ? (
-              <>
-                Tu Mundo.<br />
-                <span>Todo en </span>
-                <span className="text-[#00C2FF] drop-shadow-md">Un Solo Lugar.</span>
-              </>
-            ) : (
-              <>
-                Your World.<br />
-                <span>All in </span>
-                <span className="text-[#00C2FF] drop-shadow-md">One Place.</span>
-              </>
-            )}
-          </h3>
+          const slideSubtitle = isSpanish
+            ? (slide.id === "lifestyle-slide-1"
+                ? "Todo para cada estilo de vida con abastecimiento directo."
+                : slide.id === "lifestyle-slide-2"
+                ? "Tecnología de alto rendimiento con 0% de intermediarios."
+                : slide.id === "lifestyle-slide-3"
+                ? "Moda, artículos para el hogar y accesorios con despacho aéreo."
+                : slide.subtitle)
+            : slide.subtitle;
 
-          {/* Subtitle */}
-          <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200 font-medium mt-1 sm:mt-2 drop-shadow-xs max-w-xs sm:max-w-sm">
-            {isSpanish ? "Todo para cada estilo de vida con abastecimiento directo." : "Everything for every lifestyle."}
-          </p>
+          const slideButtonText = isSpanish
+            ? (slide.id === "lifestyle-slide-1"
+                ? "Comprar Ahora"
+                : slide.id === "lifestyle-slide-2"
+                ? "Explorar Tecnología"
+                : slide.id === "lifestyle-slide-3"
+                ? "Ver Colección"
+                : slide.button_text)
+            : slide.button_text;
 
-          {/* Cyan CTA Button */}
-          <div className="mt-3 sm:mt-5 md:mt-6">
-            <span className="inline-flex items-center gap-2 bg-[#00C2FF] hover:bg-[#00A3D9] text-white font-heading font-black text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-md transition-all duration-300 group-hover:shadow-cyan-500/30 group-hover:translate-x-1">
-              <span>{isSpanish ? "Comprar Ahora" : "Shop Now"}</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-          </div>
-        </div>
+          return (
+            <Link
+              key={slide.id || idx}
+              href={slide.link || "/categories"}
+              className={`absolute inset-0 block transition-opacity duration-700 ease-in-out focus:outline-none ${
+                isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+              }`}
+            >
+              {/* Background Lifestyle Image */}
+              <Image
+                src={slide.image || "/banners/banner-your-world-lifestyle.jpg"}
+                alt={`${slideTitle} ${slideHighlight}`}
+                fill
+                priority={idx === 0}
+                sizes="(max-width: 1024px) 100vw, 1400px"
+                className="object-cover object-right sm:object-center transition-transform duration-1000 group-hover/banner:scale-102"
+              />
 
-        {/* Subtle hover shimmer */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-      </Link>
+              {/* Dynamic Dark Gradient Overlay on the left side */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#040C22]/95 via-[#040C22]/80 to-transparent sm:w-3/5 md:w-1/2 pointer-events-none" />
+
+              {/* Left Side Content & Call-To-Action */}
+              <div className="absolute inset-0 z-10 flex flex-col justify-center px-4 sm:px-8 md:px-12 lg:px-14 max-w-xl text-white">
+                {/* Main Headline */}
+                <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-black font-heading leading-tight tracking-tight text-white drop-shadow-sm">
+                  {slideTitle}<br />
+                  <span>{isSpanish ? "Todo en " : "All in "}</span>
+                  <span className="text-[#00C2FF] drop-shadow-md">{slideHighlight}</span>
+                </h3>
+
+                {/* Subtitle */}
+                {slideSubtitle && (
+                  <p className="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200 font-medium mt-1 sm:mt-2 drop-shadow-xs max-w-xs sm:max-w-sm line-clamp-2">
+                    {slideSubtitle}
+                  </p>
+                )}
+
+                {/* Cyan CTA Button */}
+                <div className="mt-3 sm:mt-5 md:mt-6">
+                  <span className="inline-flex items-center gap-2 bg-[#00C2FF] hover:bg-[#00A3D9] text-white font-heading font-black text-xs sm:text-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-md transition-all duration-300 group-hover/banner:shadow-cyan-500/30 group-hover/banner:translate-x-1">
+                    <span>{slideButtonText}</span>
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover/banner:translate-x-0.5 transition-transform" />
+                  </span>
+                </div>
+              </div>
+
+              {/* Subtle hover shimmer */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover/banner:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            </Link>
+          );
+        })}
+
+        {/* ── Carousel Controls (if more than 1 slide) ── */}
+        {activeSlides.length > 1 && (
+          <>
+            {/* Left Slide Arrow */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                prevSlide();
+              }}
+              aria-label="Previous lifestyle slide"
+              className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover/banner:opacity-100 cursor-pointer shadow-lg active:scale-95"
+            >
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
+            {/* Right Slide Arrow */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                nextSlide();
+              }}
+              aria-label="Next lifestyle slide"
+              className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-0 group-hover/banner:opacity-100 cursor-pointer shadow-lg active:scale-95"
+            >
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
+            {/* Bottom Pagination Dots / Pills */}
+            <div className="absolute bottom-3 sm:bottom-4 right-4 sm:right-8 z-20 flex items-center gap-1.5 sm:gap-2">
+              {activeSlides.map((_, idx) => {
+                const isActive = idx === currentSlideIndex;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentSlideIndex(idx);
+                    }}
+                    aria-label={`Go to slide ${idx + 1}`}
+                    className={`h-2 sm:h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      isActive
+                        ? "w-6 sm:w-8 bg-[#00C2FF] shadow-[0_0_10px_rgba(0,194,255,0.6)]"
+                        : "w-2 sm:w-2.5 bg-white/40 hover:bg-white/70"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </section>
   );
 }

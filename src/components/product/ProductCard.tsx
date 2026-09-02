@@ -28,7 +28,8 @@ import { Product } from "@/types/database";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useCompareStore } from "@/store/useCompareStore";
-import { formatCurrency, calcDiscount } from "@/utils/helpers";
+import { formatCurrency, formatPrice, calcDiscount } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { Modal } from "@/components/ui/Modal";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -41,6 +42,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency, formatPrice } = useCurrency();
   const [isHovered, setIsHovered] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
@@ -339,7 +341,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               </span>
               {comparePrice && comparePrice > activePrice && (
                 <span className="text-[10px] text-slate-400 line-through font-mono">
-                  ${comparePrice.toFixed(2)}
+                  {formatPrice(comparePrice)}
                 </span>
               )}
             </div>
@@ -450,7 +452,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                   </span>
                   {comparePrice && comparePrice > activePrice && (
                     <span className="ml-2 text-xs text-slate-400 line-through font-mono">
-                      ${comparePrice.toFixed(2)}
+                      {formatPrice(comparePrice)}
                     </span>
                   )}
                 </div>
@@ -474,7 +476,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                             : "bg-white text-slate-700 border-slate-200 hover:border-slate-400"
                         }`}
                       >
-                        {v.title || v.sku} — ${v.price.toFixed(2)}
+                        {v.title || v.sku} — {formatPrice(v.price)}
                       </button>
                     ))}
                   </div>

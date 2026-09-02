@@ -132,22 +132,12 @@ export function SourcingAssuranceSection() {
       <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header Container */}
-      <div className="relative z-10 text-center max-w-2xl mx-auto mb-8 sm:mb-10 space-y-2.5">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-red-50 border border-red-200/60 shadow-xs">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF1028] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF1028]" />
-          </span>
-          <span className="text-[10px] sm:text-[11px] font-black text-[#FF1028] uppercase tracking-wider font-mono">
-            {isSpanish ? "¿POR QUÉ COMPRAR EN CHINA MALL?" : "WHY SHOP AT CHINA MALL"}
-          </span>
-        </div>
-
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#00143D] tracking-tight font-heading">
-          {isSpanish ? "Garantía de Abastecimiento Directo" : "The Single-Vendor Sourcing Guarantee"}
+      <div className="relative z-10 text-center max-w-3xl mx-auto mb-8 sm:mb-10 space-y-2.5">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#00143D] tracking-tight font-heading">
+          {isSpanish ? "¿Por Qué Comprar en Lennox China Mall?" : "Why Shop at Lennox China Mall?"}
         </h2>
 
-        <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm md:text-base text-slate-500 max-w-2xl mx-auto leading-relaxed">
           {isSpanish
             ? "Acceso directo a producción en clústeres industriales verificados de China con custodia de pago en cripto y envío aéreo garantizado."
             : "Direct manufacturing access from verified China production clusters with institutional-grade crypto payment escrow and guaranteed air delivery."}

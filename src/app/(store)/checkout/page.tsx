@@ -35,9 +35,11 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Modal } from "@/components/ui/Modal";
 import {
   formatCurrency,
+  formatPrice,
   generateOrderNumber,
   generateMerchantTradeNo,
 } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import {
   calculateFreightCost,
   FREIGHT_CONFIGS,
@@ -54,6 +56,7 @@ type CheckoutStep = 1 | 2 | 3 | 4; // 4 = Order Success / Invoice
 export default function CheckoutPage() {
   const router = useRouter();
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency: formatCurrencyFromStore, formatPrice: formatPriceFromStore } = useCurrency();
   const items = useCartStore((state) => state.items);
   const subtotal = useCartStore((state) => state.getSubtotal());
   const discountAmount = useCartStore((state) => state.discountAmount);
@@ -694,7 +697,7 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                       <span className="font-mono font-bold text-slate-900 shrink-0">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatCurrency(item.price * item.quantity)}
                       </span>
                     </div>
                   ))}
@@ -722,13 +725,13 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                     <span className="font-mono font-bold text-slate-900 shrink-0">
-                      {courierCost === 0 ? <span className="text-emerald-600">{isSpanish ? "GRATIS" : "FREE"}</span> : `$${courierCost.toFixed(2)}`}
+                      {courierCost === 0 ? <span className="text-emerald-600">{isSpanish ? "GRATIS" : "FREE"}</span> : formatPrice(courierCost)}
                     </span>
                   </div>
                   <div className="flex justify-between text-base font-black text-[#00143D] pt-3 border-t border-slate-200">
-                    <span>{isSpanish ? "Total a Pagar (USDT)" : "Total Due (USDT)"}</span>
-                    <span className="text-xl text-[#FF1028] font-mono">
-                      ${grandTotal.toFixed(2)}
+                    <span>{isSpanish ? `Total a Pagar (${currentCurrency})` : `Total Due (${currentCurrency})`}</span>
+                    <span className="text-xl text-[#FF1028] font-mono font-black">
+                      {formatCurrency(grandTotal)}
                     </span>
                   </div>
                 </div>

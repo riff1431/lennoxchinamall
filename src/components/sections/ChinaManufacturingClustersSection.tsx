@@ -132,15 +132,6 @@ export function ChinaManufacturingClustersSection() {
       {/* ── Header Area ── */}
       <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-8 pb-5 border-b border-white/[0.08]">
         <div className="max-w-2xl space-y-2">
-          {/* Live Pipeline Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-[#10B981] text-[10px] font-black uppercase tracking-wider font-mono">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span>{t.home.directSourcingTitle}</span>
-          </div>
-
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white font-heading tracking-tight">
             {t.home.manufacturingClusters}
           </h2>

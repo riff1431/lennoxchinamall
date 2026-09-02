@@ -251,13 +251,7 @@ export function DirectSourcingDepartmentsSection({
       {/* ── Section Header ── */}
       <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="bg-[#00143D] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-              {t.home.manufacturingClusters}
-            </span>
-          </div>
-
-          <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading mt-1">
+          <h3 className="text-lg sm:text-2xl font-black text-[#00143D] font-heading">
             {t.home.sourcingDepartments}
           </h3>
           <p className="text-xs text-slate-500 font-medium mt-0.5">

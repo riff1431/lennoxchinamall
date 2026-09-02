@@ -93,7 +93,7 @@ export const en: TranslationDictionary = {
     liveQC: "LIVE QC",
     shenzhenLabInspection: "Shenzhen Inspection Host",
     qcPassed: "QC PASSED",
-    flashSourcingDrops: "⚡ Flash Sourcing Drops",
+    flashSourcingDrops: "Flash Sourcing Drops",
     flashSubtitle: "Direct factory overstock lots releasing every 6 hours with verified stock counts",
     viewAllDeals: "View All Flash Deals →",
     topSellingHardware: "Top-Selling Factory Drops",

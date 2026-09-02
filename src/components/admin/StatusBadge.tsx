@@ -36,52 +36,52 @@ export function StatusBadge({
 
   const toneClasses: Record<BadgeTone, { bg: string; text: string; border: string; dot: string }> = {
     emerald: {
-      bg: "bg-[#DCFCE7] dark:bg-emerald-950/60",
-      text: "text-[#16A34A] dark:text-emerald-400",
-      border: "border-[#BBF7D0]/60 dark:border-emerald-900/40",
-      dot: "bg-[#16A34A] dark:bg-emerald-400",
+      bg: "bg-emerald-500/10",
+      text: "text-emerald-700 dark:text-emerald-300",
+      border: "border-emerald-500/20",
+      dot: "bg-emerald-500",
     },
     red: {
-      bg: "bg-[#FEE2E2] dark:bg-rose-950/60",
-      text: "text-[#DC2626] dark:text-rose-400",
-      border: "border-[#FECDD3]/60 dark:border-rose-900/40",
-      dot: "bg-[#DC2626] dark:bg-rose-400",
+      bg: "bg-rose-500/10",
+      text: "text-rose-700 dark:text-rose-300",
+      border: "border-rose-500/20",
+      dot: "bg-rose-500",
     },
     rose: {
-      bg: "bg-[#FEE2E2] dark:bg-rose-950/60",
-      text: "text-[#DC2626] dark:text-rose-400",
-      border: "border-[#FECDD3]/60 dark:border-rose-900/40",
-      dot: "bg-[#DC2626] dark:bg-rose-400",
+      bg: "bg-rose-500/10",
+      text: "text-rose-700 dark:text-rose-300",
+      border: "border-rose-500/20",
+      dot: "bg-rose-500",
     },
     amber: {
-      bg: "bg-[#FEF3C7] dark:bg-amber-950/60",
-      text: "text-[#D97706] dark:text-amber-400",
-      border: "border-[#FDE68A]/60 dark:border-amber-900/40",
-      dot: "bg-[#D97706] dark:bg-amber-400",
+      bg: "bg-amber-500/10",
+      text: "text-amber-700 dark:text-amber-300",
+      border: "border-amber-500/20",
+      dot: "bg-amber-500",
     },
     blue: {
-      bg: "bg-[#EEF2FF] dark:bg-blue-950/60",
-      text: "text-[#2563EB] dark:text-blue-400",
-      border: "border-[#BFDBFE]/60 dark:border-blue-900/40",
-      dot: "bg-[#2563EB] dark:bg-blue-400",
+      bg: "bg-blue-500/10",
+      text: "text-blue-700 dark:text-blue-300",
+      border: "border-blue-500/20",
+      dot: "bg-blue-500",
     },
     purple: {
-      bg: "bg-[#F3E8FF] dark:bg-purple-950/60",
-      text: "text-[#7E22CE] dark:text-purple-400",
-      border: "border-[#E9D5FF]/60 dark:border-purple-900/40",
-      dot: "bg-[#7E22CE] dark:bg-purple-400",
+      bg: "bg-purple-500/10",
+      text: "text-purple-700 dark:text-purple-300",
+      border: "border-purple-500/20",
+      dot: "bg-purple-500",
     },
     cyan: {
-      bg: "bg-[#CFFAFE] dark:bg-cyan-950/60",
-      text: "text-[#0891B2] dark:text-cyan-400",
-      border: "border-[#A5F3FC]/60 dark:border-cyan-900/40",
-      dot: "bg-[#0891B2] dark:bg-cyan-400",
+      bg: "bg-cyan-500/10",
+      text: "text-cyan-700 dark:text-cyan-300",
+      border: "border-cyan-500/20",
+      dot: "bg-cyan-500",
     },
     slate: {
       bg: "bg-slate-100 dark:bg-slate-800",
       text: "text-slate-700 dark:text-slate-300",
-      border: "border-slate-200 dark:border-slate-700",
-      dot: "bg-slate-500 dark:bg-slate-400",
+      border: "border-slate-200/80 dark:border-slate-700",
+      dot: "bg-slate-400",
     },
   };
 
@@ -90,11 +90,11 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 font-bold uppercase tracking-wider rounded-md border font-mono shrink-0 select-none",
+        "inline-flex items-center gap-1.5 font-semibold uppercase tracking-wide rounded-md border font-mono shrink-0 select-none",
         style.bg,
         style.text,
         style.border,
-        size === "sm" ? "text-[9px] px-2 py-0.5" : "text-[10px] px-2.5 py-0.5",
+        size === "sm" ? "text-[9px] px-1.5 py-0.2" : "text-[10px] px-2 py-0.5",
         className
       )}
     >

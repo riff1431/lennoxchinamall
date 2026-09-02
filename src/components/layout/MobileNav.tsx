@@ -33,6 +33,7 @@ import { useCategoryStore } from "@/store/useCategoryStore";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
 import { formatCurrency } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { signout } from "@/app/actions/auth";
 import type { Category } from "@/types/database";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -58,6 +59,7 @@ export function MobileNav() {
   const router = useRouter();
   const { user, displayName, isAuthenticated } = useAuth();
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency } = useCurrency();
 
   const cartTotal = useCartStore((state) => state.getTotalItems());
   const cartSubtotal = useCartStore((state) => state.getSubtotal());

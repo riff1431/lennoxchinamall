@@ -23,6 +23,7 @@ import {
   Box,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
@@ -34,6 +35,7 @@ const PRESET_COUPONS = [
 
 export function CartDrawer() {
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency: formatCurrencyFromStore } = useCurrency();
   const isOpen = useCartStore((state) => state.isOpen);
   const closeCart = useCartStore((state) => state.closeCart);
   const items = useCartStore((state) => state.items);
@@ -200,7 +202,7 @@ export function CartDrawer() {
                 </span>
               </div>
               <div className="flex justify-between text-sm font-black text-[#00143D] pt-2 border-t border-slate-200">
-                <span className="font-heading uppercase text-xs tracking-wider">{t.cart.total} (USDT)</span>
+                <span className="font-heading uppercase text-xs tracking-wider">{t.cart.total} ({currentCurrency})</span>
                 <span className="text-base text-[#FF1028] price-tag font-mono font-black">
                   {formatCurrency(totalDue)}
                 </span>

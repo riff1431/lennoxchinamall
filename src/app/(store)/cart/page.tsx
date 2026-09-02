@@ -28,13 +28,15 @@ import {
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
-import { formatCurrency } from "@/utils/helpers";
+import { formatCurrency, formatPrice } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { calculateFreightCost, FREIGHT_CONFIGS } from "@/utils/shipping";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
 
 export default function CartPage() {
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency: formatCurrencyFromStore, formatPrice: formatPriceFromStore } = useCurrency();
   const items = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -294,7 +296,7 @@ export default function CartPage() {
                         </span>
                         {item.quantity > 1 && (
                           <span className="text-[11px] text-slate-400 font-mono">
-                            (${item.price.toFixed(2)} {isSpanish ? "c/u" : "ea"})
+                            ({formatPrice(item.price)} {isSpanish ? "c/u" : "ea"})
                           </span>
                         )}
                       </div>
@@ -440,7 +442,7 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex justify-between text-base font-black text-[#00143D] pt-3 border-t border-slate-200">
-                  <span className="font-heading uppercase text-xs tracking-wider">{t.cart.total} (USDT)</span>
+                  <span className="font-heading uppercase text-xs tracking-wider">{t.cart.total} ({currentCurrency})</span>
                   <span className="text-xl text-[#FF1028] font-mono font-black">
                     {formatCurrency(totalDue)}
                   </span>

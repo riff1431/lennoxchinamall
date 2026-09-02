@@ -15,7 +15,8 @@ import {
   Check,
 } from "lucide-react";
 import { Product } from "@/types/database";
-import { formatCurrency, calcDiscount } from "@/utils/helpers";
+import { formatCurrency, formatPrice, calcDiscount } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -35,6 +36,7 @@ export function TopSellingProductsSection({
   autoPlayInterval = 3000,
 }: TopSellingProductsSectionProps) {
   const { t, isSpanish } = useTranslation();
+  const { currentCurrency, formatCurrency: formatCurrencyFromStore, formatPrice: formatPriceFromStore } = useCurrency();
   const displayTitle = title || (isSpanish ? "Productos Más Vendidos de Fábrica" : "Top Selling Direct Products");
   const displaySubtitle = subtitle || (isSpanish ? "Hardware de fábrica certificado de mayor volumen obtenido directamente de Shenzhen, Ningbo y Dongguan" : "Highest volume verified factory hardware sourced directly from Shenzhen, Ningbo & Dongguan");
   // Ensure we have a rich list of products to loop through
@@ -200,12 +202,6 @@ export function TopSellingProductsSection({
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-[#FF1028] text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider font-heading shadow-xs">
               <Flame className="w-3.5 h-3.5 fill-white text-white animate-pulse" />
               <span>{t.home.topSellingHardware}</span>
-            </span>
-
-            {/* Auto-play status pill */}
-            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[9px] font-mono text-slate-600">
-              <span className={`w-1.5 h-1.5 rounded-full ${isPaused ? "bg-amber-500" : "bg-emerald-500 animate-ping"}`} />
-              <span>{isPaused ? (isSpanish ? "Pausado" : "Paused") : (isSpanish ? "Bucle Automático (3s)" : "Live Auto-Loop (3s)")}</span>
             </span>
           </div>
 
@@ -415,7 +411,7 @@ export function TopSellingProductsSection({
                         </div>
                         {comparePrice > activePrice && (
                           <span className="text-[9px] text-slate-400 line-through font-mono">
-                            ${comparePrice.toFixed(2)}
+                            {formatPrice(comparePrice)}
                           </span>
                         )}
                       </div>

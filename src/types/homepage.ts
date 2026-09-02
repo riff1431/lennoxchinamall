@@ -51,8 +51,242 @@ export interface PromoBlockItem {
   bg_gradient?: string;
 }
 
+export interface LifestyleBannerSlide {
+  id: string;
+  image: string;
+  title: string;
+  title_highlight: string;
+  subtitle: string;
+  button_text: string;
+  link: string;
+  is_active?: boolean;
+}
+
+export const DEFAULT_LIFESTYLE_SLIDES: LifestyleBannerSlide[] = [
+  {
+    id: "lifestyle-slide-1",
+    image: "/banners/banner-your-world-lifestyle.jpg",
+    title: "Your World.",
+    title_highlight: "One Place.",
+    subtitle: "Everything for every lifestyle.",
+    button_text: "Shop Now",
+    link: "/categories",
+    is_active: true,
+  },
+  {
+    id: "lifestyle-slide-2",
+    image: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1400&auto=format&fit=crop&q=80",
+    title: "Next-Gen Hardware.",
+    title_highlight: "Factory Direct.",
+    subtitle: "High-performance tech & gear with 0% middleman markup.",
+    button_text: "Explore Tech",
+    link: "/categories",
+    is_active: true,
+  },
+  {
+    id: "lifestyle-slide-3",
+    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1400&auto=format&fit=crop&q=80",
+    title: "Global Trends.",
+    title_highlight: "Wholesale Rates.",
+    subtitle: "Curated apparel, home gear and accessories with door-to-door air express.",
+    button_text: "View Collection",
+    link: "/categories",
+    is_active: true,
+  },
+];
+
+export interface HeroDealOfTheDay {
+  id: string;
+  title: string;
+  title_es?: string;
+  slug: string;
+  image: string;
+  price: number;
+  compare_price: number;
+  discount_badge: string;
+  rating: number;
+  reviews_count: number;
+  units_left: number;
+  claimed_percent: number;
+  button_text?: string;
+  button_text_es?: string;
+}
+
+export interface HeroMiddleBanner {
+  badge: string;
+  badge_es?: string;
+  badge_sub?: string;
+  badge_sub_es?: string;
+  title: string;
+  title_es?: string;
+  image: string;
+  button_text: string;
+  button_text_es?: string;
+  link: string;
+}
+
+export interface HeroFourDealItem {
+  id: string;
+  title: string;
+  titleEs?: string;
+  slug: string;
+  image: string;
+  price: number;
+  comparePrice?: number;
+  discountBadge?: string;
+  rating?: number;
+  reviews?: number;
+  discountNote?: string;
+  installments?: string;
+  freeShipping?: string;
+}
+
+export interface HeroVideoReelItem {
+  id: string;
+  title: string;
+  title_es?: string;
+  subtitle?: string;
+  subtitle_es?: string;
+  tag: string;
+  video_url: string;
+  poster: string;
+  product_link?: string;
+  product_price?: number;
+  hub?: string;
+}
+
+export interface HeroLennoxConfig {
+  deal_of_the_day?: HeroDealOfTheDay;
+  middle_banner?: HeroMiddleBanner;
+  four_deals?: HeroFourDealItem[];
+  video_reels?: HeroVideoReelItem[];
+}
+
+export const DEFAULT_HERO_LENNOX_CONFIG: HeroLennoxConfig = {
+  deal_of_the_day: {
+    id: "hero-deal-main",
+    title: "Acoustic Audio by Goldwood 120W",
+    title_es: "Acoustic Audio by Goldwood 120W",
+    slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
+    image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop&q=80",
+    price: 100.0,
+    compare_price: 180.0,
+    discount_badge: "-45% OFF",
+    rating: 4.9,
+    reviews_count: 380,
+    units_left: 8,
+    claimed_percent: 82,
+    button_text: "GRAB THIS DEAL →",
+    button_text_es: "APROVECHAR OFERTA →",
+  },
+  middle_banner: {
+    badge: "DIRECT CHINA FACTORY",
+    badge_es: "FÁBRICA DIRECTA CHINA",
+    badge_sub: "0% Middleman",
+    badge_sub_es: "0% Intermediarios",
+    title: "Direct Factory Gate Hardware & Electronics",
+    title_es: "Fábrica Directa en Hardware y Electrónica",
+    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&auto=format&fit=crop&q=80",
+    button_text: "Explore →",
+    button_text_es: "Explorar →",
+    link: "/categories/consumer-electronics",
+  },
+  four_deals: [
+    {
+      id: "hero-deal-1",
+      title: "CMF Buds Pro 2 Wireless Earbuds",
+      titleEs: "Auriculares Inalámbricos CMF Buds Pro 2",
+      slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
+      discountBadge: "-$10.00",
+      comparePrice: 373.0,
+      price: 363.0,
+      rating: 4.9,
+      reviews: 142,
+      discountNote: "$10.00 Discount off",
+      installments: "12x $30.00 Interest free",
+      freeShipping: "Free shipping ⚡ FULL",
+      image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80",
+    },
+    {
+      id: "hero-deal-2",
+      title: "iPhone 17 Pro Max Titanium Sourcing",
+      titleEs: "iPhone 17 Pro Max Titanio de Fábrica",
+      slug: "eachine-ex5-4k-gps-fpv-drone",
+      discountBadge: "-$10.00",
+      comparePrice: 950.0,
+      price: 940.0,
+      rating: 5.0,
+      reviews: 89,
+      discountNote: "$10.00 Discount off",
+      installments: "12x $78.00 Interest free",
+      freeShipping: "Free shipping ⚡ FULL",
+      image: "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=500&auto=format&fit=crop&q=80",
+    },
+    {
+      id: "hero-deal-3",
+      title: "Elegant Floral Embroidered Handbag",
+      titleEs: "Bolso Elegante con Bordado Floral",
+      slug: "blitzwolf-bw-wa3-pro-120w-bluetooth-speaker",
+      discountBadge: "-$10.00",
+      comparePrice: 100.0,
+      price: 90.0,
+      rating: 4.8,
+      reviews: 210,
+      discountNote: "$10.00 Discount off",
+      installments: "12x $8.00 Interest free",
+      freeShipping: "Free shipping ⚡ FULL",
+      image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=80",
+    },
+    {
+      id: "hero-deal-4",
+      title: "Copper Alloy Inlaid Zircon Round Ring",
+      titleEs: "Anillo Redondo con Zircón Incrustado",
+      slug: "konnwei-kw850-obd2-car-diagnostic-scanner",
+      discountBadge: "-50%",
+      comparePrice: 18.0,
+      price: 9.0,
+      rating: 4.9,
+      reviews: 56,
+      discountNote: "Direct Factory Price",
+      installments: "12x $1.00 Interest free",
+      freeShipping: "Free shipping ⚡ FULL",
+      image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500&auto=format&fit=crop&q=80",
+    },
+  ],
+  video_reels: [
+    {
+      id: "reel-1",
+      title: "Canton Fair Sourcing Booth",
+      title_es: "Pabellón en Vivo de la Feria de Cantón",
+      subtitle: "Guangzhou Complex • Verified Hardware & Robotics Suppliers",
+      subtitle_es: "Complejo Cantón • Proveedores Verificados de Hardware y Robótica",
+      tag: "LIVE QC",
+      video_url: "/videos/hero/hero_ad_1.mp4",
+      poster: "/videos/hero/hero_ad_1_thumb.jpg",
+      product_link: "/products/eachine-ex5-4k-gps-fpv-drone",
+      product_price: 189.0,
+      hub: "Guangzhou Canton Hub",
+    },
+    {
+      id: "reel-2",
+      title: "Shenzhen Inspection Host",
+      title_es: "Inspector en Vivo Laboratorio Shenzhen",
+      subtitle: "Direct Bench Quality Control • Circuitry & Load Verification",
+      subtitle_es: "Control de Calidad en Banco de Pruebas • Verificación de Carga y Circuitos",
+      tag: "QC PASSED",
+      video_url: "/videos/hero/hero_ad_2.mp4",
+      poster: "/videos/hero/hero_ad_2_thumb.jpg",
+      product_link: "/products/creality-ender-3-v3-se-3d-printer",
+      product_price: 219.0,
+      hub: "Shenzhen SZX Hub",
+    },
+  ],
+};
+
 export interface HomepageSectionConfig {
   slides?: HeroSlide[];
+  lifestyle_slides?: LifestyleBannerSlide[];
+  hero_lennox?: HeroLennoxConfig;
   badges?: TrustBadgeItem[];
   promo_blocks?: PromoBlockItem[];
   deal_ends_at?: string;
@@ -97,6 +331,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSection[] = [
     start_date: null,
     end_date: null,
     config: {
+      hero_lennox: DEFAULT_HERO_LENNOX_CONFIG,
       slides: [
         {
           id: "slide-1",
@@ -177,6 +412,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSection[] = [
     config: {
       show_product_counts: true,
       max_categories: 6,
+      lifestyle_slides: DEFAULT_LIFESTYLE_SLIDES,
     },
     created_at: "2026-08-24T12:00:00Z",
     updated_at: "2026-08-24T12:00:00Z",

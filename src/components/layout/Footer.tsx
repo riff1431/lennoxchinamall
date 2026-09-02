@@ -11,7 +11,6 @@ import {
   Copy,
   Mail,
   Send,
-  Sparkles,
   Lock,
   ExternalLink,
   CheckCircle2,
@@ -195,10 +194,6 @@ export function Footer({
           {/* Minimal Newsletter Banner Bar */}
           <div className="rounded-2xl bg-gradient-to-r from-slate-900/90 via-[#07132C]/90 to-slate-900/90 border border-slate-800 p-5 sm:p-7 flex flex-col lg:flex-row items-center justify-between gap-6">
             <div className="space-y-1.5 text-center lg:text-left max-w-xl">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FF1028]/10 text-[#FF1028] border border-[#FF1028]/25 text-[10px] font-black uppercase tracking-wider">
-                <Sparkles className="w-3 h-3" />
-                <span>{isSpanish ? "Lanzamientos Directos de Fábrica y Mayoreo" : "Direct Factory Drops & Wholesales"}</span>
-              </div>
               <h3 className="text-lg sm:text-xl font-black font-heading text-white tracking-tight">
                 {t.footer.newsletterTitle}
               </h3>
@@ -303,15 +298,6 @@ export function Footer({
                 ? "Lennox China Mall conecta a compradores internacionales directamente con fabricantes certificados en Shenzhen, Ningbo y Yiwu con custodia criptográfica en USDT sin comisiones."
                 : "Lennox China Mall connects international buyers directly to verified manufacturers across Shenzhen, Ningbo, and Yiwu with zero-fee USDT cryptographic escrow."}
             </p>
-
-            {/* Live Operational Status Indicator */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-medium">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <span>{isSpanish ? "Hub Logístico de Shenzhen: Activo 24/7" : "Shenzhen Logistics Hub: Active 24/7"}</span>
-            </div>
 
             {/* Interactive Contact Items with Clipboard Copy */}
             <div className="space-y-2 pt-1 text-xs">

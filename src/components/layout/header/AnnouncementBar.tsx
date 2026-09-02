@@ -10,6 +10,7 @@ import {
   HEADER_ICONS,
 } from "@/components/layout/header/headerConfig";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useCurrency } from "@/store/useCurrencyStore";
 import type { SupportedLocale } from "@/lib/i18n/types";
 
 import type { User } from "@supabase/supabase-js";
@@ -27,7 +28,7 @@ export function AnnouncementBar({
   isAdminRole,
 }: AnnouncementBarProps) {
   const { locale, setLocale, t } = useTranslation();
-  const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
+  const { currentCurrency, setCurrency, currencies, currencyInfo } = useCurrency();
 
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false);
@@ -161,7 +162,7 @@ export function AnnouncementBar({
               aria-expanded={isCurrencyMenuOpen}
             >
               <CurrIcon className="w-3.5 h-3.5 text-amber-300" />
-              <span className="font-bold">{selectedCurrency.code}</span>
+              <span className="font-bold">{currentCurrency}</span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </button>
 
@@ -175,12 +176,12 @@ export function AnnouncementBar({
                   className="absolute right-0 top-full mt-1.5 w-60 bg-[#00143D] border border-slate-700 rounded-xl shadow-xl py-1.5 z-50 text-xs text-white"
                   role="menu"
                 >
-                  {CURRENCIES.map((cur) => (
+                  {currencies.map((cur) => (
                     <button
                       key={cur.code}
                       role="menuitem"
                       onClick={() => {
-                        setSelectedCurrency(cur);
+                        setCurrency(cur.code);
                         setIsCurrencyMenuOpen(false);
                       }}
                       className="w-full text-left px-3 py-2 hover:bg-blue-900/60 flex items-center justify-between transition-colors cursor-pointer"
@@ -191,7 +192,7 @@ export function AnnouncementBar({
                           {cur.label}
                         </span>
                       </div>
-                      {selectedCurrency.code === cur.code && (
+                      {currentCurrency === cur.code && (
                         <Check className="w-3.5 h-3.5 text-[#10B981]" />
                       )}
                     </button>

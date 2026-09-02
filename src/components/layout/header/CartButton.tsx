@@ -4,12 +4,14 @@ import React from "react";
 import { ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { formatCurrency } from "@/utils/helpers";
+import { useCurrency } from "@/store/useCurrencyStore";
 import { useMounted } from "@/hooks/useMounted";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function CartButton() {
   const isMounted = useMounted();
   const { t } = useTranslation();
+  const { currentCurrency, formatCurrency: formatCurrencyFromStore } = useCurrency();
 
   const cartTotalItems = useCartStore((state) => state.getTotalItems());
   const cartSubtotal = useCartStore((state) => state.getSubtotal());

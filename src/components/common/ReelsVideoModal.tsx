@@ -12,6 +12,7 @@ import {
   Play,
   Pause,
   ExternalLink,
+  RotateCcw,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -38,7 +39,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
   const containerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -47,31 +48,57 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
   const [tapAnimation, setTapAnimation] = useState<"play" | "pause" | null>(null);
   const [hasVideoError, setHasVideoError] = useState(false);
 
-  // Auto-play video when modal opens
-  useEffect(() => {
-    if (isOpen) {
+  // Derive sources for maximum cross-platform browser compatibility
+  const rawUrl = videoData?.videoUrl || "/videos/hero/hero_ad_1.mp4";
+  const mp4Url = rawUrl.endsWith(".mov") ? rawUrl.replace(/\.mov$/i, ".mp4") : rawUrl;
+  const movUrl = rawUrl.endsWith(".mp4") ? rawUrl.replace(/\.mp4$/i, ".mov") : rawUrl;
+
+  const attemptPlay = useCallback(async () => {
+    if (!videoRef.current) return;
+    try {
+      videoRef.current.muted = isMuted;
+      await videoRef.current.play();
       setIsPlaying(true);
       setHasVideoError(false);
+    } catch (unmutedErr) {
+      // Browser autoplay policy blocked unmuted sound -> switch to muted autoplay
       if (videoRef.current) {
-        videoRef.current.currentTime = 0;
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            // Autoplay with sound may be blocked by browser policy, fall back to muted autoplay
-            if (videoRef.current) {
-              videoRef.current.muted = true;
-              setIsMuted(true);
-              videoRef.current.play().catch(() => setIsPlaying(false));
-            }
-          });
+        videoRef.current.muted = true;
+        setIsMuted(true);
+        try {
+          await videoRef.current.play();
+          setIsPlaying(true);
+          setHasVideoError(false);
+        } catch (mutedErr) {
+          setIsPlaying(false);
         }
       }
+    }
+  }, [isMuted]);
+
+  // Auto-play video when modal opens
+  useEffect(() => {
+    if (isOpen && videoData) {
+      setHasVideoError(false);
+      setCurrentTime(0);
+      setProgressPercent(0);
+
+      const timer = setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0;
+          videoRef.current.load();
+          attemptPlay();
+        }
+      }, 50);
+
+      return () => clearTimeout(timer);
     } else {
       if (videoRef.current) {
         videoRef.current.pause();
       }
+      setIsPlaying(false);
     }
-  }, [isOpen, videoData]);
+  }, [isOpen, videoData, attemptPlay]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -92,7 +119,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
-      } else if (e.key === " " || e.key === "k") {
+      } else if (e.key === " " || e.key === "k" || e.key === "K") {
         e.preventDefault();
         togglePlayPause();
       } else if (e.key === "m" || e.key === "M") {
@@ -111,12 +138,26 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
   const togglePlayPause = useCallback(() => {
     if (!videoRef.current) return;
 
-    if (videoRef.current.paused) {
-      videoRef.current.play().then(() => {
-        setIsPlaying(true);
-        setTapAnimation("play");
-        setTimeout(() => setTapAnimation(null), 600);
-      }).catch(() => {});
+    if (videoRef.current.paused || videoRef.current.ended) {
+      videoRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setHasVideoError(false);
+          setTapAnimation("play");
+          setTimeout(() => setTapAnimation(null), 600);
+        })
+        .catch(() => {
+          // If unmuted play failed, try muted
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            setIsMuted(true);
+            videoRef.current.play().then(() => {
+              setIsPlaying(true);
+              setHasVideoError(false);
+            }).catch(() => setIsPlaying(false));
+          }
+        });
     } else {
       videoRef.current.pause();
       setIsPlaying(false);
@@ -163,15 +204,19 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
     const current = videoRef.current.currentTime;
     const total = videoRef.current.duration || 0;
     setCurrentTime(current);
-    setDuration(total);
     if (total > 0) {
+      setDuration(total);
       setProgressPercent((current / total) * 100);
     }
   };
 
   const handleLoadedMetadata = () => {
     if (!videoRef.current) return;
-    setDuration(videoRef.current.duration || 0);
+    const dur = videoRef.current.duration;
+    if (dur && !isNaN(dur)) {
+      setDuration(dur);
+    }
+    setHasVideoError(false);
   };
 
   // Click / Drag to seek along progress bar
@@ -199,11 +244,6 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
 
   if (!isOpen || !videoData) return null;
 
-  // Fallback video URL if none provided
-  const videoUrl =
-    videoData.videoUrl ||
-    "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov";
-
   return (
     <div
       onClick={onClose}
@@ -219,38 +259,53 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
         className="relative w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[390px] md:max-w-[420px] aspect-[9/16] max-h-[90vh] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-slate-950 flex flex-col justify-between select-none animate-in zoom-in-95 duration-200"
       >
         {/* Background Video Element */}
-        {!hasVideoError ? (
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            poster={videoData.poster}
-            playsInline
-            autoPlay
-            loop
-            muted={isMuted}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onError={() => setHasVideoError(true)}
-            onClick={togglePlayPause}
-            className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+        <video
+          ref={videoRef}
+          poster={videoData.poster}
+          playsInline
+          autoPlay
+          loop
+          preload="auto"
+          muted={isMuted}
+          onPlay={() => {
+            setIsPlaying(true);
+            setHasVideoError(false);
+          }}
+          onPause={() => setIsPlaying(false)}
+          onPlaying={() => {
+            setIsPlaying(true);
+            setHasVideoError(false);
+          }}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onError={() => {
+            // If primary format fails, try loading directly with videoRef
+            if (videoRef.current && videoRef.current.src !== rawUrl) {
+              videoRef.current.src = rawUrl;
+              videoRef.current.load();
+              attemptPlay();
+            } else {
+              setHasVideoError(true);
+              setIsPlaying(false);
+            }
+          }}
+          onClick={togglePlayPause}
+          className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+        >
+          {mp4Url && <source src={mp4Url} type="video/mp4" />}
+          {movUrl && <source src={movUrl} type="video/quicktime" />}
+          <source src={rawUrl} />
+        </video>
+
+        {/* Poster Fallback Image if video error occurs */}
+        {hasVideoError && videoData.poster && (
+          <Image
+            src={videoData.poster}
+            alt={videoData.title}
+            fill
+            className="object-cover opacity-60 pointer-events-none"
+            priority
           />
-        ) : (
-          <div className="absolute inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-            {videoData.poster && (
-              <Image
-                src={videoData.poster}
-                alt={videoData.title}
-                fill
-                className="object-cover opacity-50"
-              />
-            )}
-            <div className="relative z-10 space-y-2">
-              <div className="w-14 h-14 mx-auto rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg">
-                <Play className="w-6 h-6 ml-0.5" />
-              </div>
-              <p className="text-xs font-bold text-white">{isSpanish ? "Transmisión en Vivo" : "Live Stream Broadcast"}</p>
-            </div>
-          </div>
         )}
 
         {/* Ambient Top & Bottom Gradients */}
@@ -284,7 +339,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
           </button>
         </div>
 
-        {/* ── Center Tap Play/Pause Animation ── */}
+        {/* ── Center Tap Play/Pause Animation & Toggle Button ── */}
         <div
           onClick={togglePlayPause}
           className="relative z-10 flex-1 flex items-center justify-center cursor-pointer"
@@ -300,7 +355,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
           )}
 
           {!isPlaying && !tapAnimation && (
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-600/95 text-white flex items-center justify-center shadow-[0_0_24px_rgba(255,16,40,0.5)] hover:scale-110 active:scale-95 transition-all cursor-pointer">
               <Play className="w-7 h-7 sm:w-8 sm:h-8 ml-1 fill-white text-white" />
             </div>
           )}
@@ -353,7 +408,7 @@ export function ReelsVideoModal({ isOpen, onClose, videoData }: ReelsVideoModalP
             className="group relative w-full h-2 bg-white/25 hover:h-3 rounded-full cursor-pointer transition-all duration-150 flex items-center"
           >
             <div
-              className="h-full bg-gradient-to-r from-red-600 to-red-500 rounded-full relative"
+              className="h-full bg-gradient-to-r from-red-600 to-red-500 rounded-full relative transition-[width] duration-75"
               style={{ width: `${progressPercent}%` }}
             >
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity" />

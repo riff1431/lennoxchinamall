@@ -22,7 +22,16 @@ import {
   LayoutGrid,
   Zap,
 } from "lucide-react";
-import { HomepageSection, SectionType, SectionLayout, SectionStatus, DeviceVisibility, HeroSlide } from "@/types/homepage";
+import {
+  HomepageSection,
+  SectionType,
+  SectionLayout,
+  SectionStatus,
+  DeviceVisibility,
+  HeroSlide,
+  LifestyleBannerSlide,
+  DEFAULT_LIFESTYLE_SLIDES,
+} from "@/types/homepage";
 import {
   getAdminHomepageSections,
   createHomepageSection,
@@ -55,6 +64,9 @@ export default function AdminHomepageSectionsPage() {
 
   // Slide Builder Form State (for Hero Banner)
   const [slides, setSlides] = useState<HeroSlide[]>([]);
+
+  // Lifestyle Banner Carousel Form State (for Category Showcase Banner)
+  const [lifestyleSlides, setLifestyleSlides] = useState<LifestyleBannerSlide[]>([]);
 
   // Preview Modal State
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -153,6 +165,7 @@ export default function AdminHomepageSectionsPage() {
         hub: "Shenzhen Drone Hub",
       },
     ]);
+    setLifestyleSlides(DEFAULT_LIFESTYLE_SLIDES);
     setIsModalOpen(true);
   };
 
@@ -168,6 +181,7 @@ export default function AdminHomepageSectionsPage() {
     setFormStartDate(sec.start_date ? sec.start_date.slice(0, 16) : "");
     setFormEndDate(sec.end_date ? sec.end_date.slice(0, 16) : "");
     setSlides(sec.config?.slides || []);
+    setLifestyleSlides(sec.config?.lifestyle_slides || DEFAULT_LIFESTYLE_SLIDES);
     setIsModalOpen(true);
   };
 
@@ -190,6 +204,7 @@ export default function AdminHomepageSectionsPage() {
       end_date: formEndDate ? new Date(formEndDate).toISOString() : null,
       config: {
         slides: formType === "hero_banner" ? slides : undefined,
+        lifestyle_slides: formType === "category_grid" ? lifestyleSlides : undefined,
         deal_ends_at: formType === "flash_deals" ? futureDate.toISOString() : undefined,
       },
     };
@@ -224,7 +239,7 @@ export default function AdminHomepageSectionsPage() {
     }
   };
 
-  // Slide builder helpers
+  // Slide builder helpers (Hero Banner)
   const handleAddSlide = () => {
     setSlides([
       ...slides,
@@ -254,6 +269,35 @@ export default function AdminHomepageSectionsPage() {
 
   const handleRemoveSlide = (index: number) => {
     setSlides(slides.filter((_, i) => i !== index));
+  };
+
+  // Lifestyle banner slide helpers
+  const handleAddLifestyleSlide = () => {
+    setLifestyleSlides([
+      ...lifestyleSlides,
+      {
+        id: `lifestyle-slide-${Date.now()}`,
+        image: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1400&auto=format&fit=crop&q=80",
+        title: "Your World.",
+        title_highlight: "One Place.",
+        subtitle: "Everything for every lifestyle with direct factory pricing.",
+        button_text: "Shop Now",
+        link: "/categories",
+        is_active: true,
+      },
+    ]);
+  };
+
+  const handleUpdateLifestyleSlide = (index: number, field: keyof LifestyleBannerSlide, val: any) => {
+    setLifestyleSlides((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: val };
+      return copy;
+    });
+  };
+
+  const handleRemoveLifestyleSlide = (index: number) => {
+    setLifestyleSlides((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Open Preview Modal
@@ -751,6 +795,126 @@ export default function AdminHomepageSectionsPage() {
                           value={slide.link}
                           onChange={(e) => handleUpdateSlide(sIdx, "link", e.target.value)}
                           className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Lifestyle Banner Carousel Slide Builder for Category Showcase ── */}
+          {formType === "category_grid" && (
+            <div className="space-y-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#00C2FF]" />
+                    <span>Lifestyle Hero Banner Carousel Slides ({lifestyleSlides.length})</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-400">
+                    Manage the lifestyle promotional slider underneath the category circles with custom images, headlines, and links.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddLifestyleSlide}
+                  className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <PlusCircle className="w-3.5 h-3.5 text-[#00C2FF]" />
+                  <span>Add Slide</span>
+                </button>
+              </div>
+
+              <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
+                {lifestyleSlides.map((slide, sIdx) => (
+                  <div
+                    key={slide.id || sIdx}
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3 relative"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#00C2FF] font-mono text-[11px]">
+                        Lifestyle Slide #{sIdx + 1}
+                      </span>
+                      {lifestyleSlides.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLifestyleSlide(sIdx)}
+                          className="text-rose-600 hover:text-rose-700 font-bold text-xs cursor-pointer"
+                        >
+                          ✕ Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Image URL (1400px wide)</label>
+                        <input
+                          type="url"
+                          required
+                          value={slide.image}
+                          onChange={(e) => handleUpdateLifestyleSlide(sIdx, "image", e.target.value)}
+                          placeholder="/banners/banner-your-world-lifestyle.jpg or https://..."
+                          className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-[11px]"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">CTA Button Link</label>
+                        <input
+                          type="text"
+                          required
+                          value={slide.link}
+                          onChange={(e) => handleUpdateLifestyleSlide(sIdx, "link", e.target.value)}
+                          placeholder="/categories or /products/..."
+                          className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Title Prefix (e.g. "Your World.")</label>
+                        <input
+                          type="text"
+                          required
+                          value={slide.title}
+                          onChange={(e) => handleUpdateLifestyleSlide(sIdx, "title", e.target.value)}
+                          className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Highlight Text (Cyan Accent, e.g. "One Place.")</label>
+                        <input
+                          type="text"
+                          required
+                          value={slide.title_highlight}
+                          onChange={(e) => handleUpdateLifestyleSlide(sIdx, "title_highlight", e.target.value)}
+                          className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-[#00C2FF]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-2 space-y-1">
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Subtitle Description</label>
+                        <input
+                          type="text"
+                          value={slide.subtitle}
+                          onChange={(e) => handleUpdateLifestyleSlide(sIdx, "subtitle", e.target.value)}
+                          placeholder="Everything for every lifestyle."
+                          className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Button Label</label>
+                        <input
+                          type="text"
+                          value={slide.button_text}
+                          onChange={(e) => handleUpdateLifestyleSlide(sIdx, "button_text", e.target.value)}
+                          placeholder="Shop Now"
+                          className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold"
                         />
                       </div>
                     </div>

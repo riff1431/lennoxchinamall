@@ -481,9 +481,9 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
 
       {/* ── Bulk Actions Bar (Shown when rows selected) ── */}
       {selectedIds.size > 0 && (
-        <div className="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-3 bg-[#00143D] text-white p-3 sm:px-5 rounded-2xl shadow-xl animate-in slide-in-from-top-2 duration-150 border border-blue-950">
+        <div className="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-3 bg-slate-900 text-white p-3 sm:px-4 rounded-xl shadow-lg animate-in slide-in-from-top-2 duration-150 border border-slate-800">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-[#2F65F6] text-white shadow-xs">
+            <span className="text-xs font-semibold font-mono px-2 py-0.5 rounded-md bg-white/10 text-white">
               {selectedIds.size} Selected
             </span>
             <span className="text-xs text-slate-300 hidden sm:inline">
@@ -499,9 +499,9 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                   key={idx}
                   onClick={() => handleBulkActionClick(action)}
                   className={cn(
-                    "flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-xs",
+                    "flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-xs",
                     action.variant === "danger"
-                      ? "bg-[#FF1028] hover:bg-[#E00B20] text-white"
+                      ? "bg-rose-600 hover:bg-rose-700 text-white"
                       : action.variant === "success"
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                       : "bg-slate-800 hover:bg-slate-700 text-white border border-slate-700"
@@ -525,9 +525,9 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
 
       {/* ── Error State With Retry ── */}
       {isError && !isLoading && (
-        <div className="rounded-3xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-950/20 p-8 text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
-            <AlertCircle className="w-6 h-6" />
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-950/20 p-8 text-center space-y-3">
+          <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
+            <AlertCircle className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 font-heading">
@@ -541,7 +541,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
             <button
               type="button"
               onClick={onRetry}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors cursor-pointer shadow-xs font-heading inline-flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-950 transition-colors cursor-pointer shadow-xs inline-flex items-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Retry Load</span>
@@ -552,7 +552,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
 
       {/* ── Main Data View (Responsive Table & Card Layouts) ── */}
       {!isError && (
-        <div className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
           {/* TABLE VIEW */}
           <div
             className={cn(
@@ -562,17 +562,17 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
           >
             <table className="w-full text-left border-collapse">
               {/* Sticky Table Header */}
-              <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-xs border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono select-none">
+              <thead className="sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono select-none">
                 <tr>
                   {bulkActions.length > 0 && (
-                    <th className="py-3 px-4 w-10">
+                    <th className="py-2.5 px-3.5 w-10">
                       <button
                         onClick={handleSelectAll}
                         className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer flex items-center"
                         aria-label="Select all rows"
                       >
                         {selectedIds.size === paginatedData.length && paginatedData.length > 0 ? (
-                          <CheckSquare className="w-4 h-4 text-[#2F65F6]" />
+                          <CheckSquare className="w-4 h-4 text-slate-900 dark:text-white" />
                         ) : (
                           <Square className="w-4 h-4" />
                         )}
@@ -584,7 +584,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                     <th
                       key={cIdx}
                       className={cn(
-                        "py-3 px-4",
+                        "py-2.5 px-3.5",
                         col.sortable && "cursor-pointer hover:text-slate-900 dark:hover:text-white transition-colors",
                         col.className
                       )}
@@ -594,9 +594,9 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                         <span>{col.header}</span>
                         {col.sortable && sortKey === col.accessorKey && (
                           sortDirection === "asc" ? (
-                            <ChevronUp className="w-3.5 h-3.5 text-[#2F65F6]" />
+                            <ChevronUp className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                           ) : (
-                            <ChevronDown className="w-3.5 h-3.5 text-[#2F65F6]" />
+                            <ChevronDown className="w-3.5 h-3.5 text-slate-900 dark:text-white" />
                           )
                         )}
                       </div>
@@ -611,12 +611,12 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                   Array.from({ length: itemsPerPage > 10 ? 10 : itemsPerPage }).map((_, rIdx) => (
                     <tr key={rIdx} className="animate-pulse">
                       {bulkActions.length > 0 && (
-                        <td className="py-3.5 px-4 w-10">
+                        <td className="py-3 px-3.5 w-10">
                           <Skeleton className="w-4 h-4 rounded-md" />
                         </td>
                       )}
                       {visibleColumns.map((_, cIdx) => (
-                        <td key={cIdx} className="py-3.5 px-4">
+                        <td key={cIdx} className="py-3 px-3.5">
                           <Skeleton className="h-4 w-3/4 rounded-md" />
                         </td>
                       ))}
@@ -627,14 +627,14 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                   <tr>
                     <td
                       colSpan={visibleColumns.length + (bulkActions.length > 0 ? 1 : 0)}
-                      className="py-16 text-center"
+                      className="py-14 text-center"
                     >
                       <div className="max-w-md mx-auto space-y-3">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto shadow-xs">
-                          <Search className="w-5 h-5" />
+                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto shadow-xs">
+                          <Search className="w-4 h-4" />
                         </div>
                         <div className="space-y-1">
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 font-heading">
+                          <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100 font-heading">
                             {emptyTitle}
                           </h4>
                           <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -645,7 +645,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                           <button
                             type="button"
                             onClick={emptyAction.onClick}
-                            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF1028] hover:bg-[#E00B20] transition-colors cursor-pointer shadow-xs font-heading uppercase"
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-950 transition-colors cursor-pointer shadow-xs"
                           >
                             {emptyAction.label}
                           </button>
@@ -665,19 +665,19 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                         className={cn(
                           "transition-colors duration-150 group",
                           isSelected
-                            ? "bg-blue-50/50 dark:bg-blue-950/20"
-                            : "hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                            ? "bg-slate-100/80 dark:bg-slate-800/60"
+                            : "hover:bg-slate-50/70 dark:hover:bg-slate-800/30"
                         )}
                       >
                         {bulkActions.length > 0 && (
-                          <td className="py-3.5 px-4 w-10">
+                          <td className="py-3 px-3.5 w-10">
                             <button
                               onClick={() => handleSelectRow(rowId)}
                               className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer flex items-center"
                               aria-label={`Select row ${index + 1}`}
                             >
                               {isSelected ? (
-                                <CheckSquare className="w-4 h-4 text-[#2F65F6]" />
+                                <CheckSquare className="w-4 h-4 text-slate-900 dark:text-white" />
                               ) : (
                                 <Square className="w-4 h-4" />
                               )}
@@ -686,7 +686,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                         )}
 
                         {visibleColumns.map((col, cIdx) => (
-                          <td key={cIdx} className={cn("py-3.5 px-4 align-middle", col.className)}>
+                          <td key={cIdx} className={cn("py-3 px-3.5 align-middle", col.className)}>
                             {col.cell
                               ? col.cell(row, index)
                               : String((row as Record<string, unknown>)[col.accessorKey as string] ?? "—")}

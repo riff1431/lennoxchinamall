@@ -93,7 +93,7 @@ export const es: TranslationDictionary = {
     liveQC: "CONTROL EN VIVO",
     shenzhenLabInspection: "Inspección de Laboratorio Shenzhen",
     qcPassed: "CALIDAD APROBADA",
-    flashSourcingDrops: "⚡ Lotes Flash Directos de Fábrica",
+    flashSourcingDrops: "Lotes Flash Directos de Fábrica",
     flashSubtitle: "Lotes de excedentes directos liberados cada 6 horas con inventario verificado en tiempo real",
     viewAllDeals: "Ver Todas las Ofertas Flash →",
     topSellingHardware: "Productos Más Vendidos de Fábrica",

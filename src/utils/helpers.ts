@@ -1,25 +1,39 @@
+import { useCurrencyStore } from "@/store/useCurrencyStore";
+
 /**
  * General utility functions used across the application.
  */
 
 /**
- * Format a number as USDT currency
+ * Format a number according to active or specified currency
  */
-export function formatCurrency(amount: number, currency = "USDT"): string {
-  if (currency === "USDT") {
-    return `$${amount.toFixed(2)} USDT`;
+export function formatCurrency(amount: number, currency?: string): string {
+  if (typeof amount !== "number" || isNaN(amount)) return "$0.00 USDT";
+  try {
+    return useCurrencyStore.getState().formatCurrency(amount, currency);
+  } catch {
+    const cur = currency || "USDT";
+    if (cur === "USDT") return `$${amount.toFixed(2)} USDT`;
+    if (cur === "USD") return `$${amount.toFixed(2)}`;
+    if (cur === "EUR") return `€${(amount * 0.92).toFixed(2)}`;
+    if (cur === "GBP") return `£${(amount * 0.79).toFixed(2)}`;
+    return `$${amount.toFixed(2)} ${cur}`;
   }
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-  }).format(amount);
 }
 
 /**
- * Format a price for display (without currency label)
+ * Format a price for display (with appropriate currency symbol and rate conversion)
  */
-export function formatPrice(amount: number): string {
-  return `$${amount.toFixed(2)}`;
+export function formatPrice(amount: number, currency?: string): string {
+  if (typeof amount !== "number" || isNaN(amount)) return "$0.00";
+  try {
+    return useCurrencyStore.getState().formatPrice(amount, currency);
+  } catch {
+    const cur = currency || "USD";
+    if (cur === "EUR") return `€${(amount * 0.92).toFixed(2)}`;
+    if (cur === "GBP") return `£${(amount * 0.79).toFixed(2)}`;
+    return `$${amount.toFixed(2)}`;
+  }
 }
 
 /**

@@ -71,6 +71,7 @@ export type AdminSection =
   | "coupons"
   | "flash-deals"
   | "promotions"
+  | "hero-section"
   | "homepage-sections"
   | "pages"
   | "menus"
@@ -104,6 +105,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, AdminSection[]> = {
     "coupons",
     "flash-deals",
     "promotions",
+    "hero-section",
     "homepage-sections",
     "pages",
     "menus",
@@ -136,6 +138,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, AdminSection[]> = {
     "coupons",
     "flash-deals",
     "promotions",
+    "hero-section",
     "homepage-sections",
     "pages",
     "menus",
@@ -173,6 +176,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, AdminSection[]> = {
     "flash-deals",
     "coupons",
     "promotions",
+    "hero-section",
     "homepage-sections",
     "pages",
     "menus",
@@ -191,6 +195,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, AdminSection[]> = {
     "flash-deals",
     "coupons",
     "promotions",
+    "hero-section",
     "homepage-sections",
     "pages",
     "menus",
@@ -273,6 +278,7 @@ export function getAdminSectionFromPath(
     "coupons",
     "flash-deals",
     "promotions",
+    "hero-section",
     "homepage-sections",
     "pages",
     "menus",

@@ -79,7 +79,7 @@ interface NavGroup {
   items: NavItem[];
 }
 
-// 30 Complete Admin Modules categorized into logical operational sections
+// 5 Consolidated Core Operational Domains
 const ALL_NAV_SECTIONS: NavGroup[] = [
   {
     id: "overview",
@@ -91,11 +91,17 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         icon: LayoutDashboard,
         section: "dashboard",
       },
+      {
+        label: "Analytics & P&L",
+        href: "/admin/analytics",
+        icon: TrendingUp,
+        section: "analytics",
+      },
     ],
   },
   {
-    id: "catalogue",
-    title: "Catalogue & Inventory",
+    id: "commerce",
+    title: "Commerce & Logistics",
     items: [
       {
         label: "Products",
@@ -110,35 +116,11 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         section: "categories",
       },
       {
-        label: "Brands",
-        href: "/admin/brands",
-        icon: Tag,
-        section: "brands",
-      },
-      {
-        label: "Attributes & Specs",
-        href: "/admin/attributes",
-        icon: SlidersHorizontal,
-        section: "attributes",
-      },
-      {
         label: "Inventory Stock",
         href: "/admin/inventory",
         icon: Boxes,
         section: "inventory",
       },
-      {
-        label: "Media Library",
-        href: "/admin/media",
-        icon: ImageIcon,
-        section: "media",
-      },
-    ],
-  },
-  {
-    id: "orders",
-    title: "Orders & Sourcing",
-    items: [
       {
         label: "Orders Fulfilment",
         href: "/admin/orders",
@@ -175,6 +157,24 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         icon: Building2,
         section: "suppliers",
       },
+      {
+        label: "Brands",
+        href: "/admin/brands",
+        icon: Tag,
+        section: "brands",
+      },
+      {
+        label: "Attributes & Specs",
+        href: "/admin/attributes",
+        icon: SlidersHorizontal,
+        section: "attributes",
+      },
+      {
+        label: "Media Library",
+        href: "/admin/media",
+        icon: ImageIcon,
+        section: "media",
+      },
     ],
   },
   {
@@ -210,20 +210,26 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
     ],
   },
   {
-    id: "marketing",
-    title: "Marketing & CMS",
+    id: "cms",
+    title: "Storefront CMS",
     items: [
+      {
+        label: "Hero Section Control",
+        href: "/admin/hero-section",
+        icon: Sparkles,
+        section: "hero-section",
+      },
+      {
+        label: "Homepage Builder",
+        href: "/admin/homepage-sections",
+        icon: LayoutTemplate,
+        section: "homepage-sections",
+      },
       {
         label: "Promotions & Banners",
         href: "/admin/promotions",
-        icon: Sparkles,
+        icon: Tag,
         section: "promotions",
-      },
-      {
-        label: "Coupons & Discounts",
-        href: "/admin/coupons",
-        icon: TicketPercent,
-        section: "coupons",
       },
       {
         label: "Flash Deals",
@@ -234,10 +240,10 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         badgeVariant: "amber",
       },
       {
-        label: "Homepage Builder",
-        href: "/admin/homepage-sections",
-        icon: LayoutTemplate,
-        section: "homepage-sections",
+        label: "Coupons & Discounts",
+        href: "/admin/coupons",
+        icon: TicketPercent,
+        section: "coupons",
       },
       {
         label: "Navigation Menus",
@@ -260,21 +266,15 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
     ],
   },
   {
-    id: "analytics",
-    title: "Analytics & Telemetry",
+    id: "settings",
+    title: "Settings & Security",
     items: [
       {
-        label: "Analytics & P&L",
-        href: "/admin/analytics",
-        icon: TrendingUp,
-        section: "analytics",
+        label: "Store Settings",
+        href: "/admin/settings",
+        icon: Settings2,
+        section: "settings",
       },
-    ],
-  },
-  {
-    id: "governance",
-    title: "Governance & Settings",
-    items: [
       {
         label: "Staff & RBAC",
         href: "/admin/staff",
@@ -299,12 +299,6 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         icon: Radio,
         section: "integrations",
       },
-      {
-        label: "Store Settings",
-        href: "/admin/settings",
-        icon: Settings2,
-        section: "settings",
-      },
     ],
   },
 ];
@@ -312,36 +306,37 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
 // Mapping for page titles & breadcrumbs
 const PAGE_META_MAP: Record<string, { title: string; group: string }> = {
   "/admin/dashboard": { title: "Dashboard Overview", group: "Overview" },
-  "/admin/products": { title: "Products Catalogue", group: "Catalogue & Inventory" },
-  "/admin/products/new": { title: "Add New Product", group: "Catalogue & Inventory" },
-  "/admin/categories": { title: "Category Hierarchy", group: "Catalogue & Inventory" },
-  "/admin/brands": { title: "Brand Directory", group: "Catalogue & Inventory" },
-  "/admin/attributes": { title: "Attributes & Specs", group: "Catalogue & Inventory" },
-  "/admin/inventory": { title: "Inventory Stock Control", group: "Catalogue & Inventory" },
-  "/admin/media": { title: "Media Asset Library", group: "Catalogue & Inventory" },
-  "/admin/orders": { title: "Orders Fulfilment", group: "Orders & Sourcing" },
-  "/admin/shipping": { title: "Air Cargo & Logistics", group: "Orders & Sourcing" },
-  "/admin/returns": { title: "Returns & Warranty RMA", group: "Orders & Sourcing" },
-  "/admin/payments": { title: "USDT Payments Ledger", group: "Orders & Sourcing" },
-  "/admin/sourcing": { title: "China Factory Sourcing", group: "Orders & Sourcing" },
-  "/admin/suppliers": { title: "Suppliers & Factories", group: "Orders & Sourcing" },
+  "/admin/analytics": { title: "Analytics & P&L Telemetry", group: "Overview" },
+  "/admin/products": { title: "Products Catalogue", group: "Commerce & Logistics" },
+  "/admin/products/new": { title: "Add New Product", group: "Commerce & Logistics" },
+  "/admin/categories": { title: "Category Hierarchy", group: "Commerce & Logistics" },
+  "/admin/inventory": { title: "Inventory Stock Control", group: "Commerce & Logistics" },
+  "/admin/orders": { title: "Orders Fulfilment", group: "Commerce & Logistics" },
+  "/admin/shipping": { title: "Air Cargo & Logistics", group: "Commerce & Logistics" },
+  "/admin/returns": { title: "Returns & Warranty RMA", group: "Commerce & Logistics" },
+  "/admin/payments": { title: "USDT Payments Ledger", group: "Commerce & Logistics" },
+  "/admin/sourcing": { title: "China Factory Sourcing", group: "Commerce & Logistics" },
+  "/admin/suppliers": { title: "Suppliers & Factories", group: "Commerce & Logistics" },
+  "/admin/brands": { title: "Brand Directory", group: "Commerce & Logistics" },
+  "/admin/attributes": { title: "Attributes & Specs", group: "Commerce & Logistics" },
+  "/admin/media": { title: "Media Asset Library", group: "Commerce & Logistics" },
   "/admin/customers": { title: "Customer Accounts", group: "Customers & CRM" },
   "/admin/reviews": { title: "Customer Reviews & UGC", group: "Customers & CRM" },
   "/admin/support": { title: "Support Desk & Chat", group: "Customers & CRM" },
   "/admin/notifications": { title: "Push Notifications", group: "Customers & CRM" },
-  "/admin/promotions": { title: "Promotions & Banners", group: "Marketing & CMS" },
-  "/admin/coupons": { title: "Coupons & Discounts", group: "Marketing & CMS" },
-  "/admin/flash-deals": { title: "Flash Deals Campaign", group: "Marketing & CMS" },
-  "/admin/homepage-sections": { title: "Homepage Builder", group: "Marketing & CMS" },
-  "/admin/menus": { title: "Store Navigation Menus", group: "Marketing & CMS" },
-  "/admin/pages": { title: "Custom CMS Pages", group: "Marketing & CMS" },
-  "/admin/seo": { title: "SEO & 301 Redirects", group: "Marketing & CMS" },
-  "/admin/analytics": { title: "Analytics & P&L Telemetry", group: "Analytics & Telemetry" },
-  "/admin/staff": { title: "Staff, Roles & RBAC", group: "Governance & Settings" },
-  "/admin/audit-logs": { title: "Immutable Audit Logs", group: "Governance & Settings" },
-  "/admin/security": { title: "Security & System Health", group: "Governance & Settings" },
-  "/admin/integrations": { title: "Third-Party Integrations", group: "Governance & Settings" },
-  "/admin/settings": { title: "Storefront & System Settings", group: "Governance & Settings" },
+  "/admin/hero-section": { title: "Hero Section Control", group: "Storefront CMS" },
+  "/admin/homepage-sections": { title: "Homepage Builder", group: "Storefront CMS" },
+  "/admin/promotions": { title: "Promotions & Banners", group: "Storefront CMS" },
+  "/admin/coupons": { title: "Coupons & Discounts", group: "Storefront CMS" },
+  "/admin/flash-deals": { title: "Flash Deals Campaign", group: "Storefront CMS" },
+  "/admin/menus": { title: "Store Navigation Menus", group: "Storefront CMS" },
+  "/admin/pages": { title: "Custom CMS Pages", group: "Storefront CMS" },
+  "/admin/seo": { title: "SEO & 301 Redirects", group: "Storefront CMS" },
+  "/admin/settings": { title: "Storefront & System Settings", group: "Settings & Security" },
+  "/admin/staff": { title: "Staff, Roles & RBAC", group: "Settings & Security" },
+  "/admin/audit-logs": { title: "Immutable Audit Logs", group: "Settings & Security" },
+  "/admin/security": { title: "Security & System Health", group: "Settings & Security" },
+  "/admin/integrations": { title: "Third-Party Integrations", group: "Settings & Security" },
 };
 
 interface NotificationItem {
@@ -780,23 +775,30 @@ export function AdminLayoutClient({
     variant: NavItem["badgeVariant"] = "blue",
     isActive = false
   ) => {
-    if (isActive) {
+    if (variant === "rose" || variant === "amber") {
       return (
-        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#FF1028]/15 text-[#FF1028] font-mono">
+        <span
+          className={cn(
+            "text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded-md",
+            isActive
+              ? "bg-white/20 text-white"
+              : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+          )}
+        >
           {badge}
         </span>
       );
     }
 
-    const config = {
-      blue: "bg-[#EEF4FF] dark:bg-blue-950/60 text-[#2F65F6] border border-blue-200 dark:border-blue-900/40",
-      emerald: "bg-[#F0FDF4] dark:bg-emerald-950/60 text-[#16A34A] border border-[#BBF7D0] dark:border-emerald-900/40",
-      amber: "bg-[#FFF8EE] dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-[#FED7AA] dark:border-amber-900/40",
-      rose: "bg-[#FFF0F2] dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-[#FFE4E8] dark:border-rose-900/40",
-    }[variant];
-
     return (
-      <span className={cn("text-[9px] font-black px-1.5 py-0.2 rounded-full font-mono uppercase tracking-wider", config)}>
+      <span
+        className={cn(
+          "text-[9px] font-mono font-medium px-1.5 py-0.2 rounded-md",
+          isActive
+            ? "bg-white/20 text-white"
+            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+        )}
+      >
         {badge}
       </span>
     );
@@ -865,7 +867,7 @@ export function AdminLayoutClient({
                     <span className="font-heading font-black text-base text-slate-900 dark:text-white tracking-tight">
                       Lennox
                     </span>
-                    <span className="text-[9px] font-black font-mono uppercase px-1.5 py-0.2 rounded-md bg-red-50 dark:bg-red-950/50 text-[#FF1028] border border-red-200/60 dark:border-red-900/40">
+                    <span className="text-[9px] font-black font-mono uppercase px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
                       ADMIN
                     </span>
                   </div>
@@ -962,16 +964,11 @@ export function AdminLayoutClient({
                                   ? "p-2.5 justify-center"
                                   : "px-2.5 py-1.5 gap-2.5 justify-between",
                                 isActive
-                                  ? "bg-red-50/80 dark:bg-red-950/20 text-slate-900 dark:text-white font-bold"
-                                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
+                                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold shadow-xs"
+                                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/50"
                               )}
                               title={isSidebarCollapsed ? item.label : undefined}
                             >
-                              {/* Left Subtle Red Active Indicator */}
-                              {isActive && (
-                                <span className="w-1 h-4.5 rounded-full bg-[#FF1028] absolute left-1 top-1/2 -translate-y-1/2" />
-                              )}
-
                               <div
                                 className={cn(
                                   "flex items-center gap-2.5 min-w-0",
@@ -982,7 +979,7 @@ export function AdminLayoutClient({
                                   className={cn(
                                     "w-4 h-4 shrink-0 transition-transform duration-150 group-hover:scale-105",
                                     isActive
-                                      ? "text-[#FF1028] font-bold"
+                                      ? "text-white dark:text-slate-950"
                                       : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200"
                                   )}
                                 />
