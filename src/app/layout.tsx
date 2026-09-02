@@ -67,8 +67,12 @@ export default async function RootLayout({
     <html
       lang={initialLocale}
       className={`${fontHeading.variable} ${fontSans.variable} ${fontMono.variable} min-h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="font-sans text-slate-800 bg-[#F8FAFC] min-h-screen antialiased selection:bg-[#FF1028] selection:text-white">
+      <body
+        className="font-sans text-slate-800 bg-[#F8FAFC] min-h-screen antialiased selection:bg-[#FF1028] selection:text-white"
+        suppressHydrationWarning
+      >
         <LanguageProvider defaultLocale={initialLocale}>
           <SitePreloader />
           <Suspense fallback={null}>

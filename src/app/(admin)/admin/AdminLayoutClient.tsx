@@ -396,45 +396,47 @@ export function AdminLayoutClient({
   // Mobile menu drawer
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Sidebar collapsed state (lazy initialized from localStorage)
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("lennox_admin_sidebar_collapsed");
-      return saved === "true";
-    }
-    return false;
-  });
+  // Sidebar collapsed state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
-  // Collapsible section state (lazy initialized from localStorage)
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("lennox_admin_sidebar_sections");
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return {
-      overview: true,
-      catalogue: true,
-      orders: true,
-      customers: true,
-      marketing: true,
-      analytics: true,
-      governance: true,
-    };
+  // Collapsible section state
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    overview: true,
+    catalogue: true,
+    orders: true,
+    customers: true,
+    marketing: true,
+    analytics: true,
+    governance: true,
   });
 
   // Search in sidebar filter
   const [sidebarFilter, setSidebarFilter] = useState("");
 
-  // Dark Mode (lazy initialized from localStorage)
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("lennox_admin_theme");
-      return saved === "dark";
-    }
-    return false;
-  });
+  // Dark Mode
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+
+  // Hydrate persistent state from localStorage after mount to prevent SSR hydration mismatch
+  useEffect(() => {
+    try {
+      const savedCollapsed = localStorage.getItem("lennox_admin_sidebar_collapsed");
+      if (savedCollapsed !== null) {
+        setIsSidebarCollapsed(savedCollapsed === "true");
+      }
+      const savedSections = localStorage.getItem("lennox_admin_sidebar_sections");
+      if (savedSections) {
+        const parsed = JSON.parse(savedSections);
+        if (parsed && typeof parsed === "object") {
+          setOpenSections((prev) => ({ ...prev, ...parsed }));
+        }
+      }
+      const savedTheme = localStorage.getItem("lennox_admin_theme");
+      if (savedTheme === "dark") {
+        setIsDarkMode(true);
+        document.documentElement.classList.add("dark");
+      }
+    } catch {}
+  }, []);
 
   // Spotlight / Cmd+K search modal
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);

@@ -59,9 +59,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   unreadCount: 0,
   isLoading: false,
   filter: "all",
-  soundEnabled: typeof window !== "undefined"
-    ? localStorage.getItem(SOUND_KEY) !== "false"
-    : true,
+  soundEnabled: true,
   isRinging: false,
   hasLoaded: false,
   readIds: [],
@@ -109,10 +107,17 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   fetchNotifications: async () => {
     set({ isLoading: true });
 
-    // Load persisted local read and dismissed IDs
+    // Load persisted local read and dismissed IDs & sound setting
     const storedReadIds = getStoredIds(READ_IDS_KEY);
     const storedDismissedIds = getStoredIds(DISMISSED_IDS_KEY);
-    set({ readIds: storedReadIds, dismissedIds: storedDismissedIds });
+    let soundSetting = true;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(SOUND_KEY);
+        if (raw !== null) soundSetting = raw !== "false";
+      } catch {}
+    }
+    set({ readIds: storedReadIds, dismissedIds: storedDismissedIds, soundEnabled: soundSetting });
 
     try {
       const res = await getUserNotifications({ limit: 15 });

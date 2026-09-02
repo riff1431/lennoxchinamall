@@ -61,21 +61,23 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [customStartDate, setCustomStartDate] = useState("2026-08-01");
   const [customEndDate, setCustomEndDate] = useState("2026-08-31");
 
-  // Widget Layout Preferences using lazy initializer
-  const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY_WIDGETS);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+  // Widget Layout Preferences
+  const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
+
+  // Hydrate persistent widget layout on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_WIDGETS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setWidgets(parsed);
         }
-      } catch {
-        // ignore
       }
+    } catch {
+      // ignore
     }
-    return DEFAULT_WIDGETS;
-  });
+  }, []);
   const [isLayoutModalOpen, setIsLayoutModalOpen] = useState(false);
   const [isRealtimeActive, setIsRealtimeActive] = useState(false);
   const [activeFeedTab, setActiveFeedTab] = useState<"orders" | "sourcing" | "topProducts" | "lowStock" | "payments" | "funnel">("orders");
