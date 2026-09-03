@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SITE_NAME } from "@/lib/constants";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function AuthLayout({
   children,
@@ -12,9 +13,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   const { isSpanish } = useTranslation();
-  const brandWords = (SITE_NAME || "Lennox China Mall").trim().split(/\s+/);
-  const primaryText = brandWords.slice(0, -1).join(" ") || brandWords[0];
-  const accentText = brandWords.length > 1 ? brandWords[brandWords.length - 1] : "";
+  const dynamicLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
+  const dynamicStoreName = useSettingsStore((s) => s.settings.store_info?.store_name) || SITE_NAME;
 
   return (
     <div className="min-h-screen bg-[#000B24] flex flex-col justify-between p-4 sm:p-6 text-slate-100 font-montserrat">
@@ -24,12 +24,13 @@ export default function AuthLayout({
           <Link href="/" className="inline-block group">
             <div className="relative h-16 w-[200px] sm:h-20 sm:w-[250px] mx-auto group-hover:scale-[1.03] transition-transform">
               <Image
-                src="/logo-lennoxchinamall.png"
-                alt="Lennox China Mall Logo"
+                src={dynamicLogo}
+                alt={`${dynamicStoreName} Logo`}
                 fill
                 sizes="250px"
-                className="object-contain brightness-0 invert"
+                className="object-contain"
                 priority
+                unoptimized={dynamicLogo.startsWith("data:") || dynamicLogo.startsWith("blob:")}
               />
             </div>
           </Link>

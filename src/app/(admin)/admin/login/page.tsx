@@ -6,12 +6,16 @@ import Image from "next/image";
 import { Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, ShieldAlert, KeyRound } from "lucide-react";
 import { adminLogin } from "@/app/actions/auth";
 import { SITE_NAME } from "@/lib/constants";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function DedicatedAdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
+
+  const dynamicLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
+  const dynamicStoreName = useSettingsStore((s) => s.settings.store_info?.store_name) || SITE_NAME;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,12 +52,13 @@ export default function DedicatedAdminLoginPage() {
           <Link href="/" className="inline-block group">
             <div className="relative h-16 w-[200px] sm:h-20 sm:w-[250px] mx-auto group-hover:scale-[1.03] transition-transform">
               <Image
-                src="/logo-lennoxchinamall.png"
-                alt="Lennox China Mall Logo"
+                src={dynamicLogo}
+                alt={`${dynamicStoreName} Logo`}
                 fill
                 sizes="250px"
-                className="object-contain brightness-0 invert"
+                className="object-contain"
                 priority
+                unoptimized={dynamicLogo.startsWith("data:") || dynamicLogo.startsWith("blob:")}
               />
             </div>
           </Link>

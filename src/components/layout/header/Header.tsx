@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCategoryStore } from "@/store/useCategoryStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { isAdminRole } from "@/lib/auth/roles";
 import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "@/lib/mockData";
@@ -38,12 +39,18 @@ export interface HeaderProps {
 
 export function Header({
   storeName = SITE_NAME,
-  logoUrl = "/logo-lennoxchinamall.png",
+  logoUrl,
 }: HeaderProps) {
   const router = useRouter();
   const { user, role } = useAuth();
   const { t, isSpanish } = useTranslation();
   const hotTags = getLocalizedHotSearchTags(isSpanish);
+
+  const settingsLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url);
+  const settingsStoreName = useSettingsStore((s) => s.settings.store_info?.store_name);
+
+  const effectiveLogo = logoUrl || settingsLogo || "/logo-lennoxchinamall.png";
+  const effectiveStoreName = storeName || settingsStoreName || SITE_NAME;
 
   // Scroll state for sticky glassmorphism
   const [isScrolled, setIsScrolled] = useState(false);
@@ -205,12 +212,13 @@ export function Header({
                 } group-hover:scale-[1.02]`}
               >
                 <Image
-                  src={logoUrl}
-                  alt={`${storeName} Logo`}
+                  src={effectiveLogo}
+                  alt={`${effectiveStoreName} Logo`}
                   fill
                   sizes="(max-width: 640px) 145px, (max-width: 1024px) 240px, 280px"
                   className="object-contain object-left"
                   priority
+                  unoptimized={effectiveLogo.startsWith("data:") || effectiveLogo.startsWith("blob:")}
                 />
               </div>
             </Link>
@@ -387,8 +395,8 @@ export function Header({
       <MobileDrawer
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        logoUrl={logoUrl}
-        storeName={storeName}
+        logoUrl={effectiveLogo}
+        storeName={effectiveStoreName}
       />
     </header>
   );

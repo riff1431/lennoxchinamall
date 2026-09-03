@@ -4,12 +4,19 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Zap, ShieldCheck, Plane, Coins, Sparkles, CheckCircle2 } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export interface SitePreloaderProps {
   storeName?: string;
+  logoUrl?: string;
 }
 
-export function SitePreloader({ storeName = SITE_NAME }: SitePreloaderProps = {}) {
+export function SitePreloader({ storeName = SITE_NAME, logoUrl }: SitePreloaderProps = {}) {
+  const settingsLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url);
+  const settingsStoreName = useSettingsStore((s) => s.settings.store_info?.store_name);
+
+  const effectiveLogo = logoUrl || settingsLogo || "/logo-lennoxchinamall.png";
+  const effectiveStoreName = storeName || settingsStoreName || SITE_NAME;
   const brandWords = (storeName || SITE_NAME || "Lennox China Mall").trim().split(/\s+/);
   const primaryText = brandWords.slice(0, -1).join(" ") || brandWords[0];
   const accentText = brandWords.length > 1 ? brandWords[brandWords.length - 1] : "";
@@ -93,12 +100,13 @@ export function SitePreloader({ storeName = SITE_NAME }: SitePreloaderProps = {}
           {/* Logo container */}
           <div className="relative w-52 h-20 sm:w-64 sm:h-24 rounded-3xl bg-white p-3 shadow-2xl flex items-center justify-center border-2 border-white/30 transform hover:scale-105 transition-transform">
             <Image
-              src="/logo-lennoxchinamall.png"
-              alt="Lennox China Mall"
+              src={effectiveLogo}
+              alt={`${effectiveStoreName} Logo`}
               fill
               sizes="260px"
               className="object-contain p-2"
               priority
+              unoptimized={effectiveLogo.startsWith("data:") || effectiveLogo.startsWith("blob:")}
             />
           </div>
         </div>

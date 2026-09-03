@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { getPublicStoreSettings } from "@/lib/settings";
+import { DynamicFavicon } from "@/components/common/DynamicFavicon";
+import { DEFAULT_STORE_SETTINGS } from "@/lib/settings-constants";
 import "./globals.css";
 
 // Heading & Display Font: Plus Jakarta Sans (Modern Geometric, High-End Luxury E-Commerce)
@@ -34,17 +37,39 @@ export const viewport: Viewport = {
   themeColor: "#00143D",
 };
 
-export const metadata: Metadata = {
-  title: {
-    default: "Lennox ChinaMall — Direct China Sourcing & Wholesale Portal",
-    template: "%s | Lennox ChinaMall",
-  },
-  description:
-    "Leading China direct-to-consumer e-commerce portal. Buy electronics, 4K drones, 3D printers, tools and hardware at factory prices with Binance Pay USDT settlement.",
-  icons: {
-    icon: "/logo-lennoxchinamall.png",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getPublicStoreSettings();
+  const storeName = settings?.store_info?.store_name || "Lennox ChinaMall";
+  const faviconUrl = settings?.branding?.favicon_url || DEFAULT_STORE_SETTINGS.branding.favicon_url;
+  const ogImageUrl = settings?.seo?.og_image_url || "/logo-lennoxchinamall.png";
+
+  return {
+    title: {
+      default: `${storeName} — Direct China Sourcing & Wholesale Portal`,
+      template: `%s | ${storeName}`,
+    },
+    description:
+      settings?.seo?.default_meta_description ||
+      "Leading China direct-to-consumer e-commerce portal. Buy electronics, 4K drones, 3D printers, tools and hardware at factory prices with Binance Pay USDT settlement.",
+    icons: {
+      icon: faviconUrl,
+      shortcut: faviconUrl,
+      apple: faviconUrl,
+    },
+    openGraph: {
+      title: `${storeName} — Direct China Sourcing & Wholesale Portal`,
+      description: settings?.seo?.default_meta_description || "Leading China direct-to-consumer e-commerce portal.",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: storeName,
+        },
+      ],
+    },
+  };
+}
 
 import React, { Suspense } from "react";
 import { cookies } from "next/headers";
@@ -62,6 +87,7 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const rawLocale = cookieStore.get(LOCALE_COOKIE_KEY)?.value;
   const initialLocale = rawLocale === "en" ? "en" : DEFAULT_LOCALE;
+  const publicSettings = await getPublicStoreSettings();
 
   return (
     <html
@@ -73,6 +99,7 @@ export default async function RootLayout({
         className="font-sans text-slate-800 bg-[#F8FAFC] min-h-screen antialiased selection:bg-[#FF1028] selection:text-white"
         suppressHydrationWarning
       >
+        <DynamicFavicon initialSettings={publicSettings} />
         <LanguageProvider defaultLocale={initialLocale}>
           <SitePreloader />
           <Suspense fallback={null}>

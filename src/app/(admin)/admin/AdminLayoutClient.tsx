@@ -58,6 +58,7 @@ import { getAdminOperationalAlerts } from "@/app/actions/admin-notifications";
 import { createClient } from "@/lib/supabase/client";
 import { OperationalAlert } from "@/types/notifications";
 import { ToastProvider } from "@/components/admin/ToastProvider";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 interface AdminLayoutClientProps {
   children: React.ReactNode;
@@ -389,6 +390,8 @@ export function AdminLayoutClient({
 }: AdminLayoutClientProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const adminLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
+  const adminStoreName = useSettingsStore((s) => s.settings.store_info?.store_name) || "Lennox ChinaMall";
 
   // Route Progress bar feedback
   const [isNavigating, setIsNavigating] = useState(false);
@@ -854,12 +857,13 @@ export function AdminLayoutClient({
                 isSidebarCollapsed ? "w-9 h-9" : "w-9 h-9"
               )}>
                 <Image
-                  src="/logo-lennoxchinamall.png"
-                  alt="Lennox China Mall"
+                  src={adminLogo}
+                  alt={adminStoreName}
                   fill
                   sizes="36px"
                   className="object-contain p-0.5"
                   priority
+                  unoptimized={adminLogo.startsWith("data:") || adminLogo.startsWith("blob:")}
                 />
               </div>
 

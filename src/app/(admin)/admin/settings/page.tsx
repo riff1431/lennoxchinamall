@@ -37,6 +37,8 @@ import {
   exportDatabaseBackup,
 } from "@/app/actions/admin-settings";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { AdminImageUpload } from "@/components/admin/forms";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 type TabKey =
   | "store_info"
@@ -68,6 +70,7 @@ export default function AdminSettingsPage() {
     const res = await getCompleteStoreSettings();
     if (res.success && res.settings) {
       setSettings(res.settings);
+      useSettingsStore.getState().setSettings(res.settings);
       if (res.userRole) setUserRole(res.userRole);
     }
     setIsLoading(false);
@@ -78,7 +81,7 @@ export default function AdminSettingsPage() {
     loadData();
   }, []);
 
-  // Update domain in local state
+  // Update domain in local state & live store
   const updateDomainField = <D extends keyof AllStoreSettings, F extends keyof AllStoreSettings[D]>(
     domain: D,
     field: F,
@@ -91,6 +94,9 @@ export default function AdminSettingsPage() {
         [field]: value,
       },
     }));
+
+    // Instantly reflect in live store for instant real-time feedback
+    useSettingsStore.getState().updateDomain(domain, field, value);
   };
 
 
@@ -123,6 +129,9 @@ export default function AdminSettingsPage() {
       await updateSettingsDomain("maintenance", settings.maintenance);
       await updateSettingsDomain("backups", settings.backups);
     }
+
+    // Ensure store is persisted with all latest values
+    useSettingsStore.getState().setSettings(settings);
     setIsSaving(false);
     showToast("All changes in this section applied across storefront!");
   };
@@ -396,26 +405,32 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
-            <div className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">Primary Storefront Logo URL</label>
-                <input
-                  type="text"
-                  value={settings.branding.primary_logo_url}
-                  onChange={(e) => updateDomainField("branding", "primary_logo_url", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
-                />
-              </div>
+            <div className="space-y-5 text-xs">
+              <AdminImageUpload
+                label="Primary Storefront Logo"
+                aspectRatioTip="Recommended: 240×60px transparent SVG or PNG"
+                helperText="Drag & drop your store brand logo (PNG, SVG, WebP, JPG)"
+                value={settings.branding.primary_logo_url}
+                onChange={(url) => updateDomainField("branding", "primary_logo_url", url)}
+                bucket={settings.storage.banners_bucket || "products"}
+                folder="branding"
+                maxSizeMB={settings.storage.max_image_mb || 20}
+                placeholder="/logo-lennoxchinamall.png or https://..."
+                previewShape="rectangle"
+              />
 
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 dark:text-slate-300">Favicon Path / URL</label>
-                <input
-                  type="text"
-                  value={settings.branding.favicon_url}
-                  onChange={(e) => updateDomainField("branding", "favicon_url", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-[#2F65F6]"
-                />
-              </div>
+              <AdminImageUpload
+                label="Store Favicon / Browser Tab Icon"
+                aspectRatioTip="Recommended: 32×32px or 64×64px .ico / .png / .svg"
+                helperText="Drag & drop favicon or square icon file"
+                value={settings.branding.favicon_url}
+                onChange={(url) => updateDomainField("branding", "favicon_url", url)}
+                bucket={settings.storage.banners_bucket || "products"}
+                folder="branding"
+                maxSizeMB={settings.storage.max_image_mb || 20}
+                placeholder="/favicon.ico or https://..."
+                previewShape="square"
+              />
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
@@ -1113,6 +1128,19 @@ export default function AdminSettingsPage() {
                   className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-[11px]"
                 />
               </div>
+
+              <AdminImageUpload
+                label="Social Share & OpenGraph Banner (og:image)"
+                aspectRatioTip="Recommended: 1200×630px JPG/PNG"
+                helperText="Drag & drop default social link preview card image"
+                value={settings.seo.og_image_url}
+                onChange={(url) => updateDomainField("seo", "og_image_url", url)}
+                bucket={settings.storage.banners_bucket || "products"}
+                folder="seo"
+                maxSizeMB={settings.storage.max_image_mb || 20}
+                placeholder="https://... or /og-banner.jpg"
+                previewShape="rectangle"
+              />
             </div>
           </div>
 
