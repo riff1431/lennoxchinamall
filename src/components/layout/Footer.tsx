@@ -165,12 +165,59 @@ export function Footer({
   };
 
   return (
-    <footer className="bg-gradient-to-b from-slate-50 via-white to-slate-100/70 text-slate-600 border-t border-slate-200/80 font-sans relative z-10 pb-28 md:pb-8 mt-16 selection:bg-[#FF1028] selection:text-white">
+    <footer className="relative z-10 pb-28 md:pb-8 mt-16 font-sans text-slate-600 bg-gradient-to-b from-[#EEF2F6] via-[#F6F8FB] to-[#E2E8F0] border-t border-slate-200/90 selection:bg-[#FF1028] selection:text-white overflow-hidden">
       
+      {/* ──────────────────────────────────────────────────────────
+          MINIMALIST BACKGROUND GRADIENTS & SUBTLE SHAPES
+          ────────────────────────────────────────────────────────── */}
+      {/* Micro-dot texture matrix for architectural depth */}
+      <div
+        className="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none"
+        aria-hidden="true"
+      />
+
+      {/* Ambient smooth soft blur spheres (Minimalist & Non-distracting) */}
+      <div
+        className="absolute -top-32 -left-28 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-slate-200/60 to-slate-300/30 blur-3xl opacity-60 pointer-events-none"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute top-1/4 -right-28 w-[520px] h-[520px] rounded-full bg-gradient-to-bl from-slate-200/50 via-sky-100/30 to-transparent blur-3xl opacity-50 pointer-events-none"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute -bottom-24 left-1/3 w-[450px] h-[450px] rounded-full bg-gradient-to-t from-slate-300/40 via-red-50/20 to-transparent blur-3xl opacity-40 pointer-events-none"
+        aria-hidden="true"
+      />
+
+      {/* Minimalist Geometric Shape Outlines */}
+      <div
+        className="absolute right-10 top-12 w-64 h-64 border border-slate-300/40 rounded-full pointer-events-none"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute right-20 top-22 w-44 h-44 border border-dashed border-slate-300/30 rounded-full pointer-events-none"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute left-8 bottom-32 w-80 h-32 border border-slate-300/35 rounded-3xl -rotate-6 pointer-events-none"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute left-16 bottom-36 w-16 h-16 border border-slate-300/30 rounded-2xl rotate-12 pointer-events-none"
+        aria-hidden="true"
+      />
+
+      {/* Top Refined Edge Accent */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-300/90 to-transparent pointer-events-none"
+        aria-hidden="true"
+      />
+
       {/* ──────────────────────────────────────────────────────────
           TIER 1: MINIMAL VALUE-PROPS & NEWSLETTER INTEGRATION
           ────────────────────────────────────────────────────────── */}
-      <div className="border-b border-slate-200/80 bg-slate-50/40">
+      <div className="relative z-1 border-b border-slate-200/70 bg-slate-100/40 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
           
           {/* Trust Value Badges Grid */}
@@ -180,7 +227,7 @@ export function Footer({
               return (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
+                  className="flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
                 >
                   <div
                     className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${item.bgClass} ${item.colorClass} group-hover:scale-105 transition-transform duration-200 shadow-2xs`}
@@ -201,7 +248,7 @@ export function Footer({
           </div>
 
           {/* Minimalist Light Newsletter Banner */}
-          <div className="relative rounded-2xl bg-white border border-slate-200/90 shadow-sm p-5 sm:p-7 flex flex-col lg:flex-row items-center justify-between gap-6 overflow-hidden">
+          <div className="relative rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm p-5 sm:p-7 flex flex-col lg:flex-row items-center justify-between gap-6 overflow-hidden">
             {/* Top Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF1028] via-rose-500 to-amber-500" />
 
@@ -287,7 +334,7 @@ export function Footer({
       {/* ──────────────────────────────────────────────────────────
           TIER 2: BRAND CORE & DYNAMIC RESPONSIVE NAVIGATION
           ────────────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div className="relative z-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
           
           {/* Brand Info & Contacts (4 Columns on Desktop) */}
@@ -317,7 +364,7 @@ export function Footer({
               {activeContacts.map((contact) => (
                 <div
                   key={contact.label}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-2xs transition-all"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-white/90 backdrop-blur-xs border border-slate-200/80 hover:border-slate-300 hover:shadow-xs transition-all"
                 >
                   <div className="min-w-0 pr-2">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider font-mono">
@@ -449,7 +496,7 @@ export function Footer({
             </div>
 
             {/* Premium Vector App Store Badges */}
-            <div className="mt-8 pt-5 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80">
+            <div className="mt-8 pt-5 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white/75 backdrop-blur-xs border border-slate-200/80 shadow-2xs">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 block font-mono">
                   {isSpanish ? "App Móvil de Compras" : "Mobile Sourcing App"}
@@ -493,7 +540,7 @@ export function Footer({
       {/* ──────────────────────────────────────────────────────────
           TIER 3: MINIMAL UTILITY BAR, PAYMENT BADGES & SOCIAL DOCK
           ────────────────────────────────────────────────────────── */}
-      <div className="border-t border-slate-200/80 bg-slate-100/60 py-6">
+      <div className="relative z-1 border-t border-slate-200/80 bg-slate-200/40 backdrop-blur-xs py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-6 text-xs text-slate-500">
           
           {/* Left: Copyright & Legal Quick Links */}
