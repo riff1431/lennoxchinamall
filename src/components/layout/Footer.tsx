@@ -98,6 +98,7 @@ function UsdtBadgeIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
 export interface FooterProps {
   storeName?: string;
   logoUrl?: string;
+  darkLogoUrl?: string;
   sections?: FooterSection[];
 }
 

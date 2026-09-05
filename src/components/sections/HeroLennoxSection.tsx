@@ -209,7 +209,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
             • Desktop: 3 Cols / Full Height Card
             • Mobile/Tablet: Sleek Compact Interactive Card
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-3 xl:col-span-3 bg-gradient-to-b from-white to-slate-50/80 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between p-4 sm:p-4.5 hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_-2px_rgba(255,16,40,0.22)] transition-all duration-300 group">
+        <div className="lg:col-span-3 xl:col-span-3 h-full bg-gradient-to-b from-white to-slate-50/80 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between p-4 sm:p-4.5 hover:border-[#FF1028]/60 hover:shadow-[0_0_20px_-2px_rgba(255,16,40,0.22)] transition-all duration-300 group">
           <div>
             {/* Header & Live Scarcity Badge */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -312,7 +312,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
             • Desktop: 6 Cols
             • Mobile: Smooth swipeable row or 2-col responsive touch cards
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-6 xl:col-span-6 flex flex-col gap-3 sm:gap-3.5">
+        <div className="lg:col-span-6 xl:col-span-6 h-full flex flex-col gap-3 sm:gap-3.5">
           {/* Top Showcase Promo Banner */}
           <Link
             href={activeBanner.link || "/categories/consumer-electronics"}
@@ -359,16 +359,16 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
 
           {/* Bottom Row: Continuous Carousel (3 Products per view on Desktop) */}
           <div
-            className="relative flex-1 flex flex-col group/deals select-none -mx-1 px-1"
+            className="relative flex-1 flex flex-col min-h-0 group/deals select-none -mx-1 px-1"
             onMouseEnter={() => setIsDealsPaused(true)}
             onMouseLeave={() => setIsDealsPaused(false)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
             {/* Viewport */}
-            <div className="overflow-hidden flex-1 px-0.5">
+            <div className="overflow-hidden flex-1 flex flex-col min-h-0 px-0.5">
               <div
-                className={`flex h-full ${
+                className={`flex flex-1 min-h-full ${
                   dealsWithTransition
                     ? "transition-transform duration-500 ease-out"
                     : "transition-none"
@@ -385,10 +385,10 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
                   return (
                     <div
                       key={`${item.id}-${idx}`}
-                      className="shrink-0 px-1 sm:px-1.5 h-full"
+                      className="shrink-0 px-1 sm:px-1.5 h-full flex flex-col"
                       style={{ width: `${100 / dealsItemsPerView}%` }}
                     >
-                      <div className="group relative bg-white rounded-lg border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between h-full hover:border-[#FF1028]/60 hover:shadow-[0_0_16px_rgba(255,16,40,0.2)] transition-all duration-300">
+                      <div className="group relative bg-white rounded-lg border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between flex-1 h-full hover:border-[#FF1028]/60 hover:shadow-[0_0_16px_rgba(255,16,40,0.2)] transition-all duration-300">
                         <div>
                           {/* Top Discount Badge & Wishlist Button */}
                           <div className="relative w-full aspect-square rounded-md bg-slate-50 overflow-hidden mb-1.5">
@@ -490,7 +490,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
                         {/* Add to Cart Button */}
                         <button
                           onClick={(e) => handleQuickAdd(e, item)}
-                          className={`w-full mt-2 py-1.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
+                          className={`w-full mt-auto pt-2 py-1.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
                             isAdded
                               ? "bg-emerald-600 text-white shadow-xs"
                               : "bg-[#FF1028] hover:bg-[#e00d22] text-white shadow-2xs"
@@ -523,7 +523,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
             • Desktop: 3 Cols (2 stacked square cards)
             • Mobile/Tablet: 2 side-by-side video cards
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-3 xl:col-span-3 grid grid-cols-2 lg:grid-cols-1 lg:flex lg:flex-col gap-3 sm:gap-3.5">
+        <div className="lg:col-span-3 xl:col-span-3 h-full grid grid-cols-2 lg:grid-cols-1 lg:flex lg:flex-col gap-3 sm:gap-3.5">
           {/* Top Video Card (Canton Export Fair) */}
           <div
             onClick={() =>
