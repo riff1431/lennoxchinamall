@@ -298,7 +298,7 @@ export default function AdminSettingsPage() {
                   type="text"
                   value={settings.store_info.store_name}
                   onChange={(e) => updateDomainField("store_info", "store_name", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
@@ -308,7 +308,7 @@ export default function AdminSettingsPage() {
                   type="text"
                   value={settings.store_info.legal_entity}
                   onChange={(e) => updateDomainField("store_info", "legal_entity", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
@@ -318,7 +318,7 @@ export default function AdminSettingsPage() {
                   type="text"
                   value={settings.store_info.tagline}
                   onChange={(e) => updateDomainField("store_info", "tagline", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
@@ -329,7 +329,7 @@ export default function AdminSettingsPage() {
                     type="email"
                     value={settings.store_info.support_email}
                     onChange={(e) => updateDomainField("store_info", "support_email", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
                 <div className="space-y-1">
@@ -338,7 +338,7 @@ export default function AdminSettingsPage() {
                     type="text"
                     value={settings.store_info.business_phone}
                     onChange={(e) => updateDomainField("store_info", "business_phone", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
               </div>
@@ -362,7 +362,7 @@ export default function AdminSettingsPage() {
                   rows={2}
                   value={settings.store_info.shenzhen_hub}
                   onChange={(e) => updateDomainField("store_info", "shenzhen_hub", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function AdminSettingsPage() {
                   rows={2}
                   value={settings.store_info.guangzhou_hub}
                   onChange={(e) => updateDomainField("store_info", "guangzhou_hub", e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
@@ -383,7 +383,7 @@ export default function AdminSettingsPage() {
                     type="text"
                     value={settings.store_info.business_hours}
                     onChange={(e) => updateDomainField("store_info", "business_hours", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
                 <div className="space-y-1">
@@ -392,7 +392,7 @@ export default function AdminSettingsPage() {
                     type="text"
                     value={settings.store_info.timezone}
                     onChange={(e) => updateDomainField("store_info", "timezone", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-[#2F65F6]/20 focus:border-[#2F65F6]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
               </div>
