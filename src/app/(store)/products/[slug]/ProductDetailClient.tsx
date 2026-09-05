@@ -1283,22 +1283,7 @@ export function ProductDetailClient({
               </div>
             </div>
 
-            {/* Inspection Guarantee Card */}
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                </div>
-                <span className="text-xs font-bold text-slate-900 font-heading">
-                  {isSpanish ? "Garantía de Inspección" : "Inspection Guarantee"}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
-                {isSpanish
-                  ? "Cada unidad es grabada, probada y certificada antes del despacho internacional."
-                  : "Every unit is recorded, bench-tested, and certified prior to international cargo dispatch."}
-              </p>
-            </div>
+
           </div>
         </div>
 
