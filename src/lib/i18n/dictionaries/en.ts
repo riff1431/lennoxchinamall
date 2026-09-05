@@ -3,7 +3,7 @@ import { TranslationDictionary } from "../types";
 export const en: TranslationDictionary = {
   common: {
     search: "Search",
-    searchPlaceholder: "Search 100,000+ factory products (e.g. 4K Drone, 3D Printer, OBD2)...",
+    searchPlaceholder: "Search 100,000+ factory direct products...",
     searchButton: "Search",
     hotKeywords: "Hot",
     allDepartments: "ALL DEPARTMENTS",

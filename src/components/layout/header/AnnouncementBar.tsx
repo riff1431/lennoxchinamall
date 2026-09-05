@@ -70,43 +70,43 @@ export function AnnouncementBar({
   return (
     <div className="bg-[#00143D] text-slate-200 text-xs border-b border-blue-950/60">
       {/* ── Mobile Compact Value Prop Bar ── */}
-      <div className="md:hidden flex items-center justify-between px-3 h-7 text-[10px] font-medium tracking-tight overflow-hidden">
-        <div className="flex items-center gap-1.5 truncate text-amber-300 font-bold uppercase">
+      <div className="md:hidden flex items-center justify-between px-3 h-7 text-[10px] font-medium tracking-tight overflow-hidden gap-2">
+        <div className="flex items-center gap-1.5 min-w-0 truncate text-amber-300 font-bold uppercase">
           <ValueIcon className="w-3 h-3 shrink-0" />
           <span className="truncate">{t.common.directChinaAirfreight}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 text-slate-300">
           <span className="hidden xs:inline">{t.common.saveWithCoupon}:</span>
           <span className="inline xs:hidden">Use:</span>
-          <span className="text-white bg-[#FF1028] px-1.5 py-0.5 rounded font-black text-[9px] shadow-[0_0_6px_rgba(255,16,40,0.4)]">
+          <span className="text-white bg-[#FF1028] px-1.5 py-0.5 rounded font-black text-[9px] shadow-[0_0_6px_rgba(255,16,40,0.4)] shrink-0">
             {ANNOUNCEMENT_CONFIG.couponCode}
           </span>
         </div>
       </div>
 
       {/* ── Desktop Full Utility & Announcement Bar ── */}
-      <div className="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-9 items-center justify-between">
+      <div className="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-8 lg:h-9 items-center justify-between gap-3">
         {/* Left Ticker / Value Prop */}
-        <div className="flex items-center gap-4 text-[11px] font-medium tracking-wide">
-          <span className="flex items-center gap-1.5 text-amber-300 font-bold uppercase tracking-wider">
-            <ValueIcon className="w-3.5 h-3.5" />
-            {t.common.directChinaAirfreight}
+        <div className="flex items-center gap-2.5 lg:gap-4 text-[11px] font-medium tracking-wide min-w-0">
+          <span className="flex items-center gap-1.5 text-amber-300 font-bold uppercase tracking-wider shrink-0">
+            <ValueIcon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{t.common.directChinaAirfreight}</span>
           </span>
-          <span className="text-slate-600">•</span>
-          <span className="text-slate-300">
+          <span className="text-slate-600 hidden sm:inline shrink-0">•</span>
+          <span className="text-slate-300 hidden sm:inline truncate">
             {t.common.saveWithCoupon}{" "}
-            <strong className="text-white bg-[#FF1028] px-1.5 py-0.5 rounded font-black animate-pulse shadow-[0_0_8px_rgba(255,16,40,0.5)]">
+            <strong className="text-white bg-[#FF1028] px-1.5 py-0.5 rounded font-black shadow-[0_0_8px_rgba(255,16,40,0.5)]">
               {ANNOUNCEMENT_CONFIG.couponCode}
             </strong>
           </span>
-          <span className="text-slate-600">•</span>
-          <span className="text-emerald-400 font-semibold flex items-center gap-1">
+          <span className="text-slate-600 hidden xl:inline shrink-0">•</span>
+          <span className="text-emerald-400 font-semibold hidden xl:flex items-center gap-1 shrink-0">
             <QcIcon className="w-3.5 h-3.5" /> {t.common.factoryQCPass}
           </span>
         </div>
 
         {/* Right Global Selectors & Links */}
-        <div className="flex items-center gap-4 text-[11px]">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-[11px] shrink-0">
           {/* Language Picker Dropdown */}
           <div className="relative" ref={langMenuRef}>
             <button
@@ -202,19 +202,19 @@ export function AnnouncementBar({
             </AnimatePresence>
           </div>
 
-          {/* Track Sourcing Order */}
+          {/* Track Sourcing Order - visible lg+ */}
           <Link
             href="/account/orders"
-            className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors py-1 cursor-pointer"
+            className="hidden lg:flex items-center gap-1 text-slate-300 hover:text-white transition-colors py-1 cursor-pointer shrink-0"
           >
             <TrackIcon className="w-3.5 h-3.5 text-blue-400" />
             <span>{t.common.trackSourcing}</span>
           </Link>
 
-          {/* Customer Support Desk */}
+          {/* Customer Support Desk - visible xl+ */}
           <Link
             href="/account/support"
-            className="flex items-center gap-1 text-slate-300 hover:text-white transition-colors py-1 cursor-pointer"
+            className="hidden xl:flex items-center gap-1 text-slate-300 hover:text-white transition-colors py-1 cursor-pointer shrink-0"
           >
             <SupportIcon className="w-3.5 h-3.5 text-emerald-400" />
             <span>{t.common.sourcingDesk247}</span>

@@ -82,12 +82,12 @@ export function NavigationBar() {
   return (
     <div className="bg-white border-b border-slate-200 hidden lg:block">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-6 sm:gap-8 h-12">
+        <div className="flex items-center gap-4 xl:gap-8 h-11 xl:h-12">
           {/* Mega Menu Toggle Button */}
-          <div className="relative h-full flex items-center" ref={megaMenuRef}>
+          <div className="relative h-full flex items-center shrink-0" ref={megaMenuRef}>
             <button
               onClick={() => setIsMegaMenuOpen((prev) => !prev)}
-              className="flex items-center gap-2.5 bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-5 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+              className="flex items-center gap-2 xl:gap-2.5 bg-gradient-to-r from-[#FF1028] to-[#E00B20] hover:from-[#E00B20] hover:to-[#CC0A1B] text-white px-3.5 xl:px-5 py-2 xl:py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] shrink-0"
               aria-expanded={isMegaMenuOpen}
               aria-haspopup="true"
               aria-label={t.common.allDepartments}
@@ -109,7 +109,7 @@ export function NavigationBar() {
           </div>
 
           {/* Main Nav Links */}
-          <nav className="flex items-center gap-1 sm:gap-6 text-xs font-bold text-slate-700 h-full">
+          <nav className="flex items-center gap-2 xl:gap-6 text-xs font-bold text-slate-700 h-full overflow-x-auto no-scrollbar">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
               const IconComponent = link.icon;

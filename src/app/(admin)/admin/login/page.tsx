@@ -8,14 +8,13 @@ import { adminLogin } from "@/app/actions/auth";
 import { SITE_NAME } from "@/lib/constants";
 import { useSettingsStore } from "@/store/useSettingsStore";
 
+import { BrandLogo } from "@/components/common/BrandLogo";
+
 export default function DedicatedAdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
-
-  const dynamicLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
-  const dynamicStoreName = useSettingsStore((s) => s.settings.store_info?.store_name) || SITE_NAME;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,15 +49,13 @@ export default function DedicatedAdminLoginPage() {
         {/* Brand Header */}
         <div className="text-center space-y-3">
           <Link href="/" className="inline-block group">
-            <div className="relative h-16 w-[200px] sm:h-20 sm:w-[250px] mx-auto group-hover:scale-[1.03] transition-transform">
-              <Image
-                src={dynamicLogo}
-                alt={`${dynamicStoreName} Logo`}
-                fill
-                sizes="250px"
-                className="object-contain"
+            <div className="relative h-14 w-[190px] sm:h-16 sm:w-[230px] mx-auto group-hover:scale-[1.03] transition-transform">
+              <BrandLogo
+                variant="dark"
                 priority
-                unoptimized={dynamicLogo.startsWith("data:") || dynamicLogo.startsWith("blob:")}
+                sizes="230px"
+                className="w-full h-full"
+                imageClassName="object-contain"
               />
             </div>
           </Link>

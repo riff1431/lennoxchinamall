@@ -39,24 +39,25 @@ export function BrandLogo({
   const defaultPrimaryLogo = DEFAULT_STORE_SETTINGS.branding.primary_logo_url;
 
   const [hasError, setHasError] = useState(false);
+  const [hasSecondaryError, setHasSecondaryError] = useState(false);
 
   const resolvedUrl =
     customUrl ||
     (variant === "dark"
-      ? (storeDark && storeDark !== storePrimary ? storeDark : null) || defaultWhiteLogo
+      ? (storeDark && storeDark.trim() ? storeDark : null) || defaultWhiteLogo
       : storePrimary || defaultPrimaryLogo);
 
-  // Reset error state if the URL changes
+  // Reset error states if the URL changes
   React.useEffect(() => {
     setHasError(false);
+    setHasSecondaryError(false);
   }, [resolvedUrl]);
 
   const logoAlt = alt || `${storeName} Logo`;
 
   // Fallback if the URL failed to load
-  const activeSrc = hasError
-    ? (variant === "dark" ? defaultWhiteLogo : defaultPrimaryLogo)
-    : resolvedUrl;
+  const fallbackSrc = variant === "dark" ? defaultWhiteLogo : defaultPrimaryLogo;
+  const activeSrc = hasError ? fallbackSrc : resolvedUrl;
 
   const isDirectUrl =
     activeSrc.startsWith("data:") ||
@@ -64,8 +65,24 @@ export function BrandLogo({
     activeSrc.startsWith("http") ||
     activeSrc.endsWith(".svg");
 
+  // If even the fallback image fails to load, gracefully display the brand name
+  if (hasSecondaryError) {
+    return (
+      <div className={cn("relative flex items-center justify-start select-none", fill ? "w-full h-full" : "", className)}>
+        <span
+          className={cn(
+            "font-black tracking-tight uppercase text-lg sm:text-xl truncate",
+            variant === "dark" ? "text-white" : "text-slate-900"
+          )}
+        >
+          {storeName}
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("relative flex items-center justify-center select-none", className)}>
+    <div className={cn("relative flex items-center justify-start select-none", fill ? "w-full h-full" : "", className)}>
       {fill ? (
         <Image
           src={activeSrc}
@@ -74,7 +91,13 @@ export function BrandLogo({
           sizes={sizes}
           priority={priority}
           unoptimized={isDirectUrl}
-          onError={() => setHasError(true)}
+          onError={() => {
+            if (!hasError && activeSrc !== fallbackSrc) {
+              setHasError(true);
+            } else {
+              setHasSecondaryError(true);
+            }
+          }}
           className={imageClassName}
         />
       ) : (
@@ -85,7 +108,13 @@ export function BrandLogo({
           height={height || 50}
           priority={priority}
           unoptimized={isDirectUrl}
-          onError={() => setHasError(true)}
+          onError={() => {
+            if (!hasError && activeSrc !== fallbackSrc) {
+              setHasError(true);
+            } else {
+              setHasSecondaryError(true);
+            }
+          }}
           className={imageClassName}
         />
       )}

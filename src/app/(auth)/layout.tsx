@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SITE_NAME } from "@/lib/constants";
 import { useTranslation } from "@/lib/i18n/useTranslation";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { BrandLogo } from "@/components/common/BrandLogo";
 
 export default function AuthLayout({
   children,
@@ -13,8 +13,6 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   const { isSpanish } = useTranslation();
-  const dynamicLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
-  const dynamicStoreName = useSettingsStore((s) => s.settings.store_info?.store_name) || SITE_NAME;
 
   return (
     <div className="min-h-screen bg-[#000B24] flex flex-col justify-between p-4 sm:p-6 text-slate-100 font-montserrat">
@@ -22,15 +20,13 @@ export default function AuthLayout({
         {/* Brand Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block group">
-            <div className="relative h-16 w-[200px] sm:h-20 sm:w-[250px] mx-auto group-hover:scale-[1.03] transition-transform">
-              <Image
-                src={dynamicLogo}
-                alt={`${dynamicStoreName} Logo`}
-                fill
-                sizes="250px"
-                className="object-contain"
+            <div className="relative h-14 w-[190px] sm:h-16 sm:w-[230px] mx-auto group-hover:scale-[1.03] transition-transform">
+              <BrandLogo
+                variant="dark"
                 priority
-                unoptimized={dynamicLogo.startsWith("data:") || dynamicLogo.startsWith("blob:")}
+                sizes="230px"
+                className="w-full h-full"
+                imageClassName="object-contain"
               />
             </div>
           </Link>

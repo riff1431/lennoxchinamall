@@ -433,7 +433,7 @@ export function AdminLayoutClient({
   // Dynamic logos for light and dark admin modes
   const primaryLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
   const darkLogo = useSettingsStore((s) => s.settings.branding?.dark_logo_url);
-  const effectiveDarkLogo = (darkLogo && darkLogo !== primaryLogo ? darkLogo : null) || "/logo-lennoxchinamall-white.png";
+  const effectiveDarkLogo = (darkLogo && darkLogo.trim() ? darkLogo : null) || "/logo-lennoxchinamall-white.png";
   const adminLogo = isDarkMode ? effectiveDarkLogo : primaryLogo;
 
   // Hydrate persistent state from localStorage after mount to prevent SSR hydration mismatch

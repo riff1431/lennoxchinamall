@@ -18,15 +18,16 @@ export default async function StoreLayout({
 }) {
   const publicSettings = await getPublicStoreSettings();
   const brandLogo = publicSettings?.branding?.primary_logo_url;
+  const darkLogo = publicSettings?.branding?.dark_logo_url;
   const storeName = publicSettings?.store_info?.store_name;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      <Header logoUrl={brandLogo} storeName={storeName} />
+      <Header logoUrl={brandLogo} darkLogoUrl={darkLogo} storeName={storeName} />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
         {children}
       </main>
-      <Footer logoUrl={brandLogo} storeName={storeName} />
+      <Footer logoUrl={brandLogo} darkLogoUrl={darkLogo} storeName={storeName} />
       <MobileNav />
       <CartDrawer />
     </div>

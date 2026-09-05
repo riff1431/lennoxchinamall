@@ -130,11 +130,11 @@ export function HeaderSearchBar({
   const hasSuggestions = isSearchFocused && searchQuery.trim().length >= 2;
 
   return (
-    <div ref={searchContainerRef} className="flex-1 max-w-2xl hidden md:block relative">
+    <div ref={searchContainerRef} className="flex-1 max-w-2xl hidden md:block relative min-w-0">
       {/* ── Mercado Libre Style Clean Search Bar ── */}
       <form
         onSubmit={handleSearch}
-        className="flex w-full items-center bg-white rounded-md shadow-xs hover:shadow-sm focus-within:shadow-md border border-slate-200 focus-within:border-slate-300 transition-all duration-200 relative h-10 overflow-hidden"
+        className="flex w-full items-center bg-white rounded-xl shadow-2xs hover:shadow-xs focus-within:shadow-sm border border-slate-200 focus-within:border-slate-300 transition-all duration-200 relative h-10 overflow-hidden"
       >
         {/* Main Search Input */}
         <input
@@ -177,16 +177,17 @@ export function HeaderSearchBar({
       </form>
 
       {/* Hot Search Quick Tags */}
-      <div className="hidden lg:flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 overflow-hidden whitespace-nowrap">
-        <span className="font-bold text-[#00143D]">{t.common.hotKeywords}:</span>
+      <div className="hidden lg:flex items-center gap-2 mt-1.5 text-[11px] text-slate-500 overflow-x-auto no-scrollbar whitespace-nowrap scroll-smooth">
+        <span className="font-bold text-[#00143D] shrink-0">{t.common.hotKeywords}:</span>
         {hotTags.map((tag) => (
           <button
             key={tag}
+            type="button"
             onClick={() => {
               setSearchQuery(tag);
               router.push(`/search?q=${encodeURIComponent(tag)}`);
             }}
-            className="hover:text-[#FF1028] transition-colors cursor-pointer"
+            className="hover:text-[#FF1028] transition-colors cursor-pointer shrink-0"
           >
             {tag}
           </button>

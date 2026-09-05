@@ -14,7 +14,7 @@ export const DEFAULT_STORE_SETTINGS: AllStoreSettings = {
   },
   branding: {
     primary_logo_url: "/logo-lennoxchinamall.png",
-    dark_logo_url: "/logo-lennoxchinamall.png",
+    dark_logo_url: "/logo-lennoxchinamall-white.png",
     favicon_url: "/favicon.ico",
     primary_color: "#FF1028",
     secondary_color: "#00143D",

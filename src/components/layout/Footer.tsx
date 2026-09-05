@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUp,
@@ -23,8 +22,6 @@ import { subscribeNewsletter, NewsletterResult } from "@/app/actions/newsletter"
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import {
   FOOTER_SECTIONS,
-  FOOTER_TRUST_ITEMS,
-  FOOTER_CONTACTS,
   FooterSection,
   getLocalizedFooterTrustItems,
   getLocalizedFooterSections,
@@ -109,8 +106,13 @@ export function Footer({
 }: FooterProps = {}) {
   const { locale, setLocale, t, isSpanish } = useTranslation();
   const settingsStoreName = useSettingsStore((s) => s.settings.store_info?.store_name);
+  const settingsLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url);
 
   const effectiveStoreName = storeName || settingsStoreName || SITE_NAME;
+  const effectiveFooterLogo =
+    (logoUrl && logoUrl.trim() ? logoUrl : null) ||
+    (settingsLogo && settingsLogo.trim() ? settingsLogo : null) ||
+    "/logo-lennoxchinamall.png";
 
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,12 +165,12 @@ export function Footer({
   };
 
   return (
-    <footer className="bg-[#030712] text-slate-300 border-t border-slate-800/80 font-sans relative z-10 pb-24 md:pb-6 mt-16 selection:bg-[#FF1028] selection:text-white">
+    <footer className="bg-gradient-to-b from-slate-50 via-white to-slate-100/70 text-slate-600 border-t border-slate-200/80 font-sans relative z-10 pb-28 md:pb-8 mt-16 selection:bg-[#FF1028] selection:text-white">
       
       {/* ──────────────────────────────────────────────────────────
           TIER 1: MINIMAL VALUE-PROPS & NEWSLETTER INTEGRATION
           ────────────────────────────────────────────────────────── */}
-      <div className="border-b border-slate-800/60 bg-[#060D1E]/60 backdrop-blur-md">
+      <div className="border-b border-slate-200/80 bg-slate-50/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
           
           {/* Trust Value Badges Grid */}
@@ -178,18 +180,18 @@ export function Footer({
               return (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-slate-700 hover:bg-white/[0.04] transition-all duration-200 group"
+                  className="flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 group"
                 >
                   <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${item.bgClass} ${item.colorClass} group-hover:scale-105 transition-transform duration-200`}
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${item.bgClass} ${item.colorClass} group-hover:scale-105 transition-transform duration-200 shadow-2xs`}
                   >
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-white tracking-wide truncate">
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-heading tracking-tight truncate">
                       {item.title}
                     </h4>
-                    <p className="text-[11px] text-slate-400 leading-snug line-clamp-1">
+                    <p className="text-[11px] sm:text-xs text-slate-500 leading-snug line-clamp-1 mt-0.5">
                       {item.subtitle}
                     </p>
                   </div>
@@ -198,13 +200,16 @@ export function Footer({
             })}
           </div>
 
-          {/* Minimal Newsletter Banner Bar */}
-          <div className="rounded-2xl bg-gradient-to-r from-slate-900/90 via-[#07132C]/90 to-slate-900/90 border border-slate-800 p-5 sm:p-7 flex flex-col lg:flex-row items-center justify-between gap-6">
+          {/* Minimalist Light Newsletter Banner */}
+          <div className="relative rounded-2xl bg-white border border-slate-200/90 shadow-sm p-5 sm:p-7 flex flex-col lg:flex-row items-center justify-between gap-6 overflow-hidden">
+            {/* Top Accent Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF1028] via-rose-500 to-amber-500" />
+
             <div className="space-y-1.5 text-center lg:text-left max-w-xl">
-              <h3 className="text-lg sm:text-xl font-black font-heading text-white tracking-tight">
+              <h3 className="text-lg sm:text-xl font-extrabold font-heading text-slate-900 tracking-tight">
                 {t.footer.newsletterTitle}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 {t.footer.newsletterDesc}
               </p>
             </div>
@@ -221,14 +226,14 @@ export function Footer({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isSubmitting}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-white placeholder:text-slate-500 text-xs focus:outline-none focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028] disabled:opacity-50 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-xs focus:bg-white focus:outline-none focus:border-[#FF1028] focus:ring-2 focus:ring-[#FF1028]/15 disabled:opacity-50 transition-all shadow-2xs"
                     aria-label="Email address for newsletter"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#FF1028] hover:bg-[#E00B20] active:scale-95 text-white px-5 py-2.5 rounded-xl text-xs font-bold font-heading uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md shadow-red-950/40"
+                  className="bg-[#FF1028] hover:bg-[#E00B20] active:scale-[0.98] text-white px-5 py-2.5 rounded-xl text-xs font-bold font-heading uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0 cursor-pointer shadow-md shadow-red-500/20 hover:shadow-red-500/30"
                 >
                   {isSubmitting ? (
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -250,16 +255,16 @@ export function Footer({
                     exit={{ opacity: 0, y: -6 }}
                     className={`p-2.5 rounded-xl text-[11px] font-medium flex items-center gap-2 ${
                       newsletterFeedback.status === "success"
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                         : newsletterFeedback.status === "duplicate"
-                        ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
-                        : "bg-red-500/10 text-red-400 border border-red-500/20"
+                        ? "bg-amber-50 text-amber-800 border border-amber-200"
+                        : "bg-red-50 text-red-700 border border-red-200"
                     }`}
                   >
                     {newsletterFeedback.status === "success" ? (
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                     ) : (
-                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                      <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
                     )}
                     <span>
                       {isSpanish
@@ -287,19 +292,21 @@ export function Footer({
           
           {/* Brand Info & Contacts (4 Columns on Desktop) */}
           <div className="lg:col-span-4 space-y-5">
-            <Link href="/" className="inline-block group focus:outline-none">
-              <div className="relative h-12 w-[180px] sm:h-14 sm:w-[220px] group-hover:scale-[1.02] transition-transform">
+            <Link href="/" className="inline-block group focus:outline-none" aria-label={effectiveStoreName}>
+              <div className="relative h-12 w-[190px] sm:h-14 sm:w-[230px] group-hover:scale-[1.01] transition-transform">
                 <BrandLogo
-                  variant="dark"
-                  customUrl={logoUrl}
+                  variant="primary"
+                  customUrl={effectiveFooterLogo}
+                  alt={`${effectiveStoreName} Logo`}
                   priority
-                  sizes="(max-width: 640px) 180px, 220px"
+                  className="w-full h-full"
+                  sizes="(max-width: 640px) 190px, 230px"
                   imageClassName="object-contain object-left"
                 />
               </div>
             </Link>
 
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+            <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
               {isSpanish
                 ? "Lennox China Mall conecta a compradores internacionales directamente con fabricantes certificados en Shenzhen, Ningbo y Yiwu con custodia criptográfica en USDT sin comisiones."
                 : "Lennox China Mall connects international buyers directly to verified manufacturers across Shenzhen, Ningbo, and Yiwu with zero-fee USDT cryptographic escrow."}
@@ -310,7 +317,7 @@ export function Footer({
               {activeContacts.map((contact) => (
                 <div
                   key={contact.label}
-                  className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/[0.05] hover:border-slate-700 transition-colors"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-2xs transition-all"
                 >
                   <div className="min-w-0 pr-2">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider font-mono">
@@ -321,12 +328,12 @@ export function Footer({
                         href={contact.href}
                         target={contact.href.startsWith("http") ? "_blank" : undefined}
                         rel={contact.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                        className="text-xs font-semibold text-slate-200 hover:text-[#FF1028] transition-colors truncate block"
+                        className="text-xs font-semibold text-slate-800 hover:text-[#FF1028] transition-colors truncate block"
                       >
                         {contact.value}
                       </a>
                     ) : (
-                      <span className="text-xs font-semibold text-slate-300 truncate block">
+                      <span className="text-xs font-semibold text-slate-800 truncate block">
                         {contact.value}
                       </span>
                     )}
@@ -335,12 +342,12 @@ export function Footer({
                   {contact.copyable && (
                     <button
                       onClick={() => copyToClipboard(contact.value, contact.label)}
-                      className="p-1.5 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-all shrink-0 cursor-pointer relative"
+                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-all shrink-0 cursor-pointer relative"
                       title={`Copy ${contact.label}`}
                       aria-label={`Copy ${contact.label}`}
                     >
                       {copiedKey === contact.label ? (
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 animate-in fade-in">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 animate-in fade-in">
                           <Check className="w-3.5 h-3.5" />
                           <span>{isSpanish ? "Copiado" : "Copied"}</span>
                         </span>
@@ -363,14 +370,14 @@ export function Footer({
                   <div key={section.id} className="space-y-3">
                     
                     {/* Desktop Header */}
-                    <h4 className="hidden md:block font-heading font-black text-xs text-white uppercase tracking-widest border-b border-slate-800/80 pb-2">
+                    <h4 className="hidden md:block font-heading font-extrabold text-xs text-slate-900 uppercase tracking-wider border-b border-slate-200/90 pb-2.5">
                       {section.title}
                     </h4>
 
                     {/* Mobile Accordion Header */}
                     <button
                       onClick={() => setOpenAccordion(isOpen ? null : section.id)}
-                      className="md:hidden w-full flex items-center justify-between py-3 border-b border-slate-800 text-xs font-bold text-white uppercase tracking-wider cursor-pointer"
+                      className="md:hidden w-full flex items-center justify-between py-3 border-b border-slate-200 text-xs font-bold text-slate-900 uppercase tracking-wider cursor-pointer"
                       aria-expanded={isOpen}
                     >
                       <span>{section.title}</span>
@@ -382,23 +389,23 @@ export function Footer({
                     </button>
 
                     {/* Desktop Links List */}
-                    <ul className="hidden md:space-y-2 md:block text-xs text-slate-400">
+                    <ul className="hidden md:space-y-2 md:block text-xs text-slate-500">
                       {section.links.map((link, idx) => (
                         <li key={idx}>
                           <Link
                             href={link.href}
-                            className="hover:text-white transition-all duration-150 flex items-center gap-1.5 group py-0.5"
+                            className="hover:text-[#FF1028] transition-all duration-150 flex items-center gap-1.5 group py-0.5"
                           >
-                            <span className="group-hover:translate-x-1 transition-transform duration-150">
+                            <span className="group-hover:translate-x-1 transition-transform duration-150 text-slate-600 group-hover:text-[#FF1028]">
                               {link.label}
                             </span>
                             {link.badge && (
-                              <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-[#FF1028] text-white uppercase">
+                              <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-red-50 text-[#FF1028] border border-red-200/60 uppercase font-heading">
                                 {link.badge}
                               </span>
                             )}
                             {link.isExternal && (
-                              <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300" />
+                              <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-[#FF1028]" />
                             )}
                           </Link>
                         </li>
@@ -414,17 +421,17 @@ export function Footer({
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2, ease: "easeInOut" }}
-                            className="overflow-hidden space-y-2 text-xs text-slate-400 pt-1 pb-3"
+                            className="overflow-hidden space-y-2 text-xs text-slate-500 pt-1 pb-3"
                           >
                             {section.links.map((link, idx) => (
                               <li key={idx}>
                                 <Link
                                   href={link.href}
-                                  className="hover:text-white transition-colors flex items-center gap-1.5 py-1"
+                                  className="hover:text-[#FF1028] text-slate-600 transition-colors flex items-center gap-1.5 py-1"
                                 >
                                   <span>{link.label}</span>
                                   {link.badge && (
-                                    <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-[#FF1028] text-white uppercase">
+                                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-red-50 text-[#FF1028] border border-red-200/60 uppercase font-heading">
                                       {link.badge}
                                     </span>
                                   )}
@@ -441,13 +448,13 @@ export function Footer({
               })}
             </div>
 
-            {/* Premium Vector App Store Badges (Moved to Right Column) */}
-            <div className="mt-8 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+            {/* Premium Vector App Store Badges */}
+            <div className="mt-8 pt-5 border-t border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block font-mono">
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 block font-mono">
                   {isSpanish ? "App Móvil de Compras" : "Mobile Sourcing App"}
                 </span>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   {isSpanish ? "Abastecimiento directo de fábrica en dispositivos iOS y Android." : "Direct factory sourcing on iOS and Android devices."}
                 </p>
               </div>
@@ -455,25 +462,25 @@ export function Footer({
               <div className="flex items-center gap-2.5 shrink-0">
                 <a
                   href="#app-store"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-slate-600 text-white transition-all group shadow-xs"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-900 transition-all group shadow-2xs"
                   aria-label="Download on App Store"
                 >
-                  <AppleIcon className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                  <AppleIcon className="w-4 h-4 text-slate-900 group-hover:scale-110 transition-transform" />
                   <div className="text-left">
                     <span className="text-[8px] text-slate-400 block leading-none">{isSpanish ? "Descargar en" : "Download on"}</span>
-                    <span className="text-[11px] font-bold font-heading leading-tight">App Store</span>
+                    <span className="text-[11px] font-bold font-heading leading-tight text-slate-900">App Store</span>
                   </div>
                 </a>
 
                 <a
                   href="#google-play"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-slate-600 text-white transition-all group shadow-xs"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-900 transition-all group shadow-2xs"
                   aria-label="Get it on Google Play"
                 >
-                  <GooglePlayIcon className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <GooglePlayIcon className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
                   <div className="text-left">
                     <span className="text-[8px] text-slate-400 block leading-none">{isSpanish ? "Disponible en" : "Get it on"}</span>
-                    <span className="text-[11px] font-bold font-heading leading-tight">Google Play</span>
+                    <span className="text-[11px] font-bold font-heading leading-tight text-slate-900">Google Play</span>
                   </div>
                 </a>
               </div>
@@ -486,44 +493,44 @@ export function Footer({
       {/* ──────────────────────────────────────────────────────────
           TIER 3: MINIMAL UTILITY BAR, PAYMENT BADGES & SOCIAL DOCK
           ────────────────────────────────────────────────────────── */}
-      <div className="border-t border-slate-800/80 bg-[#02050E] py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-6 text-xs text-slate-400">
+      <div className="border-t border-slate-200/80 bg-slate-100/60 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-6 text-xs text-slate-500">
           
           {/* Left: Copyright & Legal Quick Links */}
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-center lg:text-left">
             <span>&copy; {new Date().getFullYear()} Lennox China Mall. {isSpanish ? "Todos los derechos reservados." : "All rights reserved."}</span>
-            <span className="hidden sm:inline text-slate-700">&bull;</span>
-            <Link href="/pages/privacy-policy" className="hover:text-white transition-colors">
+            <span className="hidden sm:inline text-slate-300">&bull;</span>
+            <Link href="/pages/privacy-policy" className="hover:text-slate-900 transition-colors">
               {isSpanish ? "Privacidad" : "Privacy"}
             </Link>
-            <Link href="/pages/terms" className="hover:text-white transition-colors">
+            <Link href="/pages/terms" className="hover:text-slate-900 transition-colors">
               {isSpanish ? "Términos" : "Terms"}
             </Link>
-            <Link href="/pages/shipping-policy" className="hover:text-white transition-colors">
+            <Link href="/pages/shipping-policy" className="hover:text-slate-900 transition-colors">
               {isSpanish ? "Envíos y Aduanas" : "Shipping & Customs"}
             </Link>
           </div>
 
           {/* Center: Sleek Payment Badges */}
           <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] font-mono">
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 text-emerald-400 font-bold flex items-center gap-1">
-              <UsdtBadgeIcon className="w-3 h-3 text-emerald-400" />
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold flex items-center gap-1 shadow-2xs">
+              <UsdtBadgeIcon className="w-3.5 h-3.5 text-emerald-600" />
               <span>USDT (Binance Pay)</span>
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 text-amber-400 font-bold">
+            <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-bold shadow-2xs">
               BTC
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 text-purple-400 font-bold">
+            <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-bold shadow-2xs">
               ETH
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 text-blue-400 font-bold">
+            <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-bold shadow-2xs">
               USDC
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/10 text-slate-300">
+            <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 shadow-2xs">
               {isSpanish ? "Garantía Web3" : "Web3 Escrow"}
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-sans flex items-center gap-1">
-              <Lock className="w-3 h-3" />
+            <span className="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 font-sans flex items-center gap-1 shadow-2xs">
+              <Lock className="w-3 h-3 text-blue-600" />
               <span>256-Bit SSL</span>
             </span>
           </div>
@@ -531,12 +538,12 @@ export function Footer({
           {/* Right: Language Switcher, Social Media Dock & Smooth Back to Top */}
           <div className="flex items-center gap-3">
             {/* Bilingual Switcher */}
-            <div className="flex items-center gap-1 bg-white/[0.06] p-1 rounded-lg border border-white/10 text-xs">
+            <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs text-xs">
               <button
                 type="button"
                 onClick={() => setLocale("en")}
-                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
-                  locale === "en" ? "bg-[#FF1028] text-white shadow-xs" : "text-slate-400 hover:text-white"
+                className={`px-2 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  locale === "en" ? "bg-[#FF1028] text-white shadow-xs" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 EN
@@ -544,15 +551,15 @@ export function Footer({
               <button
                 type="button"
                 onClick={() => setLocale("es")}
-                className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
-                  locale === "es" ? "bg-[#FF1028] text-white shadow-xs" : "text-slate-400 hover:text-white"
+                className={`px-2 py-0.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  locale === "es" ? "bg-[#FF1028] text-white shadow-xs" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
                 ES
               </button>
             </div>
 
-            <div className="h-4 w-px bg-slate-800" />
+            <div className="h-4 w-px bg-slate-200" />
 
             {/* Social Icons */}
             <div className="flex items-center gap-1">
@@ -561,7 +568,7 @@ export function Footer({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Telegram"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all hover:-translate-y-0.5"
+                className="p-2 rounded-lg text-slate-400 hover:text-[#FF1028] hover:bg-white transition-all hover:-translate-y-0.5 border border-transparent hover:border-slate-200 hover:shadow-2xs"
               >
                 <TelegramIcon className="w-4 h-4" />
               </a>
@@ -570,7 +577,7 @@ export function Footer({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all hover:-translate-y-0.5"
+                className="p-2 rounded-lg text-slate-400 hover:text-[#FF1028] hover:bg-white transition-all hover:-translate-y-0.5 border border-transparent hover:border-slate-200 hover:shadow-2xs"
               >
                 <WhatsAppIcon className="w-4 h-4" />
               </a>
@@ -579,7 +586,7 @@ export function Footer({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Twitter X"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all hover:-translate-y-0.5"
+                className="p-2 rounded-lg text-slate-400 hover:text-[#FF1028] hover:bg-white transition-all hover:-translate-y-0.5 border border-transparent hover:border-slate-200 hover:shadow-2xs"
               >
                 <TwitterXIcon className="w-4 h-4" />
               </a>
@@ -588,18 +595,18 @@ export function Footer({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Discord"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all hover:-translate-y-0.5"
+                className="p-2 rounded-lg text-slate-400 hover:text-[#FF1028] hover:bg-white transition-all hover:-translate-y-0.5 border border-transparent hover:border-slate-200 hover:shadow-2xs"
               >
                 <DiscordIcon className="w-4 h-4" />
               </a>
             </div>
 
-            <div className="h-4 w-px bg-slate-800" />
+            <div className="h-4 w-px bg-slate-200" />
 
             {/* Back to Top */}
             <button
               onClick={scrollToTop}
-              className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-white/[0.05] hover:bg-[#FF1028] px-3 py-1.5 rounded-lg border border-white/10 transition-all cursor-pointer group"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-white bg-white hover:bg-[#FF1028] px-3.5 py-1.5 rounded-xl border border-slate-200 hover:border-[#FF1028] shadow-2xs hover:shadow-sm transition-all cursor-pointer group"
               aria-label={isSpanish ? "Volver arriba" : "Scroll back to top"}
             >
               <span>{isSpanish ? "Inicio" : "Top"}</span>
