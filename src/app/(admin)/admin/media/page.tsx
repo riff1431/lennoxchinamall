@@ -14,6 +14,9 @@ import {
   Play,
   ExternalLink,
   Loader2,
+  Database,
+  RefreshCw,
+  CheckCircle2,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminDataTable, Column, FilterOption, BulkAction } from "@/components/admin/AdminDataTable";
@@ -30,7 +33,13 @@ import { MediaDropzone, AnalyzedMediaFile } from "@/components/admin/MediaDropzo
 import { useAdminToast } from "@/hooks/useAdminToast";
 import { formatDate } from "@/utils/helpers";
 import { MOCK_MEDIA, MediaAsset } from "@/lib/mockData";
-import { uploadMediaFile } from "@/app/actions/storage";
+import {
+  uploadMediaFile,
+  uploadRemoteUrlToSupabase,
+  migrateAllMediaToSupabase,
+  getSupabaseStorageHealth,
+  StorageMigrationSummary,
+} from "@/app/actions/storage";
 import { useMediaStore, normalizeAssetType } from "@/store/useMediaStore";
 
 import { createClient as createBrowserSupabaseClient } from "@/lib/supabase/client";
@@ -95,7 +104,7 @@ function getEmbedVideoUrl(url: string): string | null {
 }
 
 async function uploadFileDirect(file: File, bucket = "products", folder = "media"): Promise<string | null> {
-  // Method 1: Server Action pipeline (Cloudinary Media CDN & Supabase Storage)
+  // Method 1: Server Action pipeline (Supabase Storage)
   try {
     const formData = new FormData();
     formData.append("file", file);
@@ -158,6 +167,26 @@ export default function AdminMediaPage() {
   const [isUploadSlideOverOpen, setIsUploadSlideOverOpen] = useState(false);
   const [previewAsset, setPreviewAsset] = useState<MediaAsset | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
+
+  const handleRunMigration = async () => {
+    setIsMigrating(true);
+    toast.info("Scanning and migrating media to Supabase Storage...");
+    try {
+      const summary = await migrateAllMediaToSupabase();
+      if (summary.migrated > 0) {
+        toast.success(`Successfully migrated ${summary.migrated} external media assets to Supabase Storage!`);
+      } else if (summary.total === summary.skipped) {
+        toast.info(`All ${summary.total} media assets are already stored on Supabase Storage.`);
+      } else {
+        toast.warning(`Migration complete: ${summary.migrated} migrated, ${summary.failed} failed.`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Migration failed.");
+    } finally {
+      setIsMigrating(false);
+    }
+  };
 
   // Upload Form Fields
   const [formName, setFormName] = useState("");
@@ -389,6 +418,26 @@ export default function AdminMediaPage() {
       },
     },
     {
+      header: "Storage Provider",
+      accessorKey: "url",
+      cell: (row) => {
+        const isSupabase = row.url.includes("/storage/v1/object/public/") || row.url.includes("supabase.co");
+        if (isSupabase) {
+          return (
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+              <Database className="w-3 h-3 text-emerald-500" />
+              Supabase Storage
+            </span>
+          );
+        }
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-750">
+            External CDN
+          </span>
+        );
+      },
+    },
+    {
       header: "Uploaded Date",
       accessorKey: "uploaded_at",
       sortable: true,
@@ -402,25 +451,51 @@ export default function AdminMediaPage() {
       header: "Actions",
       className: "text-right w-20",
       hideable: false,
-      cell: (row) => (
-        <div className="flex items-center justify-end">
-          <AdminActionMenu
-            itemTitle={`asset "${row.name}"`}
-            onView={() => setPreviewAsset(row)}
-            onDelete={() => handleDeleteAsset(row)}
-            customActions={[
-              {
-                label: "Copy CDN URL",
-                icon: Copy,
-                onClick: () => {
-                  navigator.clipboard.writeText(row.url);
-                  toast.info("Copied CDN URL to clipboard.");
+      cell: (row) => {
+        const isSupabase = row.url.includes("/storage/v1/object/public/") || row.url.includes("supabase.co");
+        return (
+          <div className="flex items-center justify-end">
+            <AdminActionMenu
+              itemTitle={`asset "${row.name}"`}
+              onView={() => setPreviewAsset(row)}
+              onDelete={() => handleDeleteAsset(row)}
+              customActions={[
+                {
+                  label: "Copy CDN URL",
+                  icon: Copy,
+                  onClick: () => {
+                    navigator.clipboard.writeText(row.url);
+                    toast.info("Copied CDN URL to clipboard.");
+                  },
                 },
-              },
-            ]}
-          />
-        </div>
-      ),
+                ...(!isSupabase
+                  ? [
+                      {
+                        label: "Migrate to Supabase",
+                        icon: Database,
+                        onClick: async () => {
+                          toast.info(`Migrating "${row.name}" to Supabase Storage...`);
+                          const res = await uploadRemoteUrlToSupabase(row.url, {
+                            filename: row.name,
+                            folder: row.type === "video" ? "videos" : "media",
+                          });
+                          if (res.success && res.url) {
+                            const updated: MediaAsset = { ...row, url: res.url };
+                            addMediaToStore(updated);
+                            setMediaList((prev) => prev.map((m) => (m.id === row.id ? updated : m)));
+                            toast.success(`"${row.name}" successfully migrated to Supabase Storage!`);
+                          } else {
+                            toast.error(res.error || "Failed to migrate asset.");
+                          }
+                        },
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          </div>
+        );
+      },
     },
   ];
 
@@ -464,6 +539,12 @@ export default function AdminMediaPage() {
           { label: "Media Library" },
         ]}
         actions={[
+          {
+            label: isMigrating ? "Migrating Media..." : "Migrate to Supabase",
+            icon: isMigrating ? Loader2 : RefreshCw,
+            variant: "secondary",
+            onClick: handleRunMigration,
+          },
           {
             label: "Upload Media Asset",
             icon: UploadCloud,
@@ -740,4 +821,3 @@ export default function AdminMediaPage() {
     </div>
   );
 }
-

@@ -3,6 +3,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/session";
 
@@ -23,6 +24,7 @@ export interface CloudinaryUploadResult {
   height?: number;
   bytes?: number;
   resource_type?: string;
+  duration?: number;
   error?: string;
 }
 
@@ -61,6 +63,26 @@ function writeLocalConfigFile(config: CloudinaryConfig): void {
 }
 
 /**
+ * Parses a CLOUDINARY_URL string (e.g. cloudinary://api_key:api_secret@cloud_name)
+ */
+function parseCloudinaryUrl(urlStr: string): Partial<CloudinaryConfig> | null {
+  try {
+    if (!urlStr || !urlStr.startsWith("cloudinary://")) return null;
+    const cleanUrl = urlStr.replace("cloudinary://", "");
+    const [authPart, cloudName] = cleanUrl.split("@");
+    if (!authPart || !cloudName) return null;
+    const [apiKey, apiSecret] = authPart.split(":");
+    return {
+      cloudName: cloudName.trim(),
+      apiKey: (apiKey || "").trim(),
+      apiSecret: (apiSecret || "").trim(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Get active credentials resolving File -> Memory -> DB -> ENV
  */
 export async function getActiveCredentials(): Promise<CloudinaryConfig> {
@@ -71,7 +93,7 @@ export async function getActiveCredentials(): Promise<CloudinaryConfig> {
   }
 
   // 2. Check runtime memory
-  if (runtimeCloudinaryConfig) {
+  if (runtimeCloudinaryConfig && (runtimeCloudinaryConfig.apiKey || runtimeCloudinaryConfig.cloudName)) {
     return runtimeCloudinaryConfig;
   }
 
@@ -93,7 +115,22 @@ export async function getActiveCredentials(): Promise<CloudinaryConfig> {
     // Database table fallback
   }
 
-  // 4. Fallback to process.env
+  // 4. Check CLOUDINARY_URL in process.env
+  if (process.env.CLOUDINARY_URL) {
+    const parsed = parseCloudinaryUrl(process.env.CLOUDINARY_URL);
+    if (parsed && parsed.cloudName) {
+      const config: CloudinaryConfig = {
+        cloudName: parsed.cloudName,
+        apiKey: parsed.apiKey || "",
+        apiSecret: parsed.apiSecret || "",
+        uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET || "",
+      };
+      runtimeCloudinaryConfig = config;
+      return config;
+    }
+  }
+
+  // 5. Fallback to discrete process.env variables
   const cloudName =
     process.env.CLOUDINARY_CLOUD_NAME ||
     process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
@@ -106,6 +143,20 @@ export async function getActiveCredentials(): Promise<CloudinaryConfig> {
 }
 
 /**
+ * Helper to configure the Cloudinary SDK with current active credentials
+ */
+async function configureCloudinarySdk(): Promise<CloudinaryConfig> {
+  const creds = await getActiveCredentials();
+  cloudinary.config({
+    cloud_name: creds.cloudName || "vojfukje",
+    api_key: creds.apiKey || undefined,
+    api_secret: creds.apiSecret || undefined,
+    secure: true,
+  });
+  return creds;
+}
+
+/**
  * Retrieve saved Cloudinary configuration for the Admin UI (with masked secret)
  */
 export async function getCloudinarySettings(): Promise<{
@@ -114,14 +165,19 @@ export async function getCloudinarySettings(): Promise<{
   apiSecret: string;
   uploadPreset: string;
   hasApiSecret: boolean;
+  isConfigured: boolean;
 }> {
   const creds = await getActiveCredentials();
+  const hasSecret = Boolean(creds.apiSecret);
+  const isConfigured = Boolean((creds.apiKey && creds.apiSecret) || creds.uploadPreset);
+
   return {
     cloudName: creds.cloudName || "vojfukje",
     apiKey: creds.apiKey || "",
-    apiSecret: creds.apiSecret ? "••••••••••••••••" : "",
+    apiSecret: hasSecret ? "••••••••••••••••" : "",
     uploadPreset: creds.uploadPreset || "",
-    hasApiSecret: Boolean(creds.apiSecret),
+    hasApiSecret: hasSecret,
+    isConfigured,
   };
 }
 
@@ -183,7 +239,7 @@ export async function saveCloudinarySettings(config: {
 
   return {
     success: true,
-    message: `Cloudinary settings for cloud '${cloudName}' saved and activated!`,
+    message: `Cloudinary settings for cloud '${cloudName}' saved and activated successfully!`,
   };
 }
 
@@ -191,12 +247,13 @@ export async function saveCloudinarySettings(config: {
  * Test connectivity to Cloudinary API and check configuration status.
  */
 export async function testCloudinaryConnection(): Promise<CloudinaryTestResult> {
-  const { cloudName, apiKey, apiSecret } = await getActiveCredentials();
+  const creds = await getActiveCredentials();
+  const { cloudName, apiKey, apiSecret, uploadPreset } = creds;
   const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
   const startTime = Date.now();
 
   try {
+    // Check basic cloud reachability
     const pingUrl = `https://res.cloudinary.com/${cloudName}/image/upload/sample.jpg`;
     const res = await fetch(pingUrl, {
       method: "HEAD",
@@ -205,16 +262,53 @@ export async function testCloudinaryConnection(): Promise<CloudinaryTestResult> 
 
     const latency = Date.now() - startTime;
     const hasFullKeys = Boolean(apiKey && apiSecret);
+    const hasPreset = Boolean(uploadPreset);
+
+    if (hasFullKeys) {
+      // Test authenticated signature validity via SDK ping
+      try {
+        await configureCloudinarySdk();
+        const apiTest = await cloudinary.api.ping();
+        if (apiTest?.status === "ok") {
+          return {
+            success: true,
+            cloudName,
+            status: "healthy",
+            responseTimeMs: latency,
+            message: `Cloud environment '${cloudName}' is fully verified and connected with API credentials (${latency}ms latency).`,
+            endpoint,
+          };
+        }
+      } catch (authErr: any) {
+        return {
+          success: false,
+          cloudName,
+          status: "pending_keys",
+          responseTimeMs: latency,
+          message: `Cloudinary API Authentication failed: ${authErr.message || "Invalid API Key or Secret"}. Please verify credentials.`,
+          endpoint,
+        };
+      }
+    }
 
     if (res.status === 200 || res.status === 404 || res.status === 400) {
+      if (hasPreset) {
+        return {
+          success: true,
+          cloudName,
+          status: "configured",
+          responseTimeMs: latency,
+          message: `Cloud environment '${cloudName}' reachable with upload preset '${uploadPreset}' (${latency}ms latency).`,
+          endpoint,
+        };
+      }
+
       return {
         success: true,
         cloudName,
-        status: hasFullKeys ? "healthy" : "configured",
+        status: "pending_keys",
         responseTimeMs: latency,
-        message: hasFullKeys
-          ? `Cloud environment '${cloudName}' active with API Key & Secret (${latency}ms latency).`
-          : `Cloud environment '${cloudName}' reachable (${latency}ms latency). Add API Key & Secret in Configure modal to enable authenticated uploads.`,
+        message: `Cloud environment '${cloudName}' is reachable (${latency}ms latency). Add your Cloudinary API Key & Secret or an Unsigned Upload Preset to enable uploads.`,
         endpoint,
       };
     } else {
@@ -241,82 +335,226 @@ export async function testCloudinaryConnection(): Promise<CloudinaryTestResult> 
 }
 
 /**
- * Upload a media file to Cloudinary with automatic WebP/AVIF compression and CDN delivery.
+ * Upload a media file (Buffer/File/Blob) to Cloudinary with automatic WebP/AVIF compression and CDN delivery.
+ * Supports large video files, images, and raw documents without in-memory Base64 overhead.
  */
 export async function uploadToCloudinary(formData: FormData): Promise<CloudinaryUploadResult> {
-  const { cloudName, apiKey, apiSecret, uploadPreset } = await getActiveCredentials();
+  const creds = await configureCloudinarySdk();
+  const { cloudName, apiKey, apiSecret, uploadPreset } = creds;
 
-  const file = formData.get("file") as File;
+  const file = formData.get("file") as File | null;
   const folder = (formData.get("folder") as string) || "lennox_chinamall";
 
   if (!file) {
     return { success: false, error: "No file provided for Cloudinary upload." };
   }
 
-  const isVideo = file.type.startsWith("video/");
-  const resourceType = isVideo ? "video" : "image";
-  const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+  const fileExt = (file.name?.split(".").pop() || "").toLowerCase();
+  const videoExtensions = ["mp4", "webm", "mov", "avi", "mkv", "m4v", "flv", "wmv", "3gp", "ogv", "ts", "qt"];
+  const isVideo = file.type?.startsWith("video/") || videoExtensions.includes(fileExt);
+  const isDoc = file.type?.includes("pdf") || ["pdf", "doc", "docx", "txt", "xls", "xlsx", "csv"].includes(fileExt);
+  const resourceType: "video" | "image" | "raw" | "auto" = isVideo ? "video" : isDoc ? "raw" : "image";
 
   try {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const base64Data = `data:${file.type || "image/jpeg"};base64,${buffer.toString("base64")}`;
 
-    const timestamp = Math.round(Date.now() / 1000);
-    const cloudFormData = new FormData();
-    cloudFormData.append("file", base64Data);
-    cloudFormData.append("folder", folder);
-
+    // 1. Signed upload using Cloudinary SDK (High performance stream, handles large QC videos & high-res images)
     if (apiKey && apiSecret) {
-      // Signed upload with SHA-1 signature
-      // Parameters to sign in alphabetical order: folder, timestamp
-      const paramsToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
-      const signature = crypto.createHash("sha1").update(paramsToSign).digest("hex");
+      const uploadResult = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: resourceType,
+            use_filename: true,
+            unique_filename: true,
+            overwrite: false,
+            // Automatic optimization transformations
+            transformation: resourceType === "image" ? [{ quality: "auto", fetch_format: "auto" }] : undefined,
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
 
-      cloudFormData.append("api_key", apiKey);
-      cloudFormData.append("timestamp", timestamp.toString());
-      cloudFormData.append("signature", signature);
-    } else if (uploadPreset) {
-      // Unsigned upload preset
+        uploadStream.end(buffer);
+      });
+
+      return {
+        success: true,
+        url: uploadResult.secure_url || uploadResult.url,
+        secure_url: uploadResult.secure_url,
+        public_id: uploadResult.public_id,
+        format: (uploadResult.format || fileExt).toUpperCase(),
+        width: uploadResult.width,
+        height: uploadResult.height,
+        bytes: uploadResult.bytes || buffer.length,
+        resource_type: uploadResult.resource_type,
+        duration: uploadResult.duration,
+      };
+    }
+
+    // 2. Unsigned upload preset via Cloudinary REST API
+    if (uploadPreset) {
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType === "raw" ? "raw" : isVideo ? "video" : "image"}/upload`;
+      const cloudFormData = new FormData();
+      
+      // Send binary blob directly instead of base64 to avoid memory bloat
+      const blob = new Blob([buffer], { type: file.type || "application/octet-stream" });
+      cloudFormData.append("file", blob, file.name);
       cloudFormData.append("upload_preset", uploadPreset);
-    } else {
+      if (folder) {
+        cloudFormData.append("folder", folder);
+      }
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: cloudFormData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.warn("Cloudinary unsigned upload failed:", data);
+        return {
+          success: false,
+          error: data?.error?.message || `Cloudinary upload failed with status ${response.status}`,
+        };
+      }
+
       return {
-        success: false,
-        error: "Cloudinary API Key & Secret or Upload Preset is required for direct upload.",
+        success: true,
+        url: data.secure_url || data.url,
+        secure_url: data.secure_url,
+        public_id: data.public_id,
+        format: (data.format || fileExt).toUpperCase(),
+        width: data.width,
+        height: data.height,
+        bytes: data.bytes || buffer.length,
+        resource_type: data.resource_type,
+        duration: data.duration,
       };
     }
 
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      body: cloudFormData,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.warn("Cloudinary upload API response error:", data);
-      return {
-        success: false,
-        error: data?.error?.message || `Cloudinary upload failed with status ${response.status}`,
-      };
-    }
-
+    // 3. Neither keys nor preset configured
     return {
-      success: true,
-      url: data.secure_url || data.url,
-      secure_url: data.secure_url,
-      public_id: data.public_id,
-      format: data.format,
-      width: data.width,
-      height: data.height,
-      bytes: data.bytes,
-      resource_type: data.resource_type,
+      success: false,
+      error: `Cloudinary API Key & Secret or an Unsigned Upload Preset is required to upload to cloud '${cloudName}'. Please configure credentials in Admin Integrations or Media Settings.`,
     };
   } catch (err: any) {
     console.error("Cloudinary upload caught exception:", err);
     return {
       success: false,
       error: err.message || "Failed to upload to Cloudinary",
+    };
+  }
+}
+
+/**
+ * Upload an existing remote URL (e.g. Unsplash, legacy CDN, or external video) directly into Cloudinary CDN.
+ */
+export async function uploadRemoteUrlToCloudinary(
+  remoteUrl: string,
+  options: {
+    folder?: string;
+    publicId?: string;
+    resourceType?: "auto" | "image" | "video" | "raw";
+  } = {}
+): Promise<CloudinaryUploadResult> {
+  const creds = await configureCloudinarySdk();
+  const { cloudName, apiKey, apiSecret, uploadPreset } = creds;
+  const folder = options.folder || "lennox_chinamall";
+
+  if (!remoteUrl || !remoteUrl.startsWith("http")) {
+    return { success: false, error: "Invalid remote URL provided for Cloudinary upload." };
+  }
+
+  // If already hosted on this Cloudinary cloud, return as-is
+  if (remoteUrl.includes(`res.cloudinary.com/${cloudName}`)) {
+    return {
+      success: true,
+      url: remoteUrl,
+      secure_url: remoteUrl,
+      public_id: options.publicId,
+    };
+  }
+
+  const isVideo =
+    /\.(mp4|webm|mov|avi|mkv|m4v)(\?.*)?$/i.test(remoteUrl) ||
+    remoteUrl.includes("/storage/hero-ad/");
+  const resourceType = options.resourceType || (isVideo ? "video" : "auto");
+
+  try {
+    if (apiKey && apiSecret) {
+      const result = await cloudinary.uploader.upload(remoteUrl, {
+        folder,
+        public_id: options.publicId,
+        resource_type: resourceType,
+        use_filename: true,
+        unique_filename: true,
+      });
+
+      return {
+        success: true,
+        url: result.secure_url || result.url,
+        secure_url: result.secure_url,
+        public_id: result.public_id,
+        format: (result.format || (isVideo ? "MP4" : "JPG")).toUpperCase(),
+        width: result.width,
+        height: result.height,
+        bytes: result.bytes,
+        resource_type: result.resource_type,
+        duration: result.duration,
+      };
+    }
+
+    if (uploadPreset) {
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType === "video" ? "video" : "image"}/upload`;
+      const cloudFormData = new FormData();
+      cloudFormData.append("file", remoteUrl);
+      cloudFormData.append("upload_preset", uploadPreset);
+      if (folder) cloudFormData.append("folder", folder);
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: cloudFormData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data?.error?.message || `Cloudinary remote URL migration failed with status ${response.status}`,
+        };
+      }
+
+      return {
+        success: true,
+        url: data.secure_url || data.url,
+        secure_url: data.secure_url,
+        public_id: data.public_id,
+        format: data.format,
+        width: data.width,
+        height: data.height,
+        bytes: data.bytes,
+        resource_type: data.resource_type,
+        duration: data.duration,
+      };
+    }
+
+    return {
+      success: false,
+      error: `Cloudinary credentials required to migrate remote URL '${remoteUrl}' into Cloudinary.`,
+    };
+  } catch (err: any) {
+    console.error("Cloudinary remote URL upload exception:", err);
+    return {
+      success: false,
+      error: err.message || "Failed to upload remote URL to Cloudinary",
     };
   }
 }

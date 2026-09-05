@@ -97,9 +97,23 @@ export function AdminUploader({
           const uploadedUrl = await onUpload(file);
           newUrls.push(uploadedUrl);
         } else {
-          // Read and compress image to avoid exceeding localStorage quota
-          const dataUrl = await compressImageFile(file, 1200, 1200, 0.82);
-          newUrls.push(dataUrl);
+          try {
+            const { uploadMediaFile } = await import("@/app/actions/storage");
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("bucket", "products");
+            formData.append("folder", "products");
+            const res = await uploadMediaFile(formData);
+            if (res.success && res.url) {
+              newUrls.push(res.url);
+            } else {
+              const dataUrl = await compressImageFile(file, 1200, 1200, 0.82);
+              newUrls.push(dataUrl);
+            }
+          } catch {
+            const dataUrl = await compressImageFile(file, 1200, 1200, 0.82);
+            newUrls.push(dataUrl);
+          }
         }
       } catch (err: unknown) {
         console.error("Upload error:", err);

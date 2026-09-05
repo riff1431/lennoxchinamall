@@ -5,8 +5,8 @@ import { cookies } from 'next/headers'
  * If using Fluid compute: Don't put this client in a global variable. Always create a new client within each
  * function when using it.
  */
-const DEFAULT_SUPABASE_URL = "https://kdekxqbdkjdfjyyprhbv.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_CdurTHAw3sfYD_abMIBjyA_HA_iXUGY";
+const DEFAULT_SUPABASE_URL = "https://pdeooqamevjpkcnaokac.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_VrhH_5jPc0_aS1vVda0GLA_Hek5bdF2";
 
 export async function createClient() {
   let cookieStore: any = null;
