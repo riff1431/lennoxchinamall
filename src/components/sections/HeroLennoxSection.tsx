@@ -312,7 +312,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
             • Desktop: 6 Cols
             • Mobile: Smooth swipeable row or 2-col responsive touch cards
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-between gap-3 sm:gap-3.5">
+        <div className="lg:col-span-6 xl:col-span-6 flex flex-col gap-3 sm:gap-3.5">
           {/* Top Showcase Promo Banner */}
           <Link
             href={activeBanner.link || "/categories/consumer-electronics"}
@@ -359,14 +359,14 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
 
           {/* Bottom Row: Continuous Carousel (3 Products per view on Desktop) */}
           <div
-            className="relative flex-1 group/deals select-none -mx-1 px-1"
+            className="relative flex-1 flex flex-col group/deals select-none -mx-1 px-1"
             onMouseEnter={() => setIsDealsPaused(true)}
             onMouseLeave={() => setIsDealsPaused(false)}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
             {/* Viewport */}
-            <div className="overflow-hidden py-1 px-0.5 h-full">
+            <div className="overflow-hidden flex-1 px-0.5">
               <div
                 className={`flex h-full ${
                   dealsWithTransition
