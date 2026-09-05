@@ -35,12 +35,16 @@ export function BrandLogo({
   const storeDark = useSettingsStore((s) => s.settings.branding?.dark_logo_url);
   const storeName = useSettingsStore((s) => s.settings.store_info?.store_name) || "Lennox ChinaMall";
 
+  const defaultWhiteLogo = "/logo-lennoxchinamall-white.png";
+  const defaultPrimaryLogo = DEFAULT_STORE_SETTINGS.branding.primary_logo_url;
+
   const [hasError, setHasError] = useState(false);
 
   const resolvedUrl =
     customUrl ||
-    (variant === "dark" ? storeDark || storePrimary : storePrimary) ||
-    DEFAULT_STORE_SETTINGS.branding.primary_logo_url;
+    (variant === "dark"
+      ? (storeDark && storeDark !== storePrimary ? storeDark : null) || defaultWhiteLogo
+      : storePrimary || defaultPrimaryLogo);
 
   // Reset error state if the URL changes
   React.useEffect(() => {
@@ -50,7 +54,9 @@ export function BrandLogo({
   const logoAlt = alt || `${storeName} Logo`;
 
   // Fallback if the URL failed to load
-  const activeSrc = hasError ? DEFAULT_STORE_SETTINGS.branding.primary_logo_url : resolvedUrl;
+  const activeSrc = hasError
+    ? (variant === "dark" ? defaultWhiteLogo : defaultPrimaryLogo)
+    : resolvedUrl;
 
   const isDirectUrl =
     activeSrc.startsWith("data:") ||

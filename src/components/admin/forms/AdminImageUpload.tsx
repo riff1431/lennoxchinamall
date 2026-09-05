@@ -32,6 +32,7 @@ export interface AdminImageUploadProps {
   previewShape?: "rectangle" | "square" | "circle";
   aspectRatioTip?: string;
   placeholder?: string;
+  defaultBgMode?: "checker" | "dark" | "light";
   className?: string;
   disabled?: boolean;
   required?: boolean;
@@ -49,6 +50,7 @@ export function AdminImageUpload({
   previewShape = "rectangle",
   aspectRatioTip,
   placeholder = "https://... or /logo.png",
+  defaultBgMode = "checker",
   className = "",
   disabled = false,
   required = false,
@@ -60,7 +62,7 @@ export function AdminImageUpload({
   const [showManualUrl, setShowManualUrl] = useState(false);
   const [copied, setCopied] = useState(false);
   const [imageMeta, setImageMeta] = useState<{ dimensions?: string; size?: string; format?: string } | null>(null);
-  const [bgMode, setBgMode] = useState<"checker" | "dark" | "light">("checker");
+  const [bgMode, setBgMode] = useState<"checker" | "dark" | "light">(defaultBgMode);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const dropZoneRef = useRef<HTMLDivElement | null>(null);

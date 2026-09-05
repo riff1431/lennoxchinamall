@@ -32,10 +32,11 @@ interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   logoUrl: string;
+  darkLogoUrl?: string;
   storeName: string;
 }
 
-export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDrawerProps) {
+export function MobileDrawer({ isOpen, onClose, logoUrl, darkLogoUrl, storeName }: MobileDrawerProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, role, displayName } = useAuth();
@@ -127,7 +128,8 @@ export function MobileDrawer({ isOpen, onClose, logoUrl, storeName }: MobileDraw
               <div className="flex items-center justify-between pb-4 border-b border-slate-200">
                 <Link href="/" onClick={onClose} className="shrink-0 cursor-pointer">
                   <div className="relative h-12 w-[165px]">
-                    <Image src={logoUrl} alt={`${storeName} Logo`} fill sizes="165px" className="object-contain object-left" />
+                    <Image src={logoUrl} alt={`${storeName} Logo`} fill sizes="165px" className="object-contain object-left dark:hidden" />
+                    <Image src={darkLogoUrl || logoUrl} alt={`${storeName} Logo`} fill sizes="165px" className="object-contain object-left hidden dark:block" />
                   </div>
                 </Link>
                 <button

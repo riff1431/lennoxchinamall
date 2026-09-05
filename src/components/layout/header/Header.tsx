@@ -47,9 +47,13 @@ export function Header({
   const hotTags = getLocalizedHotSearchTags(isSpanish);
 
   const settingsLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url);
+  const settingsDarkLogo = useSettingsStore((s) => s.settings.branding?.dark_logo_url);
   const settingsStoreName = useSettingsStore((s) => s.settings.store_info?.store_name);
 
   const effectiveLogo = logoUrl || settingsLogo || "/logo-lennoxchinamall.png";
+  const effectiveDarkLogo =
+    (settingsDarkLogo && settingsDarkLogo !== settingsLogo ? settingsDarkLogo : null) ||
+    "/logo-lennoxchinamall-white.png";
   const effectiveStoreName = storeName || settingsStoreName || SITE_NAME;
 
   // Scroll state for sticky glassmorphism
@@ -216,9 +220,18 @@ export function Header({
                   alt={`${effectiveStoreName} Logo`}
                   fill
                   sizes="(max-width: 640px) 145px, (max-width: 1024px) 240px, 280px"
-                  className="object-contain object-left"
+                  className="object-contain object-left dark:hidden"
                   priority
                   unoptimized={effectiveLogo.startsWith("data:") || effectiveLogo.startsWith("blob:") || effectiveLogo.startsWith("http")}
+                />
+                <Image
+                  src={effectiveDarkLogo}
+                  alt={`${effectiveStoreName} Logo`}
+                  fill
+                  sizes="(max-width: 640px) 145px, (max-width: 1024px) 240px, 280px"
+                  className="object-contain object-left hidden dark:block"
+                  priority
+                  unoptimized={effectiveDarkLogo.startsWith("data:") || effectiveDarkLogo.startsWith("blob:") || effectiveDarkLogo.startsWith("http")}
                 />
               </div>
             </Link>
@@ -396,6 +409,7 @@ export function Header({
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         logoUrl={effectiveLogo}
+        darkLogoUrl={effectiveDarkLogo}
         storeName={effectiveStoreName}
       />
     </header>

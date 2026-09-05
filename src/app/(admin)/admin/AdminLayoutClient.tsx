@@ -402,7 +402,6 @@ export function AdminLayoutClient({
 }: AdminLayoutClientProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const adminLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
   const adminStoreName = useSettingsStore((s) => s.settings.store_info?.store_name) || "Lennox ChinaMall";
 
   // Route Progress bar feedback
@@ -430,6 +429,12 @@ export function AdminLayoutClient({
 
   // Dark Mode
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+
+  // Dynamic logos for light and dark admin modes
+  const primaryLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url) || "/logo-lennoxchinamall.png";
+  const darkLogo = useSettingsStore((s) => s.settings.branding?.dark_logo_url);
+  const effectiveDarkLogo = (darkLogo && darkLogo !== primaryLogo ? darkLogo : null) || "/logo-lennoxchinamall-white.png";
+  const adminLogo = isDarkMode ? effectiveDarkLogo : primaryLogo;
 
   // Hydrate persistent state from localStorage after mount to prevent SSR hydration mismatch
   useEffect(() => {

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { SITE_NAME } from "@/lib/constants";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { BrandLogo } from "@/components/common/BrandLogo";
 import { subscribeNewsletter, NewsletterResult } from "@/app/actions/newsletter";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import {
@@ -106,10 +107,8 @@ export function Footer({
   sections = FOOTER_SECTIONS,
 }: FooterProps = {}) {
   const { locale, setLocale, t, isSpanish } = useTranslation();
-  const settingsLogo = useSettingsStore((s) => s.settings.branding?.primary_logo_url);
   const settingsStoreName = useSettingsStore((s) => s.settings.store_info?.store_name);
 
-  const effectiveLogo = logoUrl || settingsLogo || "/logo-lennoxchinamall.png";
   const effectiveStoreName = storeName || settingsStoreName || SITE_NAME;
 
   const [email, setEmail] = useState("");
@@ -289,14 +288,12 @@ export function Footer({
           <div className="lg:col-span-4 space-y-5">
             <Link href="/" className="inline-block group focus:outline-none">
               <div className="relative h-12 w-[180px] sm:h-14 sm:w-[220px] group-hover:scale-[1.02] transition-transform">
-                <Image
-                  src={effectiveLogo}
-                  alt={`${effectiveStoreName} Logo`}
-                  fill
-                  sizes="(max-width: 640px) 180px, 220px"
-                  className="object-contain object-left"
+                <BrandLogo
+                  variant="dark"
+                  customUrl={logoUrl}
                   priority
-                  unoptimized={effectiveLogo.startsWith("data:") || effectiveLogo.startsWith("blob:")}
+                  sizes="(max-width: 640px) 180px, 220px"
+                  imageClassName="object-contain object-left"
                 />
               </div>
             </Link>

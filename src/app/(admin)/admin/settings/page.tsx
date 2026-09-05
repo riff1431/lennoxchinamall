@@ -416,9 +416,9 @@ export default function AdminSettingsPage() {
           >
             <div className="space-y-5 text-xs">
               <AdminImageUpload
-                label="Primary Storefront Logo"
-                aspectRatioTip="240×60px transparent SVG or PNG"
-                helperText="Brand emblem shown on header and preloader"
+                label="Primary Storefront Logo (Light Backgrounds)"
+                aspectRatioTip="240×60px transparent SVG or PNG (Dark lettering)"
+                helperText="Brand emblem shown on light storefront header, invoice, and emails"
                 value={settings.branding.primary_logo_url}
                 onChange={(url) => updateDomainField("branding", "primary_logo_url", url)}
                 bucket={settings.storage.banners_bucket || "products"}
@@ -426,6 +426,21 @@ export default function AdminSettingsPage() {
                 maxSizeMB={settings.storage.max_image_mb || 20}
                 placeholder="/logo-lennoxchinamall.png or https://..."
                 previewShape="rectangle"
+                defaultBgMode="light"
+              />
+
+              <AdminImageUpload
+                label="White / Dark-Mode Storefront Logo (Dark Backgrounds & Footer)"
+                aspectRatioTip="240×60px transparent SVG or PNG (White / Inverted lettering)"
+                helperText="Brand emblem displayed on dark footer, dark mode header, and dark sidebar"
+                value={settings.branding.dark_logo_url}
+                onChange={(url) => updateDomainField("branding", "dark_logo_url", url)}
+                bucket={settings.storage.banners_bucket || "products"}
+                folder="branding"
+                maxSizeMB={settings.storage.max_image_mb || 20}
+                placeholder="/logo-lennoxchinamall-white.png or https://..."
+                previewShape="rectangle"
+                defaultBgMode="dark"
               />
 
               <AdminImageUpload
