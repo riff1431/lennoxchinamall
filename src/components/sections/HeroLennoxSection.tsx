@@ -316,7 +316,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
           {/* Top Showcase Promo Banner */}
           <Link
             href={activeBanner.link || "/categories/consumer-electronics"}
-            className="group relative w-full h-[180px] sm:h-[230px] md:h-[260px] lg:h-[285px] rounded-xl overflow-hidden bg-gradient-to-r from-[#002661] via-[#0048B3] to-[#007AFF] border border-blue-400/20 shadow-xs flex items-center justify-center block hover:shadow-[0_0_24px_rgba(0,122,255,0.25)] transition-all duration-300"
+            className="group relative w-full shrink-0 h-[180px] sm:h-[230px] md:h-[260px] lg:h-[285px] rounded-xl overflow-hidden bg-gradient-to-r from-[#002661] via-[#0048B3] to-[#007AFF] border border-blue-400/20 shadow-xs flex items-center justify-center block hover:shadow-[0_0_24px_rgba(0,122,255,0.25)] transition-all duration-300"
           >
             {/* High-Impact Hero Showcase Graphic */}
             <Image
@@ -359,7 +359,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
 
           {/* Bottom Row: Continuous Carousel (3 Products per view on Desktop) */}
           <div
-            className="relative group/deals select-none -mx-1 px-1"
+            className="relative flex-1 group/deals select-none -mx-1 px-1"
             onMouseEnter={() => setIsDealsPaused(true)}
             onMouseLeave={() => setIsDealsPaused(false)}
             onTouchStart={handleTouchStart}
@@ -523,7 +523,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
             • Desktop: 3 Cols (2 stacked square cards)
             • Mobile/Tablet: 2 side-by-side video cards
         ══════════════════════════════════════════════════════════════ */}
-        <div className="lg:col-span-3 xl:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-3.5">
+        <div className="lg:col-span-3 xl:col-span-3 grid grid-cols-2 lg:grid-cols-1 lg:flex lg:flex-col gap-3 sm:gap-3.5">
           {/* Top Video Card (Canton Export Fair) */}
           <div
             onClick={() =>
