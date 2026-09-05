@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { UserRole, AccountStatus } from "@/types/database";
 import { ADMIN_ROLES, ROLE_PERMISSIONS, AdminSection } from "@/lib/auth/roles";
 import { getSafeRedirectUrl } from "@/utils/security";
+import { getSupabaseUrl, getSupabasePublishableKey } from "@/lib/supabase/config";
 
 /**
  * Lennox ChinaMall — Edge Middleware
@@ -26,10 +27,8 @@ export async function middleware(request: NextRequest) {
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const supabaseUrl = getSupabaseUrl();
+  const supabaseKey = getSupabasePublishableKey();
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {

@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
+import { getSupabaseUrl, getSupabaseAnonKey, VALID_STORAGE_BUCKETS } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
 
 const DEFAULT_BUCKET = "products";
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pdeooqamevjpkcnaokac.supabase.co";
-const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZW9vcWFtZXZqcGtjbmFva2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzQ0MTIsImV4cCI6MjEwMzc1MDQxMn0.cYikKs8ea3SxeIV1q99p6vO5-AlQD9SRlQk-XKHoDNU";
 
 function getMimeType(fileExt: string, isVideo: boolean): string {
   switch (fileExt) {
@@ -54,8 +51,13 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    const bucket = (formData.get("bucket") as string) || DEFAULT_BUCKET;
+    const requestedBucket = (formData.get("bucket") as string) || DEFAULT_BUCKET;
     const folder = (formData.get("folder") as string) || "branding";
+
+    // Normalize target bucket to valid buckets in Supabase
+    let targetBucket = VALID_STORAGE_BUCKETS.includes(requestedBucket as any)
+      ? requestedBucket
+      : DEFAULT_BUCKET;
 
     if (!file) {
       return NextResponse.json(
@@ -89,21 +91,35 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload directly to Supabase Storage REST API (guaranteed cross-platform reliability)
+    const supabaseUrl = getSupabaseUrl();
+    const supabaseAnonKey = getSupabaseAnonKey();
+
+    // Upload directly to Supabase Storage REST API
     const cleanFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
     const storagePath = `${folder}/${cleanFileName}`;
-    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${bucket}/${storagePath}`;
 
-    const res = await fetch(uploadUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
-        "Content-Type": contentType,
-        "x-upsert": "true",
-      },
-      body: buffer,
-    });
+    async function attemptUpload(bucketName: string) {
+      const uploadUrl = `${supabaseUrl}/storage/v1/object/${bucketName}/${storagePath}`;
+      return fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${supabaseAnonKey}`,
+          apikey: supabaseAnonKey,
+          "Content-Type": contentType,
+          "x-upsert": "true",
+        },
+        body: buffer,
+      });
+    }
+
+    let res = await attemptUpload(targetBucket);
+
+    // If bucket doesn't exist or returns NoSuchBucket/404, fallback to DEFAULT_BUCKET
+    if (!res.ok && targetBucket !== DEFAULT_BUCKET) {
+      console.warn(`Upload to bucket '${targetBucket}' failed (${res.status}), retrying with default bucket '${DEFAULT_BUCKET}'`);
+      targetBucket = DEFAULT_BUCKET;
+      res = await attemptUpload(targetBucket);
+    }
 
     if (!res.ok) {
       const errText = await res.text();
@@ -114,7 +130,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/${targetBucket}/${storagePath}`;
 
     return NextResponse.json({
       success: true,

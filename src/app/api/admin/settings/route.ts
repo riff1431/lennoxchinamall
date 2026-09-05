@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { revalidatePath } from "next/cache";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pdeooqamevjpkcnaokac.supabase.co";
-const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZW9vcWFtZXZqcGtjbmFva2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzQ0MTIsImV4cCI6MjEwMzc1MDQxMn0.cYikKs8ea3SxeIV1q99p6vO5-AlQD9SRlQk-XKHoDNU";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,13 +25,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabaseUrl = getSupabaseUrl();
+    const supabaseAnonKey = getSupabaseAnonKey();
+
     // Direct PostgREST upsert to public.store_settings (bypasses SSR cookie edge cases)
-    const restUrl = `${SUPABASE_URL}/rest/v1/store_settings`;
+    const restUrl = `${supabaseUrl}/rest/v1/store_settings`;
     const dbRes = await fetch(restUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        apikey: supabaseAnonKey,
         "Content-Type": "application/json",
         Prefer: "resolution=merge-duplicates",
       },

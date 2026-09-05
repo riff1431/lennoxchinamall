@@ -12,6 +12,7 @@ import {
   writeLocalSettingsDomain,
   mergeSettings,
 } from "@/lib/settings-storage";
+import { getSupabaseUrl, getSupabaseAnonKey } from "@/lib/supabase/config";
 
 // Helper to get available Supabase client
 function getDatabaseClient() {
@@ -38,16 +39,14 @@ export async function getCompleteStoreSettings(): Promise<{
     const fileSettings = readLocalSettings();
 
     let dbRows: { key: string; value: any }[] = [];
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pdeooqamevjpkcnaokac.supabase.co";
-    const SUPABASE_ANON_KEY =
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZW9vcWFtZXZqcGtjbmFva2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzQ0MTIsImV4cCI6MjEwMzc1MDQxMn0.cYikKs8ea3SxeIV1q99p6vO5-AlQD9SRlQk-XKHoDNU";
+    const supabaseUrl = getSupabaseUrl();
+    const supabaseAnonKey = getSupabaseAnonKey();
 
     try {
-      const apiRes = await fetch(`${SUPABASE_URL}/rest/v1/store_settings?select=key,value`, {
+      const apiRes = await fetch(`${supabaseUrl}/rest/v1/store_settings?select=key,value`, {
         headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${supabaseAnonKey}`,
+          apikey: supabaseAnonKey,
         },
         cache: "no-store",
       });

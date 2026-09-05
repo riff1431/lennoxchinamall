@@ -1,14 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { getSupabaseUrl, getSupabaseAnonKey } from '@/lib/supabase/config'
 
 /**
  * If using Fluid compute: Don't put this client in a global variable. Always create a new client within each
  * function when using it.
  */
-const DEFAULT_SUPABASE_URL = "https://pdeooqamevjpkcnaokac.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZW9vcWFtZXZqcGtjbmFva2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzQ0MTIsImV4cCI6MjEwMzc1MDQxMn0.cYikKs8ea3SxeIV1q99p6vO5-AlQD9SRlQk-XKHoDNU";
-
 export async function createClient() {
   let cookieStore: any = null;
   try {
@@ -17,11 +14,8 @@ export async function createClient() {
     // Called outside request scope
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const key =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    DEFAULT_SUPABASE_ANON_KEY;
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
 
   return createServerClient(
     url,
@@ -57,7 +51,7 @@ export async function createClient() {
  */
 export function createServiceClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const supabaseUrl = getSupabaseUrl();
 
   // If service role key is not configured or is placeholder, fall back to anon key safely
   const hasValidServiceKey =
@@ -66,11 +60,7 @@ export function createServiceClient() {
     !serviceKey.includes("your-supabase-service-role-key") &&
     serviceKey.length > 20;
 
-  const key = hasValidServiceKey
-    ? serviceKey
-    : (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-       DEFAULT_SUPABASE_ANON_KEY);
+  const key = hasValidServiceKey ? serviceKey : getSupabaseAnonKey();
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createClient: createSupabaseClient } = require("@supabase/supabase-js");

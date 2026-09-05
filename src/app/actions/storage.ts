@@ -114,16 +114,31 @@ export async function uploadMediaFile(formData: FormData): Promise<SupabaseUploa
     const supabase = serviceClient || (await createClient());
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
 
-    const { data, error } = await supabase.storage
-      .from(bucket)
+    let targetBucket = bucket || "products";
+    let { data, error } = await supabase.storage
+      .from(targetBucket)
       .upload(fileName, buffer, {
         contentType,
         upsert: true,
       });
 
+    // If bucket was not found, retry with default 'products' bucket
+    if (error && targetBucket !== "products") {
+      console.warn(`Supabase Storage upload to '${targetBucket}' failed: ${error.message}. Retrying with 'products' bucket.`);
+      targetBucket = "products";
+      const retryResult = await supabase.storage
+        .from(targetBucket)
+        .upload(fileName, buffer, {
+          contentType,
+          upsert: true,
+        });
+      data = retryResult.data;
+      error = retryResult.error;
+    }
+
     if (!error && data?.path) {
       const { data: publicUrlData } = supabase.storage
-        .from(bucket)
+        .from(targetBucket)
         .getPublicUrl(data.path);
 
       if (publicUrlData?.publicUrl) {
