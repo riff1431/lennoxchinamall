@@ -890,7 +890,7 @@ export function AdminLayoutClient({
                   sizes="40px"
                   className="object-contain p-0.5"
                   priority
-                  unoptimized={adminLogo.startsWith("data:") || adminLogo.startsWith("blob:")}
+                  unoptimized={adminLogo.startsWith("data:") || adminLogo.startsWith("blob:") || adminLogo.startsWith("http")}
                 />
               </div>
 
@@ -1187,7 +1187,7 @@ export function AdminLayoutClient({
                       fill
                       sizes="36px"
                       className="object-contain p-0.5"
-                      unoptimized={adminLogo.startsWith("data:") || adminLogo.startsWith("blob:")}
+                      unoptimized={adminLogo.startsWith("data:") || adminLogo.startsWith("blob:") || adminLogo.startsWith("http")}
                     />
                   </div>
                   <div>

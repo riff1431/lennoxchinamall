@@ -29,27 +29,19 @@ export function DynamicFavicon({ initialSettings }: DynamicFaviconProps = {}) {
 
     if (!faviconUrl || typeof document === "undefined") return;
 
-    // Helper to update or create link tag
+    // Helper to update or create link tag (removing old link forces browser icon reload)
     const updateOrCreateLink = (rel: string) => {
-      const links = document.querySelectorAll<HTMLLinkElement>(`link[rel='${rel}']`);
-      if (links.length > 0) {
-        links.forEach((link) => {
-          link.href = faviconUrl;
-          if (faviconUrl.includes(".ico")) link.type = "image/x-icon";
-          else if (faviconUrl.includes(".png")) link.type = "image/png";
-          else if (faviconUrl.includes(".svg")) link.type = "image/svg+xml";
-          else if (faviconUrl.includes(".webp")) link.type = "image/webp";
-        });
-      } else {
-        const link = document.createElement("link");
-        link.rel = rel;
-        link.href = faviconUrl;
-        if (faviconUrl.includes(".ico")) link.type = "image/x-icon";
-        else if (faviconUrl.includes(".png")) link.type = "image/png";
-        else if (faviconUrl.includes(".svg")) link.type = "image/svg+xml";
-        else if (faviconUrl.includes(".webp")) link.type = "image/webp";
-        document.head.appendChild(link);
-      }
+      const existing = document.querySelectorAll<HTMLLinkElement>(`link[rel='${rel}']`);
+      existing.forEach((el) => el.remove());
+
+      const link = document.createElement("link");
+      link.rel = rel;
+      link.href = faviconUrl;
+      if (faviconUrl.includes(".ico")) link.type = "image/x-icon";
+      else if (faviconUrl.includes(".png")) link.type = "image/png";
+      else if (faviconUrl.includes(".svg")) link.type = "image/svg+xml";
+      else if (faviconUrl.includes(".webp")) link.type = "image/webp";
+      document.head.appendChild(link);
     };
 
     updateOrCreateLink("icon");

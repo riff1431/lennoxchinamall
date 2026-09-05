@@ -100,47 +100,74 @@ export default function AdminSettingsPage() {
   };
 
 
+  // Persist domain helper with API route priority
+  const persistDomain = async (domain: string, payload: any) => {
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain, payload }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) return data;
+      }
+    } catch (err) {
+      console.warn("API settings save fallback to server action:", err);
+    }
+    return updateSettingsDomain(domain, payload);
+  };
+
   // Save active tab bundle
   const handleSaveActiveTab = async () => {
     setIsSaving(true);
     const saveResults: { success: boolean; message?: string; error?: string }[] = [];
 
-    if (activeTab === "store_info") {
-      saveResults.push(await updateSettingsDomain("store_info", settings.store_info));
-      saveResults.push(await updateSettingsDomain("tax_customs", settings.tax_customs));
-    } else if (activeTab === "branding") {
-      saveResults.push(await updateSettingsDomain("branding", settings.branding));
-      saveResults.push(await updateSettingsDomain("storage", settings.storage));
-    } else if (activeTab === "currencies_shipping") {
-      saveResults.push(await updateSettingsDomain("currencies", settings.currencies));
-      saveResults.push(await updateSettingsDomain("shipping_zones", settings.shipping_zones));
-      saveResults.push(await updateSettingsDomain("localization", settings.localization));
-    } else if (activeTab === "orders_invoice") {
-      saveResults.push(await updateSettingsDomain("order_workflow", settings.order_workflow));
-      saveResults.push(await updateSettingsDomain("invoice", settings.invoice));
-    } else if (activeTab === "email_notifications") {
-      saveResults.push(await updateSettingsDomain("email_templates", settings.email_templates));
-      saveResults.push(await updateSettingsDomain("notifications", settings.notifications));
-    } else if (activeTab === "binance_pay") {
-      saveResults.push(await updateSettingsDomain("binance_pay", settings.binance_pay));
-    } else if (activeTab === "seo_analytics") {
-      saveResults.push(await updateSettingsDomain("seo", settings.seo));
-      saveResults.push(await updateSettingsDomain("analytics", settings.analytics));
-    } else if (activeTab === "security_backups") {
-      saveResults.push(await updateSettingsDomain("security", settings.security));
-      saveResults.push(await updateSettingsDomain("maintenance", settings.maintenance));
-      saveResults.push(await updateSettingsDomain("backups", settings.backups));
-    }
+    try {
+      if (activeTab === "store_info") {
+        saveResults.push(await persistDomain("store_info", settings.store_info));
+        saveResults.push(await persistDomain("tax_customs", settings.tax_customs));
+      } else if (activeTab === "branding") {
+        saveResults.push(await persistDomain("branding", settings.branding));
+        saveResults.push(await persistDomain("storage", settings.storage));
+      } else if (activeTab === "currencies_shipping") {
+        saveResults.push(await persistDomain("currencies", settings.currencies));
+        saveResults.push(await persistDomain("shipping_zones", settings.shipping_zones));
+        saveResults.push(await persistDomain("localization", settings.localization));
+      } else if (activeTab === "orders_invoice") {
+        saveResults.push(await persistDomain("order_workflow", settings.order_workflow));
+        saveResults.push(await persistDomain("invoice", settings.invoice));
+      } else if (activeTab === "email_notifications") {
+        saveResults.push(await persistDomain("email_templates", settings.email_templates));
+        saveResults.push(await persistDomain("notifications", settings.notifications));
+      } else if (activeTab === "binance_pay") {
+        saveResults.push(await persistDomain("binance_pay", settings.binance_pay));
+      } else if (activeTab === "seo_analytics") {
+        saveResults.push(await persistDomain("seo", settings.seo));
+        saveResults.push(await persistDomain("analytics", settings.analytics));
+      } else if (activeTab === "security_backups") {
+        saveResults.push(await persistDomain("security", settings.security));
+        saveResults.push(await persistDomain("maintenance", settings.maintenance));
+        saveResults.push(await persistDomain("backups", settings.backups));
+      }
 
-    const failed = saveResults.find((r) => !r.success);
-    if (failed) {
-      showToast(failed.error || "Failed to persist settings. Please check credentials.");
-    } else {
-      // Ensure store is persisted with all latest values
-      useSettingsStore.getState().setSettings(settings);
-      showToast("All changes in this section applied across storefront!");
+      const failed = saveResults.find((r) => !r.success);
+      if (failed) {
+        showToast(failed.error || "Failed to persist settings. Please try again.");
+      } else {
+        // Ensure store is persisted with all latest values
+        useSettingsStore.getState().setSettings(settings);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("lennox_settings_updated"));
+        }
+        showToast("All changes in this section applied across storefront!");
+      }
+    } catch (err: any) {
+      console.error("Save error:", err);
+      showToast(err?.message || "Failed to save settings.");
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   // Download System Disaster Recovery Backup

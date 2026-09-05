@@ -218,7 +218,7 @@ export function Header({
                   sizes="(max-width: 640px) 145px, (max-width: 1024px) 240px, 280px"
                   className="object-contain object-left"
                   priority
-                  unoptimized={effectiveLogo.startsWith("data:") || effectiveLogo.startsWith("blob:")}
+                  unoptimized={effectiveLogo.startsWith("data:") || effectiveLogo.startsWith("blob:") || effectiveLogo.startsWith("http")}
                 />
               </div>
             </Link>

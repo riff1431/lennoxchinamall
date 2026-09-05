@@ -52,9 +52,10 @@ export function BrandLogo({
   // Fallback if the URL failed to load
   const activeSrc = hasError ? DEFAULT_STORE_SETTINGS.branding.primary_logo_url : resolvedUrl;
 
-  const isDataOrBlob =
+  const isDirectUrl =
     activeSrc.startsWith("data:") ||
     activeSrc.startsWith("blob:") ||
+    activeSrc.startsWith("http") ||
     activeSrc.endsWith(".svg");
 
   return (
@@ -66,7 +67,7 @@ export function BrandLogo({
           fill
           sizes={sizes}
           priority={priority}
-          unoptimized={isDataOrBlob}
+          unoptimized={isDirectUrl}
           onError={() => setHasError(true)}
           className={imageClassName}
         />
@@ -74,10 +75,10 @@ export function BrandLogo({
         <Image
           src={activeSrc}
           alt={logoAlt}
-          width={width || 240}
-          height={height || 60}
+          width={width || 180}
+          height={height || 50}
           priority={priority}
-          unoptimized={isDataOrBlob}
+          unoptimized={isDirectUrl}
           onError={() => setHasError(true)}
           className={imageClassName}
         />

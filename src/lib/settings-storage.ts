@@ -42,7 +42,7 @@ export function writeLocalSettingsDomain<D extends keyof AllStoreSettings>(
 }
 
 /**
- * Helper to get merged settings: Defaults -> File Cache -> DB overrides
+ * Helper to get merged settings: Defaults -> File Cache -> DB overrides (Database is authoritative)
  */
 export function mergeSettings(
   fileSettings: Partial<AllStoreSettings>,
@@ -50,20 +50,7 @@ export function mergeSettings(
 ): AllStoreSettings {
   const merged: AllStoreSettings = JSON.parse(JSON.stringify(DEFAULT_STORE_SETTINGS));
 
-  // 1. Merge DB rows first (database baseline)
-  if (dbRows && dbRows.length > 0) {
-    dbRows.forEach((row) => {
-      const domainKey = row.key as keyof AllStoreSettings;
-      if (domainKey in merged && row.value && typeof row.value === "object") {
-        (merged as any)[domainKey] = {
-          ...(merged as any)[domainKey],
-          ...row.value,
-        };
-      }
-    });
-  }
-
-  // 2. Merge File Settings on top (latest admin saves)
+  // 1. Merge File Settings first (local disk cache baseline)
   if (fileSettings) {
     Object.keys(fileSettings).forEach((key) => {
       const domainKey = key as keyof AllStoreSettings;
@@ -71,6 +58,19 @@ export function mergeSettings(
         (merged as any)[domainKey] = {
           ...(merged as any)[domainKey],
           ...fileSettings[domainKey],
+        };
+      }
+    });
+  }
+
+  // 2. Merge DB rows LAST — Supabase Database is the primary source of truth!
+  if (dbRows && dbRows.length > 0) {
+    dbRows.forEach((row) => {
+      const domainKey = row.key as keyof AllStoreSettings;
+      if (domainKey in merged && row.value && typeof row.value === "object") {
+        (merged as any)[domainKey] = {
+          ...(merged as any)[domainKey],
+          ...row.value,
         };
       }
     });
