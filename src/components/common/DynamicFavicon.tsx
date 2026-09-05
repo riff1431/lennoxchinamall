@@ -31,23 +31,24 @@ export function DynamicFavicon({ initialSettings }: DynamicFaviconProps = {}) {
 
     // Helper to update or create link tag
     const updateOrCreateLink = (rel: string) => {
-      let link: HTMLLinkElement | null = document.querySelector(`link[rel*='${rel}']`);
-      if (!link) {
-        link = document.createElement("link");
+      const links = document.querySelectorAll<HTMLLinkElement>(`link[rel='${rel}']`);
+      if (links.length > 0) {
+        links.forEach((link) => {
+          link.href = faviconUrl;
+          if (faviconUrl.includes(".ico")) link.type = "image/x-icon";
+          else if (faviconUrl.includes(".png")) link.type = "image/png";
+          else if (faviconUrl.includes(".svg")) link.type = "image/svg+xml";
+          else if (faviconUrl.includes(".webp")) link.type = "image/webp";
+        });
+      } else {
+        const link = document.createElement("link");
         link.rel = rel;
+        link.href = faviconUrl;
+        if (faviconUrl.includes(".ico")) link.type = "image/x-icon";
+        else if (faviconUrl.includes(".png")) link.type = "image/png";
+        else if (faviconUrl.includes(".svg")) link.type = "image/svg+xml";
+        else if (faviconUrl.includes(".webp")) link.type = "image/webp";
         document.head.appendChild(link);
-      }
-      link.href = faviconUrl;
-
-      // Update MIME type if possible
-      if (faviconUrl.endsWith(".ico")) {
-        link.type = "image/x-icon";
-      } else if (faviconUrl.endsWith(".png")) {
-        link.type = "image/png";
-      } else if (faviconUrl.endsWith(".svg")) {
-        link.type = "image/svg+xml";
-      } else if (faviconUrl.endsWith(".webp")) {
-        link.type = "image/webp";
       }
     };
 

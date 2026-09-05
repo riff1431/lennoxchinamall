@@ -5,18 +5,33 @@ import { cookies } from 'next/headers'
  * If using Fluid compute: Don't put this client in a global variable. Always create a new client within each
  * function when using it.
  */
+const DEFAULT_SUPABASE_URL = "https://kdekxqbdkjdfjyyprhbv.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_CdurTHAw3sfYD_abMIBjyA_HA_iXUGY";
+
 export async function createClient() {
-  const cookieStore = await cookies();
+  let cookieStore: any = null;
+  try {
+    cookieStore = await cookies();
+  } catch {
+    // Called outside request scope
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    DEFAULT_SUPABASE_ANON_KEY;
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    key,
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return cookieStore ? cookieStore.getAll() : [];
         },
         setAll(cookiesToSet) {
+          if (!cookieStore) return;
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, {
@@ -28,8 +43,7 @@ export async function createClient() {
               })
             );
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This is safely handled by middleware refreshing user sessions.
+            // Handled safely
           }
         },
       },
@@ -42,11 +56,7 @@ export async function createClient() {
  */
 export function createServiceClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  if (!supabaseUrl) {
-    throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
 
   // If service role key is not configured or is placeholder, fall back to anon key safely
   const hasValidServiceKey =
@@ -57,11 +67,9 @@ export function createServiceClient() {
 
   const key = hasValidServiceKey
     ? serviceKey
-    : (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-
-  if (!key) {
-    throw new Error("Supabase API key is not configured");
-  }
+    : (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+       DEFAULT_SUPABASE_ANON_KEY);
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createClient: createSupabaseClient } = require("@supabase/supabase-js");

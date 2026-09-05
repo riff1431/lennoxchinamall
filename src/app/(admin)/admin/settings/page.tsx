@@ -103,37 +103,44 @@ export default function AdminSettingsPage() {
   // Save active tab bundle
   const handleSaveActiveTab = async () => {
     setIsSaving(true);
+    const saveResults: { success: boolean; message?: string; error?: string }[] = [];
+
     if (activeTab === "store_info") {
-      await updateSettingsDomain("store_info", settings.store_info);
-      await updateSettingsDomain("tax_customs", settings.tax_customs);
+      saveResults.push(await updateSettingsDomain("store_info", settings.store_info));
+      saveResults.push(await updateSettingsDomain("tax_customs", settings.tax_customs));
     } else if (activeTab === "branding") {
-      await updateSettingsDomain("branding", settings.branding);
-      await updateSettingsDomain("storage", settings.storage);
+      saveResults.push(await updateSettingsDomain("branding", settings.branding));
+      saveResults.push(await updateSettingsDomain("storage", settings.storage));
     } else if (activeTab === "currencies_shipping") {
-      await updateSettingsDomain("currencies", settings.currencies);
-      await updateSettingsDomain("shipping_zones", settings.shipping_zones);
-      await updateSettingsDomain("localization", settings.localization);
+      saveResults.push(await updateSettingsDomain("currencies", settings.currencies));
+      saveResults.push(await updateSettingsDomain("shipping_zones", settings.shipping_zones));
+      saveResults.push(await updateSettingsDomain("localization", settings.localization));
     } else if (activeTab === "orders_invoice") {
-      await updateSettingsDomain("order_workflow", settings.order_workflow);
-      await updateSettingsDomain("invoice", settings.invoice);
+      saveResults.push(await updateSettingsDomain("order_workflow", settings.order_workflow));
+      saveResults.push(await updateSettingsDomain("invoice", settings.invoice));
     } else if (activeTab === "email_notifications") {
-      await updateSettingsDomain("email_templates", settings.email_templates);
-      await updateSettingsDomain("notifications", settings.notifications);
+      saveResults.push(await updateSettingsDomain("email_templates", settings.email_templates));
+      saveResults.push(await updateSettingsDomain("notifications", settings.notifications));
     } else if (activeTab === "binance_pay") {
-      await updateSettingsDomain("binance_pay", settings.binance_pay);
+      saveResults.push(await updateSettingsDomain("binance_pay", settings.binance_pay));
     } else if (activeTab === "seo_analytics") {
-      await updateSettingsDomain("seo", settings.seo);
-      await updateSettingsDomain("analytics", settings.analytics);
+      saveResults.push(await updateSettingsDomain("seo", settings.seo));
+      saveResults.push(await updateSettingsDomain("analytics", settings.analytics));
     } else if (activeTab === "security_backups") {
-      await updateSettingsDomain("security", settings.security);
-      await updateSettingsDomain("maintenance", settings.maintenance);
-      await updateSettingsDomain("backups", settings.backups);
+      saveResults.push(await updateSettingsDomain("security", settings.security));
+      saveResults.push(await updateSettingsDomain("maintenance", settings.maintenance));
+      saveResults.push(await updateSettingsDomain("backups", settings.backups));
     }
 
-    // Ensure store is persisted with all latest values
-    useSettingsStore.getState().setSettings(settings);
+    const failed = saveResults.find((r) => !r.success);
+    if (failed) {
+      showToast(failed.error || "Failed to persist settings. Please check credentials.");
+    } else {
+      // Ensure store is persisted with all latest values
+      useSettingsStore.getState().setSettings(settings);
+      showToast("All changes in this section applied across storefront!");
+    }
     setIsSaving(false);
-    showToast("All changes in this section applied across storefront!");
   };
 
   // Download System Disaster Recovery Backup

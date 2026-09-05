@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { AllStoreSettings } from "@/types/settings";
 import { DEFAULT_STORE_SETTINGS } from "@/lib/settings-constants";
+import { readLocalSettings, mergeSettings } from "@/lib/settings-storage";
 
 export { DEFAULT_STORE_SETTINGS, maskSecret } from "@/lib/settings-constants";
 
@@ -9,24 +10,31 @@ export { DEFAULT_STORE_SETTINGS, maskSecret } from "@/lib/settings-constants";
  */
 export async function getPublicStoreSettings(): Promise<Partial<AllStoreSettings>> {
   try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("store_settings")
-      .select("key, value");
+    const fileSettings = readLocalSettings();
 
-    if (error || !data || data.length === 0) {
-      return DEFAULT_STORE_SETTINGS;
+    let dbRows: { key: string; value: any }[] = [];
+    try {
+      let serviceClient;
+      try {
+        serviceClient = createServiceClient();
+      } catch {
+        serviceClient = null;
+      }
+      const supabase = serviceClient || (await createClient());
+      const { data, error } = await supabase
+        .from("store_settings")
+        .select("key, value");
+
+      if (!error && data && data.length > 0) {
+        dbRows = data;
+      }
+    } catch {
+      // Supabase fetch optional, fallback to file settings
     }
 
-    const settings: any = { ...DEFAULT_STORE_SETTINGS };
-    data.forEach((row) => {
-      if (row.key in settings) {
-        settings[row.key] = { ...settings[row.key], ...row.value };
-      }
-    });
-
-    return settings;
+    return mergeSettings(fileSettings, dbRows);
   } catch {
     return DEFAULT_STORE_SETTINGS;
   }
 }
+

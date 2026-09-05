@@ -77,6 +77,7 @@ import { RouteProgressBar } from "@/components/common/RouteProgressBar";
 import { SitePreloader } from "@/components/common/SitePreloader";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { LanguageProvider } from "@/components/providers/LanguageProvider";
+import { SettingsProvider } from "@/components/providers/SettingsProvider";
 import { LOCALE_COOKIE_KEY, DEFAULT_LOCALE } from "@/lib/i18n";
 
 export default async function RootLayout({
@@ -89,6 +90,9 @@ export default async function RootLayout({
   const initialLocale = rawLocale === "en" ? "en" : DEFAULT_LOCALE;
   const publicSettings = await getPublicStoreSettings();
 
+  const brandLogo = publicSettings?.branding?.primary_logo_url;
+  const storeName = publicSettings?.store_info?.store_name;
+
   return (
     <html
       lang={initialLocale}
@@ -99,16 +103,18 @@ export default async function RootLayout({
         className="font-sans text-slate-800 bg-[#F8FAFC] min-h-screen antialiased selection:bg-[#FF1028] selection:text-white"
         suppressHydrationWarning
       >
-        <DynamicFavicon initialSettings={publicSettings} />
-        <LanguageProvider defaultLocale={initialLocale}>
-          <SitePreloader />
-          <Suspense fallback={null}>
-            <RouteProgressBar />
-          </Suspense>
-          <AuthProvider>
-            <SmoothScrollProvider>{children}</SmoothScrollProvider>
-          </AuthProvider>
-        </LanguageProvider>
+        <SettingsProvider initialSettings={publicSettings}>
+          <DynamicFavicon initialSettings={publicSettings} />
+          <LanguageProvider defaultLocale={initialLocale}>
+            <SitePreloader logoUrl={brandLogo} storeName={storeName} />
+            <Suspense fallback={null}>
+              <RouteProgressBar />
+            </Suspense>
+            <AuthProvider>
+              <SmoothScrollProvider>{children}</SmoothScrollProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

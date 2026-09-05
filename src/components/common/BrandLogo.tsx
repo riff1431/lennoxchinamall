@@ -42,12 +42,20 @@ export function BrandLogo({
     (variant === "dark" ? storeDark || storePrimary : storePrimary) ||
     DEFAULT_STORE_SETTINGS.branding.primary_logo_url;
 
+  // Reset error state if the URL changes
+  React.useEffect(() => {
+    setHasError(false);
+  }, [resolvedUrl]);
+
   const logoAlt = alt || `${storeName} Logo`;
 
   // Fallback if the URL failed to load
   const activeSrc = hasError ? DEFAULT_STORE_SETTINGS.branding.primary_logo_url : resolvedUrl;
 
-  const isDataOrBlob = activeSrc.startsWith("data:") || activeSrc.startsWith("blob:");
+  const isDataOrBlob =
+    activeSrc.startsWith("data:") ||
+    activeSrc.startsWith("blob:") ||
+    activeSrc.endsWith(".svg");
 
   return (
     <div className={cn("relative flex items-center justify-center select-none", className)}>

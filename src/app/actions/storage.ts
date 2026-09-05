@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/session";
 
 /**
@@ -70,6 +70,8 @@ export async function uploadMediaFile(formData: FormData): Promise<{
           return "image/avif";
         case "pdf":
           return "application/pdf";
+        case "ico":
+          return "image/x-icon";
         default:
           return isVideo ? "video/mp4" : "image/jpeg";
       }
@@ -95,7 +97,13 @@ export async function uploadMediaFile(formData: FormData): Promise<{
       console.warn("Cloudinary direct upload attempt skipped/failed, falling back to Supabase Storage:", cloudErr);
     }
 
-    const supabase = await createClient();
+    let serviceClient;
+    try {
+      serviceClient = createServiceClient();
+    } catch {
+      serviceClient = null;
+    }
+    const supabase = serviceClient || (await createClient());
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
 
     const arrayBuffer = await file.arrayBuffer();
@@ -109,8 +117,32 @@ export async function uploadMediaFile(formData: FormData): Promise<{
       });
 
     if (error) {
-      console.warn("Storage upload warning (fallback enabled):", error.message);
-      // Generate base64 data URL as preview if size allows (< 4MB)
+      console.warn("Supabase Storage upload fallback, saving locally to public/uploads:", error.message);
+      try {
+        const fs = await import("fs");
+        const path = await import("path");
+        const targetDir = path.join(process.cwd(), "public", "uploads", folder);
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+        const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+        const filePath = path.join(targetDir, safeName);
+        fs.writeFileSync(filePath, buffer);
+
+        const localUrl = `/uploads/${folder}/${safeName}`;
+        return {
+          success: true,
+          url: localUrl,
+          name: file.name,
+          size: sizeFormatted,
+          format: fileExt.toUpperCase(),
+          type: mediaType,
+        };
+      } catch (localErr) {
+        console.warn("Local disk write error, falling back to base64:", localErr);
+      }
+
+      // Generate base64 data URL as last resort
       let fallbackUrl = "";
       if (file.size < 4 * 1024 * 1024) {
         const base64 = buffer.toString("base64");
