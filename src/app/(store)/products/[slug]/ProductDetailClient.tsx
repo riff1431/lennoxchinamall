@@ -30,6 +30,9 @@ import {
   Ship,
   Box,
   Check,
+  BadgeCheck,
+  Factory,
+  LockKeyhole,
 } from "lucide-react";
 import { Product, Category } from "@/types/database";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
@@ -682,61 +685,65 @@ export function ProductDetailClient({
             </div>
 
             {/* ── 4 Minimalist Sourcing Guarantee Micro-Cards ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900 font-heading">
-                    {isSpanish ? "100% QC" : "100% QC"}
-                  </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 pt-1.5">
+              {/* Card 1: 100% QC */}
+              <div className="group bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between min-h-[96px]">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/60 flex items-center justify-center shrink-0 mb-2 transition-transform group-hover:scale-105">
+                  <BadgeCheck className="w-4 h-4 stroke-[2.2]" />
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  {isSpanish ? "Laboratorio certificado" : "Lab bench tested"}
-                </p>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-slate-900 font-heading tracking-tight leading-tight">
+                    {isSpanish ? "100% Inspección" : "100% QC Pass"}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 leading-tight">
+                    {isSpanish ? "Test en laboratorio" : "Lab bench tested"}
+                  </p>
+                </div>
               </div>
 
-              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Zap className="w-3.5 h-3.5 fill-blue-600" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900 font-heading">
-                    {isSpanish ? "Fábrica" : "Direct Sourcing"}
-                  </span>
+              {/* Card 2: Direct Factory */}
+              <div className="group bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between min-h-[96px]">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 border border-blue-100/60 flex items-center justify-center shrink-0 mb-2 transition-transform group-hover:scale-105">
+                  <Factory className="w-4 h-4 stroke-[2]" />
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  {isSpanish ? "Sin intermediarios" : "0 Middleman fee"}
-                </p>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-slate-900 font-heading tracking-tight leading-tight">
+                    {isSpanish ? "Fábrica Directa" : "Direct Factory"}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 leading-tight">
+                    {isSpanish ? "Sin intermediarios" : "0 middleman fee"}
+                  </p>
+                </div>
               </div>
 
-              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="w-6 h-6 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-                    <Plane className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900 font-heading">
+              {/* Card 3: 5-8d Air Freight */}
+              <div className="group bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between min-h-[96px]">
+                <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 border border-sky-100/60 flex items-center justify-center shrink-0 mb-2 transition-transform group-hover:scale-105">
+                  <Plane className="w-4 h-4 stroke-[2]" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-slate-900 font-heading tracking-tight leading-tight">
                     {isSpanish ? "Aéreo 5–8d" : "5–8d Air"}
-                  </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 leading-tight">
+                    {isSpanish ? "Courier express" : "Express courier"}
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  {isSpanish ? "Courier express" : "Express courier"}
-                </p>
               </div>
 
-              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <Coins className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-xs font-bold text-slate-900 font-heading">
-                    {isSpanish ? "USDT Escrow" : "USDT Escrow"}
-                  </span>
+              {/* Card 4: USDT Escrow */}
+              <div className="group bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] hover:border-slate-300 hover:shadow-xs transition-all flex flex-col justify-between min-h-[96px]">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 border border-amber-100/60 flex items-center justify-center shrink-0 mb-2 transition-transform group-hover:scale-105">
+                  <LockKeyhole className="w-4 h-4 stroke-[2]" />
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">
-                  {isSpanish ? "Garantía 30 días" : "30-day protection"}
-                </p>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold text-slate-900 font-heading tracking-tight leading-tight">
+                    {isSpanish ? "Garantía Escrow" : "USDT Escrow"}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 leading-tight">
+                    {isSpanish ? "Protección 30 días" : "30-day protection"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1109,11 +1116,11 @@ export function ProductDetailClient({
               </div>
 
               {/* Clean Telemetry Line with No Collision */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 text-[11px] text-slate-500">
-                <span className="flex items-center gap-1 truncate">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pt-1.5 text-[11px] text-slate-500">
+                <span className="flex items-center gap-1.5 text-slate-600">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>
-                    {product.shipping_origin || "Shenzhen Hub"} • {t.product.ddpPreCleared}
+                  <span className="font-medium">
+                    {product.shipping_origin || "Shenzhen Hub"} • {isSpanish ? "Aduanas DDP Incluidas" : "DDP Customs Pre-Cleared"}
                   </span>
                 </span>
                 <span className="font-mono text-[10px] text-slate-400 shrink-0 sm:text-right">
