@@ -195,7 +195,7 @@ export function Header({
       {/* ── 2. Main Header Bar (Sticky) ── */}
       <div
         className={`sticky top-0 z-40 bg-white/98 backdrop-blur-md transition-all duration-300 border-b ${
-          isScrolled ? "shadow-md border-slate-200 py-1 sm:py-1.5" : "border-slate-100 py-1.5 sm:py-2 lg:py-2.5"
+          isScrolled ? "shadow-md border-slate-200 py-2 sm:py-2.5" : "border-slate-100 py-2.5 sm:py-3 md:py-3.5 lg:py-4"
         }`}
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -203,10 +203,10 @@ export function Header({
             {/* Mobile Hamburger */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-1.5 sm:p-2 text-slate-700 hover:text-[#FF1028] rounded-xl hover:bg-slate-100 transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+              className="lg:hidden p-2 sm:p-2.5 text-slate-700 hover:text-[#FF1028] rounded-xl hover:bg-slate-100 transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
               aria-label={t.header.openMenu}
             >
-              <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Menu className="w-5.5 h-5.5 sm:w-6 sm:h-6" />
             </button>
 
             {/* Brand Logo - Responsive scaling for all screen sizes */}
@@ -214,15 +214,15 @@ export function Header({
               <div
                 className={`relative transition-all duration-300 ${
                   isScrolled
-                    ? "h-8 w-[115px] xs:h-8.5 xs:w-[125px] sm:h-9.5 sm:w-[145px] md:h-10 md:w-[160px] lg:h-11 lg:w-[180px] xl:h-12 xl:w-[200px]"
-                    : "h-8.5 w-[120px] xs:h-9 xs:w-[130px] sm:h-10 sm:w-[150px] md:h-11 md:w-[170px] lg:h-12 lg:w-[195px] xl:h-13 xl:w-[215px]"
+                    ? "h-9 w-[125px] xs:h-9.5 xs:w-[135px] sm:h-11 sm:w-[165px] md:h-12 md:w-[185px] lg:h-13.5 lg:w-[215px] xl:h-14 xl:w-[235px] 2xl:h-15 2xl:w-[250px]"
+                    : "h-11 w-[150px] xs:h-11.5 xs:w-[165px] sm:h-13 sm:w-[195px] md:h-14 md:w-[220px] lg:h-16 lg:w-[250px] xl:h-[72px] xl:w-[290px] 2xl:h-[76px] 2xl:w-[310px]"
                 } group-hover:scale-[1.02]`}
               >
                 <Image
                   src={effectiveLogo}
                   alt={`${effectiveStoreName} Logo`}
                   fill
-                  sizes="(max-width: 640px) 130px, (max-width: 1024px) 170px, 215px"
+                  sizes="(max-width: 640px) 170px, (max-width: 1024px) 250px, 320px"
                   className="object-contain object-left dark:hidden"
                   priority
                   unoptimized={effectiveLogo.startsWith("data:") || effectiveLogo.startsWith("blob:") || effectiveLogo.startsWith("http")}
@@ -231,7 +231,7 @@ export function Header({
                   src={effectiveDarkLogo}
                   alt={`${effectiveStoreName} Logo`}
                   fill
-                  sizes="(max-width: 640px) 130px, (max-width: 1024px) 170px, 215px"
+                  sizes="(max-width: 640px) 170px, (max-width: 1024px) 250px, 320px"
                   className="object-contain object-left hidden dark:block"
                   priority
                   unoptimized={effectiveDarkLogo.startsWith("data:") || effectiveDarkLogo.startsWith("blob:") || effectiveDarkLogo.startsWith("http")}
@@ -251,15 +251,15 @@ export function Header({
           </div>
 
           {/* ── Mobile Full-Width Search Input & Autocomplete ── */}
-          <div className="mt-1.5 sm:mt-2 md:hidden relative" ref={mobileSearchContainerRef}>
-            <form onSubmit={handleMobileSearch} className="relative flex items-center bg-slate-50/90 focus-within:bg-white rounded-xl border border-slate-200 focus-within:border-[#00143D] focus-within:ring-2 focus-within:ring-[#00143D]/10 shadow-2xs h-9 sm:h-10 overflow-hidden transition-all">
+          <div className="mt-2 sm:mt-2.5 md:hidden relative" ref={mobileSearchContainerRef}>
+            <form onSubmit={handleMobileSearch} className="relative flex items-center bg-slate-50/90 focus-within:bg-white rounded-xl border border-slate-200 focus-within:border-[#00143D] focus-within:ring-2 focus-within:ring-[#00143D]/10 shadow-2xs h-10 sm:h-10.5 overflow-hidden transition-all">
               <input
                 type="text"
                 placeholder={isSpanish ? "Buscar 100.000+ productos directos de fábrica..." : "Search 100,000+ factory products..."}
                 value={mobileSearchQuery}
                 onChange={(e) => setMobileSearchQuery(e.target.value)}
                 onFocus={() => setIsMobileSearchFocused(true)}
-                className="w-full h-full pl-3.5 pr-12 text-xs text-slate-800 bg-transparent placeholder:text-slate-400 outline-none font-normal"
+                className="w-full h-full pl-3.5 pr-12 text-xs sm:text-sm text-slate-800 bg-transparent placeholder:text-slate-400 outline-none font-normal"
                 style={{ fontSize: "16px" }}
                 aria-label={t.common.search}
                 role="combobox"

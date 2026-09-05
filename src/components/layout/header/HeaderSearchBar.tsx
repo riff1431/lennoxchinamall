@@ -134,7 +134,7 @@ export function HeaderSearchBar({
       {/* ── Mercado Libre Style Clean Search Bar ── */}
       <form
         onSubmit={handleSearch}
-        className="flex w-full items-center bg-white rounded-xl shadow-2xs hover:shadow-xs focus-within:shadow-sm border border-slate-200 focus-within:border-slate-300 transition-all duration-200 relative h-10 overflow-hidden"
+        className="flex w-full items-center bg-white rounded-xl shadow-2xs hover:shadow-xs focus-within:shadow-sm border border-slate-200 focus-within:border-slate-300 transition-all duration-200 relative h-10.5 lg:h-11.5 overflow-hidden"
       >
         {/* Main Search Input */}
         <input
@@ -165,13 +165,13 @@ export function HeaderSearchBar({
 
         {/* Search Action Button with subtle left divider line */}
         <div className="absolute right-0 top-0 bottom-0 flex items-center">
-          <span className="h-5 w-px bg-slate-200" />
+          <span className="h-5.5 sm:h-6 w-px bg-slate-200" />
           <button
             type="submit"
-            className="h-full px-3.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
+            className="h-full px-4 text-slate-400 hover:text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors cursor-pointer"
             aria-label={t.common.search}
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           </button>
         </div>
       </form>

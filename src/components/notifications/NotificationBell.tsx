@@ -233,7 +233,7 @@ export function NotificationBell({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl transition-all duration-200 flex items-center justify-center cursor-pointer group shadow-2xs hover:shadow-sm",
+          "relative w-9.5 h-9.5 sm:w-10 sm:h-10 lg:w-10.5 lg:h-10.5 xl:w-11 xl:h-11 rounded-xl transition-all duration-200 flex items-center justify-center cursor-pointer group shadow-2xs hover:shadow-sm",
           variant === "admin"
             ? "bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-[#2F65F6] hover:border-blue-300"
             : "bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-red-400 hover:shadow-[0_0_16px_rgba(255,16,40,0.15)] text-slate-700 hover:text-[#FF1028]",

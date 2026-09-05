@@ -42,16 +42,16 @@ export function AccountDropdown() {
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-lg text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
+        className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 xl:p-1.5 rounded-xl text-slate-700 hover:text-[#00143D] hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
         aria-label={t.header.myAccount}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
-        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#00143D] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shadow-xs shrink-0">
+        <div className="w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 xl:w-9 xl:h-9 rounded-lg bg-[#00143D] text-white flex items-center justify-center text-[11px] sm:text-xs font-black shadow-xs shrink-0">
           {isAuthenticated && displayName ? (
             displayName[0].toUpperCase()
           ) : (
-            <UserCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+            <UserCircle className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
           )}
         </div>
         <div className="hidden xl:flex flex-col text-left">
