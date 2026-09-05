@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
 const DEFAULT_BUCKET = "products";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pdeooqamevjpkcnaokac.supabase.co";
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZW9vcWFtZXZqcGtjbmFva2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzQ0MTIsImV4cCI6MjEwMzc1MDQxMn0.cYikKs8ea3SxeIV1q99p6vO5-AlQD9SRlQk-XKHoDNU";
 
 function getMimeType(fileExt: string, isVideo: boolean): string {
   switch (fileExt) {
@@ -86,75 +89,42 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 1. Primary: Supabase Storage
-    try {
-      let serviceClient;
-      try {
-        serviceClient = createServiceClient();
-      } catch {
-        serviceClient = null;
-      }
-      const supabase = serviceClient || (await createClient());
-      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    // Upload directly to Supabase Storage REST API (guaranteed cross-platform reliability)
+    const cleanFileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    const storagePath = `${folder}/${cleanFileName}`;
+    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${bucket}/${storagePath}`;
 
-      const { data, error } = await supabase.storage.from(bucket).upload(fileName, buffer, {
-        contentType,
-        upsert: true,
-      });
+    const res = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+        "Content-Type": contentType,
+        "x-upsert": "true",
+      },
+      body: buffer,
+    });
 
-      if (!error && data?.path) {
-        const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
-
-        if (publicUrlData?.publicUrl) {
-          return NextResponse.json({
-            success: true,
-            url: publicUrlData.publicUrl,
-            name: file.name,
-            size: sizeFormatted,
-            format: fileExt.toUpperCase(),
-            type: mediaType,
-            provider: "supabase",
-          });
-        }
-      }
-
-      if (error) {
-        console.warn("Supabase Storage upload error:", error.message);
-      }
-    } catch (supabaseErr) {
-      console.warn("Supabase Storage upload failed:", supabaseErr);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`Supabase Storage REST upload failed [${res.status}]:`, errText);
+      return NextResponse.json(
+        { success: false, error: `Supabase Storage upload failed (${res.status}): ${errText}` },
+        { status: res.status >= 400 && res.status < 500 ? res.status : 500 }
+      );
     }
 
-    // 2. Fallback: Local filesystem write
-    try {
-      const fs = await import("fs");
-      const path = await import("path");
-      const targetDir = path.join(process.cwd(), "public", "uploads", folder);
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
-      const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      const filePath = path.join(targetDir, safeName);
-      fs.writeFileSync(filePath, buffer);
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
 
-      const localUrl = `/uploads/${folder}/${safeName}`;
-      return NextResponse.json({
-        success: true,
-        url: localUrl,
-        name: file.name,
-        size: sizeFormatted,
-        format: fileExt.toUpperCase(),
-        type: mediaType,
-        provider: "local",
-      });
-    } catch (localErr) {
-      console.warn("Local disk write error:", localErr);
-    }
-
-    return NextResponse.json(
-      { success: false, error: "Failed to upload media file. Please check Supabase Storage configuration." },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: true,
+      url: publicUrl,
+      name: file.name,
+      size: sizeFormatted,
+      format: fileExt.toUpperCase(),
+      type: mediaType,
+      provider: "supabase",
+    });
   } catch (err: any) {
     console.error("API /api/admin/upload error:", err);
     return NextResponse.json(

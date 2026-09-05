@@ -108,20 +108,28 @@ export default function AdminSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain, payload }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) return data;
+      const data = await res.json();
+      if (data.success) return data;
+      return { success: false, error: data.error || "Failed to persist settings." };
+    } catch (err: any) {
+      console.warn("API settings save error, trying server action:", err);
+      try {
+        return await updateSettingsDomain(domain, payload);
+      } catch (actionErr: any) {
+        return { success: false, error: actionErr?.message || "Save request failed." };
       }
-    } catch (err) {
-      console.warn("API settings save fallback to server action:", err);
     }
-    return updateSettingsDomain(domain, payload);
   };
 
   // Save active tab bundle
   const handleSaveActiveTab = async () => {
     setIsSaving(true);
     const saveResults: { success: boolean; message?: string; error?: string }[] = [];
+
+    // Failsafe timeout so the button can NEVER hang on "Saving..."
+    const failsafeTimeout = setTimeout(() => {
+      setIsSaving(false);
+    }, 6000);
 
     try {
       if (activeTab === "store_info") {
@@ -166,6 +174,7 @@ export default function AdminSettingsPage() {
       console.error("Save error:", err);
       showToast(err?.message || "Failed to save settings.");
     } finally {
+      clearTimeout(failsafeTimeout);
       setIsSaving(false);
     }
   };

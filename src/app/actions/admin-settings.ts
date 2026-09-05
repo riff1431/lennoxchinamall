@@ -37,17 +37,34 @@ export async function getCompleteStoreSettings(): Promise<{
     // 1. Read persistent local file settings
     const fileSettings = readLocalSettings();
 
-    // 2. Fetch Supabase records
     let dbRows: { key: string; value: any }[] = [];
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pdeooqamevjpkcnaokac.supabase.co";
+    const SUPABASE_ANON_KEY =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZW9vcWFtZXZqcGtjbmFva2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzQ0MTIsImV4cCI6MjEwMzc1MDQxMn0.cYikKs8ea3SxeIV1q99p6vO5-AlQD9SRlQk-XKHoDNU";
+
     try {
-      const serviceClient = getDatabaseClient();
-      const supabase = serviceClient || (await createClient());
-      const { data, error } = await supabase.from("store_settings").select("*");
-      if (!error && data && data.length > 0) {
-        dbRows = data;
+      const apiRes = await fetch(`${SUPABASE_URL}/rest/v1/store_settings?select=key,value`, {
+        headers: {
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        cache: "no-store",
+      });
+      if (apiRes.ok) {
+        dbRows = await apiRes.json();
       }
-    } catch (dbErr) {
-      console.warn("Supabase fetch fallback to local cache:", dbErr);
+    } catch {
+      try {
+        const serviceClient = getDatabaseClient();
+        const supabase = serviceClient || (await createClient());
+        const { data, error } = await supabase.from("store_settings").select("*");
+        if (!error && data && data.length > 0) {
+          dbRows = data;
+        }
+      } catch (dbErr) {
+        console.warn("Supabase fetch fallback to local cache:", dbErr);
+      }
     }
 
     const settings = mergeSettings(fileSettings, dbRows);

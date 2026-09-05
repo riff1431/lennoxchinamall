@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/session";
-import { writeLocalSettingsDomain } from "@/lib/settings-storage";
-import { AllStoreSettings } from "@/types/settings";
 import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://pdeooqamevjpkcnaokac.supabase.co";
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBkZW9vcWFtZXZqcGtjbmFva2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNzQ0MTIsImV4cCI6MjEwMzc1MDQxMn0.cYikKs8ea3SxeIV1q99p6vO5-AlQD9SRlQk-XKHoDNU";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,44 +29,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Persist to Supabase Database (authoritative)
-    let serviceClient;
-    try {
-      serviceClient = createServiceClient();
-    } catch {
-      serviceClient = null;
-    }
-    const supabase = serviceClient || (await createClient());
-
-    const { error: dbError } = await supabase.from("store_settings").upsert(
-      {
+    // Direct PostgREST upsert to public.store_settings (bypasses SSR cookie edge cases)
+    const restUrl = `${SUPABASE_URL}/rest/v1/store_settings`;
+    const dbRes = await fetch(restUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({
         key: domain,
         value: payload,
         updated_at: new Date().toISOString(),
-      },
-      { onConflict: "key" }
-    );
+      }),
+    });
 
-    if (dbError) {
-      console.error(`Database error saving ${domain}:`, dbError.message);
+    if (!dbRes.ok) {
+      const errText = await dbRes.text();
+      console.error(`PostgREST settings save failed [${dbRes.status}]:`, errText);
       return NextResponse.json(
-        { success: false, error: `Database error: ${dbError.message}` },
+        { success: false, error: `Database error (${dbRes.status}): ${errText}` },
         { status: 500 }
       );
     }
 
-    // 2. Also write to local cache if possible
-    try {
-      writeLocalSettingsDomain(domain as keyof AllStoreSettings, payload);
-    } catch (fsErr) {
-      console.warn("Local cache write ignored in serverless:", fsErr);
-    }
-
-    // 3. Revalidate paths
+    // Revalidate paths cleanly
     try {
       revalidatePath("/admin/settings");
-      revalidatePath("/", "layout");
-      revalidatePath("/(store)", "layout");
+      revalidatePath("/");
     } catch {}
 
     return NextResponse.json({
