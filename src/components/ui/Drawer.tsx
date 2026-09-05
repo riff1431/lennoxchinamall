@@ -13,6 +13,10 @@ interface DrawerProps {
   position?: "left" | "right";
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
+  headerClassName?: string;
+  contentClassName?: string;
+  footerClassName?: string;
+  hideCloseButton?: boolean;
 }
 
 export function Drawer({
@@ -24,17 +28,26 @@ export function Drawer({
   position = "right",
   className,
   size = "md",
+  headerClassName,
+  contentClassName,
+  footerClassName,
+  hideCloseButton = false,
 }: DrawerProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "unset";
+        window.removeEventListener("keydown", handleKeyDown);
+      };
     } else {
       document.body.style.overflow = "unset";
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -70,23 +83,35 @@ export function Drawer({
           )}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-            <div className="text-base font-bold text-slate-900">{title}</div>
-            <button
-              onClick={onClose}
-              aria-label="Close"
-              className="p-2 -mr-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          <div
+            className={cn(
+              "flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 shrink-0",
+              headerClassName
+            )}
+          >
+            <div className="text-base font-bold text-slate-900 flex-1 min-w-0">{title}</div>
+            {!hideCloseButton && (
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="p-2 -mr-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">{children}</div>
+          <div className={cn("flex-1 overflow-y-auto p-6", contentClassName)}>{children}</div>
 
           {/* Footer */}
           {footer && (
-            <div className="border-t border-slate-100 px-6 py-4 bg-slate-50">
+            <div
+              className={cn(
+                "border-t border-slate-100 px-6 py-4 bg-slate-50 shrink-0",
+                footerClassName
+              )}
+            >
               {footer}
             </div>
           )}

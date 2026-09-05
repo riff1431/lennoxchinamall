@@ -2,47 +2,49 @@
 
 import React from "react";
 import Link from "next/link";
-import { Lock, ArrowRight, ShieldCheck, UserCheck } from "lucide-react";
+import { Lock, UserCheck, Home } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function UnauthorizedPage() {
   const { isSpanish } = useTranslation();
 
   return (
-    <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
-        <Lock className="w-8 h-8" />
+    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-[0_12px_36px_rgba(15,23,42,0.06)] space-y-6 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto text-amber-600">
+        <Lock className="w-7 h-7" />
       </div>
 
-      <div className="space-y-2">
-        <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-          {isSpanish ? "401 — Autenticación Requerida" : "401 — Authentication Required"}
+      <div className="space-y-1.5">
+        <span className="text-[11px] font-semibold text-amber-700 uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-100 inline-block">
+          {isSpanish ? "401 — Autenticación Requerida" : "401 — Sign In Required"}
         </span>
-        <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-          {isSpanish ? "Se Requiere Iniciar Sesión" : "Session Authentication Needed"}
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-heading">
+          {isSpanish ? "Inicia Sesión Para Continuar" : "Sign In to Access"}
         </h1>
-        <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+        <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
           {isSpanish
-            ? "La página solicitada requiere una sesión activa autenticada. Por favor inicia sesión con tus credenciales verificadas para continuar."
-            : "The requested page requires an active authenticated session. Please log in with your verified credentials to proceed."}
+            ? "Para acceder a este contenido, inicia sesión con tu cuenta de Lennox ChinaMall."
+            : "The page you requested requires an active account session. Please sign in to proceed."}
         </p>
       </div>
 
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
         <Link
           href="/auth/login"
-          className="w-full sm:w-auto bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3 rounded-xl text-xs font-black font-heading uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
+          className="w-full sm:w-auto bg-[#FF1028] hover:bg-[#E00B20] text-white px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
         >
           <UserCheck className="w-4 h-4" />
-          <span>{isSpanish ? "Iniciar Sesión" : "Customer Sign In"}</span>
+          <span>{isSpanish ? "Iniciar Sesión" : "Sign In"}</span>
         </Link>
         <Link
           href="/"
-          className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 px-6 py-3 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+          className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 px-5 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          {isSpanish ? "Volver al Inicio" : "Return to Home"}
+          <Home className="w-4 h-4 text-slate-600" />
+          <span>{isSpanish ? "Volver a la Tienda" : "Return to Store"}</span>
         </Link>
       </div>
     </div>
   );
 }
+

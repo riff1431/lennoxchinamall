@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { User, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 import { signup } from "@/app/actions/auth";
 import { validatePasswordStrength } from "@/lib/auth/password";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
@@ -45,124 +45,171 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-          {isSpanish ? "Crear Cuenta de Abastecimiento" : "Create Sourcing Account"}
+    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-[0_12px_36px_rgba(15,23,42,0.06)] space-y-6">
+      {/* Segmented Auth Navigation Tabs */}
+      <div className="grid grid-cols-2 p-1 bg-slate-100/90 rounded-xl text-xs font-semibold text-slate-500">
+        <Link
+          href="/auth/login"
+          className="py-2 text-center rounded-lg hover:text-slate-900 transition-colors"
+        >
+          {isSpanish ? "Iniciar Sesión" : "Sign In"}
+        </Link>
+        <span className="py-2 text-center rounded-lg bg-white text-slate-900 shadow-xs">
+          {isSpanish ? "Crear Cuenta" : "Create Account"}
+        </span>
+      </div>
+
+      {/* Header */}
+      <div className="space-y-1 text-left">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-heading">
+          {isSpanish ? "Crea tu cuenta" : "Create your account"}
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-500 font-normal leading-relaxed">
           {isSpanish
-            ? "Obtén acceso directo a productos al mayoreo de China, pagos en USDT y rastreo de carga aérea en tiempo real."
-            : "Get direct access to wholesale China products, USDT checkout, and real-time air cargo tracking."}
+            ? "Accede a precios directos de fábrica de China y rastreo de envíos en tiempo real."
+            : "Get factory-direct wholesale pricing and real-time shipment tracking."}
         </p>
       </div>
 
+      {/* Error Alert */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-[#FF1028]" />
-          <span>{error}</span>
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-medium flex items-start gap-2.5 animate-in fade-in duration-200 text-left">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#FF1028] mt-0.5" />
+          <span className="flex-1">{error}</span>
         </div>
       )}
 
-      <form onSubmit={handleRegister} className="space-y-4 text-xs">
-        <div className="space-y-1.5">
-          <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-            {isSpanish ? "Nombre Completo / Nombre Comercial" : "Full Name / Business Name"}
+      {/* Form */}
+      <form onSubmit={handleRegister} className="space-y-4">
+        {/* Full Name / Company */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-xs font-semibold text-slate-700 block">
+            {isSpanish ? "Nombre Completo / Empresa" : "Full Name or Company"}
           </label>
           <div className="relative">
-            <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               name="display_name"
               required
               autoComplete="name"
-              placeholder="Alex Harrison"
-              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
+              disabled={isLoading}
+              placeholder={isSpanish ? "Ej. Juan Pérez o Importadora Lennox" : "e.g. Alex Harrison"}
+              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200/90 text-slate-900 placeholder:text-slate-400 text-base sm:text-xs transition-all duration-200 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 disabled:opacity-50"
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
+        {/* Email */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-xs font-semibold text-slate-700 block">
             {isSpanish ? "Correo Electrónico" : "Email Address"}
           </label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="email"
               name="email"
               required
               autoComplete="email"
+              inputMode="email"
+              disabled={isLoading}
               placeholder="alex@example.com"
-              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
+              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200/90 text-slate-900 placeholder:text-slate-400 text-base sm:text-xs transition-all duration-200 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 disabled:opacity-50"
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
-            {isSpanish ? "Crear Contraseña Maestra" : "Create Master Password"}
+        {/* Password */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-xs font-semibold text-slate-700 block">
+            {isSpanish ? "Contraseña" : "Password"}
           </label>
           <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type={showPassword ? "text" : "password"}
               name="password"
               required
               autoComplete="new-password"
-              placeholder={
-                isSpanish
-                  ? "Mínimo 8 caracteres con mayúscula, minúscula, número y símbolo"
-                  : "Minimum 8 characters with upper, lower, number, symbol"
-              }
+              disabled={isLoading}
+              placeholder="••••••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
+              className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200/90 text-slate-900 placeholder:text-slate-400 text-base sm:text-xs transition-all duration-200 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 disabled:opacity-50"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 cursor-pointer"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-md transition-colors"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
 
           {/* Real-time Password Strength Meter */}
-          {password.length > 0 && <PasswordStrengthMeter password={password} />}
+          {password.length > 0 && (
+            <div className="pt-1 animate-in fade-in duration-200">
+              <PasswordStrengthMeter password={password} />
+            </div>
+          )}
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 rounded-xl text-xs font-black font-heading uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-red-600/25 active:scale-98 disabled:opacity-50"
+          className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 px-4 rounded-xl text-xs sm:text-sm font-semibold tracking-wide flex items-center justify-center gap-2 transition-all duration-150 shadow-sm hover:shadow-md hover:shadow-red-600/15 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
         >
           {isLoading ? (
-            <span>{isSpanish ? "Generando Cuenta Segura..." : "Generating Secure Sourcing Account..."}</span>
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>{isSpanish ? "Creando cuenta..." : "Creating account..."}</span>
+            </>
           ) : (
             <>
-              <span>{isSpanish ? "Unirse a Lennox ChinaMall Gratis" : "Join Lennox ChinaMall Free"}</span>
+              <span>{isSpanish ? "Crear Cuenta Gratis" : "Create Free Account"}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
-
-        <div className="pt-2 text-center text-xs text-slate-400">
-          {isSpanish ? "¿Ya tienes una cuenta? " : "Already have an account? "}
-          <Link href="/auth/login" className="text-white hover:text-[#FF1028] font-bold transition-colors">
-            {isSpanish ? "Iniciar Sesión" : "Sign In"}
-          </Link>
-        </div>
       </form>
 
-      <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center gap-2.5 text-[11px] text-slate-400">
-        <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
-        <span>
-          {isSpanish
-            ? "Al registrarte, aceptas los Términos de Abastecimiento Verificado y Depósito en Garantía USDT de Lennox ChinaMall."
-            : "By signing up, you agree to Lennox ChinaMall's Verified Sourcing & USDT Escrow Terms."}
+      {/* Terms Notice */}
+      <p className="text-[11px] text-slate-500 text-center leading-relaxed">
+        {isSpanish ? "Al registrarte, aceptas nuestros " : "By signing up, you agree to our "}
+        <Link href="/pages/terms" className="underline hover:text-slate-800 transition-colors">
+          {isSpanish ? "Términos del Servicio" : "Terms of Service"}
+        </Link>
+        {isSpanish ? " y " : " and "}
+        <Link href="/pages/privacy" className="underline hover:text-slate-800 transition-colors">
+          {isSpanish ? "Política de Privacidad" : "Privacy Policy"}
+        </Link>
+        .
+      </p>
+
+      {/* Switch to Sign In */}
+      <div className="pt-1 border-t border-slate-100 text-center text-xs text-slate-500">
+        {isSpanish ? "¿Ya tienes una cuenta? " : "Already have an account? "}
+        <Link href="/auth/login" className="text-[#FF1028] hover:text-[#E00B20] font-semibold transition-colors">
+          {isSpanish ? "Iniciar Sesión" : "Sign In"}
+        </Link>
+      </div>
+
+      {/* Trust reassurance */}
+      <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500">
+        <span className="flex items-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          {isSpanish ? "Datos Encriptados" : "Encrypted Data"}
+        </span>
+        <span className="text-slate-300">•</span>
+        <span className="flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          {isSpanish ? "Acceso Directo" : "Direct Sourcing"}
         </span>
       </div>
     </div>
   );
 }
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShieldX, Clock, RefreshCcw, HelpCircle } from "lucide-react";
+import { ShieldAlert, Clock, RefreshCcw, ArrowLeft } from "lucide-react";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function AccountLockedPage() {
@@ -20,32 +20,33 @@ export default function AccountLockedPage() {
   const seconds = remainingSeconds % 60;
 
   return (
-    <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/30 text-[#FF1028] flex items-center justify-center mx-auto shadow-inner">
-        <ShieldX className="w-8 h-8 animate-pulse" />
+    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-[0_12px_36px_rgba(15,23,42,0.06)] space-y-6 text-center">
+      {/* Icon Badge */}
+      <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-[#FF1028]">
+        <ShieldAlert className="w-7 h-7" />
       </div>
 
-      <div className="space-y-2">
-        <span className="text-[10px] font-mono font-bold text-[#FF1028] uppercase tracking-widest bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
-          {isSpanish ? "Bloqueo de Seguridad Activado" : "Security Lockout Engaged"}
+      <div className="space-y-1.5">
+        <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider bg-rose-50 px-3 py-1 rounded-full border border-rose-100 inline-block">
+          {isSpanish ? "Bloqueo de Seguridad" : "Security Lockout"}
         </span>
-        <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-          {isSpanish ? "Demasiados Intentos Fallidos" : "Too Many Failed Login Attempts"}
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-heading">
+          {isSpanish ? "Demasiados Intentos Fallidos" : "Too Many Failed Attempts"}
         </h1>
-        <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+        <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
           {isSpanish
-            ? "Para proteger la seguridad de la cuenta y prevenir accesos no autorizados, se ha activado un bloqueo temporal de autenticación."
-            : "To protect account security and prevent unauthorized access, temporary authentication lock has been activated."}
+            ? "Para proteger tu cuenta se ha activado un bloqueo temporal. Por favor espera a que el temporizador finalice."
+            : "To protect account security, authentication has been temporarily paused. Please wait for the timer to expire."}
         </p>
       </div>
 
-      {/* Countdown Timer Display */}
-      <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-        <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">
-          {isSpanish ? "El Bloqueo Expira En" : "Lockout Expires In"}
+      {/* Countdown Timer */}
+      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+        <span className="text-[11px] text-slate-500 font-medium block">
+          {isSpanish ? "Tiempo de espera restante:" : "Lockout expires in:"}
         </span>
-        <div className="text-3xl font-black font-mono text-amber-400 flex items-center justify-center gap-2">
-          <Clock className="w-6 h-6 text-amber-400" />
+        <div className="text-3xl font-black font-mono text-slate-900 flex items-center justify-center gap-2">
+          <Clock className="w-5 h-5 text-amber-500" />
           <span>
             {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
           </span>
@@ -56,7 +57,7 @@ export default function AccountLockedPage() {
         {remainingSeconds === 0 ? (
           <Link
             href="/auth/login"
-            className="w-full sm:w-auto bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3 rounded-xl text-xs font-black font-heading uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+            className="w-full sm:w-auto bg-[#FF1028] hover:bg-[#E00B20] text-white px-6 py-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
           >
             <RefreshCcw className="w-4 h-4" />
             <span>{isSpanish ? "Reintentar Inicio de Sesión" : "Retry Login Now"}</span>
@@ -64,18 +65,24 @@ export default function AccountLockedPage() {
         ) : (
           <Link
             href="/auth/forgot-password"
-            className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 px-6 py-3 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 px-5 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer"
           >
-            {isSpanish ? "Restablecer Contraseña" : "Reset Account Password"}
+            {isSpanish ? "Restablecer Contraseña" : "Reset Password"}
           </Link>
         )}
+      </div>
+
+      {/* Return to Store */}
+      <div className="pt-2 border-t border-slate-100">
         <Link
           href="/"
-          className="w-full sm:w-auto text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors"
         >
-          {isSpanish ? "Volver a la Tienda" : "Return to Store"}
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>{isSpanish ? "Volver a la tienda" : "Return to store"}</span>
         </Link>
       </div>
     </div>
   );
 }
+

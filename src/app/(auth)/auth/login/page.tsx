@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, CheckCircle2, ShieldAlert } from "lucide-react";
+import { Mail, Lock, ArrowRight, ShieldCheck, AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { login } from "@/app/actions/auth";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -17,6 +17,7 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,133 +44,173 @@ function LoginForm() {
     }
   };
 
+  const registerHref = `/auth/register${redirectTo !== "/account/profile" ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`;
+
   return (
-    <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-xl sm:text-2xl font-black text-white font-heading">
-          {isSpanish ? "Iniciar Sesión en Tu Cuenta" : "Sign In to Your Account"}
+    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-[0_12px_36px_rgba(15,23,42,0.06)] space-y-6">
+      {/* Segmented Auth Navigation Tabs */}
+      <div className="grid grid-cols-2 p-1 bg-slate-100/90 rounded-xl text-xs font-semibold text-slate-500">
+        <span className="py-2 text-center rounded-lg bg-white text-slate-900 shadow-xs">
+          {isSpanish ? "Iniciar Sesión" : "Sign In"}
+        </span>
+        <Link
+          href={registerHref}
+          className="py-2 text-center rounded-lg hover:text-slate-900 transition-colors"
+        >
+          {isSpanish ? "Crear Cuenta" : "Create Account"}
+        </Link>
+      </div>
+
+      {/* Header */}
+      <div className="space-y-1 text-left">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 font-heading">
+          {isSpanish ? "Bienvenido de nuevo" : "Welcome back"}
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-500 font-normal leading-relaxed">
           {isSpanish
-            ? "Accede a tus órdenes de compra, rastreo aéreo en vivo y preferencias USDT guardadas."
-            : "Access your sourcing orders, live air tracking, and saved USDT preferences."}
+            ? "Accede a tus pedidos, cotizaciones y rastreo aéreo en vivo."
+            : "Sign in to track orders, manage shipments, and source products."}
         </p>
       </div>
 
+      {/* Success Notification */}
       {successMessage === "password_reset_success" && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-xs font-medium flex items-center gap-2.5">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
           <span>
             {isSpanish
-              ? "¡Contraseña restablecida exitosamente! Inicia sesión con tus nuevas credenciales."
+              ? "¡Contraseña restablecida! Inicia sesión con tus nuevas credenciales."
               : "Password reset successful! Sign in with your new credentials."}
           </span>
         </div>
       )}
 
+      {/* Error / Lockout Alert */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-[#FF1028]" />
-          <div className="flex-1">
-            <span>{error}</span>
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-xs font-medium flex items-start gap-2.5 animate-in fade-in duration-200">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#FF1028] mt-0.5" />
+          <div className="flex-1 space-y-1">
+            <p className="leading-snug">{error}</p>
             {attemptsLeft !== null && attemptsLeft > 0 && attemptsLeft < 5 && (
-              <span className="block text-[10px] text-amber-400 mt-0.5">
+              <p className="text-[11px] text-amber-700 font-semibold">
                 {isSpanish
-                  ? `Quedan ${attemptsLeft} intento(s) antes del bloqueo temporal.`
-                  : `${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} remaining before temporary lockout.`}
-              </span>
+                  ? `Quedan ${attemptsLeft} intento(s) antes del bloqueo de seguridad.`
+                  : `${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} remaining before security lockout.`}
+              </p>
             )}
           </div>
         </div>
       )}
 
-      <form onSubmit={handleLogin} className="space-y-4 text-xs">
-        <div className="space-y-1.5">
-          <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
+      {/* Form */}
+      <form onSubmit={handleLogin} className="space-y-4">
+        {/* Email Field */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-xs font-semibold text-slate-700 block">
             {isSpanish ? "Correo Electrónico" : "Email Address"}
           </label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="email"
               name="email"
               required
               autoComplete="email"
+              inputMode="email"
               disabled={isLocked || isLoading}
               placeholder="alex@example.com"
-              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
+              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200/90 text-slate-900 placeholder:text-slate-400 text-base sm:text-xs transition-all duration-200 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 disabled:opacity-50 disabled:bg-slate-100"
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        {/* Password Field */}
+        <div className="space-y-1.5 text-left">
           <div className="flex items-center justify-between">
-            <label className="font-bold text-slate-300 block font-heading uppercase text-[11px] tracking-wider">
+            <label className="text-xs font-semibold text-slate-700 block">
               {isSpanish ? "Contraseña" : "Password"}
             </label>
             <Link
               href="/auth/forgot-password"
-              className="text-[11px] text-slate-400 hover:text-[#FF1028] transition-colors"
+              className="text-xs text-slate-500 hover:text-[#FF1028] font-medium transition-colors"
             >
               {isSpanish ? "¿Olvidaste tu contraseña?" : "Forgot password?"}
             </Link>
           </div>
           <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               required
               autoComplete="current-password"
               disabled={isLocked || isLoading}
               placeholder="••••••••••••"
-              className="w-full pl-10 pr-3.5 py-3 rounded-xl bg-slate-950/80 border border-slate-800 text-white placeholder-slate-500 focus:outline-hidden focus:border-[#FF1028] focus:ring-1 focus:ring-[#FF1028]"
+              className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50/80 hover:bg-slate-50 focus:bg-white border border-slate-200/90 text-slate-900 placeholder:text-slate-400 text-base sm:text-xs transition-all duration-200 focus:outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 disabled:opacity-50 disabled:bg-slate-100"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none p-1 rounded-md transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 py-0.5">
+        {/* Remember Me */}
+        <div className="flex items-center gap-2.5 pt-1">
           <input
             type="checkbox"
             id="rememberMe"
             name="rememberMe"
             defaultChecked
-            className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-[#FF1028] focus:ring-0 focus:ring-offset-0 cursor-pointer accent-[#FF1028]"
+            className="w-4 h-4 rounded border-slate-300 text-[#FF1028] focus:ring-[#FF1028]/20 focus:ring-offset-0 cursor-pointer accent-[#FF1028]"
           />
-          <label htmlFor="rememberMe" className="text-[11px] text-slate-400 select-none cursor-pointer">
-            {isSpanish ? "Recordar este dispositivo por 30 días" : "Trust this device for 30 days"}
+          <label htmlFor="rememberMe" className="text-xs text-slate-600 select-none cursor-pointer">
+            {isSpanish ? "Recordar mi sesión en este dispositivo" : "Keep me signed in on this device"}
           </label>
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading || isLocked}
-          className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 rounded-xl text-xs font-black font-heading uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-red-600/25 active:scale-98 disabled:opacity-50"
+          className="w-full bg-[#FF1028] hover:bg-[#E00B20] text-white py-3.5 px-4 rounded-xl text-xs sm:text-sm font-semibold tracking-wide flex items-center justify-center gap-2 transition-all duration-150 shadow-sm hover:shadow-md hover:shadow-red-600/15 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
         >
           {isLoading ? (
-            <span>{isSpanish ? "Iniciando Sesión..." : "Signing In..."}</span>
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>{isSpanish ? "Iniciando sesión..." : "Signing in..."}</span>
+            </>
           ) : (
             <>
-              <span>{isSpanish ? "Iniciar Sesión con Garantía USDT" : "Sign In with USDT Escrow"}</span>
+              <span>{isSpanish ? "Iniciar Sesión" : "Sign In"}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
         </button>
-
-        <div className="pt-2 text-center text-xs text-slate-400">
-          {isSpanish ? "¿No tienes una cuenta? " : "Don't have an account? "}
-          <Link href="/auth/register" className="text-white hover:text-[#FF1028] font-bold">
-            {isSpanish ? "Crear Cuenta Gratis" : "Create Free Account"}
-          </Link>
-        </div>
       </form>
 
-      <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center gap-2.5 text-[11px] text-slate-400">
-        <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
-        <span>
-          {isSpanish
-            ? "Protegido con encriptación criptográfica de contraseñas, defensa contra fuerza bruta y Supabase SSR."
-            : "Protected with cryptographic password hashing, brute-force defense, and Supabase SSR."}
+      {/* Switch to Register */}
+      <div className="pt-1 text-center text-xs text-slate-500">
+        {isSpanish ? "¿Aún no tienes una cuenta? " : "Don't have an account? "}
+        <Link href={registerHref} className="text-[#FF1028] hover:text-[#E00B20] font-semibold transition-colors">
+          {isSpanish ? "Regístrate gratis" : "Create one free"}
+        </Link>
+      </div>
+
+      {/* Minimal Reassuring Trust Badges */}
+      <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-3 text-[11px] text-slate-500">
+        <span className="flex items-center gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          {isSpanish ? "Encriptación 256-bit" : "256-Bit Encrypted"}
+        </span>
+        <span className="text-slate-300">•</span>
+        <span className="flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          {isSpanish ? "Compras Seguras" : "Buyer Protection"}
         </span>
       </div>
     </div>
@@ -178,8 +219,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="bg-slate-900/90 rounded-3xl p-8 h-96 animate-pulse" />}>
+    <Suspense
+      fallback={
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-8 h-96 animate-pulse shadow-sm" />
+      }
+    >
       <LoginForm />
     </Suspense>
   );
 }
+

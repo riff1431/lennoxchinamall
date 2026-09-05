@@ -26,10 +26,10 @@ import {
   Play,
   Film,
   Sparkles,
-  HelpCircle,
   AlertCircle,
   Ship,
   Box,
+  Check,
 } from "lucide-react";
 import { Product, Category } from "@/types/database";
 import { MOCK_CATEGORIES } from "@/lib/mockData";
@@ -46,7 +46,7 @@ import { useCompareStore } from "@/store/useCompareStore";
 import { useHistoryStore } from "@/store/useHistoryStore";
 import { useProductStore } from "@/store/useProductStore";
 import { useCategoryStore } from "@/store/useCategoryStore";
-import { formatCurrency, formatPrice, calcDiscount } from "@/utils/helpers";
+import { calcDiscount } from "@/utils/helpers";
 import { useCurrency } from "@/store/useCurrencyStore";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { getLocalizedProductTitle } from "@/lib/i18n/productI18n";
@@ -58,6 +58,71 @@ interface ProductDetailClientProps {
   slug?: string;
 }
 
+/**
+ * Editorial Markdown parser for Product Overview
+ * Elegantly handles headings (###), bullet lists, and paragraphs
+ * Eliminates raw markdown syntax leaking to users
+ */
+function FormattedDescription({ content }: { content: string }) {
+  if (!content) return null;
+
+  const lines = content.split("\n").map((l) => l.trim()).filter(Boolean);
+
+  return (
+    <div className="space-y-3.5 text-slate-600 text-xs sm:text-sm leading-relaxed font-sans">
+      {lines.map((line, idx) => {
+        if (line.startsWith("### ")) {
+          const heading = line.replace(/^###\s+/, "");
+          return (
+            <h4
+              key={idx}
+              className="text-base sm:text-lg font-bold text-slate-900 tracking-tight pt-2 first:pt-0 font-heading"
+            >
+              {heading}
+            </h4>
+          );
+        }
+        if (line.startsWith("## ")) {
+          const heading = line.replace(/^##\s+/, "");
+          return (
+            <h3
+              key={idx}
+              className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight pt-3 first:pt-0 font-heading"
+            >
+              {heading}
+            </h3>
+          );
+        }
+        if (line.startsWith("# ")) {
+          const heading = line.replace(/^#\s+/, "");
+          return (
+            <h3
+              key={idx}
+              className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight pt-3 first:pt-0 font-heading"
+            >
+              {heading}
+            </h3>
+          );
+        }
+        if (line.startsWith("- ") || line.startsWith("* ")) {
+          const bullet = line.replace(/^[-*]\s+/, "");
+          return (
+            <div key={idx} className="flex items-start gap-2.5 pl-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2 shrink-0" />
+              <span className="text-slate-700">{bullet}</span>
+            </div>
+          );
+        }
+        return (
+          <p key={idx} className="text-slate-600 leading-relaxed">
+            {line}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ProductDetailClient({
   product: initialProduct,
   category: initialCategory,
@@ -65,7 +130,7 @@ export function ProductDetailClient({
 }: ProductDetailClientProps) {
   const router = useRouter();
   const { t, isSpanish } = useTranslation();
-  const { currentCurrency, formatCurrency, formatPrice, convert } = useCurrency();
+  const { formatCurrency, formatPrice } = useCurrency();
   const searchSlug = urlSlug || initialProduct?.slug || initialProduct?.id || "";
 
   const isMounted = React.useSyncExternalStore(
@@ -74,8 +139,9 @@ export function ProductDetailClient({
     () => false
   );
 
-  const storeProduct = useProductStore((state) => (searchSlug ? state.getProductBySlug(searchSlug) : undefined));
-  const isProductStoreLoaded = useProductStore((state) => state.isLoaded);
+  const storeProduct = useProductStore((state) =>
+    searchSlug ? state.getProductBySlug(searchSlug) : undefined
+  );
   const storeCategories = useCategoryStore((state) => state.categories);
 
   const product = initialProduct || (isMounted ? storeProduct : undefined);
@@ -90,6 +156,8 @@ export function ProductDetailClient({
   const [quantity, setQuantity] = useState(1);
   const [addedToast, setAddedToast] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedSku, setCopiedSku] = useState(false);
+  const [copiedCoupon, setCopiedCoupon] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [activeVideoModal, setActiveVideoModal] = useState<ReelsVideoData | null>(null);
   const [activeTab, setActiveTab] = useState<"specs" | "qc_report" | "reviews" | "qa" | "shipping">("specs");
@@ -151,10 +219,10 @@ export function ProductDetailClient({
     }
   }, [product, addProductToHistory]);
 
-  // Scroll listener for sticky action bar
+  // Scroll listener for sticky action bar on mobile
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 500) {
+      if (window.scrollY > 420) {
         setShowStickyBar(true);
       } else {
         setShowStickyBar(false);
@@ -164,24 +232,163 @@ export function ProductDetailClient({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Derived variant & price variables
+  const currentVariant = product?.variants?.[selectedVariantIndex];
+  const activePrice = currentVariant?.price || product?.base_price || 0;
+  const activeComparePrice =
+    currentVariant?.compare_at_price ||
+    product?.compare_at_price ||
+    (product?.is_flash_deal ? activePrice * 1.45 : undefined);
+  const discount = activeComparePrice ? calcDiscount(activeComparePrice, activePrice) : 0;
+  const savings = activeComparePrice ? Math.max(0, activeComparePrice - activePrice) : 0;
+  const activeStock = currentVariant?.stock ?? 50;
+  const isOutOfStock = activeStock <= 0;
+
+  const shippingMethod = useCartStore((state) => state.shippingMethod);
+  const setShippingMethod = useCartStore((state) => state.setShippingMethod);
+
+  // Dynamic Specifications
+  const dynamicSpecs = useMemo(() => {
+    if (!product) return {};
+    const specsMap: Record<string, string> = {};
+
+    if (product.specifications && typeof product.specifications === "object") {
+      Object.assign(specsMap, product.specifications);
+    }
+    if (product.specs && typeof product.specs === "object") {
+      Object.assign(specsMap, product.specs);
+    }
+
+    interface DimensionObj {
+      length?: number;
+      width?: number;
+      height?: number;
+      unit?: string;
+    }
+    const dims = (product.dimensions && typeof product.dimensions === "object"
+      ? (product.dimensions as unknown as DimensionObj)
+      : null);
+    const dimensionStr =
+      dims && dims.length && dims.width && dims.height
+        ? `${dims.length} × ${dims.width} × ${dims.height} ${dims.unit || "cm"}`
+        : "30.0 × 20.0 × 12.0 cm";
+
+    const cargoLabels: Record<string, string> = {
+      general: isSpanish ? "Carga General (Sin Batería)" : "General Cargo (Non-Battery)",
+      lithium_built_in: isSpanish
+        ? "Batería de Litio Integrada (Pase Aéreo PI967)"
+        : "Built-in Lithium Battery (PI967 Air Pass)",
+      lithium_pure: isSpanish
+        ? "Batería Pura / Power Bank (Línea Especial PI965)"
+        : "Pure Battery / Power Bank (PI965 Line)",
+      liquid_cream: isSpanish
+        ? "Líquido / Crema (Certificado Aéreo)"
+        : "Liquid / Cream (Air Certified)",
+      magnetic: isSpanish ? "Bienes Magnetizados (Blindados)" : "Magnetized Goods (Shielded)",
+      powder: isSpanish ? "Polvo / Químico (Laboratorio)" : "Powder / Chemical (Lab Tested)",
+    };
+
+    const packageLabels: Record<string, string> = {
+      corrugated_box: isSpanish
+        ? "Caja Corrugada de Doble Pared"
+        : "Double-Wall Corrugated Cargo Box",
+      bubble_mailer: isSpanish ? "Sobre Acolchado Impermeable" : "Padded Waterproof Mailer",
+      retail_box: isSpanish ? "Caja a Color Minorista Original" : "Original Factory Retail Box",
+      wooden_crate: isSpanish ? "Caja de Madera Reforzada" : "Reinforced Wooden Crate",
+      anti_static: isSpanish ? "Bolsa Antiestática" : "Anti-Static Shielding Bag",
+    };
+
+    const defaults: Record<string, string> = isSpanish
+      ? {
+          "Origen de Manufactura": product.shipping_origin || "Shenzhen, Guangdong, China",
+          "Dimensiones del Paquete": dimensionStr,
+          "Peso Bruto de Envío": product.weight ? `${product.weight} kg` : "0.85 kg",
+          "Peso Neto del Producto": product.net_weight
+            ? `${product.net_weight} kg`
+            : product.weight
+            ? `${(product.weight * 0.8).toFixed(2)} kg`
+            : "0.65 kg",
+          "Clasificación de Carga":
+            cargoLabels[product.cargo_type || ""] || "Batería de Litio Integrada (PI967)",
+          "Embalaje y Empaque":
+            packageLabels[product.package_type || ""] || "Caja Corrugada de Doble Pared",
+          "Plazo de Despacho": product.lead_time || "Despacho el Mismo Día (<24h)",
+          "Código Arancelario HS": product.hs_code || "8517.62.00",
+          "Certificación de Calidad": "100% Probado con Láser y Carga Previo al Envío (Grado A+)",
+          "Identificador SKU": currentVariant?.sku || product.sku,
+          "Marca Directa": product.brand?.name || "Lennox Direct Factory",
+          "Departamento / Clúster":
+            getLocalizedCategoryName(category?.name, true) || "Hardware & Electrónica",
+          "Garantía de Pago": "Binance Pay USDT (Cero comisiones con depósito en garantía)",
+          "Garantía y Devolución": "30 Días de Garantía + 1 Año de Soporte Técnico",
+        }
+      : {
+          "Manufacturing Origin": product.shipping_origin || "Shenzhen, Guangdong, China",
+          "Package Dimensions": dimensionStr,
+          "Gross Shipping Weight": product.weight ? `${product.weight} kg` : "0.85 kg",
+          "Net Product Weight": product.net_weight
+            ? `${product.net_weight} kg`
+            : product.weight
+            ? `${(product.weight * 0.8).toFixed(2)} kg`
+            : "0.65 kg",
+          "Cargo Classification":
+            cargoLabels[product.cargo_type || ""] || "Built-in Lithium Battery (PI967)",
+          "Packaging Container":
+            packageLabels[product.package_type || ""] || "Double-Wall Corrugated Cargo Box",
+          "Dispatch SLA": product.lead_time || "Same Day Dispatch (<24h)",
+          "HS Customs Code": product.hs_code || "8517.62.00",
+          "QC Certification": "100% Pre-Departure Laser & Load Tested (Grade A+)",
+          "SKU Identifier": currentVariant?.sku || product.sku,
+          "Direct Brand": product.brand?.name || "Lennox Direct Factory",
+          "Department / Cluster": category?.name || "Hardware & Electronics",
+          "Payment Escrow": "Binance Pay USDT (Zero Gas Fees & Instant Escrow)",
+          "Warranty & Guarantee": "30-Day Money-Back Guarantee + 1-Year Support",
+        };
+
+    return { ...defaults, ...specsMap };
+  }, [product, currentVariant, category, isSpanish]);
+
+  // Dynamic Live Freight Calculation for Current Product & Quantity
+  const productShippingPreview = useMemo(() => {
+    if (!product) {
+      return {
+        totalGrossWeight: 0,
+        totalCbm: 0,
+        air: { totalCost: 0, chargeableMetric: 0 },
+        sea: { totalCost: 0, chargeableMetric: 0 },
+      };
+    }
+    return calculateComprehensiveShipping([
+      {
+        id: currentVariant?.id || product.id,
+        productId: product.id,
+        title: product.title,
+        quantity,
+        dimensions: product.dimensions,
+        weight: product.weight,
+        cargoType: product.cargo_type,
+      },
+    ]);
+  }, [product, currentVariant, quantity]);
+
   // Fallback and loading states if product is not resolved
   if (!product) {
     if (!isMounted) {
       return (
-        <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900">
+        <div className="min-h-screen bg-[#FAFAFC] pb-24 font-sans text-slate-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
-            <div className="h-6 w-64 bg-slate-200 rounded mb-8" />
+            <div className="h-5 w-48 bg-slate-200/80 rounded-md mb-8" />
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-5 aspect-square bg-slate-200 rounded-3xl" />
+              <div className="lg:col-span-5 aspect-square bg-slate-200/80 rounded-3xl" />
               <div className="lg:col-span-4 space-y-4">
-                <div className="h-8 bg-slate-200 rounded w-3/4" />
-                <div className="h-4 bg-slate-200 rounded w-1/2" />
-                <div className="h-24 bg-slate-200 rounded-2xl" />
-                <div className="h-12 bg-slate-200 rounded-2xl" />
+                <div className="h-7 bg-slate-200/80 rounded w-3/4" />
+                <div className="h-4 bg-slate-200/80 rounded w-1/2" />
+                <div className="h-28 bg-slate-200/80 rounded-2xl" />
+                <div className="h-12 bg-slate-200/80 rounded-2xl" />
               </div>
               <div className="lg:col-span-3 space-y-4">
-                <div className="h-48 bg-slate-200 rounded-2xl" />
-                <div className="h-48 bg-slate-200 rounded-2xl" />
+                <div className="h-52 bg-slate-200/80 rounded-2xl" />
+                <div className="h-52 bg-slate-200/80 rounded-2xl" />
               </div>
             </div>
           </div>
@@ -190,13 +397,13 @@ export function ProductDetailClient({
     }
 
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center px-4 py-16">
-        <div className="max-w-md w-full text-center bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-          <div className="w-16 h-16 bg-red-50 text-[#FF1028] rounded-2xl flex items-center justify-center mx-auto border border-red-100">
-            <AlertCircle className="w-8 h-8" />
+      <div className="min-h-screen bg-[#FAFAFC] flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full text-center bg-white p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+          <div className="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto border border-red-100">
+            <AlertCircle className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-[#00143D] font-heading">
+            <h1 className="text-xl font-bold text-slate-900 font-heading">
               Product Not Found
             </h1>
             <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
@@ -206,13 +413,13 @@ export function ProductDetailClient({
           <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#00143D] hover:bg-[#002366] text-white text-xs font-bold font-heading uppercase tracking-wider transition-colors shadow-xs"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wide transition-all shadow-xs"
             >
               Browse Catalogue
             </Link>
             <Link
               href="/categories"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors"
             >
               All Departments
             </Link>
@@ -222,24 +429,17 @@ export function ProductDetailClient({
     );
   }
 
-  // Derived variant data
-  const currentVariant = product.variants?.[selectedVariantIndex];
-  const activePrice = currentVariant?.price || product.base_price;
-  const activeComparePrice = currentVariant?.compare_at_price || product.compare_at_price || (product.is_flash_deal ? activePrice * 1.45 : undefined);
-  const discount = activeComparePrice ? calcDiscount(activeComparePrice, activePrice) : 0;
-  const savings = activeComparePrice ? Math.max(0, activeComparePrice - activePrice) : 0;
-  const activeStock = currentVariant?.stock ?? 50;
-  const isOutOfStock = activeStock <= 0;
-
   // Media gallery list
-  const fallbackUrl = "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80";
-  const images = (product.media && product.media.length > 0)
-    ? product.media.map((m) => m.url).filter(Boolean)
-    : [
-        fallbackUrl,
-        "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=800&auto=format&fit=crop&q=80",
-        "https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=800&auto=format&fit=crop&q=80",
-      ];
+  const fallbackUrl =
+    "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=800&auto=format&fit=crop&q=80";
+  const images =
+    product.media && product.media.length > 0
+      ? product.media.map((m) => m.url).filter(Boolean)
+      : [
+          fallbackUrl,
+          "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=800&auto=format&fit=crop&q=80",
+          "https://images.unsplash.com/photo-1579829366248-204fe8413f31?w=800&auto=format&fit=crop&q=80",
+        ];
 
   // Helper for video embed thumbnails
   const getEmbedThumbnail = (url: string): string | undefined => {
@@ -261,106 +461,22 @@ export function ProductDetailClient({
     return undefined;
   };
 
-  // Dynamic Video Configurations (Uses direct video frames, not product gallery photos)
+  // Dynamic Video Configurations
   const video1Config = product.videos?.[0];
-  const video1Url = video1Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov";
+  const video1Url =
+    video1Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f39980682e5.mov";
   const video1Title = video1Config?.title || `${product.title} — Hardware Teardown QC`;
-  const isVideo1Embed = video1Url.includes("youtube") || video1Url.includes("vimeo") || video1Url.includes("/embed/");
+  const isVideo1Embed =
+    video1Url.includes("youtube") || video1Url.includes("vimeo") || video1Url.includes("/embed/");
   const video1Poster = isVideo1Embed ? getEmbedThumbnail(video1Url) : undefined;
 
   const video2Config = product.videos?.[1];
-  const video2Url = video2Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov";
+  const video2Url =
+    video2Config?.url || "https://lennoxonemall.com/storage/hero-ad/2026-04-30-69f399744ce0c.mov";
   const video2Title = video2Config?.title || `${product.title} — Live Performance & Stress Test`;
-  const isVideo2Embed = video2Url.includes("youtube") || video2Url.includes("vimeo") || video2Url.includes("/embed/");
+  const isVideo2Embed =
+    video2Url.includes("youtube") || video2Url.includes("vimeo") || video2Url.includes("/embed/");
   const video2Poster = isVideo2Embed ? getEmbedThumbnail(video2Url) : undefined;
-
-  // Dynamic Specifications
-  const dynamicSpecs = useMemo(() => {
-    const specsMap: Record<string, string> = {};
-
-    if (product.specifications && typeof product.specifications === "object") {
-      Object.assign(specsMap, product.specifications);
-    }
-    if (product.specs && typeof product.specs === "object") {
-      Object.assign(specsMap, product.specs);
-    }
-
-    const dims = (product.dimensions && typeof product.dimensions === "object" ? product.dimensions : null) as any;
-    const dimensionStr = dims && dims.length && dims.width && dims.height
-      ? `${dims.length} × ${dims.width} × ${dims.height} ${dims.unit || "cm"}`
-      : "30.0 × 20.0 × 12.0 cm";
-
-    const cargoLabels: Record<string, string> = {
-      general: isSpanish ? "Carga General (Sin Batería)" : "General Cargo (普货 - Non-Battery)",
-      lithium_built_in: isSpanish ? "Batería de Litio Integrada (Pase Aéreo PI967)" : "Built-in Lithium Battery (PI967 Air Cargo Pass)",
-      lithium_pure: isSpanish ? "Batería Pura / Power Bank (Línea Especial PI965)" : "Pure Battery / Power Bank (PI965 Special Line)",
-      liquid_cream: isSpanish ? "Líquido / Crema / Cosméticos (Certificado Aéreo)" : "Liquid / Cream / Cosmetics (Airfreight Certified)",
-      magnetic: isSpanish ? "Bienes Magnetizados (Blindados e Inspeccionados)" : "Magnetized Goods (Shielded & Inspected)",
-      powder: isSpanish ? "Polvo / Químico (Probado en Laboratorio)" : "Powder / Chemical (Lab Tested)",
-    };
-
-    const packageLabels: Record<string, string> = {
-      corrugated_box: isSpanish ? "Caja de Cartón Corrugado de Doble Pared para Carga Aérea" : "Double-Wall Corrugated Air-Cargo Box",
-      bubble_mailer: isSpanish ? "Sobre Acolchado Impermeable de Burbujas" : "Padded Waterproof Bubble Mailer",
-      retail_box: isSpanish ? "Caja a Color Minorista Original de Fábrica" : "Original Factory Retail Color Box",
-      wooden_crate: isSpanish ? "Pallet / Caja de Madera Reforzada" : "Reinforced Wooden Pallet / Crate",
-      anti_static: isSpanish ? "Bolsa de Blindaje Antiestática" : "Anti-Static Shielding Bag",
-    };
-
-    const defaults: Record<string, string> = isSpanish
-      ? {
-          "Origen de Manufactura": product.shipping_origin || "Shenzhen / Guangdong, China",
-          "Dimensiones del Paquete": dimensionStr,
-          "Peso Bruto de Envío": product.weight ? `${product.weight} kg` : "0.85 kg",
-          "Peso Neto del Producto": product.net_weight ? `${product.net_weight} kg` : (product.weight ? `${(product.weight * 0.8).toFixed(2)} kg` : "0.65 kg"),
-          "Clasificación de Carga": cargoLabels[product.cargo_type || ""] || "Batería de Litio Integrada (Pase Aéreo PI967)",
-          "Embalaje y Empaque": packageLabels[product.package_type || ""] || "Caja de Cartón Corrugado de Doble Pared para Carga Aérea",
-          "Plazo de Despacho": product.lead_time || "Despacho el Mismo Día (Menos de 24h)",
-          "Código Arancelario HS": product.hs_code || "8517.62.00",
-          "Certificación de Calidad": "100% Probado con Láser y Carga Previo al Envío (Grado A+)",
-          "Identificador SKU": currentVariant?.sku || product.sku,
-          "Marca Directa": product.brand?.name || "Fábrica Directa Lennox",
-          "Departamento / Clúster": getLocalizedCategoryName(category?.name, true) || "Hardware y Electrónica",
-          "Garantía de Pago": "Binance Pay USDT (Cero comisiones de red y depósito en garantía)",
-          "Garantía y Devolución": "30 Días de Devolución de Dinero + 1 Año de Soporte Directo de Fábrica",
-        }
-      : {
-          "Manufacturing Origin": product.shipping_origin || "Shenzhen / Guangdong, China",
-          "Package Dimensions": dimensionStr,
-          "Gross Shipping Weight": product.weight ? `${product.weight} kg` : "0.85 kg",
-          "Net Product Weight": product.net_weight ? `${product.net_weight} kg` : (product.weight ? `${(product.weight * 0.8).toFixed(2)} kg` : "0.65 kg"),
-          "Cargo Classification": cargoLabels[product.cargo_type || ""] || "Built-in Lithium Battery (PI967 Air Cargo Pass)",
-          "Packaging Container": packageLabels[product.package_type || ""] || "Double-Wall Corrugated Air-Cargo Box",
-          "Dispatch SLA": product.lead_time || "Same Day Dispatch (Within 24h)",
-          "HS Customs Code": product.hs_code || "8517.62.00",
-          "QC Certification": "100% Pre-Departure Dual Laser & Load Tested (Grade A+)",
-          "SKU Identifier": currentVariant?.sku || product.sku,
-          "Direct Brand": product.brand?.name || "Lennox Direct Factory",
-          "Department / Cluster": category?.name || "Hardware & Electronics",
-          "Payment Escrow": "Binance Pay USDT (Zero Gas Fees & Instant Escrow)",
-          "Warranty & Guarantee": "30-Day Money-Back Guarantee + 1-Year Direct Factory Support",
-        };
-
-    return { ...defaults, ...specsMap };
-  }, [product, currentVariant, category, isSpanish]);
-
-  const shippingMethod = useCartStore((state) => state.shippingMethod);
-  const setShippingMethod = useCartStore((state) => state.setShippingMethod);
-
-  // Dynamic Live Freight Calculation for Current Product & Quantity
-  const productShippingPreview = useMemo(() => {
-    return calculateComprehensiveShipping([
-      {
-        id: currentVariant?.id || product.id,
-        productId: product.id,
-        title: product.title,
-        quantity,
-        dimensions: product.dimensions,
-        weight: product.weight,
-        cargoType: product.cargo_type,
-      },
-    ]);
-  }, [product, currentVariant, quantity]);
 
   // Handlers
   const handleAddToCart = (openDrawer = true) => {
@@ -405,68 +521,82 @@ export function ProductDetailClient({
     }
   };
 
+  const handleCopySku = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(currentVariant?.sku || product.sku);
+      setCopiedSku(true);
+      setTimeout(() => setCopiedSku(false), 2000);
+    }
+  };
+
+  const handleCopyCoupon = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText("LENNOX10");
+      setCopiedCoupon(true);
+      setTimeout(() => setCopiedCoupon(false), 2000);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24 font-sans text-slate-900">
-      {/* ── 1. Top Breadcrumbs & Factory Trust Micro-Strip ── */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 py-2.5 sm:py-3 shadow-2xs transition-all">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-1.5 md:gap-2.5">
+    <div className="min-h-screen bg-[#FAFAFC] pb-24 font-sans text-slate-900 selection:bg-slate-900 selection:text-white">
+      {/* ── 1. Top Breadcrumbs & Refined Trust Strip ── */}
+      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/70 py-2.5 transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-3 text-xs">
             <Breadcrumbs
               items={[
                 { label: isSpanish ? "Inicio" : "Home", href: "/" },
                 {
-                  label: getLocalizedCategoryName(category?.name, isSpanish) || (isSpanish ? "Departamentos" : "Departments"),
+                  label:
+                    getLocalizedCategoryName(category?.name, isSpanish) ||
+                    (isSpanish ? "Departamentos" : "Departments"),
                   href: category ? `/categories/${category.slug}` : "/categories",
                 },
                 { label: getLocalizedProductTitle(product.slug, product.title, isSpanish) },
               ]}
             />
 
-            <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono">
-              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {isSpanish ? "Hub de Abastecimiento de Shenzhen Activo" : "Shenzhen Sourcing Hub Active"}
+            {/* Desktop trust indicator */}
+            <div className="hidden sm:flex items-center gap-2.5 text-xs text-slate-500">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-medium text-[11px] border border-slate-200/60">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                {isSpanish ? "Hub Shenzhen Activo" : "Shenzhen Hub Active"}
               </span>
-              <span className="text-slate-500 font-medium">
-                {isSpanish ? "100% Probado con Control de Calidad Previo al Envío" : "100% Pre-Departure QC Tested"}
+              <span className="text-slate-300">•</span>
+              <span className="text-slate-500 font-medium text-[11px]">
+                {isSpanish ? "100% Inspeccionado Pre-Despacho" : "100% Pre-Departure Inspected"}
               </span>
             </div>
 
-            {/* Mobile-only trust strip */}
-            <div className="flex sm:hidden items-center gap-3 text-[10px] font-mono text-slate-500">
-              <span className="flex items-center gap-1 text-emerald-700 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {isSpanish ? "Verificado QC" : "QC Verified"}
-              </span>
-              <span>•</span>
-              <span>{isSpanish ? "Carga Aérea 5–8 Días" : "5–8 Day Air Cargo"}</span>
-              <span>•</span>
-              <span>{isSpanish ? "Pago USDT" : "USDT Pay"}</span>
+            {/* Mobile trust indicator */}
+            <div className="flex sm:hidden items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>{isSpanish ? "Verificado QC" : "QC Verified"}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Toast Alert */}
+      {/* Floating Added Toast */}
       {addedToast && (
-        <div className="fixed top-20 right-4 sm:right-8 z-50 bg-[#10B981] text-slate-950 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-black animate-in slide-in-from-top duration-300">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
+        <div className="fixed top-16 right-4 sm:right-8 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>
             {isSpanish
-              ? `¡Se agregaron ${quantity} artículo(s) al carrito a precio de fábrica!`
+              ? `¡${quantity} artículo(s) agregado(s) al carrito!`
               : `Added ${quantity} item(s) to cart at factory price!`}
           </span>
         </div>
       )}
 
-      {/* ── 2. Main Product Hero (Gallery + Buy Box + Right-Hand Dual Video Column) ── */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* ── Left Column: Media Gallery (Sticky on Desktop) ── */}
-          <div className="lg:col-span-5 space-y-3.5 lg:sticky lg:top-20 self-start order-1">
-            {/* Main Featured Image Container */}
+      {/* ── 2. Main Product Hero ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* ── Left Column: Media Gallery & Unified Sourcing Chips (5 Cols) ── */}
+          <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-16 self-start order-1">
+            {/* Primary Featured Image Frame */}
             <div
-              className="relative w-full aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-md group"
+              className="relative w-full aspect-square rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] group"
               onTouchStart={handleTouchStart}
               onTouchEnd={(e) => handleTouchEnd(e, images.length)}
             >
@@ -476,36 +606,39 @@ export function ProductDetailClient({
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 42vw"
-                className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-[1.03]"
               />
 
-              {/* Top Badges */}
-              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 flex flex-col gap-1.5 sm:gap-2 z-10">
+              {/* Status Badges Overlay */}
+              <div className="absolute top-3 sm:top-4 left-3 sm:left-4 flex flex-col gap-1.5 z-10">
                 {discount > 0 && (
-                  <span className="bg-[#FF1028] text-white text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg uppercase tracking-wider font-heading shadow-md">
+                  <span className="bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider font-heading shadow-xs">
                     -{discount}% {isSpanish ? "DCTO" : "OFF"}
                   </span>
                 )}
                 {product.is_flash_deal && (
-                  <span className="bg-[#00143D] text-amber-300 text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg flex items-center gap-1 sm:gap-1.5 border border-amber-300/30 uppercase tracking-wide shadow-md">
-                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-300" /> {isSpanish ? "OFERTA FLASH" : "FLASH"}
+                  <span className="bg-slate-900/90 backdrop-blur-md text-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 uppercase tracking-wide border border-white/10 shadow-xs">
+                    <Flame className="w-3 h-3 fill-amber-300" />
+                    {isSpanish ? "OFERTA FLASH" : "FLASH DEAL"}
                   </span>
                 )}
               </div>
 
-              {/* Swipe hint arrows (mobile only) */}
+              {/* Mobile Swipe Indicators */}
               {images.length > 1 && (
                 <>
                   <button
-                    onClick={() => setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center z-10 sm:hidden"
+                    onClick={() =>
+                      setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length)
+                    }
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md text-slate-700 shadow-md flex items-center justify-center z-10 sm:hidden active:scale-95 transition-transform"
                     aria-label="Previous image"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setSelectedImageIndex((prev) => (prev + 1) % images.length)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center z-10 sm:hidden"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md text-slate-700 shadow-md flex items-center justify-center z-10 sm:hidden active:scale-95 transition-transform"
                     aria-label="Next image"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -513,166 +646,156 @@ export function ProductDetailClient({
                 </>
               )}
 
-              {/* Image Count & Zoom Hint */}
-              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10 flex items-center gap-2">
-                <span className="bg-black/60 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-mono font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg border border-white/15 shadow-sm">
+              {/* Image Counter & Fullscreen Zoom Button */}
+              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-10">
+                <span className="bg-white/90 backdrop-blur-md text-slate-700 text-[11px] font-mono font-medium px-2.5 py-1 rounded-full border border-slate-200/60 shadow-xs">
                   {selectedImageIndex + 1} / {images.length}
                 </span>
               </div>
 
-              {/* Lightbox Trigger */}
               <button
                 onClick={() => setIsZoomModalOpen(true)}
-                className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/95 backdrop-blur-md text-slate-700 hover:text-[#00143D] flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer border border-slate-200"
+                className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 backdrop-blur-md text-slate-700 hover:text-slate-900 flex items-center justify-center shadow-xs hover:shadow-md border border-slate-200/80 transition-all hover:scale-105 cursor-pointer"
                 title={isSpanish ? "Expandir pantalla completa" : "Expand Fullscreen"}
                 aria-label="Expand image"
               >
-                <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Maximize2 className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Thumbnail Strip — horizontal scroll on mobile, grid on tablet+ */}
-            <div className="flex gap-2 overflow-x-auto pb-0.5 sm:grid sm:grid-cols-5 sm:overflow-x-visible no-scrollbar">
+            {/* Thumbnail Carousel */}
+            <div className="flex gap-2.5 overflow-x-auto pb-1 sm:grid sm:grid-cols-5 sm:overflow-x-visible no-scrollbar">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative shrink-0 w-14 h-14 sm:w-auto sm:h-auto sm:aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-white border-2 transition-all cursor-pointer touch-manipulation ${
+                  className={`relative shrink-0 w-14 h-14 sm:w-auto sm:h-auto sm:aspect-square rounded-xl overflow-hidden bg-white transition-all cursor-pointer touch-manipulation ${
                     selectedImageIndex === idx
-                      ? "border-[#FF1028] shadow-md ring-2 ring-[#FF1028]/20"
-                      : "border-slate-200 hover:border-slate-400 opacity-70 hover:opacity-100"
+                      ? "ring-2 ring-slate-900 ring-offset-2 opacity-100 shadow-xs"
+                      : "border border-slate-200/80 opacity-60 hover:opacity-100"
                   }`}
-                  aria-label={`View product photo ${idx + 1}`}
+                  aria-label={`View photo ${idx + 1}`}
                 >
                   <Image src={img} alt={`Thumb ${idx + 1}`} fill className="object-cover" />
                 </button>
               ))}
             </div>
 
-            {/* ── 4 Sourcing & Guarantee Highlight Cards (Matches Wireframe / Layout) ── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 pt-1">
-              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-emerald-500 hover:shadow-xs transition-all flex flex-col justify-between group">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200/60 group-hover:scale-105 transition-transform">
+            {/* ── 4 Minimalist Sourcing Guarantee Micro-Cards ── */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    {isSpanish ? "100% Aprobado QC" : "100% QC Pass"}
+                  <span className="text-xs font-bold text-slate-900 font-heading">
+                    {isSpanish ? "100% QC" : "100% QC"}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  {isSpanish ? "Verificado en laboratorio" : "Lab bench verified"}
+                <p className="text-[11px] text-slate-500 leading-snug">
+                  {isSpanish ? "Laboratorio certificado" : "Lab bench tested"}
                 </p>
               </div>
 
-              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-blue-500 hover:shadow-xs transition-all flex flex-col justify-between group">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200/60 group-hover:scale-105 transition-transform">
+              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <Zap className="w-3.5 h-3.5 fill-blue-600" />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    {isSpanish ? "Fábrica Directa" : "Direct Sourcing"}
+                  <span className="text-xs font-bold text-slate-900 font-heading">
+                    {isSpanish ? "Fábrica" : "Direct Sourcing"}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  {isSpanish ? "0 comisiones extra" : "0 Middleman markup"}
+                <p className="text-[11px] text-slate-500 leading-snug">
+                  {isSpanish ? "Sin intermediarios" : "0 Middleman fee"}
                 </p>
               </div>
 
-              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-indigo-500 hover:shadow-xs transition-all flex flex-col justify-between group">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200/60 group-hover:scale-105 transition-transform">
+              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
                     <Plane className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    {isSpanish ? "Carga Aérea 5–8d" : "5–8d Air Cargo"}
+                  <span className="text-xs font-bold text-slate-900 font-heading">
+                    {isSpanish ? "Aéreo 5–8d" : "5–8d Air"}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  {isSpanish ? "Courier aéreo express" : "Express air courier"}
+                <p className="text-[11px] text-slate-500 leading-snug">
+                  {isSpanish ? "Courier express" : "Express courier"}
                 </p>
               </div>
 
-              <div className="bg-white p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 shadow-2xs hover:border-amber-500 hover:shadow-xs transition-all flex flex-col justify-between group">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200/60 group-hover:scale-105 transition-transform">
+              <div className="bg-white p-3 rounded-2xl border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                     <Coins className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-black text-slate-900 font-heading leading-tight">
-                    {isSpanish ? "Garantía USDT" : "USDT Escrow"}
+                  <span className="text-xs font-bold text-slate-900 font-heading">
+                    {isSpanish ? "USDT Escrow" : "USDT Escrow"}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 font-medium leading-snug">
-                  {isSpanish ? "30 días de garantía" : "30-day money back"}
+                <p className="text-[11px] text-slate-500 leading-snug">
+                  {isSpanish ? "Garantía 30 días" : "30-day protection"}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* ── Middle Column: Purchase Configurator & Buy Box (4 Cols on Desktop) ── */}
-          <div className="lg:col-span-4 space-y-3.5 sm:space-y-5 order-3 lg:order-2">
-            {/* Header / Title / Brand / SKU */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-blue-600 font-mono bg-blue-50/80 px-2 py-0.5 rounded-md border border-blue-200/60 truncate max-w-[160px] sm:max-w-none">
-                  {product.brand?.name || (isSpanish ? "Hardware Directo de Fábrica" : "Direct Factory Hardware")}
+          {/* ── Middle Column: Configurator, Buy Box & Freight (4 Cols) ── */}
+          <div className="lg:col-span-4 space-y-4 order-3 lg:order-2">
+            {/* Header: Brand & SKU */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="text-slate-500 font-medium tracking-wide uppercase font-mono text-[11px]">
+                  {product.brand?.name || (isSpanish ? "Fábrica Directa Lennox" : "Direct Factory Hardware")}
                 </span>
                 <button
-                  onClick={() => {
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(currentVariant?.sku || product.sku);
-                      setCopiedLink(true);
-                      setTimeout(() => setCopiedLink(false), 2000);
-                    }
-                  }}
-                  className="text-[10px] font-mono text-slate-500 hover:text-[#00143D] flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded cursor-pointer transition-colors shrink-0"
+                  onClick={handleCopySku}
+                  className="text-[11px] font-mono text-slate-400 hover:text-slate-700 flex items-center gap-1 bg-slate-100 hover:bg-slate-200/80 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
                   title="Click to copy SKU"
                 >
-                  <Copy className="w-3 h-3" />
-                  <span className="hidden sm:inline">SKU: {currentVariant?.sku || product.sku}</span>
-                  <span className="sm:hidden">{(currentVariant?.sku || product.sku).slice(0, 10)}</span>
+                  {copiedSku ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  <span>SKU: {currentVariant?.sku || product.sku}</span>
                 </button>
               </div>
 
-              <h1 className="text-base sm:text-xl lg:text-2xl font-black font-heading text-[#00143D] leading-snug tracking-tight">
+              {/* Title */}
+              <h1 className="text-xl sm:text-2xl font-bold font-heading text-slate-900 leading-snug tracking-tight">
                 {getLocalizedProductTitle(product.slug, product.title, isSpanish)}
               </h1>
 
-              {/* Rating & Sold & Q&A Row */}
-              <div className="flex items-center gap-2.5 sm:gap-3.5 text-xs pt-0.5 flex-wrap">
+              {/* Social Proof Row: Rating, Q&A, Orders & Share */}
+              <div className="flex items-center gap-3 text-xs text-slate-500 pt-0.5 flex-wrap">
                 <button
                   onClick={() => {
                     setActiveTab("reviews");
-                    const el = document.getElementById("product-tabs-section");
-                    el?.scrollIntoView({ behavior: "smooth" });
+                    document.getElementById("product-tabs-section")?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="flex items-center gap-1 hover:underline cursor-pointer"
+                  className="flex items-center gap-1 hover:text-slate-900 transition-colors cursor-pointer"
                 >
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span className="font-black text-slate-900">{(product.avg_rating || 4.9).toFixed(1)}</span>
-                  <span className="text-slate-400">({product.review_count || 32} {isSpanish ? "reseñas" : "reviews"})</span>
+                  <span className="font-bold text-slate-900">{(product.avg_rating || 4.9).toFixed(1)}</span>
+                  <span className="text-slate-400">({product.review_count || 32})</span>
                 </button>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-200">•</span>
                 <button
                   onClick={() => {
                     setActiveTab("qa");
-                    const el = document.getElementById("product-tabs-section");
-                    el?.scrollIntoView({ behavior: "smooth" });
+                    document.getElementById("product-tabs-section")?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="flex items-center gap-1 hover:underline cursor-pointer text-slate-600 hover:text-[#00143D]"
+                  className="hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
-                  <span className="font-bold text-slate-700">{qaCount} {isSpanish ? "Preguntas" : "Q&As"}</span>
+                  {qaCount} {isSpanish ? "Preguntas" : "Q&As"}
                 </button>
-                <span className="text-slate-300">•</span>
-                <span className="text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded font-mono text-[11px]">
+                <span className="text-slate-200">•</span>
+                <span>
                   {product.sold_count >= 1000
                     ? `${(product.sold_count / 1000).toFixed(1)}k+ ${isSpanish ? "pedidos" : "orders"}`
                     : `${product.sold_count || 85} ${isSpanish ? "vendidos" : "sold"}`}
                 </span>
                 <button
                   onClick={handleShare}
-                  className="ml-auto text-slate-400 hover:text-slate-700 flex items-center gap-1 text-[11px] cursor-pointer"
+                  className="ml-auto text-slate-400 hover:text-slate-700 flex items-center gap-1 text-[11px] cursor-pointer transition-colors"
                 >
                   <Share2 className="w-3 h-3" />
                   <span>{copiedLink ? (isSpanish ? "¡Copiado!" : "Copied!") : (isSpanish ? "Compartir" : "Share")}</span>
@@ -680,19 +803,19 @@ export function ProductDetailClient({
               </div>
             </div>
 
-            {/* ── Price Block & Flash Sale Countdown (Minimalist Dark Glassmorphism) ── */}
-            <div className="p-3.5 sm:p-5 rounded-2xl bg-[#000B24] text-white space-y-3 border border-slate-800 shadow-sm">
+            {/* ── Luminous Minimalist Pricing Card ── */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] space-y-3">
               <div className="flex items-baseline justify-between gap-2">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-mono">
-                    {isSpanish ? "Precio Directo de Mayoreo" : "Direct Wholesale Price"}
+                  <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block font-sans">
+                    {isSpanish ? "Precio Directo de Fábrica" : "Direct Factory Price"}
                   </span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-black text-white font-mono leading-none">
+                  <div className="flex items-baseline gap-2.5 mt-0.5">
+                    <span className="text-3xl sm:text-4xl font-black text-slate-900 font-mono tracking-tight tabular-nums">
                       {formatCurrency(activePrice)}
                     </span>
                     {activeComparePrice && activeComparePrice > activePrice && (
-                      <span className="text-xs text-slate-400 line-through font-mono">
+                      <span className="text-sm text-slate-400 line-through font-mono">
                         {formatPrice(activeComparePrice)}
                       </span>
                     )}
@@ -700,58 +823,53 @@ export function ProductDetailClient({
                 </div>
 
                 {savings > 0 && (
-                  <span className="bg-[#FF1028] text-white text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-lg uppercase font-heading shadow-xs shrink-0">
-                    -{discount}% {isSpanish ? "DCTO" : "OFF"}
+                  <span className="bg-red-50 text-red-600 border border-red-200/60 text-xs font-bold px-2.5 py-1 rounded-full font-heading shrink-0">
+                    -{discount}% {isSpanish ? "AHORRO" : "SAVE"}
                   </span>
                 )}
               </div>
 
-              {/* Flash Drop Micro Timer */}
+              {/* Flash Countdown if applicable */}
               {product.is_flash_deal && (
-                <div className="p-2 sm:p-2.5 rounded-xl bg-[#00143D] border border-amber-300/30 flex items-center justify-between text-xs font-mono text-amber-300">
-                  <span className="flex items-center gap-1.5 font-bold text-white text-[10px] sm:text-[11px]">
-                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-300 animate-pulse" />
-                    <span className="hidden xs:inline">{isSpanish ? "Oferta termina en:" : "Sourcing Deal Ends:"}</span>
-                    <span className="xs:hidden">{isSpanish ? "Termina:" : "Ends:"}</span>
+                <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/60 flex items-center justify-between text-xs text-amber-900">
+                  <span className="flex items-center gap-1.5 font-medium text-[11px]">
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{isSpanish ? "La oferta termina en:" : "Sourcing deal ends in:"}</span>
                   </span>
-                  <span className="font-black text-xs text-amber-300">
+                  <span className="font-mono font-bold text-amber-700">
                     {String(timeLeft.hours).padStart(2, "0")}:{String(timeLeft.minutes).padStart(2, "0")}:
                     {String(timeLeft.seconds).padStart(2, "0")}
                   </span>
                 </div>
               )}
 
-              {/* Interactive Coupon Voucher Callout */}
+              {/* Minimalist Coupon Voucher Chip */}
               <div
-                onClick={() => {
-                  if (navigator.clipboard) {
-                    navigator.clipboard.writeText("LENNOX10");
-                    setCopiedLink(true);
-                    setTimeout(() => setCopiedLink(false), 2000);
-                  }
-                }}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs flex items-center justify-between cursor-pointer border border-white/10 transition-colors"
-                title={isSpanish ? "Clic para copiar cupón" : "Click to copy coupon code"}
+                onClick={handleCopyCoupon}
+                className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 text-slate-600 text-xs flex items-center justify-between cursor-pointer border border-dashed border-slate-300 transition-colors"
+                title={isSpanish ? "Clic para copiar cupón" : "Click to copy promo code"}
               >
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
-                  <span className="text-[10px] sm:text-[11px] font-medium">{isSpanish ? "10% de Descuento Extra:" : "Extra 10% Off:"}</span>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span className="font-medium text-slate-700">
+                    {isSpanish ? "10% de descuento extra en primer pedido" : "Extra 10% off your first order"}
+                  </span>
                 </div>
-                <span className="bg-[#FF1028] text-white font-black px-2 py-0.5 rounded font-mono text-[10px] flex items-center gap-1 shrink-0">
+                <span className="bg-white text-slate-900 border border-slate-200 font-mono font-bold px-2 py-0.5 rounded text-[11px] flex items-center gap-1 shrink-0 shadow-2xs">
                   <span>LENNOX10</span>
-                  <Copy className="w-2.5 h-2.5" />
+                  {copiedCoupon ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
                 </span>
               </div>
             </div>
 
             {/* ── Variant Selectors ── */}
             {product.variants && product.variants.length > 1 && (
-              <div className="space-y-2.5 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-[#00143D] uppercase tracking-wider font-heading">
-                    {isSpanish ? "Modelo / Configuración" : "Model / Configuration"}
+              <div className="space-y-2 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-900 font-heading">
+                    {isSpanish ? "Modelo / Variante" : "Model / Option"}
                   </span>
-                  <span className="text-xs font-mono font-bold text-[#FF1028]">
+                  <span className="font-mono text-slate-500 font-medium">
                     {currentVariant?.title || currentVariant?.sku}
                   </span>
                 </div>
@@ -763,12 +881,16 @@ export function ProductDetailClient({
                       onClick={() => setSelectedVariantIndex(idx)}
                       className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                         selectedVariantIndex === idx
-                          ? "border-[#00143D] bg-slate-900 text-white shadow-xs ring-1 ring-[#00143D]"
+                          ? "border-slate-900 bg-slate-900 text-white shadow-xs"
                           : "border-slate-200 hover:border-slate-300 bg-white text-slate-800"
                       }`}
                     >
-                      <span className="text-xs font-bold block truncate">{variant.title || variant.sku}</span>
-                      <span className="text-[11px] font-mono font-bold mt-0.5 block text-emerald-600 dark:text-emerald-400">
+                      <span className="text-xs font-semibold block truncate">{variant.title || variant.sku}</span>
+                      <span
+                        className={`text-[11px] font-mono font-medium mt-0.5 block ${
+                          selectedVariantIndex === idx ? "text-slate-300" : "text-slate-500"
+                        }`}
+                      >
                         {formatCurrency(variant.price)}
                       </span>
                     </button>
@@ -777,33 +899,39 @@ export function ProductDetailClient({
               </div>
             )}
 
-            {/* ── Quantity & Live Inventory Stock State ── */}
+            {/* ── Quantity & Stock State ── */}
             <div className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
               <div>
-                <span className="text-xs font-bold text-slate-700 block">{isSpanish ? "Cantidad" : "Quantity"}</span>
-                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 font-mono">
-                  <CheckCircle2 className="w-3 h-3" />
-                  {isOutOfStock ? (isSpanish ? "Agotado" : "Out of Stock") : (isSpanish ? `En Stock (${activeStock} Unidades)` : `In Stock (${activeStock} Units)`)}
+                <span className="text-xs font-semibold text-slate-900 block">{isSpanish ? "Cantidad" : "Quantity"}</span>
+                <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                  {isOutOfStock
+                    ? isSpanish
+                      ? "Agotado"
+                      : "Out of Stock"
+                    : isSpanish
+                    ? `En Stock (${activeStock} unidades)`
+                    : `In Stock (${activeStock} units)`}
                 </span>
               </div>
 
               {/* Stepper */}
-              <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+              <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1 || isOutOfStock}
-                  className="p-2 text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer transition-colors"
+                  className="p-2 text-slate-600 hover:bg-slate-200/70 disabled:opacity-30 cursor-pointer transition-colors"
                   aria-label="Decrease quantity"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
-                <span className="w-9 text-center text-xs font-mono font-bold text-slate-900">
+                <span className="w-9 text-center text-xs font-mono font-bold text-slate-900 tabular-nums">
                   {quantity}
                 </span>
                 <button
                   onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
                   disabled={quantity >= activeStock || isOutOfStock}
-                  className="p-2 text-slate-600 hover:bg-slate-200 disabled:opacity-30 cursor-pointer transition-colors"
+                  className="p-2 text-slate-600 hover:bg-slate-200/70 disabled:opacity-30 cursor-pointer transition-colors"
                   aria-label="Increase quantity"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -811,20 +939,21 @@ export function ProductDetailClient({
               </div>
             </div>
 
-            {/* ── Primary Action Buttons ── */}
+            {/* ── Action Buttons ── */}
             <div className="space-y-2">
               <button
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
-                className="w-full py-3.5 rounded-2xl bg-[#FF1028] hover:bg-[#E00B20] text-white font-black font-heading text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md hover:shadow-lg active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 min-h-[48px] rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold font-heading text-xs sm:text-sm uppercase tracking-wider transition-all shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4 fill-white shrink-0" />
-                {/* Short text on mobile, full text on sm+ */}
                 <span className="sm:hidden">
                   {isSpanish ? `Comprar — ${formatCurrency(activePrice * quantity)}` : `Buy Now — ${formatCurrency(activePrice * quantity)}`}
                 </span>
                 <span className="hidden sm:inline">
-                  {isSpanish ? `Comprar Ahora con Binance Pay (${formatCurrency(activePrice * quantity)})` : `Buy Now with Binance Pay (${formatCurrency(activePrice * quantity)})`}
+                  {isSpanish
+                    ? `Comprar Ahora con Binance Pay (${formatCurrency(activePrice * quantity)})`
+                    : `Buy Now with Binance Pay (${formatCurrency(activePrice * quantity)})`}
                 </span>
               </button>
 
@@ -832,11 +961,10 @@ export function ProductDetailClient({
                 <button
                   onClick={() => handleAddToCart(true)}
                   disabled={isOutOfStock}
-                  className="flex-1 py-3 min-h-[44px] rounded-2xl bg-[#00143D] hover:bg-[#002366] text-white font-black font-heading text-xs uppercase tracking-wider transition-all shadow-xs active:scale-98 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40"
+                  className="flex-1 py-3 px-4 min-h-[48px] rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold font-heading text-xs uppercase tracking-wider transition-all shadow-xs active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40"
                 >
                   <ShoppingCart className="w-4 h-4 shrink-0" />
-                  <span className="sm:hidden">{isSpanish ? "Carrito" : "Cart"}</span>
-                  <span className="hidden sm:inline">{isSpanish ? "Añadir al Carrito" : "Add to Cart"}</span>
+                  <span>{isSpanish ? "Añadir al Carrito" : "Add to Cart"}</span>
                 </button>
 
                 <button
@@ -853,15 +981,15 @@ export function ProductDetailClient({
                       reviewCount: product.review_count || 12,
                     })
                   }
-                  className={`min-w-[44px] min-h-[44px] px-3 rounded-2xl border-2 transition-all flex items-center justify-center cursor-pointer ${
+                  className={`min-w-[48px] min-h-[48px] px-3 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
                     mountedIsInWishlist
-                      ? "bg-red-50 border-[#FF1028] text-[#FF1028]"
-                      : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
+                      ? "bg-red-50 border-red-200 text-red-600"
+                      : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900"
                   }`}
                   title="Wishlist"
                   aria-label="Add to wishlist"
                 >
-                  <Heart className={`w-4 h-4 ${mountedIsInWishlist ? "fill-[#FF1028]" : ""}`} />
+                  <Heart className={`w-4 h-4 ${mountedIsInWishlist ? "fill-red-600" : ""}`} />
                 </button>
 
                 <button
@@ -877,10 +1005,10 @@ export function ProductDetailClient({
                       brand: product.brand?.name || "Direct Factory",
                     })
                   }
-                  className={`min-w-[44px] min-h-[44px] px-3 rounded-2xl border-2 transition-all flex items-center justify-center cursor-pointer ${
+                  className={`min-w-[48px] min-h-[48px] px-3 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
                     mountedIsInCompare
                       ? "bg-blue-50 border-blue-200 text-blue-600"
-                      : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
+                      : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900"
                   }`}
                   title="Compare"
                   aria-label="Add to compare"
@@ -890,56 +1018,60 @@ export function ProductDetailClient({
               </div>
             </div>
 
-            {/* ── Dynamic International Freight Logistics Calculator ── */}
-            <div className="p-4 sm:p-4.5 rounded-3xl bg-gradient-to-b from-white to-slate-50/60 border border-slate-200/90 shadow-xs space-y-3.5 text-xs font-montserrat">
+            {/* ── Dynamic International Freight Route & Cost Card (Fixed Overlap) ── */}
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] space-y-3 text-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-                    <Plane className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <Plane className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <span className="font-heading font-black text-xs uppercase tracking-wider text-slate-900 block">
-                      {isSpanish ? "Ruta y Costo de Envío" : "Freight Route & Cost"}
+                    <span className="font-heading font-bold text-xs text-slate-900 block">
+                      {isSpanish ? "Ruta y Costo de Flete" : "Freight Route & Cost"}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-medium">
+                    <span className="text-[11px] text-slate-400">
                       {isSpanish
-                        ? `Calculado en vivo para ${quantity} ${quantity === 1 ? "unidad" : "unidades"}`
-                        : `Live calculated for ${quantity} ${quantity === 1 ? "unit" : "units"}`}
+                        ? `Calculado para ${quantity} ${quantity === 1 ? "unidad" : "unidades"}`
+                        : `Calculated for ${quantity} ${quantity === 1 ? "unit" : "units"}`}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 font-mono text-[10px] bg-slate-100/80 text-slate-700 font-bold px-2.5 py-1 rounded-full border border-slate-200/60">
-                  <Box className="w-3 h-3 text-slate-500" />
+                <div className="flex items-center gap-1.5 font-mono text-[10px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-md border border-slate-200/60">
+                  <Box className="w-3 h-3 text-slate-400" />
                   <span>{productShippingPreview.totalGrossWeight.toFixed(2)} kg</span>
                   <span className="text-slate-300">•</span>
                   <span>{productShippingPreview.totalCbm.toFixed(4)} m³</span>
                 </div>
               </div>
 
-              {/* Air vs Sea Premium Segmented Switcher */}
-              <div className="grid grid-cols-2 gap-2 bg-slate-100/70 p-1 rounded-2xl border border-slate-200/60">
+              {/* Air vs Sea Segmented Switcher */}
+              <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200/60">
                 <button
                   type="button"
                   onClick={() => setShippingMethod("air")}
-                  className={`p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                  className={`p-2.5 rounded-lg text-left transition-all cursor-pointer flex flex-col justify-between ${
                     shippingMethod === "air"
-                      ? "bg-white text-[#00143D] shadow-xs ring-1 ring-slate-900/10"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                      ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black uppercase flex items-center gap-1.5 font-heading">
-                      <Zap className={`w-3.5 h-3.5 ${shippingMethod === "air" ? "fill-blue-500 text-blue-600" : "text-slate-400"}`} />
+                    <span className="text-[11px] font-bold uppercase flex items-center gap-1 font-heading">
+                      <Zap className={`w-3 h-3 ${shippingMethod === "air" ? "fill-blue-600 text-blue-600" : "text-slate-400"}`} />
                       {isSpanish ? "Aéreo Express" : "Air Express"}
                     </span>
-                    <span className={`text-xs font-mono font-black ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
-                      {productShippingPreview.air.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : formatPrice(productShippingPreview.air.totalCost)}
+                    <span className={`text-xs font-mono font-bold ${shippingMethod === "air" ? "text-blue-600" : "text-slate-700"}`}>
+                      {productShippingPreview.air.totalCost === 0
+                        ? isSpanish
+                          ? "GRATIS"
+                          : "FREE"
+                        : formatPrice(productShippingPreview.air.totalCost)}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">
                     <span className="text-slate-500 font-medium">{t.product.airLeadDays}</span>
-                    <span className="text-[9px] font-bold font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">
+                    <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
                       {isSpanish ? "Más Rápido" : "Fastest"}
                     </span>
                   </div>
@@ -948,37 +1080,43 @@ export function ProductDetailClient({
                 <button
                   type="button"
                   onClick={() => setShippingMethod("sea")}
-                  className={`p-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                  className={`p-2.5 rounded-lg text-left transition-all cursor-pointer flex flex-col justify-between ${
                     shippingMethod === "sea"
-                      ? "bg-white text-[#00143D] shadow-xs ring-1 ring-slate-900/10"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+                      ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
+                      : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black uppercase flex items-center gap-1.5 font-heading">
-                      <Ship className={`w-3.5 h-3.5 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
-                      {isSpanish ? "Contenedor Marítimo" : "Sea Container"}
+                    <span className="text-[11px] font-bold uppercase flex items-center gap-1 font-heading">
+                      <Ship className={`w-3 h-3 ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-400"}`} />
+                      {isSpanish ? "Marítimo" : "Sea Freight"}
                     </span>
-                    <span className={`text-xs font-mono font-black ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
-                      {productShippingPreview.sea.totalCost === 0 ? (isSpanish ? "GRATIS" : "FREE") : formatPrice(productShippingPreview.sea.totalCost)}
+                    <span className={`text-xs font-mono font-bold ${shippingMethod === "sea" ? "text-blue-600" : "text-slate-700"}`}>
+                      {productShippingPreview.sea.totalCost === 0
+                        ? isSpanish
+                          ? "GRATIS"
+                          : "FREE"
+                        : formatPrice(productShippingPreview.sea.totalCost)}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center justify-between text-[10px]">
                     <span className="text-slate-500 font-medium">{t.product.seaLeadDays}</span>
-                    <span className="text-[9px] font-bold font-mono text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded">
-                      {isSpanish ? "Menor Tarifa" : "Lowest Rate"}
+                    <span className="text-[9px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded">
+                      {isSpanish ? "Económico" : "Lowest Rate"}
                     </span>
                   </div>
                 </button>
               </div>
 
-              {/* Minimal Telemetry Pill & Customs Route */}
-              <div className="flex items-center justify-between px-1 text-[11px] text-slate-500">
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  {product.shipping_origin || (isSpanish ? "Salida Hub de Shenzhen" : "Shenzhen Hub Departure")} • {t.product.ddpPreCleared}
+              {/* Clean Telemetry Line with No Collision */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pt-1 text-[11px] text-slate-500">
+                <span className="flex items-center gap-1 truncate">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>
+                    {product.shipping_origin || "Shenzhen Hub"} • {t.product.ddpPreCleared}
+                  </span>
                 </span>
-                <span className="font-mono text-[10px] text-slate-400">
+                <span className="font-mono text-[10px] text-slate-400 shrink-0 sm:text-right">
                   {shippingMethod === "sea"
                     ? `${productShippingPreview.sea.chargeableMetric} ${isSpanish ? "CBM facturable" : "CBM billable"}`
                     : `${productShippingPreview.air.chargeableMetric} ${isSpanish ? "kg facturable" : "kg billable"}`}
@@ -987,30 +1125,30 @@ export function ProductDetailClient({
             </div>
           </div>
 
-          {/* ── Right Column: 2 Factory QC Videos (Larger Size & Fully Responsive) ── */}
-          <div className="lg:col-span-3 space-y-3.5 lg:sticky lg:top-20 self-start w-full order-2 lg:order-3">
-            <div className="flex items-center justify-between px-1">
+          {/* ── Right Column: 2 Factory QC Videos (3 Cols) ── */}
+          <div className="lg:col-span-3 space-y-3.5 lg:sticky lg:top-16 self-start w-full order-2 lg:order-3">
+            <div className="flex items-center justify-between px-0.5">
               <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-[#FF1028]" />
-                <h4 className="font-heading font-black text-xs uppercase tracking-wider text-slate-900">
+                <Film className="w-4 h-4 text-slate-700" />
+                <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-slate-900">
                   {isSpanish ? "Videos QC de Fábrica" : "Factory QC Videos"}
                 </h4>
               </div>
-              <span className="text-[9px] text-amber-700 font-mono font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+              <span className="text-[10px] text-slate-600 font-mono font-semibold bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/60">
                 1080P QC PASS
               </span>
             </div>
 
-            {/* Responsive grid: Stacked on mobile & desktop, 2-col on tablets */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5 sm:gap-4">
-              {/* Video 1 Card — Enlarged, Rich Visuals & Sizing */}
+            {/* Video Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5">
+              {/* Video 1 Card */}
               <div
                 onClick={() =>
                   setActiveVideoModal({
                     title: video1Title,
                     subtitle: isSpanish
-                      ? "Evaluación de Laboratorio de Inspección de Shenzhen • 100% Pruebas de Carga y Señal"
-                      : "Shenzhen Inspection Lab Benchmark • 100% Signal & Load Testing",
+                      ? "Evaluación de Laboratorio • 100% Pruebas de Carga y Señal"
+                      : "Shenzhen Lab Benchmark • 100% Signal & Load Testing",
                     tag: "QC LAB BENCHMARK",
                     hub: product.shipping_origin || "Shenzhen SZX Hub",
                     productPrice: activePrice,
@@ -1019,14 +1157,13 @@ export function ProductDetailClient({
                     videoUrl: video1Url,
                   })
                 }
-                className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
+                className="group relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-200/80 p-3.5 flex flex-col justify-between cursor-pointer hover:shadow-md transition-all duration-300"
               >
-                {/* Live Video Preview — Uses Actual Video Stream / Frame */}
                 {isVideo1Embed ? (
                   <iframe
                     src={video1Url}
                     title={video1Title}
-                    className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80 group-hover:opacity-95"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-70 group-hover:opacity-85 transition-opacity"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   />
                 ) : (
@@ -1038,57 +1175,46 @@ export function ProductDetailClient({
                     muted
                     loop
                     preload="auto"
-                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-105 transition-all duration-500"
+                    className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-85 group-hover:scale-105 transition-all duration-500"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/40 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
                 {/* Top Badges */}
                 <div className="relative z-10 flex items-center justify-between">
-                  <span className="bg-[#FF1028] text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm font-heading flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                  <span className="bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase font-heading">
                     VIDEO 1
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="bg-black/70 backdrop-blur-xs text-emerald-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-emerald-400/30">
-                      1080P
-                    </span>
-                    <span className="bg-black/70 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
-                      LIVE QC
-                    </span>
+                  <span className="bg-black/60 backdrop-blur-md text-emerald-400 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border border-white/10">
+                    PASSED
+                  </span>
+                </div>
+
+                {/* Play Button */}
+                <div className="relative z-10 my-auto flex justify-center pointer-events-none">
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-white/30 transition-all">
+                    <Play className="w-4 h-4 ml-0.5 fill-current" />
                   </div>
                 </div>
 
-                {/* Center Play Button Overlay */}
-                <div className="relative z-10 my-auto flex justify-center py-2 pointer-events-none">
-                  <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-[#FF1028] text-white flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:bg-[#E00B20] ring-4 ring-white/20 transition-all">
-                    <Play className="w-5 h-5 ml-0.5 fill-current" />
-                  </div>
-                </div>
-
-                {/* Card Footer Details */}
-                <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
-                  <div className="flex items-center justify-between">
-                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors truncate">
-                      {video1Config?.title || (isSpanish ? "Desarme de Hardware QC" : "Hardware Teardown QC")}
-                    </h5>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400">
-                      {isSpanish ? "APROBADO" : "PASSED"}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-300 line-clamp-1">
-                    {product.shipping_origin || (isSpanish ? "Estándar del Laboratorio de Shenzhen" : "Shenzhen Inspection Lab Benchmark")}
+                {/* Footer Details */}
+                <div className="relative z-10 space-y-0.5">
+                  <h5 className="text-xs font-bold text-white leading-tight font-heading group-hover:text-slate-200 transition-colors truncate">
+                    {video1Config?.title || (isSpanish ? "Desarme de Hardware QC" : "Hardware Teardown QC")}
+                  </h5>
+                  <p className="text-[10px] text-slate-300 line-clamp-1">
+                    {product.shipping_origin || "Shenzhen Inspection Lab"}
                   </p>
                 </div>
               </div>
 
-              {/* Video 2 Card — Enlarged, Rich Visuals & Sizing */}
+              {/* Video 2 Card */}
               <div
                 onClick={() =>
                   setActiveVideoModal({
                     title: video2Title,
                     subtitle: isSpanish
-                      ? "Control de Calidad en Vivo • Verificación Directa de Fábrica"
+                      ? "Control de Calidad en Vivo • Verificación Directa"
                       : "Live Sourcing QC • Direct Verification",
                     tag: "FACTORY STRESS DEMO",
                     hub: product.shipping_origin || "Shenzhen SZX Hub",
@@ -1098,14 +1224,13 @@ export function ProductDetailClient({
                     videoUrl: video2Url,
                   })
                 }
-                className="group relative h-60 sm:h-64 lg:h-60 xl:h-64 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 p-4 sm:p-4.5 flex flex-col justify-between cursor-pointer hover:border-[#FF1028] shadow-md hover:shadow-xl transition-all duration-300"
+                className="group relative aspect-video rounded-2xl overflow-hidden bg-slate-950 border border-slate-200/80 p-3.5 flex flex-col justify-between cursor-pointer hover:shadow-md transition-all duration-300"
               >
-                {/* Live Video Preview — Uses Actual Video Stream / Frame */}
                 {isVideo2Embed ? (
                   <iframe
                     src={video2Url}
                     title={video2Title}
-                    className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80 group-hover:opacity-95"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-70 group-hover:opacity-85 transition-opacity"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   />
                 ) : (
@@ -1117,165 +1242,168 @@ export function ProductDetailClient({
                     muted
                     loop
                     preload="auto"
-                    className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-105 transition-all duration-500"
+                    className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-85 group-hover:scale-105 transition-all duration-500"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#000B24] via-[#000B24]/40 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
                 {/* Top Badges */}
                 <div className="relative z-10 flex items-center justify-between">
-                  <span className="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm font-heading flex items-center gap-1.5">
-                    <Film className="w-3 h-3" />
+                  <span className="bg-white/90 backdrop-blur-md text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase font-heading">
                     VIDEO 2
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="bg-black/70 backdrop-blur-xs text-blue-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-blue-400/30">
-                      60 FPS
-                    </span>
-                    <span className="bg-black/70 backdrop-blur-xs text-amber-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-amber-300/30">
-                      LIVE DEMO
-                    </span>
+                  <span className="bg-black/60 backdrop-blur-md text-emerald-400 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border border-white/10">
+                    PASSED
+                  </span>
+                </div>
+
+                {/* Play Button */}
+                <div className="relative z-10 my-auto flex justify-center pointer-events-none">
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-white/30 transition-all">
+                    <Play className="w-4 h-4 ml-0.5 fill-current" />
                   </div>
                 </div>
 
-                {/* Center Play Button Overlay */}
-                <div className="relative z-10 my-auto flex justify-center py-2 pointer-events-none">
-                  <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:bg-blue-500 ring-4 ring-white/20 transition-all">
-                    <Play className="w-5 h-5 ml-0.5 fill-current" />
-                  </div>
-                </div>
-
-                {/* Card Footer Details */}
-                <div className="relative z-10 space-y-1 bg-black/50 backdrop-blur-xs p-2.5 rounded-lg border border-white/10">
-                  <div className="flex items-center justify-between">
-                    <h5 className="text-xs sm:text-sm font-black text-white leading-tight font-heading group-hover:text-amber-300 transition-colors truncate">
-                      {video2Config?.title || (isSpanish ? "Prueba de Rendimiento en Vivo" : "Live Performance Test")}
-                    </h5>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400">
-                      {isSpanish ? "APROBADO" : "PASSED"}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-300 line-clamp-1">
-                    {isSpanish ? "100% Estabilidad y Resistencia a Plena Carga" : "100% Full Load Stability & Stress Pass"}
+                {/* Footer Details */}
+                <div className="relative z-10 space-y-0.5">
+                  <h5 className="text-xs font-bold text-white leading-tight font-heading group-hover:text-slate-200 transition-colors truncate">
+                    {video2Config?.title || (isSpanish ? "Prueba de Rendimiento en Vivo" : "Live Performance Test")}
+                  </h5>
+                  <p className="text-[10px] text-slate-300 line-clamp-1">
+                    {isSpanish ? "100% Estabilidad a Plena Carga" : "100% Full Load Stability Pass"}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* QC Guarantee Card filling bottom space cleanly */}
-            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+            {/* Inspection Guarantee Card */}
+            <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-1.5">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200">
+                <div className="w-5 h-5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-3.5 h-3.5" />
                 </div>
                 <span className="text-xs font-bold text-slate-900 font-heading">
-                  {isSpanish ? "Garantía de Inspección de Shenzhen" : "Shenzhen Inspection Guarantee"}
+                  {isSpanish ? "Garantía de Inspección" : "Inspection Guarantee"}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 leading-relaxed">
                 {isSpanish
-                  ? "Cada unidad es grabada, probada y certificada antes del despacho de carga internacional."
-                  : "Every unit is recorded, tested, and certified before international cargo dispatch."}
+                  ? "Cada unidad es grabada, probada y certificada antes del despacho internacional."
+                  : "Every unit is recorded, bench-tested, and certified prior to international cargo dispatch."}
               </p>
             </div>
           </div>
         </div>
 
-        {/* ── 3. Expandable Deep Information Tabs ── */}
-        <div id="product-tabs-section" className="mt-8 sm:mt-16 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Tab Navigation */}
-          <div className="flex items-center border-b border-slate-200 bg-slate-50 overflow-x-auto no-scrollbar">
+        {/* ── 3. Deep Information Tabs (Minimal & Polished) ── */}
+        <div
+          id="product-tabs-section"
+          className="mt-10 sm:mt-16 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] overflow-hidden"
+        >
+          {/* Minimalist Tab Navigation Bar */}
+          <div className="flex items-center border-b border-slate-200/70 bg-white px-2 sm:px-6 overflow-x-auto no-scrollbar gap-1 sm:gap-2">
             <button
               onClick={() => setActiveTab("specs")}
-              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`py-3.5 px-3 sm:px-4 text-xs font-semibold font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer border-b-2 ${
                 activeTab === "specs"
-                  ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "border-slate-900 text-slate-900 font-bold"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
-              <span className="sm:hidden">{t.product.specifications}</span>
-              <span className="hidden sm:inline">{t.product.specifications}</span>
+              {t.product.specifications}
             </button>
             <button
               onClick={() => setActiveTab("qc_report")}
-              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`py-3.5 px-3 sm:px-4 text-xs font-semibold font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer border-b-2 ${
                 activeTab === "qc_report"
-                  ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "border-slate-900 text-slate-900 font-bold"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
-              <span className="sm:hidden">{t.product.factoryVideos}</span>
-              <span className="hidden sm:inline">{isSpanish ? `Control Shenzhen y ${t.product.factoryVideos}` : `Shenzhen QC & ${t.product.factoryVideos}`}</span>
+              {isSpanish ? "Control Shenzhen & QC" : "Shenzhen QC & Videos"}
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
-              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`py-3.5 px-3 sm:px-4 text-xs font-semibold font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer border-b-2 flex items-center gap-1.5 ${
                 activeTab === "reviews"
-                  ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "border-slate-900 text-slate-900 font-bold"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
-              <span className="sm:hidden">{t.product.customerReviews}</span>
-              <span className="hidden sm:inline">{t.product.customerReviews} ({product.review_count || 32})</span>
+              <span>{t.product.customerReviews}</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 font-mono font-semibold">
+                {product.review_count || 32}
+              </span>
             </button>
             <button
               onClick={() => setActiveTab("qa")}
-              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`py-3.5 px-3 sm:px-4 text-xs font-semibold font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer border-b-2 flex items-center gap-1.5 ${
                 activeTab === "qa"
-                  ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "border-slate-900 text-slate-900 font-bold"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
-              <span className="sm:hidden">{t.product.sourcingQA}</span>
-              <span className="hidden sm:inline flex items-center gap-1.5">
-                <span>{t.product.sourcingQA}</span>
-                <span className="bg-slate-200 text-slate-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                  {qaCount}
-                </span>
+              <span>{t.product.sourcingQA}</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 font-mono font-semibold">
+                {qaCount}
               </span>
             </button>
             <button
               onClick={() => setActiveTab("shipping")}
-              className={`px-3 sm:px-6 py-3 sm:py-4 text-[10px] sm:text-xs font-black font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
+              className={`py-3.5 px-3 sm:px-4 text-xs font-semibold font-heading uppercase tracking-wider transition-colors shrink-0 cursor-pointer border-b-2 ${
                 activeTab === "shipping"
-                  ? "bg-white text-[#FF1028] border-b-2 border-[#FF1028]"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "border-slate-900 text-slate-900 font-bold"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
               }`}
             >
-              <span className="sm:hidden">{t.product.shippingCalculator}</span>
-              <span className="hidden sm:inline">{t.common.directChinaAirfreight}</span>
+              {t.common.directChinaAirfreight}
             </button>
           </div>
 
-          {/* Tab Content */}
+          {/* Tab Content Body */}
           <div className="p-4 sm:p-6 md:p-8 text-xs text-slate-700">
-            {/* Specs Tab */}
+            {/* Specs Tab (With Markdown Parsing & Clean Key-Value Table) */}
             {activeTab === "specs" && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-base font-black text-[#00143D] mb-2 font-heading">
-                    {isSpanish ? "Descripción General del Producto" : "Product Overview"}
+              <div className="space-y-8">
+                {/* Clean Product Overview without raw markdown artifacts */}
+                <div className="space-y-3">
+                  <h3 className="text-base font-bold text-slate-900 font-heading">
+                    {isSpanish ? "Descripción del Producto" : "Product Overview"}
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
-                    {product.description || product.short_description || (isSpanish ? "Fabricado directamente en fábrica con componentes de alta calidad. Probado para exportación y respaldado por la garantía Lennox de 30 días." : "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty.")}
-                  </p>
+                  <div className="bg-slate-50/60 p-4 sm:p-5 rounded-2xl border border-slate-200/60">
+                    <FormattedDescription
+                      content={
+                        product.description ||
+                        product.short_description ||
+                        (isSpanish
+                          ? "Fabricado directamente en fábrica con componentes de alta calidad. Probado para exportación y respaldado por la garantía Lennox de 30 días."
+                          : "Direct factory manufactured with high-grade components. Fully tested for export compliance and backed by Lennox 30-Day Money-Back Warranty.")
+                      }
+                    />
+                  </div>
                 </div>
 
-                <div className="border border-slate-200 rounded-xl sm:rounded-2xl overflow-hidden">
-                  <table className="w-full text-left text-[11px] sm:text-xs divide-y divide-slate-200">
-                    <tbody className="divide-y divide-slate-200">
-                      {Object.entries(dynamicSpecs).map(([label, value], idx) => (
-                        <tr key={label} className={idx % 2 === 0 ? "bg-slate-50" : "bg-white"}>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-500 w-2/5 sm:w-1/3 align-top">
-                            {label}
-                          </td>
-                          <td className="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-900 break-words">
-                            {value}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Minimalist Key-Value Specifications */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold text-slate-900 font-heading">
+                    {isSpanish ? "Ficha Técnica y Logística" : "Technical & Cargo Specifications"}
+                  </h4>
+                  <div className="border border-slate-200/80 rounded-2xl overflow-hidden bg-white">
+                    <table className="w-full text-left text-xs divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-100">
+                        {Object.entries(dynamicSpecs).map(([label, value]) => (
+                          <tr key={label} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-3 px-4 text-slate-500 font-medium w-2/5 sm:w-1/3 align-top">
+                              {label}
+                            </td>
+                            <td className="py-3 px-4 font-semibold text-slate-900 break-words">
+                              {value}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -1283,46 +1411,58 @@ export function ProductDetailClient({
             {/* QC Report Tab */}
             {activeTab === "qc_report" && (
               <div className="space-y-6">
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/60 text-emerald-950">
                   <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
                   <div>
-                    <h4 className="font-heading font-black text-xs">
-                      {isSpanish ? "100% Control de Calidad Previo al Envío Aprobado" : "100% Pre-Departure Quality Pass"}
+                    <h4 className="font-heading font-bold text-xs sm:text-sm">
+                      {isSpanish ? "100% Control de Calidad Pre-Envío Aprobado" : "100% Pre-Departure Quality Pass"}
                     </h4>
-                    <p className="text-[11px] text-emerald-800">
+                    <p className="text-[11px] text-emerald-800/90 mt-0.5 leading-relaxed">
                       {isSpanish
-                        ? "Cada lote de producción se somete a pruebas de voltaje, análisis de integridad de circuitos y pruebas de sellado de embalaje antes de la salida a los centros aeroportuarios de Hong Kong o Shenzhen."
-                        : "Every production lot undergoes voltage benchmarking, circuit integrity analysis, and packaging seal tests before departure to Hong Kong or Shenzhen airport hubs."}
+                        ? "Cada lote de producción se somete a pruebas de voltaje, integridad de circuitos y embalaje antes de la salida desde el hub de Shenzhen."
+                        : "Every production lot undergoes voltage benchmarking, circuit integrity analysis, and packaging seal tests before departure to airport hubs."}
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Check 01</span>
-                    <h5 className="font-bold text-slate-900 text-xs">
-                      {isSpanish ? "Calibración Láser de Gimbal" : "Laser Gimbal Calibration"}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1.5">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      Check 01
+                    </span>
+                    <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-heading">
+                      {isSpanish ? "Calibración de Señal y Sensores" : "Sensor & Signal Benchmarking"}
                     </h5>
-                    <p className="text-[11px] text-slate-500">
-                      {isSpanish ? "Desviación del giroscopio motorizado de 3 ejes inferior a 0.01°." : "3-axis motorized gyro deviation under 0.01°."}
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      {isSpanish
+                        ? "Inspección de precisión de lectura de bus OBD2 y sensores a plena carga."
+                        : "OBD2 bus protocol handshake and live sensor waveform verification."}
                     </p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Check 02</span>
-                    <h5 className="font-bold text-slate-900 text-xs">
-                      {isSpanish ? "Estrés Térmico y de Potencia" : "Thermal & Power Stress"}
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1.5">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      Check 02
+                    </span>
+                    <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-heading">
+                      {isSpanish ? "Estrés Térmico y Potencia" : "Thermal & Power Stress Test"}
                     </h5>
-                    <p className="text-[11px] text-slate-500">
-                      {isSpanish ? "Escaneo térmico continuo de 4 horas a plena carga." : "Continuous 4-hour full-load thermal scan."}
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      {isSpanish
+                        ? "Prueba de operación continua a 12V / 24V bajo gradiente de temperatura."
+                        : "Continuous operational burn-in test under standard automotive voltage swings."}
                     </p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-blue-600 uppercase">Check 03</span>
-                    <h5 className="font-bold text-slate-900 text-xs">
-                      {isSpanish ? "Sellado contra Caídas y Vibraciones" : "Drop & Vibration Seal"}
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1.5">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      Check 03
+                    </span>
+                    <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-heading">
+                      {isSpanish ? "Embalaje Carga Aérea" : "Air Cargo Packaging Seal"}
                     </h5>
-                    <p className="text-[11px] text-slate-500">
-                      {isSpanish ? "Caja de cartón corrugado de doble pared para transporte aéreo." : "Custom double-wall airfreight cargo carton."}
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      {isSpanish
+                        ? "Protección anti-impacto con cartón de doble pared certificado."
+                        : "Anti-static wrap and double-wall export carton rated for international airfreight."}
                     </p>
                   </div>
                 </div>
@@ -1355,26 +1495,32 @@ export function ProductDetailClient({
               />
             )}
 
-            {/* Shipping & Warranty Tab */}
+            {/* Airfreight & Logistics Tab */}
             {activeTab === "shipping" && (
-              <div className="space-y-6 font-montserrat">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-3xl bg-blue-50/50 border border-blue-100">
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                      <Plane className="w-5 h-5" />
+                    <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                      <Plane className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="font-heading font-black text-xs uppercase tracking-wider text-slate-900">
-                        {isSpanish ? "Garantía Global de Transporte Aéreo y Marítimo" : "Global Air & Ocean Freight Guarantee"}
+                      <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-slate-900">
+                        {isSpanish ? "Garantía de Transporte Aéreo Directo" : "Direct Airfreight Guarantee"}
                       </h4>
                       <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                         {isSpanish ? (
                           <>
-                            Los envíos salen directamente desde <span className="font-bold text-slate-900">{product.shipping_origin || "el Hub de Shenzhen (SZX)"}</span> con despacho aduanero previo bajo el Código HS <span className="font-mono font-bold text-blue-700">{product.hs_code || "8517.62.00"}</span>.
+                            Los envíos salen directamente desde{" "}
+                            <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen"}</span> con
+                            despacho aduanero bajo el Código HS{" "}
+                            <span className="font-mono font-bold text-slate-900">{product.hs_code || "8517.62.00"}</span>.
                           </>
                         ) : (
                           <>
-                            Shipments depart directly from <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen (SZX) Hub"}</span> with export customs pre-clearance under HS Code <span className="font-mono font-bold text-blue-700">{product.hs_code || "8517.62.00"}</span>.
+                            Shipments depart directly from{" "}
+                            <span className="font-bold text-slate-900">{product.shipping_origin || "Shenzhen Hub"}</span> with
+                            export clearance under HS Code{" "}
+                            <span className="font-mono font-bold text-slate-900">{product.hs_code || "8517.62.00"}</span>.
                           </>
                         )}
                       </p>
@@ -1386,92 +1532,68 @@ export function ProductDetailClient({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 transition-all space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-blue-600 uppercase tracking-wider">
-                        {isSpanish ? "01. Dimensiones" : "01. Dimensions"}
-                      </span>
-                      <Box className="w-4 h-4 text-blue-500" />
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
-                        {dynamicSpecs["Dimensiones del Paquete"] || dynamicSpecs["Package Dimensions"]}
-                      </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {isSpanish ? "Peso Bruto" : "Gross Wt"}: {dynamicSpecs["Peso Bruto de Envío"] || dynamicSpecs["Gross Shipping Weight"]}
-                      </p>
-                    </div>
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      01. Dimensions
+                    </span>
+                    <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
+                      {dynamicSpecs["Dimensiones del Paquete"] || dynamicSpecs["Package Dimensions"]}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">
+                      Gross Wt: {dynamicSpecs["Peso Bruto de Envío"] || dynamicSpecs["Gross Shipping Weight"]}
+                    </p>
                   </div>
 
-                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-emerald-300 transition-all space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wider">
-                        {isSpanish ? "02. Plazo SLA" : "02. Dispatch SLA"}
-                      </span>
-                      <Clock className="w-4 h-4 text-emerald-500" />
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm">
-                        {product.lead_time || (isSpanish ? "Despacho el Mismo Día (24h)" : "Same Day Dispatch (24h)")}
-                      </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {isSpanish ? "Instalaciones de Vuelo de Shenzhen" : "Shenzhen Airport Flight Facility"}
-                      </p>
-                    </div>
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      02. Dispatch SLA
+                    </span>
+                    <h5 className="font-bold text-slate-900 text-xs sm:text-sm">
+                      {product.lead_time || (isSpanish ? "Despacho el Mismo Día" : "Same Day Dispatch")}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">Shenzhen Airport Flight Facility</p>
                   </div>
 
-                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-amber-300 transition-all space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-wider">
-                        {isSpanish ? "03. Clase Mercancía" : "03. DG Class"}
-                      </span>
-                      <Zap className="w-4 h-4 text-amber-500" />
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-slate-900 text-xs truncate">
-                        {dynamicSpecs["Clasificación de Carga"] || dynamicSpecs["Cargo Classification"]}
-                      </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {isSpanish ? "Pase Aéreo de Pasajeros Certificado PI967" : "PI967 Certified Air Passenger Pass"}
-                      </p>
-                    </div>
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      03. Cargo Class
+                    </span>
+                    <h5 className="font-bold text-slate-900 text-xs truncate">
+                      {dynamicSpecs["Clasificación de Carga"] || dynamicSpecs["Cargo Classification"]}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">PI967 Certified Passenger Pass</p>
                   </div>
 
-                  <div className="p-4 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:border-purple-300 transition-all space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono font-bold text-purple-600 uppercase tracking-wider">
-                        {isSpanish ? "04. Código Arancelario" : "04. Customs Code"}
-                      </span>
-                      <ShieldCheck className="w-4 h-4 text-purple-500" />
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
-                        HS {product.hs_code || "8517.62.00"}
-                      </h5>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {isSpanish ? "Manifiesto automatizado express" : "Fast-track automated manifest"}
-                      </p>
-                    </div>
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                      04. Customs Code
+                    </span>
+                    <h5 className="font-bold text-slate-900 text-xs sm:text-sm font-mono">
+                      HS {product.hs_code || "8517.62.00"}
+                    </h5>
+                    <p className="text-[11px] text-slate-500">Automated Express Manifest</p>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-3xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+                <div className="p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-white/10 text-emerald-400 flex items-center justify-center shrink-0">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="font-heading font-black text-xs uppercase tracking-wider block">
-                        {isSpanish ? "Garantía de Devolución de Dinero de 30 Días y Depósito Binance Pay" : "30-Day Money-Back Warranty & Binance Pay Escrow"}
+                      <span className="font-heading font-bold text-xs uppercase tracking-wider block">
+                        {isSpanish
+                          ? "Garantía de Devolución de 30 Días con Binance Pay"
+                          : "30-Day Money-Back Warranty & Binance Pay Escrow"}
                       </span>
                       <span className="text-[11px] text-slate-300">
                         {isSpanish
-                          ? "Disputas resueltas instantáneamente en USDT vía fideicomiso de Binance sin comisiones extra."
+                          ? "Depósito en custodia en USDT con resolución de disputas garantizada."
                           : "Disputes settled instantly in USDT via Binance escrow with zero gateway surcharge."}
                       </span>
                     </div>
                   </div>
-                  <span className="px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-[11px] font-mono shrink-0 uppercase tracking-wider">
+                  <span className="px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[11px] font-mono shrink-0 uppercase tracking-wider">
                     {isSpanish ? "Comprador Protegido" : "Buyer Protected"}
                   </span>
                 </div>
@@ -1480,36 +1602,41 @@ export function ProductDetailClient({
           </div>
         </div>
 
-        {/* ── 4. Dynamic 5-in-a-Row Auto-Scrolling Related Products Section ── */}
+        {/* ── 4. Related Products Section ── */}
         <RelatedProductsSection currentProduct={product} category={category} />
       </div>
 
-      {/* ── 5. Sticky Bottom Action Bar on Mobile (sits above MobileNav tab bar) ── */}
+      {/* ── 5. Clean Mobile Floating Action Bar ── */}
       {showStickyBar && (
         <div
-          className="fixed left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-slate-200 px-3 py-2.5 shadow-2xl animate-in slide-in-from-bottom duration-300 sm:hidden"
-          style={{ bottom: 'calc(58px + env(safe-area-inset-bottom, 0px))' }}
+          className="fixed left-3 right-3 z-40 bg-white/95 backdrop-blur-md border border-slate-200/80 p-2.5 rounded-2xl shadow-xl animate-in slide-in-from-bottom-3 duration-200 sm:hidden"
+          style={{ bottom: "calc(64px + env(safe-area-inset-bottom, 8px))" }}
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-9 h-9 rounded-lg overflow-hidden bg-slate-100 relative shrink-0 border border-slate-200">
-                <Image src={images[0]} alt={getLocalizedProductTitle(product.slug, product.title, isSpanish)} fill className="object-cover" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden bg-slate-100 relative shrink-0 border border-slate-200/80">
+                <Image
+                  src={images[0]}
+                  alt={getLocalizedProductTitle(product.slug, product.title, isSpanish)}
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="min-w-0">
                 <span className="text-[11px] font-bold text-slate-900 block truncate">
                   {getLocalizedProductTitle(product.slug, product.title, isSpanish)}
                 </span>
-                <span className="text-sm font-black font-mono text-[#FF1028]">
+                <span className="text-xs font-bold font-mono text-slate-900 tabular-nums">
                   {formatCurrency(activePrice * quantity)}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={() => handleAddToCart(true)}
                 disabled={isOutOfStock}
-                className="bg-[#00143D] text-white p-2.5 rounded-xl font-black cursor-pointer disabled:opacity-50"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-2 rounded-xl font-bold cursor-pointer disabled:opacity-40 transition-colors"
                 aria-label="Add to cart"
               >
                 <ShoppingCart className="w-4 h-4" />
@@ -1517,9 +1644,9 @@ export function ProductDetailClient({
               <button
                 onClick={handleBuyNow}
                 disabled={isOutOfStock}
-                className="bg-[#FF1028] text-white px-4 py-2.5 rounded-xl font-black font-heading text-xs uppercase tracking-wider shadow-md shrink-0 cursor-pointer disabled:opacity-50"
+                className="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl font-bold font-heading text-xs uppercase tracking-wider shadow-xs shrink-0 cursor-pointer disabled:opacity-40 transition-colors"
               >
-                {isSpanish ? "Comprar Ahora" : "Buy Now"}
+                {isSpanish ? "Comprar" : "Buy Now"}
               </button>
             </div>
           </div>
