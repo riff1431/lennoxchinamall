@@ -366,9 +366,9 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
             onTouchEnd={handleTouchEnd}
           >
             {/* Viewport */}
-            <div className="overflow-hidden py-1 px-0.5">
+            <div className="overflow-hidden py-1 px-0.5 h-full">
               <div
-                className={`flex ${
+                className={`flex h-full ${
                   dealsWithTransition
                     ? "transition-transform duration-500 ease-out"
                     : "transition-none"
@@ -385,7 +385,7 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
                   return (
                     <div
                       key={`${item.id}-${idx}`}
-                      className="shrink-0 px-1 sm:px-1.5"
+                      className="shrink-0 px-1 sm:px-1.5 h-full"
                       style={{ width: `${100 / dealsItemsPerView}%` }}
                     >
                       <div className="group relative bg-white rounded-lg border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between h-full hover:border-[#FF1028]/60 hover:shadow-[0_0_16px_rgba(255,16,40,0.2)] transition-all duration-300">
