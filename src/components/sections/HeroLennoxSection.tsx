@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,6 +12,8 @@ import {
   Check,
   Zap,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Flame,
   Clock,
   ShieldCheck,
@@ -84,6 +86,100 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // ── Continuous Auto-Looping Deals Carousel (3 items per view on Desktop) ──
+  const [dealsCurrentIndex, setDealsCurrentIndex] = useState(0);
+  const [dealsWithTransition, setDealsWithTransition] = useState(true);
+  const [isDealsPaused, setIsDealsPaused] = useState(false);
+  const [dealsItemsPerView, setDealsItemsPerView] = useState(3);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Compute items per view based on viewport: 3 on Desktop (1024px+), 2 on Mobile/Tablet
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width >= 1024) {
+        setDealsItemsPerView(3); // Desktop: exactly 3 columns
+      } else if (width >= 560) {
+        setDealsItemsPerView(2); // Tablet: 2 columns
+      } else {
+        setDealsItemsPerView(2); // Mobile: 2 columns
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const totalDeals = activeFourDeals.length;
+  // Extended array for seamless infinite looping (3 sets ensures smooth continuous scrolling without rewind jumps)
+  const extendedFourDeals =
+    totalDeals > 0
+      ? [...activeFourDeals, ...activeFourDeals, ...activeFourDeals]
+      : [];
+
+  const nextDeal = useCallback(() => {
+    if (totalDeals === 0) return;
+    setDealsWithTransition(true);
+    setDealsCurrentIndex((prev) => prev + 1);
+  }, [totalDeals]);
+
+  const prevDeal = useCallback(() => {
+    if (totalDeals === 0) return;
+    if (dealsCurrentIndex === 0) {
+      setDealsWithTransition(false);
+      setDealsCurrentIndex(totalDeals);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setDealsWithTransition(true);
+          setDealsCurrentIndex(totalDeals - 1);
+        });
+      });
+    } else {
+      setDealsWithTransition(true);
+      setDealsCurrentIndex((prev) => prev - 1);
+    }
+  }, [dealsCurrentIndex, totalDeals]);
+
+  const handleDealsTransitionEnd = () => {
+    if (dealsCurrentIndex >= totalDeals) {
+      setDealsWithTransition(false);
+      setDealsCurrentIndex(dealsCurrentIndex % totalDeals);
+    }
+  };
+
+  // Auto-rotating timer: 3 seconds auto carousel loop (pauses when hovered or dragged)
+  useEffect(() => {
+    if (isDealsPaused || totalDeals <= dealsItemsPerView) return;
+
+    const timer = setInterval(() => {
+      nextDeal();
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [isDealsPaused, nextDeal, totalDeals, dealsItemsPerView]);
+
+  // Touch Swipe Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging || touchStartX === null) return;
+    setIsDragging(false);
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+
+    if (diff > 40) {
+      nextDeal();
+    } else if (diff < -40) {
+      prevDeal();
+    }
+    setTouchStartX(null);
+  };
 
   const handleQuickAdd = (e: React.MouseEvent, item: HeroFourDealItem) => {
     e.preventDefault();
@@ -263,140 +359,213 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
             </div>
           </Link>
 
-          {/* Bottom Row of 4 Product Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
-            {activeFourDeals.map((item) => {
-              const isAdded = !!addedItemIds[item.id];
-              const inWish = isMounted && isInWishlist(item.id);
+          {/* Bottom Row: Continuous Carousel (3 Products per view on Desktop) */}
+          <div
+            className="relative group/deals select-none -mx-1 px-1"
+            onMouseEnter={() => setIsDealsPaused(true)}
+            onMouseLeave={() => setIsDealsPaused(false)}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Viewport */}
+            <div className="overflow-hidden py-1 px-0.5">
+              <div
+                className={`flex ${
+                  dealsWithTransition
+                    ? "transition-transform duration-500 ease-out"
+                    : "transition-none"
+                }`}
+                style={{
+                  transform: `translateX(-${(dealsCurrentIndex * 100) / dealsItemsPerView}%)`,
+                }}
+                onTransitionEnd={handleDealsTransitionEnd}
+              >
+                {extendedFourDeals.map((item, idx) => {
+                  const isAdded = !!addedItemIds[item.id];
+                  const inWish = isMounted && isInWishlist(item.id);
 
-              return (
-                <div
-                  key={item.id}
-                  className="group relative bg-white rounded-lg border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between hover:border-[#FF1028]/60 hover:shadow-[0_0_16px_rgba(255,16,40,0.2)] transition-all duration-300"
+                  return (
+                    <div
+                      key={`${item.id}-${idx}`}
+                      className="shrink-0 px-1 sm:px-1.5"
+                      style={{ width: `${100 / dealsItemsPerView}%` }}
+                    >
+                      <div className="group relative bg-white rounded-lg border border-slate-200/90 p-2 sm:p-2.5 flex flex-col justify-between h-full hover:border-[#FF1028]/60 hover:shadow-[0_0_16px_rgba(255,16,40,0.2)] transition-all duration-300">
+                        <div>
+                          {/* Top Discount Badge & Wishlist Button */}
+                          <div className="relative w-full aspect-square rounded-md bg-slate-50 overflow-hidden mb-1.5">
+                            {item.discountBadge && (
+                              <span className="absolute top-1.5 left-1.5 z-10 bg-[#10B981] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs font-mono shadow-2xs">
+                                {item.discountBadge}
+                              </span>
+                            )}
+
+                            {/* Wishlist toggle */}
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleItem({
+                                  id: `w-${item.id}`,
+                                  productId: item.id,
+                                  title: item.title,
+                                  slug: item.slug,
+                                  image: item.image,
+                                  price: item.price,
+                                  compareAtPrice: item.comparePrice || undefined,
+                                  rating: item.rating || 4.9,
+                                  reviewCount: item.reviews || 100,
+                                });
+                              }}
+                              className={`absolute top-1.5 right-1.5 z-10 w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-xs transition-all cursor-pointer ${
+                                inWish
+                                  ? "bg-[#FF1028] text-white"
+                                  : "bg-white/80 text-slate-500 hover:text-[#FF1028] opacity-0 group-hover:opacity-100"
+                              }`}
+                              aria-label="Wishlist"
+                            >
+                              <Heart className={`w-3 h-3 ${inWish ? "fill-current" : ""}`} />
+                            </button>
+
+                            <Link href={item.slug.startsWith("/") ? item.slug : `/products/${item.slug}`} className="block relative w-full h-full">
+                              <Image
+                                src={item.image}
+                                alt={item.title}
+                                fill
+                                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 15vw"
+                                className="object-cover p-1 group-hover:scale-106 transition-transform duration-300"
+                              />
+                            </Link>
+                          </div>
+
+                          {/* Title */}
+                          <Link href={item.slug.startsWith("/") ? item.slug : `/products/${item.slug}`} className="block">
+                            <h4 className="text-[11px] sm:text-xs font-bold text-slate-800 group-hover:text-[#FF1028] transition-colors line-clamp-2 leading-tight min-h-[28px]">
+                              {isSpanish ? (item.titleEs || item.title) : item.title}
+                            </h4>
+                          </Link>
+
+                          {/* Price Block */}
+                          <div className="mt-1">
+                            {item.comparePrice ? (
+                              <span className="text-[9.5px] text-slate-400 line-through font-mono block">
+                                {formatPrice(item.comparePrice)}
+                              </span>
+                            ) : (
+                              <span className="text-[9.5px] text-transparent select-none font-mono block">
+                                -
+                              </span>
+                            )}
+                            <span className="text-xs sm:text-sm font-black text-slate-900 font-mono block">
+                              {formatPrice(item.price)}
+                            </span>
+                          </div>
+
+                          {/* Perks / Installments Note */}
+                          <div className="mt-1 space-y-0.5 text-[8px] sm:text-[8.5px] leading-tight font-medium text-[#10B981]">
+                            {item.discountNote && (
+                              <div className="truncate">
+                                {isSpanish
+                                  ? item.discountNote.replace("Discount off", "de descuento").replace("Direct Factory Price", "Precio Directo de Fábrica")
+                                  : item.discountNote}
+                              </div>
+                            )}
+                            {item.installments && (
+                              <div className="text-slate-500 truncate">
+                                {isSpanish
+                                  ? `12x ${formatPrice(item.price / 12)} sin interés`
+                                  : `12x ${formatPrice(item.price / 12)} Interest free`}
+                              </div>
+                            )}
+                            {item.freeShipping && (
+                              <div className="font-bold flex items-center gap-0.5 truncate">
+                                <span>
+                                  {isSpanish
+                                    ? item.freeShipping.replace("Free shipping", "Envío gratis")
+                                    : item.freeShipping}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Add to Cart Button */}
+                        <button
+                          onClick={(e) => handleQuickAdd(e, item)}
+                          className={`w-full mt-2 py-1.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
+                            isAdded
+                              ? "bg-emerald-600 text-white shadow-xs"
+                              : "bg-[#FF1028] hover:bg-[#e00d22] text-white shadow-2xs"
+                          }`}
+                          aria-label={`Add ${isSpanish ? (item.titleEs || item.title) : item.title} to cart`}
+                        >
+                          {isAdded ? (
+                            <>
+                              <Check className="w-3 h-3 animate-in zoom-in" />
+                              <span>{t.common.success}</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingCart className="w-3 h-3 sm:hidden" />
+                              <span>{t.common.addToCart}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Left & Right Floating Navigation Controls */}
+            {totalDeals > dealsItemsPerView && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    prevDeal();
+                  }}
+                  className="absolute -left-2 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/90 shadow-md flex items-center justify-center transition-all opacity-0 group-hover/deals:opacity-100 z-20 cursor-pointer active:scale-95"
+                  aria-label={isSpanish ? "Ofertas anteriores" : "Previous deals"}
                 >
-                  <div>
-                    {/* Top Discount Badge & Wishlist Button */}
-                    <div className="relative w-full aspect-square rounded-md bg-slate-50 overflow-hidden mb-1.5">
-                      {item.discountBadge && (
-                        <span className="absolute top-1.5 left-1.5 z-10 bg-[#10B981] text-white text-[8px] sm:text-[8.5px] font-black px-1.5 py-0.5 rounded-xs font-mono shadow-2xs">
-                          {item.discountBadge}
-                        </span>
-                      )}
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    nextDeal();
+                  }}
+                  className="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/90 shadow-md flex items-center justify-center transition-all opacity-0 group-hover/deals:opacity-100 z-20 cursor-pointer active:scale-95"
+                  aria-label={isSpanish ? "Siguientes ofertas" : "Next deals"}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </>
+            )}
 
-                      {/* Wishlist toggle */}
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          toggleItem({
-                            id: `w-${item.id}`,
-                            productId: item.id,
-                            title: item.title,
-                            slug: item.slug,
-                            image: item.image,
-                            price: item.price,
-                            compareAtPrice: item.comparePrice || undefined,
-                            rating: item.rating || 4.9,
-                            reviewCount: item.reviews || 100,
-                          });
-                        }}
-                        className={`absolute top-1.5 right-1.5 z-10 w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-xs transition-all cursor-pointer ${
-                          inWish
-                            ? "bg-[#FF1028] text-white"
-                            : "bg-white/80 text-slate-500 hover:text-[#FF1028] opacity-0 group-hover:opacity-100"
-                        }`}
-                        aria-label="Wishlist"
-                      >
-                        <Heart className={`w-3 h-3 ${inWish ? "fill-current" : ""}`} />
-                      </button>
-
-                      <Link href={item.slug.startsWith("/") ? item.slug : `/products/${item.slug}`} className="block relative w-full h-full">
-                        <Image
-                          src={item.image}
-                          alt={item.title}
-                          fill
-                          sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 10vw"
-                          className="object-cover p-1 group-hover:scale-106 transition-transform duration-300"
-                        />
-                      </Link>
-                    </div>
-
-                    {/* Title */}
-                    <Link href={item.slug.startsWith("/") ? item.slug : `/products/${item.slug}`} className="block">
-                      <h4 className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-800 group-hover:text-[#FF1028] transition-colors line-clamp-2 leading-tight min-h-[28px]">
-                        {isSpanish ? (item.titleEs || item.title) : item.title}
-                      </h4>
-                    </Link>
-
-                    {/* Price Block */}
-                    <div className="mt-1">
-                      {item.comparePrice ? (
-                        <span className="text-[9.5px] text-slate-400 line-through font-mono block">
-                          {formatPrice(item.comparePrice)}
-                        </span>
-                      ) : (
-                        <span className="text-[9.5px] text-transparent select-none font-mono block">
-                          -
-                        </span>
-                      )}
-                      <span className="text-xs sm:text-sm font-black text-slate-900 font-mono block">
-                        {formatPrice(item.price)}
-                      </span>
-                    </div>
-
-                    {/* Perks / Installments Note */}
-                    <div className="mt-1 space-y-0.5 text-[8px] sm:text-[8.5px] leading-tight font-medium text-[#10B981]">
-                      {item.discountNote && (
-                        <div className="truncate">
-                          {isSpanish
-                            ? item.discountNote.replace("Discount off", "de descuento").replace("Direct Factory Price", "Precio Directo de Fábrica")
-                            : item.discountNote}
-                        </div>
-                      )}
-                      {item.installments && (
-                        <div className="text-slate-500 truncate">
-                          {isSpanish
-                            ? `12x ${formatPrice(item.price / 12)} sin interés`
-                            : `12x ${formatPrice(item.price / 12)} Interest free`}
-                        </div>
-                      )}
-                      {item.freeShipping && (
-                        <div className="font-bold flex items-center gap-0.5 truncate">
-                          <span>
-                            {isSpanish
-                              ? item.freeShipping.replace("Free shipping", "Envío gratis")
-                              : item.freeShipping}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Add to Cart Button */}
+            {/* Carousel Dot Indicators */}
+            {totalDeals > dealsItemsPerView && (
+              <div className="flex items-center justify-center gap-1 pt-1.5">
+                {activeFourDeals.map((_, i) => (
                   <button
-                    onClick={(e) => handleQuickAdd(e, item)}
-                    className={`w-full mt-2 py-1.5 rounded-lg sm:rounded-xl text-[10.5px] sm:text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer active:scale-95 ${
-                      isAdded
-                        ? "bg-emerald-600 text-white shadow-xs"
-                        : "bg-[#FF1028] hover:bg-[#e00d22] text-white shadow-2xs"
+                    key={i}
+                    onClick={() => {
+                      setDealsWithTransition(true);
+                      setDealsCurrentIndex(i);
+                    }}
+                    className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
+                      i === (dealsCurrentIndex % totalDeals)
+                        ? "w-4 bg-[#FF1028]"
+                        : "w-1.5 bg-slate-200 hover:bg-slate-300"
                     }`}
-                    aria-label={`Add ${isSpanish ? (item.titleEs || item.title) : item.title} to cart`}
-                  >
-                    {isAdded ? (
-                      <>
-                        <Check className="w-3 h-3 animate-in zoom-in" />
-                        <span>{t.common.success}</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-3 h-3 sm:hidden" />
-                        <span>{t.common.addToCart}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
+                    aria-label={`Slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
