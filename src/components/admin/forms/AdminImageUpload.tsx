@@ -119,7 +119,18 @@ export function AdminImageUpload({
           setUploadProgress((prev) => (prev && prev < 85 ? prev + 15 : prev));
         }, 200);
 
-        const res = await uploadMediaFile(formData);
+        let res: any;
+        try {
+          const apiRes = await fetch("/api/admin/upload", {
+            method: "POST",
+            body: formData,
+          });
+          res = await apiRes.json();
+        } catch {
+          // Fallback to server action if API route is unreachable
+          res = await uploadMediaFile(formData);
+        }
+
         clearInterval(progressInterval);
         setUploadProgress(100);
 
@@ -135,7 +146,12 @@ export function AdminImageUpload({
         }
       } catch (err: any) {
         console.error("Upload error:", err);
-        setErrorMessage(err.message || "Failed to upload image.");
+        const rawMsg = err?.message || "";
+        if (rawMsg.includes("Server Action") || rawMsg.includes("failed-to-find-server-action")) {
+          setErrorMessage("A new deployment was completed. Please refresh this page (Cmd + Shift + R) and try again.");
+        } else {
+          setErrorMessage(rawMsg || "Failed to upload image.");
+        }
       } finally {
         setIsUploading(false);
         setTimeout(() => setUploadProgress(null), 500);

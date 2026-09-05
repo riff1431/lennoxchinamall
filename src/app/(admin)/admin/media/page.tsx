@@ -104,7 +104,28 @@ function getEmbedVideoUrl(url: string): string | null {
 }
 
 async function uploadFileDirect(file: File, bucket = "products", folder = "media"): Promise<string | null> {
-  // Method 1: Server Action pipeline (Supabase Storage)
+  // Method 1: Dedicated REST API upload route
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bucket", bucket);
+    formData.append("folder", folder);
+
+    const apiRes = await fetch("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (apiRes.ok) {
+      const res = await apiRes.json();
+      if (res.success && res.url) {
+        return res.url;
+      }
+    }
+  } catch (apiErr) {
+    console.warn("API upload attempt failed, falling back:", apiErr);
+  }
+
+  // Method 2: Server Action pipeline (Supabase Storage)
   try {
     const formData = new FormData();
     formData.append("file", file);

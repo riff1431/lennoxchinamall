@@ -80,7 +80,7 @@ interface NavGroup {
   items: NavItem[];
 }
 
-// 5 Consolidated Core Operational Domains
+// 7 Focused Operational Domains
 const ALL_NAV_SECTIONS: NavGroup[] = [
   {
     id: "overview",
@@ -101,8 +101,8 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
     ],
   },
   {
-    id: "commerce",
-    title: "Commerce & Logistics",
+    id: "catalog",
+    title: "Catalog & Inventory",
     items: [
       {
         label: "Products",
@@ -122,6 +122,30 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         icon: Boxes,
         section: "inventory",
       },
+      {
+        label: "Brand Directory",
+        href: "/admin/brands",
+        icon: Tag,
+        section: "brands",
+      },
+      {
+        label: "Attributes & Specs",
+        href: "/admin/attributes",
+        icon: SlidersHorizontal,
+        section: "attributes",
+      },
+      {
+        label: "Media Library",
+        href: "/admin/media",
+        icon: ImageIcon,
+        section: "media",
+      },
+    ],
+  },
+  {
+    id: "orders",
+    title: "Orders & Logistics",
+    items: [
       {
         label: "Orders Fulfilment",
         href: "/admin/orders",
@@ -146,8 +170,14 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         icon: Coins,
         section: "payments",
       },
+    ],
+  },
+  {
+    id: "sourcing",
+    title: "China Sourcing Hub",
+    items: [
       {
-        label: "China Factory Sourcing",
+        label: "Factory Sourcing Queue",
         href: "/admin/sourcing",
         icon: Factory,
         section: "sourcing",
@@ -157,56 +187,6 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
         href: "/admin/suppliers",
         icon: Building2,
         section: "suppliers",
-      },
-      {
-        label: "Brands",
-        href: "/admin/brands",
-        icon: Tag,
-        section: "brands",
-      },
-      {
-        label: "Attributes & Specs",
-        href: "/admin/attributes",
-        icon: SlidersHorizontal,
-        section: "attributes",
-      },
-      {
-        label: "Media Library",
-        href: "/admin/media",
-        icon: ImageIcon,
-        section: "media",
-      },
-    ],
-  },
-  {
-    id: "customers",
-    title: "Customers & CRM",
-    items: [
-      {
-        label: "Customers",
-        href: "/admin/customers",
-        icon: Users,
-        section: "customers",
-      },
-      {
-        label: "Reviews & UGC",
-        href: "/admin/reviews",
-        icon: Star,
-        section: "reviews",
-      },
-      {
-        label: "Support Desk & Chat",
-        href: "/admin/support",
-        icon: Headphones,
-        section: "support",
-        badge: "3",
-        badgeVariant: "rose",
-      },
-      {
-        label: "Push Notifications",
-        href: "/admin/notifications",
-        icon: Bell,
-        section: "notifications",
       },
     ],
   },
@@ -267,6 +247,38 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
     ],
   },
   {
+    id: "customers",
+    title: "Customers & CRM",
+    items: [
+      {
+        label: "Customer Accounts",
+        href: "/admin/customers",
+        icon: Users,
+        section: "customers",
+      },
+      {
+        label: "Reviews & UGC",
+        href: "/admin/reviews",
+        icon: Star,
+        section: "reviews",
+      },
+      {
+        label: "Support Desk & Chat",
+        href: "/admin/support",
+        icon: Headphones,
+        section: "support",
+        badge: "3",
+        badgeVariant: "rose",
+      },
+      {
+        label: "Push Notifications",
+        href: "/admin/notifications",
+        icon: Bell,
+        section: "notifications",
+      },
+    ],
+  },
+  {
     id: "settings",
     title: "Settings & Security",
     items: [
@@ -308,23 +320,19 @@ const ALL_NAV_SECTIONS: NavGroup[] = [
 const PAGE_META_MAP: Record<string, { title: string; group: string }> = {
   "/admin/dashboard": { title: "Dashboard Overview", group: "Overview" },
   "/admin/analytics": { title: "Analytics & P&L Telemetry", group: "Overview" },
-  "/admin/products": { title: "Products Catalogue", group: "Commerce & Logistics" },
-  "/admin/products/new": { title: "Add New Product", group: "Commerce & Logistics" },
-  "/admin/categories": { title: "Category Hierarchy", group: "Commerce & Logistics" },
-  "/admin/inventory": { title: "Inventory Stock Control", group: "Commerce & Logistics" },
-  "/admin/orders": { title: "Orders Fulfilment", group: "Commerce & Logistics" },
-  "/admin/shipping": { title: "Air Cargo & Logistics", group: "Commerce & Logistics" },
-  "/admin/returns": { title: "Returns & Warranty RMA", group: "Commerce & Logistics" },
-  "/admin/payments": { title: "USDT Payments Ledger", group: "Commerce & Logistics" },
-  "/admin/sourcing": { title: "China Factory Sourcing", group: "Commerce & Logistics" },
-  "/admin/suppliers": { title: "Suppliers & Factories", group: "Commerce & Logistics" },
-  "/admin/brands": { title: "Brand Directory", group: "Commerce & Logistics" },
-  "/admin/attributes": { title: "Attributes & Specs", group: "Commerce & Logistics" },
-  "/admin/media": { title: "Media Asset Library", group: "Commerce & Logistics" },
-  "/admin/customers": { title: "Customer Accounts", group: "Customers & CRM" },
-  "/admin/reviews": { title: "Customer Reviews & UGC", group: "Customers & CRM" },
-  "/admin/support": { title: "Support Desk & Chat", group: "Customers & CRM" },
-  "/admin/notifications": { title: "Push Notifications", group: "Customers & CRM" },
+  "/admin/products": { title: "Products Catalogue", group: "Catalog & Inventory" },
+  "/admin/products/new": { title: "Add New Product", group: "Catalog & Inventory" },
+  "/admin/categories": { title: "Category Hierarchy", group: "Catalog & Inventory" },
+  "/admin/inventory": { title: "Inventory Stock Control", group: "Catalog & Inventory" },
+  "/admin/brands": { title: "Brand Directory", group: "Catalog & Inventory" },
+  "/admin/attributes": { title: "Attributes & Specs", group: "Catalog & Inventory" },
+  "/admin/media": { title: "Media Asset Library", group: "Catalog & Inventory" },
+  "/admin/orders": { title: "Orders Fulfilment", group: "Orders & Logistics" },
+  "/admin/shipping": { title: "Air Cargo & Logistics", group: "Orders & Logistics" },
+  "/admin/returns": { title: "Returns & Warranty RMA", group: "Orders & Logistics" },
+  "/admin/payments": { title: "USDT Payments Ledger", group: "Orders & Logistics" },
+  "/admin/sourcing": { title: "Factory Sourcing Queue", group: "China Sourcing Hub" },
+  "/admin/suppliers": { title: "Suppliers & Factories", group: "China Sourcing Hub" },
   "/admin/hero-section": { title: "Hero Section Control", group: "Storefront CMS" },
   "/admin/homepage-sections": { title: "Homepage Builder", group: "Storefront CMS" },
   "/admin/promotions": { title: "Promotions & Banners", group: "Storefront CMS" },
@@ -333,6 +341,10 @@ const PAGE_META_MAP: Record<string, { title: string; group: string }> = {
   "/admin/menus": { title: "Store Navigation Menus", group: "Storefront CMS" },
   "/admin/pages": { title: "Custom CMS Pages", group: "Storefront CMS" },
   "/admin/seo": { title: "SEO & 301 Redirects", group: "Storefront CMS" },
+  "/admin/customers": { title: "Customer Accounts", group: "Customers & CRM" },
+  "/admin/reviews": { title: "Customer Reviews & UGC", group: "Customers & CRM" },
+  "/admin/support": { title: "Support Desk & Chat", group: "Customers & CRM" },
+  "/admin/notifications": { title: "Push Notifications", group: "Customers & CRM" },
   "/admin/settings": { title: "Storefront & System Settings", group: "Settings & Security" },
   "/admin/staff": { title: "Staff, Roles & RBAC", group: "Settings & Security" },
   "/admin/audit-logs": { title: "Immutable Audit Logs", group: "Settings & Security" },
@@ -405,12 +417,12 @@ export function AdminLayoutClient({
   // Collapsible section state
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     overview: true,
-    catalogue: true,
+    catalog: true,
     orders: true,
+    sourcing: true,
+    cms: true,
     customers: true,
-    marketing: true,
-    analytics: true,
-    governance: true,
+    settings: true,
   });
 
   // Search in sidebar filter
@@ -780,14 +792,29 @@ export function AdminLayoutClient({
     variant: NavItem["badgeVariant"] = "blue",
     isActive = false
   ) => {
-    if (variant === "rose" || variant === "amber") {
+    if (variant === "rose") {
       return (
         <span
           className={cn(
-            "text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded-md",
+            "text-[10px] font-mono font-bold px-2 py-0.5 rounded-full tracking-wide",
             isActive
-              ? "bg-white/20 text-white"
+              ? "bg-[#FF1028] text-white shadow-xs"
               : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+          )}
+        >
+          {badge}
+        </span>
+      );
+    }
+
+    if (variant === "amber") {
+      return (
+        <span
+          className={cn(
+            "text-[10px] font-mono font-bold px-2 py-0.5 rounded-full tracking-wide",
+            isActive
+              ? "bg-amber-500 text-white shadow-xs"
+              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
           )}
         >
           {badge}
@@ -798,10 +825,10 @@ export function AdminLayoutClient({
     return (
       <span
         className={cn(
-          "text-[9px] font-mono font-medium px-1.5 py-0.2 rounded-md",
+          "text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full tracking-wide",
           isActive
-            ? "bg-white/20 text-white"
-            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+            ? "bg-[#2F65F6] text-white shadow-xs"
+            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
         )}
       >
         {badge}
@@ -831,22 +858,22 @@ export function AdminLayoutClient({
           "sticky top-0 h-screen hidden lg:flex flex-col justify-between shrink-0 transition-[width,padding] duration-200 ease-out z-30 select-none",
           isDarkMode
             ? "bg-[#111827] border-r border-slate-800/80"
-            : "bg-white border-r border-slate-200/70 shadow-[1px_0_12px_rgba(0,0,0,0.02)]",
-          isSidebarCollapsed ? "w-[68px] p-2.5" : "w-[240px] p-3.5"
+            : "bg-white border-r border-slate-200/80 shadow-[1px_0_16px_rgba(0,0,0,0.03)]",
+          isSidebarCollapsed ? "w-[72px] p-3" : "w-[270px] p-4"
         )}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* ── 1. Brand Header ── */}
           <div
             className={cn(
-              "flex items-center justify-between pb-3 mb-2 border-b border-slate-100 dark:border-slate-800/70",
-              isSidebarCollapsed ? "justify-center" : "px-1.5"
+              "flex items-center justify-between pb-3.5 mb-2.5 border-b border-slate-100 dark:border-slate-800/80",
+              isSidebarCollapsed ? "justify-center" : "px-1"
             )}
           >
             <Link
               href="/admin/dashboard"
               className={cn(
-                "flex items-center gap-2.5 group transition-transform duration-150 active:scale-98",
+                "flex items-center gap-3 group transition-transform duration-150 active:scale-98",
                 isSidebarCollapsed && "justify-center"
               )}
               title="Lennox ChinaMall Operations"
@@ -854,13 +881,13 @@ export function AdminLayoutClient({
               {/* Lennox China Mall Official Brand Emblem */}
               <div className={cn(
                 "relative rounded-xl overflow-hidden bg-white border border-slate-200 dark:border-slate-800 shadow-xs shrink-0 transition-transform duration-150 group-hover:scale-105",
-                isSidebarCollapsed ? "w-9 h-9" : "w-9 h-9"
+                isSidebarCollapsed ? "w-10 h-10" : "w-10 h-10"
               )}>
                 <Image
                   src={adminLogo}
                   alt={adminStoreName}
                   fill
-                  sizes="36px"
+                  sizes="40px"
                   className="object-contain p-0.5"
                   priority
                   unoptimized={adminLogo.startsWith("data:") || adminLogo.startsWith("blob:")}
@@ -869,15 +896,15 @@ export function AdminLayoutClient({
 
               {!isSidebarCollapsed && (
                 <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-heading font-black text-base text-slate-900 dark:text-white tracking-tight">
+                  <div className="flex items-center gap-2">
+                    <span className="font-heading font-black text-lg text-slate-900 dark:text-white tracking-tight">
                       Lennox
                     </span>
-                    <span className="text-[9px] font-black font-mono uppercase px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
+                    <span className="text-[10px] font-black font-mono uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
                       ADMIN
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-semibold truncate -mt-0.5">
+                  <span className="text-[11px] text-slate-400 font-semibold truncate -mt-0.5">
                     ChinaMall Operations
                   </span>
                 </div>
@@ -889,7 +916,7 @@ export function AdminLayoutClient({
               <button
                 type="button"
                 onClick={toggleSidebarCollapse}
-                className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Collapse sidebar (Narrow mode)"
                 aria-label="Collapse sidebar"
               >
@@ -900,27 +927,27 @@ export function AdminLayoutClient({
 
           {/* ── 2. Filter Modules in Sidebar (Expanded only) ── */}
           {!isSidebarCollapsed && (
-            <div className="mb-2.5 px-0.5">
+            <div className="mb-3 px-0.5">
               <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={sidebarFilter}
                   onChange={(e) => setSidebarFilter(e.target.value)}
-                  placeholder="Filter 30 modules..."
+                  placeholder="Filter modules..."
                   className={cn(
-                    "w-full text-[11px] rounded-lg pl-8 pr-6 py-1.5 outline-none border transition-colors font-sans",
+                    "w-full text-xs rounded-xl pl-9 pr-7 py-2 outline-none border transition-colors font-sans",
                     isDarkMode
                       ? "bg-slate-900/80 border-slate-800 text-slate-200 placeholder:text-slate-500 focus:border-[#FF1028]/60"
-                      : "bg-slate-50 border-slate-200/80 text-slate-800 placeholder:text-slate-400 focus:border-[#FF1028]/60"
+                      : "bg-slate-50 border-slate-200/90 text-slate-800 placeholder:text-slate-400 focus:border-[#FF1028]/60 focus:bg-white"
                   )}
                 />
                 {sidebarFilter && (
                   <button
                     onClick={() => setSidebarFilter("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -928,23 +955,23 @@ export function AdminLayoutClient({
           )}
 
           {/* ── 3. Navigation Sections (Scrollable) ── */}
-          <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-0.5">
+          <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-0.5">
             {filteredNavSections.map((group) => {
               const isOpen = !!openSections[group.id];
 
               return (
-                <div key={group.id} className="space-y-0.5">
+                <div key={group.id} className="space-y-1">
                   {/* Collapsible Section Header */}
                   {!isSidebarCollapsed && (
                     <button
                       type="button"
                       onClick={() => toggleSection(group.id)}
-                      className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-heading font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-md transition-colors cursor-pointer group"
+                      className="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-heading font-bold uppercase tracking-[0.06em] text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 rounded-lg transition-colors cursor-pointer group"
                     >
                       <span className="truncate">{group.title}</span>
                       <ChevronDown
                         className={cn(
-                          "w-3 h-3 transition-transform duration-200 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300",
+                          "w-3.5 h-3.5 transition-transform duration-200 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300",
                           isOpen ? "rotate-0" : "-rotate-90"
                         )}
                       />
@@ -953,7 +980,7 @@ export function AdminLayoutClient({
 
                   {/* Section Items */}
                   {(isOpen || isSidebarCollapsed || sidebarFilter.trim().length > 0) && (
-                    <nav className="space-y-0.5 animate-in fade-in duration-150">
+                    <nav className="space-y-1 animate-in fade-in duration-150">
                       {group.items.map((item) => {
                         const Icon = item.icon;
                         const isActive =
@@ -961,32 +988,37 @@ export function AdminLayoutClient({
                           (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
 
                         return (
-                          <div key={item.label} className="relative group">
+                          <div key={item.label} className="relative group/navitem">
                             <Link
                               href={item.href}
                               className={cn(
-                                "flex items-center rounded-xl text-xs transition-all duration-150 relative cursor-pointer font-heading tracking-tight",
+                                "flex items-center rounded-xl transition-all duration-150 relative cursor-pointer font-medium tracking-tight",
                                 isSidebarCollapsed
-                                  ? "p-2.5 justify-center"
-                                  : "px-2.5 py-1.5 gap-2.5 justify-between",
+                                  ? "w-11 h-11 mx-auto justify-center"
+                                  : "px-3 py-2.5 gap-3 justify-between text-[13.5px]",
                                 isActive
-                                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold shadow-xs"
-                                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/50"
+                                  ? "bg-red-50/90 text-[#FF1028] dark:bg-red-950/40 dark:text-rose-300 font-semibold border border-red-200/60 dark:border-red-900/40 shadow-xs"
+                                  : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60"
                               )}
                               title={isSidebarCollapsed ? item.label : undefined}
                             >
+                              {/* Left Accent Pip for Active Item */}
+                              {!isSidebarCollapsed && isActive && (
+                                <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#FF1028]" />
+                              )}
+
                               <div
                                 className={cn(
-                                  "flex items-center gap-2.5 min-w-0",
+                                  "flex items-center gap-3 min-w-0",
                                   isSidebarCollapsed && "justify-center"
                                 )}
                               >
                                 <Icon
                                   className={cn(
-                                    "w-4 h-4 shrink-0 transition-transform duration-150 group-hover:scale-105",
+                                    "w-5 h-5 shrink-0 transition-transform duration-150 group-hover/navitem:scale-105",
                                     isActive
-                                      ? "text-white dark:text-slate-950"
-                                      : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200"
+                                      ? "text-[#FF1028] dark:text-rose-400"
+                                      : "text-slate-400 group-hover/navitem:text-slate-700 dark:group-hover/navitem:text-slate-200"
                                   )}
                                 />
                                 {!isSidebarCollapsed && (
@@ -995,7 +1027,7 @@ export function AdminLayoutClient({
                               </div>
 
                               {!isSidebarCollapsed && item.badge && (
-                                <div className="ml-1 shrink-0">
+                                <div className="ml-1.5 shrink-0">
                                   {renderBadgePill(item.badge, item.badgeVariant, isActive)}
                                 </div>
                               )}
@@ -1003,16 +1035,17 @@ export function AdminLayoutClient({
 
                             {/* Floating Tooltip in Icon-only Collapsed Mode */}
                             {isSidebarCollapsed && (
-                              <div className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 ease-out whitespace-nowrap px-2.5 py-1.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white shadow-xl border border-slate-700/60 text-xs font-heading">
-                                <div className="font-bold flex items-center gap-1.5">
+                              <div className="absolute left-[calc(100%+10px)] top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover/navitem:opacity-100 transition-opacity duration-150 ease-out whitespace-nowrap px-3 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 text-white shadow-2xl border border-slate-700/60">
+                                <div className="font-bold flex items-center gap-2 text-[13px] font-heading">
+                                  <Icon className="w-4 h-4 text-[#FF1028]" />
                                   <span>{item.label}</span>
                                   {item.badge && (
-                                    <span className="text-[9px] font-mono px-1 rounded bg-[#FF1028] text-white">
+                                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-[#FF1028] text-white">
                                       {item.badge}
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[10px] text-slate-400 font-sans font-normal">
+                                <div className="text-[11px] text-slate-400 font-sans font-normal mt-0.5">
                                   {group.title}
                                 </div>
                               </div>
@@ -1139,7 +1172,7 @@ export function AdminLayoutClient({
 
           <div
             className={cn(
-              "fixed top-0 bottom-0 left-0 w-72 max-w-[85vw] p-4 flex flex-col justify-between overflow-y-auto z-50 shadow-2xl animate-in slide-in-from-left duration-250",
+              "fixed top-0 bottom-0 left-0 w-80 max-w-[88vw] p-4 flex flex-col justify-between overflow-y-auto z-50 shadow-2xl animate-in slide-in-from-left duration-250",
               isDarkMode ? "bg-slate-900 border-r border-slate-800" : "bg-white"
             )}
           >
@@ -1147,19 +1180,27 @@ export function AdminLayoutClient({
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] flex items-center justify-center text-white font-bold shadow-xs">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <circle cx="8" cy="8" r="3.5" strokeWidth="2.4" />
-                      <circle cx="16" cy="16" r="3.5" strokeWidth="2.4" />
-                      <path d="M10.5 10.5L13.5 13.5" strokeWidth="2.4" strokeLinecap="round" />
-                    </svg>
+                  <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 flex items-center justify-center">
+                    <Image
+                      src={adminLogo}
+                      alt="Lennox Logo"
+                      fill
+                      sizes="36px"
+                      className="object-contain p-0.5"
+                      unoptimized={adminLogo.startsWith("data:") || adminLogo.startsWith("blob:")}
+                    />
                   </div>
                   <div>
-                    <span className="font-black text-slate-900 dark:text-white text-base font-heading">
-                      Lennox ChinaMall
-                    </span>
-                    <span className="text-[10px] text-slate-400 block -mt-1 font-mono">
-                      Admin Ops
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-heading font-black text-slate-900 dark:text-white text-base tracking-tight">
+                        Lennox
+                      </span>
+                      <span className="text-[9px] font-black font-mono uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
+                        ADMIN
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-400 block -mt-0.5 font-medium">
+                      ChinaMall Operations
                     </span>
                   </div>
                 </div>
@@ -1176,7 +1217,7 @@ export function AdminLayoutClient({
               <div className="space-y-4 pb-4">
                 {ALL_NAV_SECTIONS.map((group) => (
                   <div key={group.id} className="space-y-1">
-                    <div className="px-2 text-[10px] font-black uppercase tracking-wider font-heading text-slate-400 dark:text-slate-500">
+                    <div className="px-3 pt-1 text-[11px] font-bold uppercase tracking-[0.06em] font-heading text-slate-400 dark:text-slate-500">
                       {group.title}
                     </div>
                     <nav className="space-y-0.5">
@@ -1194,20 +1235,20 @@ export function AdminLayoutClient({
                               href={item.href}
                               onClick={() => setMobileMenuOpen(false)}
                               className={cn(
-                                "flex items-center justify-between px-3 py-2 rounded-xl text-xs font-heading font-semibold transition-all relative min-h-[44px]",
+                                "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all relative min-h-[44px]",
                                 isActive
-                                  ? "bg-red-50/80 dark:bg-red-950/20 text-slate-900 dark:text-white font-bold"
-                                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                  ? "bg-red-50/90 text-[#FF1028] dark:bg-red-950/40 dark:text-rose-300 font-semibold border border-red-200/60 dark:border-red-900/40"
+                                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100"
                               )}
                             >
                               {isActive && (
-                                <span className="w-1 h-4.5 rounded-full bg-[#FF1028] absolute left-1 top-1/2 -translate-y-1/2" />
+                                <span className="w-1.5 h-5 rounded-full bg-[#FF1028] absolute left-1 top-1/2 -translate-y-1/2 shadow-xs" />
                               )}
-                              <div className="flex items-center gap-2.5">
+                              <div className="flex items-center gap-3">
                                 <Icon
                                   className={cn(
-                                    "w-4 h-4 shrink-0",
-                                    isActive ? "text-[#FF1028]" : "text-slate-400"
+                                    "w-5 h-5 shrink-0 transition-colors",
+                                    isActive ? "text-[#FF1028] dark:text-rose-400" : "text-slate-400 dark:text-slate-500"
                                   )}
                                 />
                                 <span>{item.label}</span>

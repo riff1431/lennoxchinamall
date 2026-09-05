@@ -98,12 +98,23 @@ export function AdminUploader({
           newUrls.push(uploadedUrl);
         } else {
           try {
-            const { uploadMediaFile } = await import("@/app/actions/storage");
             const formData = new FormData();
             formData.append("file", file);
             formData.append("bucket", "products");
             formData.append("folder", "products");
-            const res = await uploadMediaFile(formData);
+
+            let res: any;
+            try {
+              const apiRes = await fetch("/api/admin/upload", {
+                method: "POST",
+                body: formData,
+              });
+              res = await apiRes.json();
+            } catch {
+              const { uploadMediaFile } = await import("@/app/actions/storage");
+              res = await uploadMediaFile(formData);
+            }
+
             if (res.success && res.url) {
               newUrls.push(res.url);
             } else {
