@@ -12,8 +12,6 @@ import {
   Check,
   Zap,
   ArrowRight,
-  ChevronLeft,
-  ChevronRight,
   Flame,
   Clock,
   ShieldCheck,
@@ -517,55 +515,6 @@ export function HeroLennoxSection({ config, onOpenVideoModal }: HeroLennoxSectio
                 })}
               </div>
             </div>
-
-            {/* Left & Right Floating Navigation Controls */}
-            {totalDeals > dealsItemsPerView && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    prevDeal();
-                  }}
-                  className="absolute -left-2 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-[#00143D] text-[#00143D] hover:text-white border border-slate-200/90 shadow-md flex items-center justify-center transition-all opacity-0 group-hover/deals:opacity-100 z-20 cursor-pointer active:scale-95"
-                  aria-label={isSpanish ? "Ofertas anteriores" : "Previous deals"}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    nextDeal();
-                  }}
-                  className="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 hover:bg-[#FF1028] text-[#00143D] hover:text-white border border-slate-200/90 shadow-md flex items-center justify-center transition-all opacity-0 group-hover/deals:opacity-100 z-20 cursor-pointer active:scale-95"
-                  aria-label={isSpanish ? "Siguientes ofertas" : "Next deals"}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </>
-            )}
-
-            {/* Carousel Dot Indicators */}
-            {totalDeals > dealsItemsPerView && (
-              <div className="flex items-center justify-center gap-1 pt-1.5">
-                {activeFourDeals.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setDealsWithTransition(true);
-                      setDealsCurrentIndex(i);
-                    }}
-                    className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
-                      i === (dealsCurrentIndex % totalDeals)
-                        ? "w-4 bg-[#FF1028]"
-                        : "w-1.5 bg-slate-200 hover:bg-slate-300"
-                    }`}
-                    aria-label={`Slide ${i + 1}`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
