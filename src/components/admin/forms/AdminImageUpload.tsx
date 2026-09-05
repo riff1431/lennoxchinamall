@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { uploadMediaFile } from "@/app/actions/storage";
+import { cn } from "@/utils/helpers";
 
 export interface AdminImageUploadProps {
   label?: string;
@@ -283,7 +284,7 @@ export function AdminImageUpload({
 
       {/* Main Drag-and-Drop & Preview Area */}
       {!value ? (
-        /* Empty State: Dropzone */
+        /* Empty State: Minimal Dropzone */
         <div
           ref={dropZoneRef}
           onDragEnter={handleDragEnter}
@@ -291,20 +292,20 @@ export function AdminImageUpload({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => !disabled && !isUploading && fileInputRef.current?.click()}
-          className={`relative group rounded-2xl border-2 border-dashed transition-all duration-200 p-5 flex flex-col items-center justify-center text-center cursor-pointer select-none overflow-hidden ${
+          className={cn(
+            "relative group rounded-xl border border-dashed transition-all duration-150 p-4 flex flex-col items-center justify-center text-center cursor-pointer select-none overflow-hidden",
             isDragActive
-              ? "border-[#2F65F6] bg-blue-500/10 dark:bg-blue-500/15 scale-[1.01] ring-4 ring-blue-500/20 shadow-md"
-              : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 hover:bg-slate-100/70 dark:hover:bg-slate-900/80 hover:border-slate-300 dark:hover:border-slate-700"
-          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+              ? "border-slate-900 dark:border-white bg-slate-100/60 dark:bg-slate-800/60"
+              : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 hover:bg-slate-50 dark:hover:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700",
+            disabled && "opacity-50 cursor-not-allowed"
+          )}
         >
           {isUploading ? (
-            <div className="py-3 flex flex-col items-center gap-2">
-              <div className="relative w-10 h-10 flex items-center justify-center">
-                <RefreshCw className="w-6 h-6 text-[#2F65F6] animate-spin" />
-              </div>
+            <div className="py-2.5 flex flex-col items-center gap-1.5">
+              <RefreshCw className="w-5 h-5 text-slate-700 dark:text-slate-300 animate-spin" />
               <div className="text-center">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Uploading to Cloud Storage...
+                <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                  Uploading asset...
                 </p>
                 {uploadProgress !== null && (
                   <p className="text-[10px] text-slate-400 font-mono mt-0.5">{uploadProgress}%</p>
@@ -312,36 +313,23 @@ export function AdminImageUpload({
               </div>
             </div>
           ) : (
-            <>
-              <div
-                className={`w-11 h-11 rounded-2xl flex items-center justify-center mb-2.5 transition-transform duration-200 ${
-                  isDragActive
-                    ? "bg-[#2F65F6] text-white scale-110 shadow-lg shadow-blue-500/30"
-                    : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[#2F65F6] group-hover:scale-105 shadow-2xs"
-                }`}
-              >
-                <UploadCloud className="w-5 h-5" />
+            <div className="flex flex-col items-center gap-2 py-1">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors shadow-2xs">
+                <UploadCloud className="w-4 h-4" />
               </div>
 
               <div className="space-y-0.5">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Drag &amp; drop image here, or{" "}
-                  <span className="text-[#2F65F6] underline decoration-blue-400/50 underline-offset-2">
-                    browse
-                  </span>
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  <span className="font-semibold text-slate-900 dark:text-white underline underline-offset-2">
+                    Click to upload
+                  </span>{" "}
+                  or drag and drop
                 </p>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                  {helperText || `Supports PNG, JPG, WebP, SVG, ICO (Max ${maxSizeMB}MB)`}
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  {helperText || `PNG, JPG, WebP, SVG, ICO (Max ${maxSizeMB}MB)`}
                 </p>
               </div>
-
-              <div className="mt-2.5 flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                  <Sparkles className="w-2.5 h-2.5 text-amber-500" />
-                  Auto-optimizes &amp; uploads
-                </span>
-              </div>
-            </>
+            </div>
           )}
         </div>
       ) : (
@@ -352,77 +340,79 @@ export function AdminImageUpload({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative rounded-2xl border transition-all duration-200 p-3.5 bg-white dark:bg-slate-900/90 ${
-            isDragActive
-              ? "border-[#2F65F6] ring-4 ring-blue-500/20 shadow-lg"
-              : "border-slate-200 dark:border-slate-800 shadow-xs"
-          }`}
+          className={cn(
+            "relative rounded-xl border transition-all duration-150 p-3 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-2xs",
+            isDragActive && "border-slate-900 dark:border-white ring-2 ring-slate-900/10 dark:ring-white/10"
+          )}
         >
           {isDragActive && (
-            <div className="absolute inset-0 bg-[#2F65F6]/10 backdrop-blur-2xs rounded-2xl z-20 flex items-center justify-center border-2 border-dashed border-[#2F65F6]">
-              <div className="bg-white dark:bg-slate-900 px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold text-[#2F65F6]">
-                <UploadCloud className="w-4 h-4 animate-bounce" />
+            <div className="absolute inset-0 bg-slate-900/5 dark:bg-white/5 backdrop-blur-2xs rounded-xl z-20 flex items-center justify-center border-2 border-dashed border-slate-900 dark:border-white">
+              <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg shadow-md flex items-center gap-2 text-xs font-semibold text-slate-900 dark:text-white">
+                <UploadCloud className="w-4 h-4" />
                 <span>Drop new image to replace</span>
               </div>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            {/* Visual Thumbnail with transparency checkerboard background */}
+          <div className="flex flex-col sm:flex-row items-center gap-3.5">
+            {/* Visual Thumbnail */}
             <div
-              className={`relative shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner flex items-center justify-center ${
+              className={cn(
+                "relative shrink-0 overflow-hidden border border-slate-200/90 dark:border-slate-800 flex items-center justify-center",
                 previewShape === "circle"
-                  ? "w-20 h-20 rounded-full"
+                  ? "w-16 h-16 rounded-full"
                   : previewShape === "square"
-                  ? "w-24 h-24 rounded-xl"
-                  : "w-full sm:w-36 h-24 rounded-xl"
-              } ${
+                  ? "w-20 h-20 rounded-lg"
+                  : "w-full sm:w-32 h-20 rounded-lg",
                 bgMode === "checker"
-                  ? "bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%),linear-gradient(-45deg,#f0f0f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f0f0f0_75%),linear-gradient(-45deg,transparent_75%,#f0f0f0_75%)] bg-[size:12px_12px] bg-[position:0_0,0_6px,6px_-6px,-6px_0] dark:bg-[linear-gradient(45deg,#1f2937_25%,transparent_25%),linear-gradient(-45deg,#1f2937_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2937_75%),linear-gradient(-45deg,transparent_75%,#1f2937_75%)]"
+                  ? "bg-[linear-gradient(45deg,#f0f0f0_25%,transparent_25%),linear-gradient(-45deg,#f0f0f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f0f0f0_75%),linear-gradient(-45deg,transparent_75%,#f0f0f0_75%)] bg-[size:10px_10px] bg-[position:0_0,0_5px,5px_-5px,-5px_0] dark:bg-[linear-gradient(45deg,#1f2937_25%,transparent_25%),linear-gradient(-45deg,#1f2937_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#1f2937_75%),linear-gradient(-45deg,transparent_75%,#1f2937_75%)]"
                   : bgMode === "dark"
                   ? "bg-slate-950"
                   : "bg-white"
-              }`}
+              )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={value}
                 alt={label || "Uploaded preview"}
-                className="max-h-full max-w-full object-contain p-1.5 transition-transform duration-200 hover:scale-105"
+                className="max-h-full max-w-full object-contain p-1.5 transition-transform duration-150 hover:scale-105"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = "none";
                 }}
               />
 
-              {/* Background preview switcher badge */}
-              <div className="absolute bottom-1 right-1 flex items-center gap-0.5 bg-black/70 backdrop-blur-xs rounded-md p-0.5 z-10">
+              {/* Background switcher */}
+              <div className="absolute bottom-1 right-1 flex items-center gap-0.5 bg-black/60 backdrop-blur-xs rounded p-0.5 z-10">
                 <button
                   type="button"
-                  title="Checkerboard BG"
+                  title="Checkerboard"
                   onClick={() => setBgMode("checker")}
-                  className={`w-3.5 h-3.5 rounded text-[8px] flex items-center justify-center ${
-                    bgMode === "checker" ? "bg-white text-black font-bold" : "text-white/70 hover:text-white"
-                  }`}
+                  className={cn(
+                    "w-3 h-3 rounded-xs text-[7px] flex items-center justify-center",
+                    bgMode === "checker" ? "bg-white text-black font-bold" : "text-white/60 hover:text-white"
+                  )}
                 >
                   🏁
                 </button>
                 <button
                   type="button"
-                  title="Dark BG"
+                  title="Dark"
                   onClick={() => setBgMode("dark")}
-                  className={`w-3.5 h-3.5 rounded text-[8px] flex items-center justify-center ${
-                    bgMode === "dark" ? "bg-white text-black font-bold" : "text-white/70 hover:text-white"
-                  }`}
+                  className={cn(
+                    "w-3 h-3 rounded-xs text-[7px] flex items-center justify-center",
+                    bgMode === "dark" ? "bg-white text-black font-bold" : "text-white/60 hover:text-white"
+                  )}
                 >
                   🌑
                 </button>
                 <button
                   type="button"
-                  title="Light BG"
+                  title="Light"
                   onClick={() => setBgMode("light")}
-                  className={`w-3.5 h-3.5 rounded text-[8px] flex items-center justify-center ${
-                    bgMode === "light" ? "bg-white text-black font-bold" : "text-white/70 hover:text-white"
-                  }`}
+                  className={cn(
+                    "w-3 h-3 rounded-xs text-[7px] flex items-center justify-center",
+                    bgMode === "light" ? "bg-white text-black font-bold" : "text-white/60 hover:text-white"
+                  )}
                 >
                   ☀️
                 </button>
@@ -430,21 +420,21 @@ export function AdminImageUpload({
             </div>
 
             {/* Metadata & Actions */}
-            <div className="flex-1 min-w-0 w-full space-y-2">
+            <div className="flex-1 min-w-0 w-full space-y-1.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 truncate" title={value}>
+                  <p className="text-xs font-mono font-medium text-slate-900 dark:text-slate-100 truncate" title={value}>
                     {value.split("/").pop() || value}
                   </p>
                   <p className="text-[10px] text-slate-400 font-mono truncate max-w-xs">{value}</p>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-0.5 shrink-0">
                   <button
                     type="button"
                     onClick={handleCopyUrl}
-                    title="Copy Image URL"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2F65F6] hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                    title="Copy URL"
+                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
@@ -453,8 +443,8 @@ export function AdminImageUpload({
                     href={value}
                     target="_blank"
                     rel="noreferrer"
-                    title="Open Full Image in New Tab"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#2F65F6] hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                    title="Open in new tab"
+                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
@@ -463,33 +453,13 @@ export function AdminImageUpload({
                     <button
                       type="button"
                       onClick={handleClear}
-                      title="Remove image"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                      title="Remove"
+                      className="p-1.5 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
-              </div>
-
-              {/* Badges */}
-              <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
-                {imageMeta?.dimensions && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold">
-                    <Maximize2 className="w-2.5 h-2.5 text-[#2F65F6]" />
-                    {imageMeta.dimensions}
-                  </span>
-                )}
-                {imageMeta?.format && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-[#2F65F6] dark:text-blue-300 font-bold uppercase">
-                    {imageMeta.format}
-                  </span>
-                )}
-                {imageMeta?.size && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400">
-                    {imageMeta.size}
-                  </span>
-                )}
               </div>
 
               {/* Action row to replace */}
@@ -499,7 +469,7 @@ export function AdminImageUpload({
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="text-[11px] font-bold text-[#2F65F6] hover:text-[#2563EB] hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white underline underline-offset-2 flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     {isUploading ? (
                       <>
@@ -509,11 +479,11 @@ export function AdminImageUpload({
                     ) : (
                       <>
                         <UploadCloud className="w-3 h-3" />
-                        <span>Replace with new file</span>
+                        <span>Replace file</span>
                       </>
                     )}
                   </button>
-                  <span className="text-[10px] text-slate-400">• or drag &amp; drop new file onto this card</span>
+                  <span className="text-[11px] text-slate-400">or drop new file here</span>
                 </div>
               )}
             </div>

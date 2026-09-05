@@ -992,33 +992,33 @@ export function AdminLayoutClient({
                             <Link
                               href={item.href}
                               className={cn(
-                                "flex items-center rounded-xl transition-all duration-150 relative cursor-pointer font-medium tracking-tight",
+                                "flex items-center rounded-lg transition-all duration-150 relative cursor-pointer font-medium text-xs tracking-tight",
                                 isSidebarCollapsed
-                                  ? "w-11 h-11 mx-auto justify-center"
-                                  : "px-3 py-2.5 gap-3 justify-between text-[13.5px]",
+                                  ? "w-9 h-9 mx-auto justify-center"
+                                  : "px-2.5 py-2 gap-2.5 justify-between min-h-[36px]",
                                 isActive
-                                  ? "bg-red-50/90 text-[#FF1028] dark:bg-red-950/40 dark:text-rose-300 font-semibold border border-red-200/60 dark:border-red-900/40 shadow-xs"
-                                  : "text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60"
+                                  ? "bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-white font-semibold shadow-2xs"
+                                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                               )}
                               title={isSidebarCollapsed ? item.label : undefined}
                             >
-                              {/* Left Accent Pip for Active Item */}
+                              {/* Left Accent Bar for Active Item */}
                               {!isSidebarCollapsed && isActive && (
-                                <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#FF1028]" />
+                                <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-slate-900 dark:bg-white" />
                               )}
 
                               <div
                                 className={cn(
-                                  "flex items-center gap-3 min-w-0",
+                                  "flex items-center gap-2.5 min-w-0",
                                   isSidebarCollapsed && "justify-center"
                                 )}
                               >
                                 <Icon
                                   className={cn(
-                                    "w-5 h-5 shrink-0 transition-transform duration-150 group-hover/navitem:scale-105",
+                                    "w-4 h-4 shrink-0 transition-colors",
                                     isActive
-                                      ? "text-[#FF1028] dark:text-rose-400"
-                                      : "text-slate-400 group-hover/navitem:text-slate-700 dark:group-hover/navitem:text-slate-200"
+                                      ? "text-slate-900 dark:text-white"
+                                      : "text-slate-400 group-hover/navitem:text-slate-700 dark:group-hover/navitem:text-slate-300"
                                   )}
                                 />
                                 {!isSidebarCollapsed && (
@@ -1235,20 +1235,20 @@ export function AdminLayoutClient({
                               href={item.href}
                               onClick={() => setMobileMenuOpen(false)}
                               className={cn(
-                                "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all relative min-h-[44px]",
+                                "flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all relative min-h-[38px]",
                                 isActive
-                                  ? "bg-red-50/90 text-[#FF1028] dark:bg-red-950/40 dark:text-rose-300 font-semibold border border-red-200/60 dark:border-red-900/40"
+                                  ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white font-semibold"
                                   : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100"
                               )}
                             >
                               {isActive && (
-                                <span className="w-1.5 h-5 rounded-full bg-[#FF1028] absolute left-1 top-1/2 -translate-y-1/2 shadow-xs" />
+                                <span className="w-1 h-4 rounded-full bg-slate-900 dark:bg-white absolute left-1 top-1/2 -translate-y-1/2" />
                               )}
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2.5">
                                 <Icon
                                   className={cn(
-                                    "w-5 h-5 shrink-0 transition-colors",
-                                    isActive ? "text-[#FF1028] dark:text-rose-400" : "text-slate-400 dark:text-slate-500"
+                                    "w-4 h-4 shrink-0 transition-colors",
+                                    isActive ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500"
                                   )}
                                 />
                                 <span>{item.label}</span>
@@ -1382,25 +1382,25 @@ export function AdminLayoutClient({
                 type="button"
                 onClick={() => setQuickActionsOpen(!quickActionsOpen)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer shadow-xs border",
+                  "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer shadow-2xs border",
                   quickActionsOpen
-                    ? "bg-[#2F65F6] text-white border-[#2F65F6]"
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white"
                     : isDarkMode
-                    ? "bg-slate-900 border-slate-800 text-slate-300 hover:text-white"
-                    : "bg-white border-slate-200/90 text-slate-700 hover:text-slate-900"
+                    ? "bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700"
+                    : "bg-white border-slate-200/90 text-slate-700 hover:text-slate-900 hover:border-slate-300"
                 )}
                 title="Quick creation & shortcut actions"
                 aria-expanded={quickActionsOpen}
               >
-                <Plus className="w-3.5 h-3.5 text-[#2F65F6] group-hover:text-white" />
-                <span className="hidden md:inline font-heading text-[11px]">Quick Action</span>
-                <ChevronDown className={cn("w-3 h-3 transition-transform", quickActionsOpen && "rotate-180")} />
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden md:inline text-[11px] font-medium">Quick Action</span>
+                <ChevronDown className={cn("w-3 h-3 transition-transform text-slate-400", quickActionsOpen && "rotate-180")} />
               </button>
 
               {/* Quick Actions Dropdown Panel */}
               {quickActionsOpen && (
-                <div className="absolute right-0 mt-2 w-56 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
-                  <div className="px-2.5 py-1.5 text-[10px] font-heading font-black uppercase text-slate-400 tracking-wider">
+                <div className="absolute right-0 mt-2 w-56 p-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                  <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase text-slate-400 tracking-wider">
                     Operational Shortcuts
                   </div>
                   <Link

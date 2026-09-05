@@ -63,7 +63,7 @@ const COLOR_NAME_MAP: Record<string, string> = {
   "#FEF3C7": "Warm Amber",
 };
 
-export function getColorNameFromHex(hex: string): string {
+function getColorNameFromHex(hex: string): string {
   const upper = hex.toUpperCase();
   if (COLOR_NAME_MAP[upper]) return COLOR_NAME_MAP[upper];
   return upper;

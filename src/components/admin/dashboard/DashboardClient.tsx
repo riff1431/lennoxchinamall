@@ -263,9 +263,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                 type="button"
                 onClick={() => handleRangeChange(t.key)}
                 className={cn(
-                  "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+                  "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap",
                   isActive
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold shadow-xs"
+                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold shadow-2xs"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60"
                 )}
               >
@@ -279,7 +279,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             href="/admin/orders"
-            className="px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium transition-colors flex items-center gap-1.5"
           >
             <ShoppingCart className="w-3.5 h-3.5 text-slate-400" />
             <span>Orders</span>
@@ -287,7 +287,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
           <Link
             href="/admin/inventory"
-            className="px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium transition-colors flex items-center gap-1.5"
           >
             <Box className="w-3.5 h-3.5 text-slate-400" />
             <span>Stock</span>
@@ -295,7 +295,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
           <Link
             href="/admin/promotions"
-            className="px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-medium transition-colors flex items-center gap-1.5"
           >
             <Flame className="w-3.5 h-3.5 text-slate-400" />
             <span>Promotions</span>
@@ -305,7 +305,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             type="button"
             onClick={handleExportOverview}
             title="Export CSV"
-            className="p-2 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
           </button>
@@ -314,7 +314,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             type="button"
             onClick={() => setIsLayoutModalOpen(true)}
             title="Configure Dashboard Widgets"
-            className="p-2 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
           </button>
@@ -323,7 +323,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             type="button"
             onClick={() => fetchData()}
             title="Refresh Live Database Data"
-            className="p-2 rounded-xl border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <RefreshCw className={cn("w-3.5 h-3.5", (isLoading || isPending) && "animate-spin text-slate-900 dark:text-white")} />
           </button>
@@ -334,7 +334,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       {isWidgetEnabled("kpis") && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
           {/* Card 1: Revenue (USDT) */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Gross Revenue
@@ -361,7 +361,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
 
           {/* Card 2: Orders Count */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Total Orders
@@ -388,7 +388,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
 
           {/* Card 3: Customers & Buyers */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 New Customers
@@ -415,7 +415,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
 
           {/* Card 4: Estimated Profit & Margin */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 {data.isFinancialDataAllowed ? "Estimated Profit" : "Average Order"}
@@ -441,7 +441,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
 
           {/* Card 5: Pending Crypto Settlements */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Pending Crypto
@@ -459,7 +459,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
 
           {/* Card 6: Low Stock SKUs */}
-          <div className="p-4 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Low Stock Alerts
@@ -487,15 +487,15 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       {/* ── 4. Action Required Priority Strip ── */}
       {isWidgetEnabled("tasks") && data.actionTasks && data.actionTasks.length > 0 && (
-        <div className="bg-slate-900 dark:bg-slate-800 text-white rounded-2xl p-4 border border-slate-800 dark:border-slate-700 shadow-xs space-y-3">
+        <div className="bg-slate-900 dark:bg-slate-800 text-white rounded-xl p-4 border border-slate-800 dark:border-slate-700 shadow-2xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-400" />
-              <h2 className="font-heading font-bold text-xs uppercase tracking-wider text-slate-200">
+              <h2 className="font-heading font-semibold text-xs uppercase tracking-wider text-slate-200">
                 Action Required • Priority Tasks
               </h2>
             </div>
-            <span className="text-[10px] font-mono font-semibold bg-white/10 px-2 py-0.5 rounded-full text-slate-300">
+            <span className="text-[10px] font-mono font-medium bg-white/10 px-2 py-0.5 rounded-full text-slate-300">
               {data.actionTasks.length} Active
             </span>
           </div>
@@ -504,13 +504,13 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             {data.actionTasks.map((task) => (
               <div
                 key={task.id}
-                className="bg-white/5 rounded-xl p-3 border border-white/10 flex flex-col justify-between space-y-2 hover:bg-white/10 transition-all"
+                className="bg-white/5 rounded-lg p-3 border border-white/10 flex flex-col justify-between space-y-2 hover:bg-white/10 transition-all"
               >
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <span
                       className={cn(
-                        "text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded font-mono",
+                        "text-[9px] font-medium uppercase tracking-wider px-1.5 py-0.2 rounded font-mono",
                         task.severity === "urgent"
                           ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                           : task.severity === "high"
@@ -521,12 +521,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                       {task.severity}
                     </span>
                     {task.count !== undefined && (
-                      <span className="text-xs font-mono font-bold text-slate-300">
+                      <span className="text-xs font-mono font-medium text-slate-300">
                         {task.count} items
                       </span>
                     )}
                   </div>
-                  <h3 className="font-bold text-xs text-white pt-0.5 truncate">
+                  <h3 className="font-semibold text-xs text-white pt-0.5 truncate">
                     {task.title}
                   </h3>
                   <p className="text-[11px] text-slate-300/80 leading-relaxed line-clamp-1">
@@ -536,7 +536,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
                 <Link
                   href={task.actionHref}
-                  className="w-full py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-center font-semibold text-xs transition-colors border border-white/15"
+                  className="w-full py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-center font-medium text-xs transition-colors border border-white/15"
                 >
                   {task.actionLabel}
                 </Link>
@@ -556,9 +556,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       )}
 
       {/* ── 6. Segmented Operations Activity Hub (High-Efficiency Tabbed Workspace) ── */}
-      <div className="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs overflow-hidden">
         {/* Hub Tab Switcher Header */}
-        <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/30">
+        <div className="p-3.5 sm:p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-950/40">
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 md:pb-0">
             {(
               [
@@ -577,9 +577,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                   type="button"
                   onClick={() => setActiveFeedTab(tab.key)}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap",
+                    "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap",
                     isActive
-                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-bold shadow-xs"
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold shadow-2xs"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800"
                   )}
                 >

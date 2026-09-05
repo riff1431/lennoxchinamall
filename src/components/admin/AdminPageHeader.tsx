@@ -68,16 +68,16 @@ export function AdminPageHeader({
 
       {/* Main header row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight font-heading">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white tracking-tight">
               {title}
             </h1>
             {badge && (
               <span
                 className={cn(
-                  "text-[10px] font-mono font-semibold uppercase tracking-wide px-2 py-0.2 rounded-md",
-                  badgeVariants[badge.variant || "blue"]
+                  "text-[10px] font-medium tracking-wide px-2 py-0.5 rounded-md",
+                  badgeVariants[badge.variant || "slate"]
                 )}
               >
                 {badge.text}
@@ -97,20 +97,20 @@ export function AdminPageHeader({
             {actions.map((act, i) => {
               const Icon = act.icon;
               const buttonClasses = cn(
-                "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed",
+                "h-8.5 px-3 rounded-lg text-xs font-medium transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed select-none",
                 act.variant === "primary" || !act.variant
-                  ? "bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-bold"
+                  ? "bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-semibold"
                   : act.variant === "secondary"
-                  ? "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800"
+                  ? "bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-800"
                   : act.variant === "danger"
                   ? "bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                  : "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800"
+                  : "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/90 dark:border-slate-800"
               );
 
               if (act.href) {
                 return (
                   <Link key={i} href={act.href} className={buttonClasses}>
-                    {Icon && <Icon className="w-3.5 h-3.5" />}
+                    {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
                     <span>{act.label}</span>
                   </Link>
                 );
@@ -124,7 +124,7 @@ export function AdminPageHeader({
                   disabled={act.disabled}
                   className={buttonClasses}
                 >
-                  {Icon && <Icon className="w-3.5 h-3.5" />}
+                  {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
                   <span>{act.label}</span>
                 </button>
               );

@@ -315,10 +315,10 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
   return (
     <div className="w-full space-y-4 font-montserrat">
       {/* ── Top Bar: Search, Filters, Column Visibility, View Toggle & CSV Export ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-[#111827] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
         {/* Search Input */}
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
@@ -327,7 +327,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
               setCurrentPage(1);
             }}
             placeholder={searchPlaceholder}
-            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs rounded-xl pl-9.5 pr-8 py-2.5 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-[#2F65F6] dark:focus:border-[#2F65F6] transition-colors font-medium"
+            className="w-full bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs rounded-lg pl-9 pr-8 h-9 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white transition-colors font-medium"
           />
           {searchTerm && (
             <button
@@ -353,7 +353,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
                   }));
                   setCurrentPage(1);
                 }}
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold rounded-xl px-3 py-2 text-slate-700 dark:text-slate-300 outline-none focus:border-[#2F65F6] transition-colors cursor-pointer appearance-none pr-8"
+                className="bg-slate-50/50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium rounded-lg px-3 h-9 text-slate-700 dark:text-slate-300 outline-none focus:border-slate-900 dark:focus:border-white transition-colors cursor-pointer appearance-none pr-8"
               >
                 <option value="all">All {filter.label}</option>
                 {filter.options.map((opt) => (
@@ -370,7 +370,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
           {hasActiveFilters && (
             <button
               onClick={resetAllFilters}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="h-9 px-2.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer flex items-center justify-center"
               title="Reset all filters"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -383,16 +383,16 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
               type="button"
               onClick={() => setColumnMenuOpen((prev) => !prev)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-colors cursor-pointer",
+                "flex items-center gap-1.5 px-3 h-9 rounded-lg border text-xs font-medium transition-colors cursor-pointer",
                 columnMenuOpen
                   ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700"
-                  : "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  : "bg-slate-50/50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
               )}
               title="Customize visible columns"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Columns</span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                 {visibleColumns.length}
               </span>
             </button>
@@ -552,7 +552,7 @@ export function AdminDataTable<T extends object = Record<string, unknown>>({
 
       {/* ── Main Data View (Responsive Table & Card Layouts) ── */}
       {!isError && (
-        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
           {/* TABLE VIEW */}
           <div
             className={cn(
